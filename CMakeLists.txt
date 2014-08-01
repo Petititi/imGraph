@@ -1,0 +1,71 @@
+cmake_minimum_required ( VERSION 2.6 )
+
+cmake_policy( SET CMP0015 OLD )
+cmake_policy( SET CMP0003 NEW )
+
+project ( imGraph )
+
+if( MSVC )
+    set( CMAKE_USE_RELATIVE_PATHS ON CACHE INTERNAL "" FORCE )
+endif( )
+
+
+# ----------------------------------------------------------------------------
+#  Current version number:
+# ----------------------------------------------------------------------------
+set( SURANS_VERSION "1.0.0" )
+string( REGEX MATCHALL "[ 0-9 ]+" SURANS_VERS_PARTS "${SURANS_VERSION}" )
+
+list( GET SURANS_VERS_PARTS 0 SURANS_VERS_MAJOR )
+list( GET SURANS_VERS_PARTS 1 SURANS_VERS_MINOR )
+list( GET SURANS_VERS_PARTS 2 SURANS_VERS_PATCH )
+
+
+# Alternatively you could simply include version.rc in another rc file
+# if there already is one in one of the files in ${SOURCES}
+
+
+include( ProjectAdd.cmake REQUIRED )
+
+FIND_PACKAGE( OpenCV REQUIRED )# opencv_calib3d opencv_core opencv_objdetect opencv_features2d opencv_highgui opencv_imgproc opencv_flann opencv_nonfree
+set ( OPENCV_CONCAT "${OpenCV_VERSION_MAJOR}${OpenCV_VERSION_MINOR}${OpenCV_VERSION_PATCH}" )
+
+FIND_PACKAGE(Qt4 COMPONENTS QtCore QtGui QtNetwork REQUIRED)
+INCLUDE(${QT_USE_FILE})
+ADD_DEFINITIONS(${QT_DEFINITIONS})
+
+find_package( Boost )
+if( Boost_FOUND )
+    if ("${Boost_LIBRARY_DIRS}" STREQUAL "")
+        if(EXISTS "${Boost_INCLUDE_DIR}/lib32-msvc-12.0")
+            set( Boost_LIBRARY_DIRS ${Boost_INCLUDE_DIR}/lib32-msvc-12.0)
+        else()
+            set( Boost_LIBRARY_DIRS ${Boost_INCLUDE_DIR}/lib32-msvc-9.0)
+        endif()
+    endif()
+    include_directories( ${Boost_INCLUDE_DIR} )
+	LINK_DIRECTORIES( ${Boost_LIBRARY_DIRS} )
+else()
+    MESSAGE(STATUS "--------Boost Not Found.....")
+    MESSAGE(STATUS "--------")
+    MESSAGE(STATUS "--------Please download/install latest version:")
+    MESSAGE(STATUS "--------")
+    MESSAGE(STATUS "http://sourceforge.net/projects/boost/files/boost-binaries/1.55.0-build2/")
+    MESSAGE(STATUS "--------(pour Visual 2008, c'est boost_1_55_0-msvc-9.0-32.exe)")
+endif( )
+
+#set( DETECT_LINKER_LIBS "debug;opencv_features2d${OPENCV_CONCAT}d;optimized;opencv_features2d${OPENCV_CONCAT};debug;opencv_highgui${OPENCV_CONCAT}d;optimized;opencv_highgui${OPENCV_CONCAT};" )
+set( DETECT_LINKER_LIBS "${OpenCV_LIBS}")
+
+find_package(OpencvInput REQUIRED)
+
+set( DIR_ADD_INCLUDE "${CMAKE_SOURCE_DIR}/include" ${Boost_INCLUDE_DIR} "${DIR_ADD_INCLUDE}" ${OPENCVINPUT_INCLUDE_DIRS} )
+MESSAGE(STATUS "DIR_ADD_INCLUDE : ${DIR_ADD_INCLUDE}")
+
+set( ADD_LIB_DIR "${SuransLib}" "${CMAKE_SOURCE_DIR}/libs" ${Boost_LIBRARY_DIRS} )
+
+set( ADD_LIBRARIES 
+    "debug;glew32sd.lib;optimized;glew32s.lib"
+    ${OPENCVINPUT_LIBRARIES} )
+
+add_subdirectory( Sources )
