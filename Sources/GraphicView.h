@@ -119,7 +119,8 @@ namespace charliesoft
 
   class MainWidget :public QWidget
   {
-    Q_OBJECT;
+    Q_OBJECT
+
     ParamRepresentation* startParam_;
     QPoint startMouse_;
     QPoint endMouse_;

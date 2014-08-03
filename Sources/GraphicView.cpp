@@ -629,7 +629,12 @@ namespace charliesoft
   
   void MainWidget::paintEvent(QPaintEvent *pe)
   {
+    QStyleOption o;
+    o.initFrom(this);
     QPainter painter(this);
+    style()->drawPrimitive(
+      QStyle::PE_Widget, &o, &painter, this);
+
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.setPen(QPen(Qt::black, 2));
 
