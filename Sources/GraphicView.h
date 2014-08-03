@@ -14,7 +14,7 @@
 #include <QComboBox>
 #include <QDial>
 #include <QPainterPath>
-#include "Block.h"
+#include "blocks/Block.h"
 
 #include <map>
 
@@ -143,29 +143,39 @@ namespace charliesoft
     void endLinkCreation(QPoint end);
   };
 
-  class Fenetre : public QMainWindow
+  class Window : public QMainWindow
   {
     Q_OBJECT;
 
-    static Fenetre* ptr;
+    static Window* ptr;
 
     charliesoft::GraphOfProcess *model_;
   public:
-    static Fenetre* getInstance();
+    static Window* getInstance();
     static void releaseInstance();
     static GraphRepresentation* getGraphLayout();
     void show();
     MainWidget* getMainWidget() const { return mainWidget_; }
   private:
-    Fenetre();
-    ~Fenetre();
+    Window();
+    ~Window();
 
     GlobalConfig* config_;
 
     GraphRepresentation* mainLayout_;
     QMenu *menuFichier;
     QMenu *menuAide;
-    MainWidget* mainWidget_;
+    MainWidget* mainWidget_;//input, imgProcess, signalProcess, mathOperator, output
+    QDockWidget *dock_input_;
+    QDockWidget *dock_imgProcess_;
+    QDockWidget *dock_signalProcess_;
+    QDockWidget *dock_mathOperator_;
+    QDockWidget *dock_output_;
+    QVBoxLayout* dock_input_content_;
+    QVBoxLayout* dock_imgProcess_content_;
+    QVBoxLayout* dock_signalProcess_content_;
+    QVBoxLayout* dock_mathOperator_content_;
+    QVBoxLayout* dock_output_content_;
 
     void mousePressEvent(QMouseEvent *event);
     void closeEvent(QCloseEvent *event);

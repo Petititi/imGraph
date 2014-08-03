@@ -11,12 +11,16 @@ macro(begin_new_project name)
 
 	file(GLOB files_srcs "*.c*")
 	file(GLOB files_int_hdrs "*.h*")
+	file(GLOB_RECURSE files_blocks_srcs "blocks/*.c*")
+	file(GLOB_RECURSE files_blocks_int_hdrs "blocks/*.h")
 	source_group("Src" FILES ${files_srcs})
 	source_group("Include" FILES ${files_int_hdrs})
+	source_group("Src\\blocks" FILES ${files_blocks_srcs})
+	source_group("Include\\blocks" FILES ${files_blocks_int_hdrs})
 
 	set(the_target "${name}")
 
-	set(file_list_ ${files_srcs} ${files_int_hdrs} ${cfg_file} )
+	set(file_list_ ${files_srcs} ${files_int_hdrs} ${files_blocks_srcs} ${files_blocks_int_hdrs} ${cfg_file} )
 	if( DEFINED HEADERS_MOC )
 		set(file_list_ ${file_list_} ${HEADERS_MOC})
 		MESSAGE(STATUS "HEADERS_MOC : ${HEADERS_MOC}")

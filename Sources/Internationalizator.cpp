@@ -72,8 +72,6 @@ namespace charliesoft
     translations["MENU_HELP_INFO"] = "Info";
     translations["MENU_HELP_HELP"] = "Help";
 
-    translations["DOCK_BLOCK_TITLE"] = "List of blocks";
-
     translations["CONF_FILE_TYPE"] = "imGraph project (*.igp)";
 
     translations["PROJ_LOAD_FILE"] = "Open project file";
@@ -81,6 +79,9 @@ namespace charliesoft
 
 
     translations["BLOCK_INPUT"] = "Input";
+    translations["BLOCK_IMG_PROCESS"] = "2D processing";
+    translations["BLOCK_SIGNAL"] = "1D processing";
+    translations["BLOCK_MATH"] = "Math op.";
     translations["BLOCK_OUTPUT"] = "Output";
 
     translations["ERROR_GENERIC_TITLE"] = "Error";

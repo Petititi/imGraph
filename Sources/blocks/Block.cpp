@@ -1,17 +1,17 @@
 #include "Block.h"
-#include "Internationalizator.h"
 #include <vector>
 
 using namespace lsis_org;
-using namespace boost;
+using boost::graph_traits;
 using std::vector;
 
 namespace charliesoft
 {
-
-  std::string BlockLoader::getName(){
-    return _STR("BLOCK__INPUT_NAME");
+  Block::Block(std::string name){
+    name_ = name;
+    position_ = NULL; graph_ = NULL; 
   };
+
   std::vector<std::string> BlockLoader::getListParams(){
     std::vector<std::string> output;
     output.push_back(_STR("BLOCK__INPUT_PARAM_IN_FILE"));

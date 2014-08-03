@@ -6,6 +6,6 @@ using namespace charliesoft;
 int main(int argc, char* argv[])
 {
   QApplication app(argc, argv);
-  Fenetre::getInstance()->show();
+  Window::getInstance()->show();
   return app.exec();
 }

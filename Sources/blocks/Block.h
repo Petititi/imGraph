@@ -13,21 +13,27 @@
 #include <boost/graph/kamada_kawai_spring_layout.hpp>
 #endif
 
+#include "Internationalizator.h"
 #include <iostream>
 #include "OpenCV_filter.h"
+#include "ProcessManager.h"
+
 
 namespace charliesoft
 {
   class GraphOfProcess;
   typedef boost::square_topology<>::point_type Point_;//position of vertex
-
   class Block{
+    std::string name_;
     GraphOfProcess* graph_;//<Graph who own this block
-    Point_* position_;//<adress of VertexProperties_ position!
+    Point_* position_;//<link to VertexProperties_::position!
+
   public:
-    Block(){ position_ = NULL; graph_ = NULL; };
+    Block(std::string name);
     virtual void execute() = 0;
-    virtual std::string getName() = 0;
+    virtual std::string getName(){
+      return name_;
+    };
     virtual std::vector<std::string> getListParams() = 0;
     virtual std::vector<std::string> getListOutputs() = 0;
 
@@ -41,9 +47,8 @@ namespace charliesoft
   class BlockLoader :public Block
   {
   public:
-    BlockLoader(){};
+    BlockLoader() :Block(_STR("BLOCK__INPUT_NAME")){};
     virtual void execute(){};
-    virtual std::string getName();
     virtual std::vector<std::string> getListParams();
     virtual std::vector<std::string> getListOutputs();
   };

@@ -19,6 +19,8 @@
 #include <QSizePolicy>
 #include <QDebug>
 #include <QDockWidget>
+#include <QSplitter>
+#include <QTextEdit>
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
@@ -33,7 +35,6 @@
 
 using namespace std;
 using namespace charliesoft;
-using namespace boost;
 using namespace boost::filesystem;
 using boost::recursive_mutex;
 using boost::property_tree::ptree;
@@ -42,7 +43,7 @@ using boost::lock_guard;
 
 namespace charliesoft
 {
-  Fenetre* Fenetre::ptr = NULL;
+  Window* Window::ptr = NULL;
   recursive_mutex _windowMutex;
 
   //////////////////////////////////////////////////////////////////////////
@@ -117,19 +118,19 @@ namespace charliesoft
   //////////////////Window///////////////////////////////////// 
   ////////////////////////////////////////////////////////////////////////// 
 
-  Fenetre* Fenetre::getInstance()
+  Window* Window::getInstance()
   {
     lock_guard<recursive_mutex> guard(_windowMutex);//evite les problemes d'acces concurrent
     if (ptr == NULL)
-      ptr = new Fenetre();
+      ptr = new Window();
     return ptr;
   }
-  GraphRepresentation* Fenetre::getGraphLayout()
+  GraphRepresentation* Window::getGraphLayout()
   {
     return getInstance()->mainLayout_;
   }
 
-  void Fenetre::releaseInstance()
+  void Window::releaseInstance()
   {
     lock_guard<recursive_mutex> guard(_windowMutex);//evite les problemes d'acces concurrent
     if (ptr != NULL)
@@ -137,12 +138,12 @@ namespace charliesoft
     ptr = NULL;//already set in destructor, but just in case processor want to do jokes...
   }
 
-  Fenetre::~Fenetre()
+  Window::~Window()
   {
     ptr = NULL;
   }
 
-  Fenetre::Fenetre()
+  Window::Window()
   {
     //first load config file:
     config_ = new GlobalConfig();
@@ -173,7 +174,7 @@ namespace charliesoft
     menuAide->addAction(_QT("MENU_HELP_HELP"));
   }
 
-  void Fenetre::show()
+  void Window::show()
   {
     mainLayout_ = new GraphRepresentation();
     mainWidget_ = new MainWidget(model_);
@@ -181,9 +182,58 @@ namespace charliesoft
     //mainWidget_->setLayout(mainLayout_);
 
     statusBar();
-    QDockWidget *dock = new QDockWidget(_QT("DOCK_BLOCK_TITLE"), this);
-    addDockWidget(Qt::LeftDockWidgetArea, dock);
 
+    QWidget *dock_input_widget_ = new QWidget(this);
+    QWidget *dock_img_widget_ = new QWidget(this);
+    QWidget *dock_signal_widget_ = new QWidget(this);
+    QWidget *dock_math_widget_ = new QWidget(this);
+    QWidget *dock_output_widget_ = new QWidget(this);
+
+    dock_input_content_ = new QVBoxLayout();
+    dock_imgProcess_content_ = new QVBoxLayout();
+    dock_signalProcess_content_ = new QVBoxLayout();
+    dock_mathOperator_content_ = new QVBoxLayout();
+    dock_output_content_ = new QVBoxLayout();
+    dock_input_widget_->setLayout(dock_input_content_);
+    dock_img_widget_->setLayout(dock_imgProcess_content_);
+    dock_signal_widget_->setLayout(dock_signalProcess_content_);
+    dock_math_widget_->setLayout(dock_mathOperator_content_);
+    dock_output_widget_->setLayout(dock_output_content_);
+
+    dock_input_ = new QDockWidget(_QT("BLOCK_INPUT"), this);
+    dock_input_->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    dock_input_->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+    addDockWidget(Qt::LeftDockWidgetArea, dock_input_);
+    dock_input_->setWidget(dock_input_widget_);
+
+    dock_imgProcess_ = new QDockWidget(_QT("BLOCK_IMG_PROCESS"), this);
+    dock_imgProcess_->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    dock_imgProcess_->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+    addDockWidget(Qt::LeftDockWidgetArea, dock_imgProcess_);
+    dock_imgProcess_->setWidget(dock_img_widget_);
+
+    dock_signalProcess_ = new QDockWidget(_QT("BLOCK_SIGNAL"), this);
+    dock_signalProcess_->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    dock_signalProcess_->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+    addDockWidget(Qt::LeftDockWidgetArea, dock_signalProcess_);
+    dock_signalProcess_->setWidget(dock_signal_widget_);
+
+    dock_mathOperator_ = new QDockWidget(_QT("BLOCK_MATH"), this);
+    dock_mathOperator_->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    dock_mathOperator_->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+    addDockWidget(Qt::LeftDockWidgetArea, dock_mathOperator_);
+    dock_mathOperator_->setWidget(dock_math_widget_);
+    
+    dock_output_ = new QDockWidget(_QT("BLOCK_OUTPUT"), this);
+    dock_output_->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    dock_output_->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+    addDockWidget(Qt::LeftDockWidgetArea, dock_output_);
+    dock_output_->setWidget(dock_output_widget_);
+
+    tabifyDockWidget(dock_input_, dock_imgProcess_);
+    tabifyDockWidget(dock_input_, dock_signalProcess_);
+    tabifyDockWidget(dock_input_, dock_mathOperator_);
+    tabifyDockWidget(dock_input_, dock_output_);
     
     if (config_->isMaximized)
       showMaximized();
@@ -199,7 +249,7 @@ namespace charliesoft
       mainLayout_, SLOT(synchronize(charliesoft::GraphOfProcess *)));
   }
 
-  void Fenetre::mousePressEvent(QMouseEvent *event)
+  void Window::mousePressEvent(QMouseEvent *event)
   {
     if (event->button() == Qt::RightButton)
     {
@@ -211,14 +261,14 @@ namespace charliesoft
       std::cout << "middle mouse click " << std::endl;
   }
 
-  void Fenetre::closeEvent(QCloseEvent *event)
+  void Window::closeEvent(QCloseEvent *event)
   {
     if (!quitProg())
       event->ignore();
     event->accept();
   }
 
-  void Fenetre::openFile()
+  void Window::openFile()
   {
     QString file = QFileDialog::getOpenFileName(this, _QT("PROJ_LOAD_FILE"),
       config_->lastProject_.c_str(), _QT("CONF_FILE_TYPE"));
@@ -234,7 +284,7 @@ namespace charliesoft
     model_ = new GraphOfProcess();
   }
 
-  void Fenetre::newProject()
+  void Window::newProject()
   {
     string lastDirectory = config_->lastProject_;
     if (!lastDirectory.empty() && lastDirectory.find_last_of('/')!=string::npos)
@@ -250,7 +300,7 @@ namespace charliesoft
     model_ = new GraphOfProcess();
   }
 
-  bool Fenetre::quitProg()
+  bool Window::quitProg()
   {
     config_->isMaximized = isMaximized();
     if (!config_->isMaximized)
@@ -260,7 +310,7 @@ namespace charliesoft
     return true;
   }
   
-  void Fenetre::printHelp()
+  void Window::printHelp()
   {
 
   }
@@ -290,8 +340,8 @@ namespace charliesoft
     for (size_t i = 0; i < inputParams.size() ; i++)
     {
       ParamRepresentation  *tmp = new ParamRepresentation(model, inputParams[i].c_str(), true, this);
-      connect(tmp, SIGNAL(creationLink(QPoint)), Fenetre::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
-      connect(tmp, SIGNAL(releaseLink(QPoint)), Fenetre::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
+      connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
+      connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
       listOfInputChilds_[inputParams[i]] = tmp;
 
       tmpButtonsIn.push_back(tmp);
@@ -309,8 +359,8 @@ namespace charliesoft
     for (size_t i = 0; i < outputParams.size(); i++)
     {
       ParamRepresentation  *tmp = new ParamRepresentation(model, outputParams[i].c_str(), false, this);
-      connect(tmp, SIGNAL(creationLink(QPoint)), Fenetre::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
-      connect(tmp, SIGNAL(releaseLink(QPoint)), Fenetre::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
+      connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
+      connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
       listOfOutputChilds_[outputParams[i]] = tmp;
 
       tmpButtonsOut.push_back(tmp);
@@ -374,7 +424,7 @@ namespace charliesoft
   void NodeRepresentation::setLink(const BlockLink& link)
   {
     try {
-      NodeRepresentation* toNode = Fenetre::getGraphLayout()->getNodeRepresentation(link.to_);
+      NodeRepresentation* toNode = Window::getGraphLayout()->getNodeRepresentation(link.to_);
       ParamRepresentation* fromWidget, *toWidget;
       fromWidget = listOfOutputChilds_[link.fromParam_];
       toWidget = toNode->listOfInputChilds_[link.toParam_];
@@ -441,7 +491,7 @@ namespace charliesoft
     {
       QPoint p = mouseE->globalPos() + deltaClick_;
       move(p.x(), p.y());
-      Fenetre::getInstance()->update();
+      Window::getInstance()->update();
 
       //recompute owned link positions:
       auto iter = links_.begin();
@@ -468,7 +518,7 @@ namespace charliesoft
 
   QPoint ParamRepresentation::getWorldAnchor()
   {
-    QPoint p = parentWidget()->mapTo(Fenetre::getInstance()->getMainWidget(), mapTo(parentWidget(), pos()) / 2);
+    QPoint p = parentWidget()->mapTo(Window::getInstance()->getMainWidget(), mapTo(parentWidget(), pos()) / 2);
     if (isInput_)
       return QPoint(p.x(), p.y() + height() / 2.);
     else
@@ -488,7 +538,7 @@ namespace charliesoft
     if (NodeRepresentation* node = dynamic_cast<NodeRepresentation*>(parentWidget()))
       node->setParamActiv(NULL);
 
-    emit releaseLink(Fenetre::getInstance()->getMainWidget()->mapFromGlobal(e->globalPos()));
+    emit releaseLink(Window::getInstance()->getMainWidget()->mapFromGlobal(e->globalPos()));
   };
   void ParamRepresentation::mouseDoubleClickEvent(QMouseEvent *)
   {
@@ -639,7 +689,7 @@ namespace charliesoft
     painter.setPen(QPen(Qt::black, 2));
 
     //now ask each node to draw the links:
-    Fenetre::getGraphLayout()->drawLinks(painter);
+    Window::getGraphLayout()->drawLinks(painter);
 
     if (creatingLink_)
       painter.drawLine(startMouse_, endMouse_);
@@ -650,7 +700,7 @@ namespace charliesoft
     if (creatingLink_)
     {
       endMouse_ = me->pos();
-      Fenetre::getInstance()->update();
+      Window::getInstance()->update();
     }
   };
 
@@ -659,7 +709,7 @@ namespace charliesoft
     endMouse_ = end;
     creatingLink_ = false;
 
-    Fenetre::getInstance()->update();//redraw window...
+    Window::getInstance()->update();//redraw window...
 
     //find an hypotetic param widget under mouse:
     if (ParamRepresentation* param = dynamic_cast<ParamRepresentation*>(childAt(endMouse_)))
