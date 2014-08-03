@@ -18,6 +18,13 @@
 #include "OpenCV_filter.h"
 #include "ProcessManager.h"
 
+//macro to add algo to list:
+#define BLOCK_INSTANTIATE(className, blockType) \
+  class className##_hidden{ \
+    static bool addToList; \
+  }; \
+  bool className##_hidden::addToList = \
+    charliesoft::ProcessManager::getInstance()->addNewAlgo<##className##>(blockType, #className);
 
 namespace charliesoft
 {
@@ -44,14 +51,6 @@ namespace charliesoft
     void createLink(std::string paramName, Block* dest, std::string paramNameDest);
   };
 
-  class BlockLoader :public Block
-  {
-  public:
-    BlockLoader() :Block(_STR("BLOCK__INPUT_NAME")){};
-    virtual void execute(){};
-    virtual std::vector<std::string> getListParams();
-    virtual std::vector<std::string> getListOutputs();
-  };
 
   struct BlockLink
   {

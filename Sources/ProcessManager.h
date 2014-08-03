@@ -3,6 +3,8 @@
 
 #include <boost/function.hpp>
 #include <boost/functional/factory.hpp>
+#include <boost/thread/recursive_mutex.hpp>
+#include <boost/thread/lock_guard.hpp>
 
 #include <iostream>
 #include "OpenCV_filter.h"
@@ -30,8 +32,16 @@ namespace charliesoft
   public:
     static ProcessManager* getInstance();
     static void releaseInstance();
+    static boost::recursive_mutex _listBlockMutex;
 
-    void addNewAlgo(Algo_factory& factory, AlgoType type,  std::string name);
+    template<typename T>
+    bool addNewAlgo(AlgoType type, std::string name)
+    {
+      boost::lock_guard<boost::recursive_mutex> guard(_listBlockMutex);
+      algo_factory_[name] = boost::factory<T*>();
+      listOfAlgorithms_[type].push_back(name);
+      return true;
+    }
 
     Block* createAlgoInstance(std::string algo_name);
   };

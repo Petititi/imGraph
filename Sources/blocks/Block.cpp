@@ -11,20 +11,7 @@ namespace charliesoft
     name_ = name;
     position_ = NULL; graph_ = NULL; 
   };
-
-  std::vector<std::string> BlockLoader::getListParams(){
-    std::vector<std::string> output;
-    output.push_back(_STR("BLOCK__INPUT_PARAM_IN_FILE"));
-    return output;
-  };
-  std::vector<std::string> BlockLoader::getListOutputs(){
-    std::vector<std::string> output;
-    output.push_back(_STR("BLOCK__INPUT_PARAM_OUT_FRAMERATE"));
-    output.push_back(_STR("BLOCK__INPUT_PARAM_OUT_WIDTH"));
-    output.push_back(_STR("BLOCK__INPUT_PARAM_OUT_HEIGHT"));
-    return output;
-  };
-
+  
   GraphOfProcess::GraphOfProcess(){
   };
 

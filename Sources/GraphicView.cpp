@@ -32,6 +32,7 @@
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/lock_guard.hpp>
 
+#include "ProcessManager.h"
 
 using namespace std;
 using namespace charliesoft;
@@ -253,7 +254,7 @@ namespace charliesoft
   {
     if (event->button() == Qt::RightButton)
     {
-      BlockLoader* block = new BlockLoader();
+      Block* block = ProcessManager::getInstance()->createAlgoInstance("BlockLoader");
       model_->addNewProcess(block);
       emit askSynchro(model_);//as we updated the model, we ask the layout to redraw itself...
     }
