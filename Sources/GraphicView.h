@@ -17,6 +17,7 @@
 #include "blocks/Block.h"
 
 #include <map>
+#include "Window.h"
 
 namespace charliesoft
 {
@@ -70,7 +71,7 @@ namespace charliesoft
     std::map<std::string, ParamRepresentation*> listOfOutputChilds_;
 
     std::map<BlockLink, QPainterPath*> links_;
-    std::map<NodeRepresentation*, BlockLink> back_links_;
+    std::vector< std::pair<NodeRepresentation*, BlockLink> > back_links_;
   public:
     NodeRepresentation(Block* model);
 
@@ -88,7 +89,7 @@ namespace charliesoft
 
     void notifyBackLink(const BlockLink& linkInfo, NodeRepresentation* otherNode)
     {
-      back_links_[otherNode] = linkInfo;
+      back_links_.push_back(std::pair<NodeRepresentation*, BlockLink>(otherNode, linkInfo));
     };
   };
 
@@ -143,52 +144,6 @@ namespace charliesoft
     void endLinkCreation(QPoint end);
   };
 
-  class Window : public QMainWindow
-  {
-    Q_OBJECT;
-
-    static Window* ptr;
-
-    charliesoft::GraphOfProcess *model_;
-  public:
-    static Window* getInstance();
-    static void releaseInstance();
-    static GraphRepresentation* getGraphLayout();
-    void show();
-    MainWidget* getMainWidget() const { return mainWidget_; }
-  private:
-    Window();
-    ~Window();
-
-    GlobalConfig* config_;
-
-    GraphRepresentation* mainLayout_;
-    QMenu *menuFichier;
-    QMenu *menuAide;
-    MainWidget* mainWidget_;//input, imgProcess, signalProcess, mathOperator, output
-    QDockWidget *dock_input_;
-    QDockWidget *dock_imgProcess_;
-    QDockWidget *dock_signalProcess_;
-    QDockWidget *dock_mathOperator_;
-    QDockWidget *dock_output_;
-    QVBoxLayout* dock_input_content_;
-    QVBoxLayout* dock_imgProcess_content_;
-    QVBoxLayout* dock_signalProcess_content_;
-    QVBoxLayout* dock_mathOperator_content_;
-    QVBoxLayout* dock_output_content_;
-
-    void mousePressEvent(QMouseEvent *event);
-    void closeEvent(QCloseEvent *event);
-
-  signals:
-    void askSynchro(charliesoft::GraphOfProcess *model);
-
-    private slots:
-    void openFile();
-    void newProject();
-    bool quitProg();
-    void printHelp();
-  };
 }
 
 
