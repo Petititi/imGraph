@@ -6,7 +6,7 @@ using std::vector;
 
 namespace charliesoft
 {
-  BLOCK_INSTANTIATE(BlockLoader, AlgoType::input);
+  BLOCK_INSTANTIATE(BlockLoader, AlgoType::input, BLOCK__INPUT_NAME);
 
   std::vector<std::string> BlockLoader::getListParams(){
     std::vector<std::string> output;

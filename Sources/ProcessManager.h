@@ -34,6 +34,8 @@ namespace charliesoft
     static void releaseInstance();
     static boost::recursive_mutex _listBlockMutex;
 
+    std::vector<std::string> getAlgos(AlgoType type);
+
     template<typename T>
     bool addNewAlgo(AlgoType type, std::string name)
     {

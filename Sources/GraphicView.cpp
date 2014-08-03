@@ -204,12 +204,14 @@ namespace charliesoft
     projectedHeight += max(inputHeight, outputHeight);
 
     resize(newWidth, projectedHeight-20);
-    setStyleSheet("border: 2px solid #555;border-radius: 11px;background: qradialgradient(cx: 0.3, cy: -0.4, fx: 0.3, fy : -0.4, radius : 1.35, stop : 0 #fff, stop: 1 #888);");
+    setStyleSheet("border:2px solid #555;border-radius: 11px;background: qradialgradient(cx: 0.3, cy: -0.4, fx: 0.3, fy : -0.4, radius : 1.35, stop : 0 #fff, stop: 1 #888);");
 
     QGraphicsDropShadowEffect* shadowEffect = new QGraphicsDropShadowEffect();
     shadowEffect->setBlurRadius(15);
     shadowEffect->setOffset(3, 3);
     setGraphicsEffect(shadowEffect);
+
+    move((*model->getPosition())[0], (*model->getPosition())[1]);
   }
 
   void NodeRepresentation::setLink(const BlockLink& link)
@@ -350,9 +352,6 @@ namespace charliesoft
     if (NodeRepresentation* derived = dynamic_cast<NodeRepresentation*>(item->widget())) {
       orderedBlocks_.push_back(derived->getModel());
       items_[derived->getModel()] = item;
-      static int pos = 150;
-      item->widget()->move(pos, 150);
-      pos += 150;
     }
   }
 
@@ -466,6 +465,23 @@ namespace charliesoft
     startParam_ = NULL;
     model_ = model;
     setStyleSheet("background:white;background-image:url(logo.png);background-repeat:no-repeat;background-position:center;");
+    setAcceptDrops(true);
+  }
+
+
+  void MainWidget::dragEnterEvent(QDragEnterEvent *event)
+  {
+    if (event->mimeData()->hasFormat("text/plain"))
+      event->acceptProposedAction();
+  }
+
+  void MainWidget::dropEvent(QDropEvent *event)
+  {
+    Block* block = ProcessManager::getInstance()->createAlgoInstance(
+      event->mimeData()->text().toStdString());
+    model_->addNewProcess(block);
+    block->updatePosition(event->pos().x(), event->pos().y());
+    emit askSynchro(model_);//as we updated the model, we ask the layout to redraw itself...
   }
   
   void MainWidget::paintEvent(QPaintEvent *pe)

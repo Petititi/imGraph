@@ -23,6 +23,15 @@ namespace charliesoft
   class GraphRepresentation;
   class MainWidget;
   class GlobalConfig;
+
+  class DraggableWidget : public QWidget
+  {
+  public:
+    DraggableWidget(QWidget* p) :QWidget(p){};
+  protected:
+    virtual void mousePressEvent(QMouseEvent *);
+  };
+
   class Window : public QMainWindow
   {
     Q_OBJECT;
@@ -36,6 +45,7 @@ namespace charliesoft
     static GraphRepresentation* getGraphLayout();
     void show();
     MainWidget* getMainWidget() const { return mainWidget_; }
+    std::string getKey(QWidget* w){ return keysName_[w]; };
   private:
     Window();
     ~Window();
@@ -47,8 +57,12 @@ namespace charliesoft
     QMenu *menuAide;
     MainWidget* mainWidget_;//input, imgProcess, signalProcess, mathOperator, output
 
-    std::vector<QDockWidget *> docks_;
+    QTabWidget* tabWidget_;
+    QDockWidget * dock_;
     std::vector<QVBoxLayout *> docks_content_;
+    std::map<QWidget*, std::string> keysName_;
+
+    void fillDock(int idDock);
 
     void mousePressEvent(QMouseEvent *event);
     void closeEvent(QCloseEvent *event);

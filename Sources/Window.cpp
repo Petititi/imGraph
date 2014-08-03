@@ -108,6 +108,22 @@ namespace charliesoft
     menuAide->addAction(_QT("MENU_HELP_HELP"));
   }
 
+  void Window::fillDock(int idDock)
+  {
+    std::vector<std::string> list = ProcessManager::getInstance()->getAlgos(AlgoType(idDock));
+    QLabel* tmpLabel;
+    auto it = list.begin();
+    while (it != list.end())
+    {
+      tmpLabel = new QLabel(_QT(*it), this);
+      keysName_[tmpLabel] = *it;
+      tmpLabel->setAlignment(Qt::AlignCenter);
+      tmpLabel->setStyleSheet("max-height:50px; border:2px solid #555;border-radius: 11px;background: qradialgradient(cx: 0.3, cy: -0.4, fx: 0.3, fy : -0.4, radius : 1.35, stop : 0 #fff, stop: 1 #888);");
+      docks_content_[idDock]->addWidget(tmpLabel);
+      it++;
+    }
+  }
+
   void Window::show()
   {
     mainLayout_ = new GraphRepresentation();
@@ -116,58 +132,44 @@ namespace charliesoft
     mainWidget_->setLayout(mainLayout_);
     
     statusBar();
-    
-    QWidget *dock_input_widget_ = new QWidget(this);
-    QWidget *dock_img_widget_ = new QWidget(this);
-    QWidget *dock_signal_widget_ = new QWidget(this);
-    QWidget *dock_math_widget_ = new QWidget(this);
-    QWidget *dock_output_widget_ = new QWidget(this);
 
-    docks_content_.push_back(new QVBoxLayout());
-    docks_content_.push_back(new QVBoxLayout());
-    docks_content_.push_back(new QVBoxLayout());
-    docks_content_.push_back(new QVBoxLayout());
-    docks_content_.push_back(new QVBoxLayout());
-    dock_input_widget_->setLayout(docks_content_[0]);
-    dock_img_widget_->setLayout(docks_content_[1]);
-    dock_signal_widget_->setLayout(docks_content_[2]);
-    dock_math_widget_->setLayout(docks_content_[3]);
-    dock_output_widget_->setLayout(docks_content_[4]);
+    tabWidget_ = new QTabWidget;
+    dock_ = new QDockWidget(_QT("DOCK_TITLE"), this);
+    dock_->setWidget(tabWidget_);
+    addDockWidget(Qt::LeftDockWidgetArea, dock_);
+    dock_->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    dock_->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
 
-    docks_.push_back( new QDockWidget(_QT("BLOCK_INPUT"), this) );
-    docks_[0]->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-    docks_[0]->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
-    addDockWidget(Qt::LeftDockWidgetArea, docks_[0]);
-    docks_[0]->setWidget(dock_input_widget_);
+    //create the 5 docks:
+    for (int i = 0; i < 5; i++)
+    {
+      docks_content_.push_back(new QVBoxLayout());
+      DraggableWidget *tmpWidget = new DraggableWidget(this);
+      tmpWidget->setMaximumWidth(200);
+      tmpWidget->setLayout(docks_content_[i]);
+      docks_content_[i]->setAlignment(Qt::AlignTop);
 
-    docks_.push_back(new QDockWidget(_QT("BLOCK_IMG_PROCESS"), this));
-    docks_[1]->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-    docks_[1]->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
-    addDockWidget(Qt::LeftDockWidgetArea, docks_[1]);
-    docks_[1]->setWidget(dock_img_widget_);
+      switch (i)
+      {
+      case 0:
+        tabWidget_->addTab(tmpWidget, _QT("BLOCK_INPUT"));
+        break;
+      case 1:
+        tabWidget_->addTab(tmpWidget, _QT("BLOCK_IMG_PROCESS"));
+        break;
+      case 2:
+        tabWidget_->addTab(tmpWidget, _QT("BLOCK_SIGNAL"));
+        break;
+      case 3:
+        tabWidget_->addTab(tmpWidget, _QT("BLOCK_MATH"));
+        break;
+      default:
+        tabWidget_->addTab(tmpWidget, _QT("BLOCK_OUTPUT"));
+      }
 
-    docks_.push_back(new QDockWidget(_QT("BLOCK_SIGNAL"), this));
-    docks_[2]->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-    docks_[2]->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
-    addDockWidget(Qt::LeftDockWidgetArea, docks_[2]);
-    docks_[2]->setWidget(dock_signal_widget_);
+      fillDock(i);
+    }
 
-    docks_.push_back(new QDockWidget(_QT("BLOCK_MATH"), this));
-    docks_[3]->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-    docks_[3]->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
-    addDockWidget(Qt::LeftDockWidgetArea, docks_[3]);
-    docks_[3]->setWidget(dock_math_widget_);
-    
-    docks_.push_back(new QDockWidget(_QT("BLOCK_OUTPUT"), this));
-    docks_[4]->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-    docks_[4]->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
-    addDockWidget(Qt::LeftDockWidgetArea, docks_[4]);
-    docks_[4]->setWidget(dock_output_widget_);
-
-    tabifyDockWidget(docks_[0], docks_[1]);
-    tabifyDockWidget(docks_[0], docks_[2]);
-    tabifyDockWidget(docks_[0], docks_[3]);
-    tabifyDockWidget(docks_[0], docks_[4]);
     
     if (config_->isMaximized)
       showMaximized();
@@ -248,4 +250,23 @@ namespace charliesoft
   {
 
   }
+
+  void DraggableWidget::mousePressEvent(QMouseEvent *mouse)
+  {
+    if (mouse->button() == Qt::LeftButton)
+    {
+      //find widget below mouse:
+      if (QWidget* widget = dynamic_cast<QWidget*>(childAt(mouse->pos())))
+      {
+        QDrag *drag = new QDrag(this);
+        QMimeData *mimeData = new QMimeData;
+
+        mimeData->setText(Window::getInstance()->getKey(widget).c_str());
+        drag->setMimeData(mimeData);
+
+        Qt::DropAction dropAction = drag->exec();
+      }
+    }
+  }
+
 }

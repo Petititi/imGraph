@@ -77,6 +77,8 @@ namespace charliesoft
     translations["PROJ_LOAD_FILE"] = "Open project file";
     translations["PROJ_CREATE_FILE"] = "Create project file";
 
+    translations["DOCK_TITLE"] = "Toolbox";
+
 
     translations["BLOCK_INPUT"] = "Input";
     translations["BLOCK_IMG_PROCESS"] = "2D processing";

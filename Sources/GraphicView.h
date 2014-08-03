@@ -129,6 +129,10 @@ namespace charliesoft
 
     virtual void paintEvent(QPaintEvent *);
     virtual void mouseMoveEvent(QMouseEvent *);
+
+    virtual void dragEnterEvent(QDragEnterEvent *);
+    virtual void dropEvent(QDropEvent *);
+
     charliesoft::GraphOfProcess *model_;
   public:
     MainWidget(charliesoft::GraphOfProcess *model);

@@ -19,12 +19,12 @@
 #include "ProcessManager.h"
 
 //macro to add algo to list:
-#define BLOCK_INSTANTIATE(className, blockType) \
+#define BLOCK_INSTANTIATE(className, blockType, keyName) \
   class className##_hidden{ \
     static bool addToList; \
   }; \
   bool className##_hidden::addToList = \
-    charliesoft::ProcessManager::getInstance()->addNewAlgo<##className##>(blockType, #className);
+    charliesoft::ProcessManager::getInstance()->addNewAlgo<##className##>(blockType, #keyName);
 
 namespace charliesoft
 {
@@ -46,6 +46,7 @@ namespace charliesoft
 
     Point_* getPosition() const { return position_; }
     void setPosition(Point_* val) { position_ = val; }
+    void updatePosition(int x, int y) { (*position_)[0] = x; (*position_)[1] = y; };
     GraphOfProcess* getGraph() const { return graph_; }
     void setGraph(GraphOfProcess* val) { graph_ = val; }
     void createLink(std::string paramName, Block* dest, std::string paramNameDest);

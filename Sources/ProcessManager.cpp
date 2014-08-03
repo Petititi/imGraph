@@ -49,4 +49,8 @@ namespace charliesoft
     return algo_factory_[algo_name]();
   }
 
+  std::vector<std::string> ProcessManager::getAlgos(AlgoType type)
+  {
+    return listOfAlgorithms_[type];
+  }
 }
