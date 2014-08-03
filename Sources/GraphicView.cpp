@@ -18,6 +18,7 @@
 #include <QGraphicsDropShadowEffect>
 #include <QSizePolicy>
 #include <QDebug>
+#include <QDockWidget>
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
@@ -177,8 +178,13 @@ namespace charliesoft
     mainLayout_ = new GraphRepresentation();
     mainWidget_ = new MainWidget(model_);
     setCentralWidget(mainWidget_);
+    //mainWidget_->setLayout(mainLayout_);
 
-    mainWidget_->setLayout(mainLayout_);
+    statusBar();
+    QDockWidget *dock = new QDockWidget(_QT("DOCK_BLOCK_TITLE"), this);
+    addDockWidget(Qt::LeftDockWidgetArea, dock);
+
+    
     if (config_->isMaximized)
       showMaximized();
     else
@@ -186,7 +192,6 @@ namespace charliesoft
       resize(config_->lastPosition.size()); move(config_->lastPosition.topLeft());
       QMainWindow::show();
     }
-    mainWidget_->setStyleSheet("background-color:white;background-image:url(logo.png);background-repeat:no-repeat;background-position:center;");
 
     connect(mainWidget_, SIGNAL(askSynchro(charliesoft::GraphOfProcess *)),
       mainLayout_, SLOT(synchronize(charliesoft::GraphOfProcess *)));
@@ -619,8 +624,9 @@ namespace charliesoft
   {
     startParam_ = NULL;
     model_ = model;
+    setStyleSheet("background:white;background-image:url(logo.png);background-repeat:no-repeat;background-position:center;");
   }
-
+  
   void MainWidget::paintEvent(QPaintEvent *pe)
   {
     QPainter painter(this);

@@ -72,6 +72,7 @@ namespace charliesoft
     translations["MENU_HELP_INFO"] = "Info";
     translations["MENU_HELP_HELP"] = "Help";
 
+    translations["DOCK_BLOCK_TITLE"] = "List of blocks";
 
     translations["CONF_FILE_TYPE"] = "imGraph project (*.igp)";
 
