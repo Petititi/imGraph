@@ -78,10 +78,19 @@ namespace charliesoft
     translations["PROJ_LOAD_FILE"] = "Open project file";
     translations["PROJ_CREATE_FILE"] = "Create project file";
 
-    translations["BLOCK_INPUT_NAME"] = "File Loader";
-    translations["BLOCK_INPUT_PARAM_INPUT"] = "filename";
-    translations["BLOCK_INPUT_PARAM_FRAMERATE"] = "framerate";
-    translations["BLOCK_INPUT_PARAM_WIDTH"] = "width";
-    translations["BLOCK_INPUT_PARAM_HEIGHT"] = "height";
+
+    translations["BLOCK_INPUT"] = "Input";
+    translations["BLOCK_OUTPUT"] = "Output";
+
+    translations["ERROR_GENERIC_TITLE"] = "Error";
+    translations["ERROR_LINK_WRONG_INPUT_OUTPUT"] = "You can't link %1$s to %2$s : same type (%3$s)!";
+    translations["ERROR_LINK_SAME_BLOCK"] = "You can't link the same block!";
+
+
+    translations["BLOCK__INPUT_NAME"] = "File Loader";
+    translations["BLOCK__INPUT_PARAM_IN_FILE"] = "filename";
+    translations["BLOCK__INPUT_PARAM_OUT_FRAMERATE"] = "framerate";
+    translations["BLOCK__INPUT_PARAM_OUT_WIDTH"] = "width";
+    translations["BLOCK__INPUT_PARAM_OUT_HEIGHT"] = "height";
   }
 }

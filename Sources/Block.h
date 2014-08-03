@@ -35,6 +35,7 @@ namespace charliesoft
     void setPosition(Point_* val) { position_ = val; }
     GraphOfProcess* getGraph() const { return graph_; }
     void setGraph(GraphOfProcess* val) { graph_ = val; }
+    void createLink(std::string paramName, Block* dest, std::string paramNameDest);
   };
 
   class BlockLoader :public Block
@@ -45,6 +46,41 @@ namespace charliesoft
     virtual std::string getName();
     virtual std::vector<std::string> getListParams();
     virtual std::vector<std::string> getListOutputs();
+  };
+
+  struct BlockLink
+  {
+    Block* from_;
+    Block* to_;
+    std::string fromParam_;
+    std::string toParam_;
+    BlockLink(){ from_ = to_ = NULL; };
+    BlockLink(Block* from,Block* to,std::string fromParam,std::string toParam)
+    {
+      from_ = from; to_ = to; fromParam_ = fromParam; toParam_ = toParam;
+    }
+    bool operator==(const BlockLink &b) const{
+      return (from_ == b.from_) && (to_ == b.to_) &&
+        (fromParam_.compare(b.fromParam_) == 0) && (toParam_.compare(b.toParam_) == 0);
+    }
+    bool operator<(const BlockLink & record2) const{
+      if (from_ < record2.from_) return true;
+      if (from_ > record2.from_) return false;
+      if (to_ < record2.to_) return true;
+      if (to_ > record2.to_) return false;
+      if (fromParam_ < record2.fromParam_) return true;
+      if (fromParam_ > record2.fromParam_) return false;
+      return toParam_ < record2.toParam_;
+    }
+    bool operator<(BlockLink & record2){
+      if (from_ < record2.from_) return true;
+      if (from_ > record2.from_) return false;
+      if (to_ < record2.to_) return true;
+      if (to_ > record2.to_) return false;
+      if (fromParam_ < record2.fromParam_) return true;
+      if (fromParam_ > record2.fromParam_) return false;
+      return toParam_ < record2.toParam_;
+    }
   };
 
   class GraphOfProcess
@@ -63,6 +99,7 @@ namespace charliesoft
       std::string propFrom; //<name of the property the previous filter is connected to
       std::string propTo;   //<name of the property the next filter is connected to
       EdgeProperty_(std::string from, std::string to) :propFrom(from), propTo(to){ weight = 1.; };//each edges have same weight
+      EdgeProperty_(){ propFrom = propFrom = "no imp."; weight = 0; };
     };
 
 
@@ -83,6 +120,7 @@ namespace charliesoft
     void deleteProcess(Block* process);
 
     std::vector<Block*> getNodes();
+    std::vector<BlockLink> getLinks();
   };
 }
 

@@ -10,18 +10,18 @@ namespace charliesoft
 {
 
   std::string BlockLoader::getName(){
-    return _STR("BLOCK_INPUT_NAME");
+    return _STR("BLOCK__INPUT_NAME");
   };
   std::vector<std::string> BlockLoader::getListParams(){
     std::vector<std::string> output;
-    output.push_back(_STR("BLOCK_INPUT_PARAM_INPUT"));
+    output.push_back(_STR("BLOCK__INPUT_PARAM_IN_FILE"));
     return output;
   };
   std::vector<std::string> BlockLoader::getListOutputs(){
     std::vector<std::string> output;
-    output.push_back(_STR("BLOCK_INPUT_PARAM_FRAMERATE"));
-    output.push_back(_STR("BLOCK_INPUT_PARAM_WIDTH"));
-    output.push_back(_STR("BLOCK_INPUT_PARAM_HEIGHT"));
+    output.push_back(_STR("BLOCK__INPUT_PARAM_OUT_FRAMERATE"));
+    output.push_back(_STR("BLOCK__INPUT_PARAM_OUT_WIDTH"));
+    output.push_back(_STR("BLOCK__INPUT_PARAM_OUT_HEIGHT"));
     return output;
   };
 
@@ -43,14 +43,15 @@ namespace charliesoft
 
   void GraphOfProcess::deleteConnection(std::string propFrom, std::string propTo,
     Block* from, Block* to){
+    auto g = myGraph_.graph();
     //first get edge:
     graph_traits<Graph_>::out_edge_iterator ei, ei_end;
-    tie(ei, ei_end) = out_edges(myGraph_.vertex(from), myGraph_);
+    tie(ei, ei_end) = out_edges(myGraph_.vertex(from), g);
     Graph_Intern_::vertex_descriptor node2 = myGraph_.vertex(to);
     for (; ei != ei_end; ++ei) {
       if (boost::target(*ei, myGraph_) == node2) {
-        if (myGraph_.graph()[*ei].propFrom.compare(propFrom) == 0 &&
-          myGraph_.graph()[*ei].propTo.compare(propTo) == 0)
+        if (g[*ei].propFrom.compare(propFrom) == 0 &&
+          g[*ei].propTo.compare(propTo) == 0)
         {
           //we should delete this edge!
           remove_edge(*ei, myGraph_);
@@ -66,12 +67,12 @@ namespace charliesoft
 
   std::vector<Block*> GraphOfProcess::getNodes()
   {
-    typedef property_map<Graph_Intern_, Block* VertexProperties_::*>::type BlockMap;
-    BlockMap blocks = get(&VertexProperties_::block_, myGraph_.graph());
+    auto g = myGraph_.graph();
+    auto blocks = get(&VertexProperties_::block_, g);
 
     std::vector<Block*> out;
     Graph_Intern_::vertex_iterator vi, vi_end;
-    for (boost::tie(vi, vi_end) = vertices(myGraph_.graph()); vi != vi_end; ++vi)
+    for (boost::tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
     {
       Block* block = blocks[*vi];
       if (block!=NULL)
@@ -79,4 +80,27 @@ namespace charliesoft
     }
     return out;
   }
+
+  std::vector<BlockLink> GraphOfProcess::getLinks()
+  {
+    vector<BlockLink> output;
+
+    auto g = myGraph_.graph();
+    for (auto ep = edges(g); ep.first != ep.second; ++ep.first)
+    {
+      // Get the two vertices that are joined by this edge...
+      auto u = source(*ep.first, g), v = target(*ep.first, g);
+
+      output.push_back(BlockLink(g[u].block_, g[v].block_,
+        get(&EdgeProperty_::propFrom, g, *ep.first),
+        get(&EdgeProperty_::propTo, g, *ep.first)));
+    }
+    return output;
+  }
+
+  void Block::createLink(std::string paramName, Block* dest, std::string paramNameDest)
+  {
+    graph_->createNewConnection(paramName, paramNameDest, this, dest);
+  }
+
 }
