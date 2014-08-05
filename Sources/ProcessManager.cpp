@@ -10,7 +10,10 @@ using std::vector;
 namespace charliesoft
 {
   std::map< AlgoType, std::vector<std::string> > ProcessManager::listOfAlgorithms_;
+  std::map< std::string, std::vector<ParamDefinition> > ProcessManager::algorithmInParams_;
+  std::map< std::string, std::vector<ParamDefinition> > ProcessManager::algorithmOutParams_;
   std::map< std::string, Algo_factory > ProcessManager::algo_factory_;
+
   ProcessManager* ProcessManager::ptr_ = NULL;
   recursive_mutex ProcessManager::_listBlockMutex;
 
@@ -46,11 +49,43 @@ namespace charliesoft
   Block* ProcessManager::createAlgoInstance(std::string algo_name)
   {
     lock_guard<recursive_mutex> guard(_listBlockMutex);
-    return algo_factory_[algo_name]();
+    Block* b = algo_factory_[algo_name]();
+    b->initParameters(algorithmInParams_[algo_name], algorithmOutParams_[algo_name]);
+    return b;
   }
 
-  std::vector<std::string> ProcessManager::getAlgos(AlgoType type)
+  std::vector<std::string>& ProcessManager::getAlgos(AlgoType type)
   {
     return listOfAlgorithms_[type];
+  }
+
+  std::vector<ParamDefinition>& ProcessManager::getAlgo_InParams(std::string name)
+  {
+    return algorithmInParams_[name];
+  }
+  std::vector<ParamDefinition>& ProcessManager::getAlgo_OutParams(std::string name)
+  {
+    return algorithmOutParams_[name];
+  }
+
+  ParamType ProcessManager::getParamType(std::string algo_name, std::string paramName)
+  {
+    std::vector<ParamDefinition> &params = getAlgo_InParams(algo_name);
+    auto it = params.begin();
+    while (it != params.end())
+    {
+      if (it->name_.compare(paramName) == 0)
+        return it->type_;
+      it++;
+    }
+    params = getAlgo_OutParams(algo_name);
+    it = params.begin();
+    while (it != params.end())
+    {
+      if (it->name_.compare(paramName) == 0)
+        return it->type_;
+      it++;
+    }
+    return typeError;
   }
 }

@@ -24,10 +24,16 @@ namespace charliesoft
   class MainWidget;
   class GlobalConfig;
 
-  class DraggableWidget : public QWidget
+  class DraggableWidget : public QLabel
   {
   public:
-    DraggableWidget(QWidget* p) :QWidget(p){};
+    DraggableWidget(QString text, QWidget* p);
+  };
+
+  class DraggableContainer : public QWidget
+  {
+  public:
+    DraggableContainer(QWidget* p) :QWidget(p){};
   protected:
     virtual void mousePressEvent(QMouseEvent *);
   };

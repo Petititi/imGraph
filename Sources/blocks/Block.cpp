@@ -9,9 +9,40 @@ namespace charliesoft
 {
   Block::Block(std::string name){
     name_ = name;
+    isUpToDate_ = false;
     position_ = NULL; graph_ = NULL; 
   };
-  
+
+  void Block::initParameters(std::vector<ParamDefinition>& inParam,
+    std::vector<ParamDefinition>& outParam)
+  {
+    //add empty parameters:
+    auto it = inParam.begin();
+    while (it != inParam.end())
+    {
+      myInputs_[it->name_] = ParamValue(this, it->name_, false);
+      it++;
+    }
+    it = outParam.begin();
+    while (it != outParam.end())
+    {
+      myOutputs_[it->name_] = ParamValue(this, it->name_, true);
+      it++;
+    }
+  }
+
+  void Block::setParam(std::string nameParam_, ParamValue& value){
+    if (myInputs_.find(nameParam_) != myInputs_.end())
+      myInputs_[nameParam_] = &value;
+    else
+      myOutputs_[nameParam_] = value;
+  };
+  ParamValue* Block::getParam(std::string nameParam_){
+    if (myInputs_.find(nameParam_) != myInputs_.end())
+      return &myInputs_[nameParam_];
+    else
+      return &myOutputs_[nameParam_];
+  };
   GraphOfProcess::GraphOfProcess(){
   };
 
@@ -88,6 +119,7 @@ namespace charliesoft
   void Block::createLink(std::string paramName, Block* dest, std::string paramNameDest)
   {
     graph_->createNewConnection(paramName, paramNameDest, this, dest);
+    dest->setParam(paramNameDest, myOutputs_[paramName]);
   }
 
 }

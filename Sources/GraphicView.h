@@ -3,6 +3,7 @@
 
 #include <QGraphicsView>
 #include <QResizeEvent>
+#include <QDialog >
 #include <QPainter>
 #include <QRect>
 #include <QString>
@@ -14,6 +15,7 @@
 #include <QComboBox>
 #include <QDial>
 #include <QPainterPath>
+
 #include "blocks/Block.h"
 
 #include <map>
@@ -29,28 +31,28 @@ namespace charliesoft
 
     std::string lastProject_;
     std::string prefLang_;
+    std::string styleSheet_;
     bool isMaximized;
     QRect lastPosition;
   };
 
-
   class ParamRepresentation :public QLabel
   {
-    Q_OBJECT
+    Q_OBJECT;
 
     Block* model_;
-    std::string paramName_;
+    ParamDefinition param_;
     bool isInput_;
   public:
-    ParamRepresentation(Block* model, std::string paramName, bool isInput, QWidget *father):
-      QLabel(paramName.c_str(), father), model_(model), paramName_(paramName), isInput_(isInput){};
+    ParamRepresentation(Block* model, ParamDefinition param, bool isInput, QWidget *father);
 
     virtual void mousePressEvent(QMouseEvent *);
     virtual void mouseReleaseEvent(QMouseEvent *);
     virtual void mouseDoubleClickEvent(QMouseEvent *);
     virtual void mouseMoveEvent(QMouseEvent *);
 
-    std::string getParamName() const { return paramName_; }
+    std::string getParamName() const { return param_.name_; }
+    std::string getParamHelper() const { return param_.helper_; }
     Block* getModel() const { return model_; }
     bool isInput() const { return isInput_; }
 
@@ -91,6 +93,35 @@ namespace charliesoft
     {
       back_links_.push_back(std::pair<NodeRepresentation*, BlockLink>(otherNode, linkInfo));
     };
+  };
+
+  class ParamsConfigurator :public QDialog
+  {
+    Q_OBJECT;
+
+    std::map<QObject*, QLineEdit*> openFiles_;
+    std::map<std::string, ParamRepresentation*>& in_param_;
+    std::map<std::string, ParamRepresentation*>& out_param_;
+    NodeRepresentation* node_;
+
+    QPushButton* OKbutton_;
+    QPushButton* Cancelbutton_;
+    QTabWidget* tabWidget_;
+    std::vector<QVBoxLayout *> tabs_content_;
+
+    void addParamIn(Block* model, ParamRepresentation  *p);
+  public:
+    ParamsConfigurator(NodeRepresentation* node,
+      std::map<std::string, ParamRepresentation*>& in_param,
+      std::map<std::string, ParamRepresentation*>& out_param);
+
+  signals:
+    void changeVisibility(bool isVisible);
+
+    public slots:
+    void openFile();
+    void accept_button();
+    void reject_button();
   };
 
   class GraphRepresentation :public QLayout

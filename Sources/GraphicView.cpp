@@ -20,7 +20,12 @@
 #include <QDebug>
 #include <QDockWidget>
 #include <QSplitter>
-#include <QTextEdit>
+#include <QLineEdit>
+#include <QGroupBox>
+#include <QCheckBox>
+#include <QScrollArea>
+#include <QDoubleValidator>
+#include <QIntValidator>
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
@@ -52,6 +57,7 @@ namespace charliesoft
     ptree localElement;
     localElement.put("GlobConfig.LastProject", lastProject_);
     localElement.put("GlobConfig.PrefLang", prefLang_);
+    localElement.put("GlobConfig.styleSheet", styleSheet_);
     localElement.put("GlobConfig.ShowMaximized", isMaximized);
     localElement.put("GlobConfig.lastPosition.x", lastPosition.x());
     localElement.put("GlobConfig.lastPosition.y", lastPosition.y());
@@ -88,6 +94,7 @@ namespace charliesoft
       lastProject_ = xmlTree.get("GlobConfig.LastProject", "");
       prefLang_ = xmlTree.get("GlobConfig.PrefLang", "en");
       isMaximized = xmlTree.get("GlobConfig.ShowMaximized", true);
+      styleSheet_ = xmlTree.get("GlobConfig.styleSheet", "QWidget#MainWidget{background:white;background-image:url(logo.png);background-repeat:no-repeat;background-position:center;}");
 
       lastPosition.setLeft(xmlTree.get("GlobConfig.lastPosition.x", 0));
       lastPosition.setTop(xmlTree.get("GlobConfig.lastPosition.y", 0));
@@ -96,6 +103,7 @@ namespace charliesoft
     }
     else
     {
+      styleSheet_ = "QWidget#MainWidget{background:white;background-image:url(logo.png);background-repeat:no-repeat;background-position:center;}";
       lastProject_ = "";
       prefLang_ = "en";
       isMaximized = true;
@@ -106,16 +114,161 @@ namespace charliesoft
     }
   }
 
+  ParamsConfigurator::ParamsConfigurator(NodeRepresentation* node,
+    std::map<std::string, ParamRepresentation*>& in_param,
+    std::map<std::string, ParamRepresentation*>& out_param) :
+    QDialog(node), node_(node), in_param_(in_param), out_param_(out_param)
+  {
+    setModal(true);
+    tabWidget_ = new QTabWidget(this);
+    
+    OKbutton_ = new QPushButton(_QT("BUTTON_OK"));
+    Cancelbutton_ = new QPushButton(_QT("BUTTON_CANCEL"));
+    connect(OKbutton_, SIGNAL(clicked()), this, SLOT(accept_button()));
+    connect(Cancelbutton_, SIGNAL(clicked()), this, SLOT(reject_button()));
+
+    QHBoxLayout* buttonLayout = new QHBoxLayout(this);
+    buttonLayout->addWidget(OKbutton_);
+    buttonLayout->addWidget(Cancelbutton_);
+    QWidget *buttonGroup = new QWidget(this);
+    buttonGroup->setLayout(buttonLayout);
+
+    QVBoxLayout* mainLayout = new QVBoxLayout(this);
+    mainLayout->addWidget(tabWidget_);
+    mainLayout->addWidget(buttonGroup);
+    setLayout(mainLayout);
+
+    QScrollArea* scrollarea = new QScrollArea(tabWidget_);
+    scrollarea->setWidgetResizable(true);
+    tabs_content_.push_back(new QVBoxLayout(scrollarea));//input tab
+    tabs_content_.push_back(new QVBoxLayout());//output tab
+
+    QWidget *tmpWidget = new QWidget(scrollarea);
+    tmpWidget->setLayout(tabs_content_[0]);
+    scrollarea->setWidget(tmpWidget);
+    tabWidget_->addTab(scrollarea, _QT("BLOCK_TITLE_INPUT"));
+
+    tmpWidget = new QWidget(this);
+    tmpWidget->setLayout(tabs_content_[1]);
+    tabWidget_->addTab(tmpWidget, _QT("BLOCK_TITLE_OUTPUT"));
+
+    Block* model = node->getModel();
+    //fill input parameters:
+    auto it = in_param_.begin();
+    while (it!=in_param_.end())
+    {
+      addParamIn(model, it->second);
+      it++;
+    }
+    it = out_param_.begin();
+    while (it != out_param_.end())
+    {
+      ParamRepresentation  *tmp = it->second;
+      tabs_content_[1]->addWidget(new QLabel(_QT(tmp->getParamName())));
+      ParamValue* param = model->getParam(tmp->getParamName());
+      tabs_content_[1]->addWidget(new QLineEdit(param->toString().c_str()));
+      it++;
+    }
+  };
+
+  void ParamsConfigurator::addParamIn(Block* model, ParamRepresentation  *p)
+  {
+    QGroupBox* group = new QGroupBox(_QT(p->getParamName()), tabWidget_->widget(0));
+    QVBoxLayout *vbox = new QVBoxLayout();
+    group->setLayout(vbox);
+    group->setCheckable(true);
+    tabs_content_[0]->addWidget(group);
+    ParamValue* param = model->getParam(p->getParamName());
+
+    if (param->getType() != Boolean)
+      vbox->addWidget(new QLabel(_QT(p->getParamHelper())));
+    if (p->isVisible())
+    {
+      group->setChecked(false);
+      return;//nothing to do more, the value is already set via graph...
+    }
+
+    switch (param->getType())
+    {
+    case Boolean:
+    {
+      QCheckBox* checkTmp = new QCheckBox(_QT(p->getParamHelper()));
+      vbox->addWidget(checkTmp);
+      break;
+    }
+    case Int:
+    {
+      QLineEdit* lineEdit = new QLineEdit(lexical_cast<string>(param->get<int>(false)).c_str());
+      lineEdit->setValidator(new QIntValidator());
+      vbox->addWidget(lineEdit);
+      break;
+    }
+    case Float:
+    {
+      QLineEdit* lineEdit = new QLineEdit(lexical_cast<string>(param->get<double>(false)).c_str());
+      lineEdit->setValidator(new QDoubleValidator());
+      vbox->addWidget(lineEdit);
+      break;
+    }
+    case Vector:
+      vbox->addWidget(new QPushButton(_QT("VECTOR_EDITOR")));
+      break;
+    case Mat:
+      vbox->addWidget(new QPushButton(_QT("MATRIX_EDITOR")));
+      break;
+    case String:
+      vbox->addWidget(new QLineEdit(param->toString().c_str()));
+      break;
+    case FilePath:
+    {
+      QPushButton* button = new QPushButton(_QT("BUTTON_BROWSE"));
+      connect(button, SIGNAL(clicked()), this, SLOT(openFile()));
+      QLineEdit* lineEdit = new QLineEdit(param->toString().c_str());
+      openFiles_[button] = lineEdit;
+
+      QWidget* tmp = new QWidget();
+      vbox->addWidget(tmp);
+      QHBoxLayout* layout = new QHBoxLayout();
+      tmp->setLayout(layout);
+      layout->addWidget(lineEdit);
+      button->setFixedWidth(70);
+      layout->addWidget(button);
+      break;
+    }
+    default://probably typeError
+      break;
+    }
+  }
+
+  void ParamsConfigurator::openFile()
+  {
+    if (openFiles_.find(sender()) == openFiles_.end())
+      return;//nothing to do...
+    QString fileName = QFileDialog::getOpenFileName(this, _QT("BLOCK__INPUT_PARAM_IN_FILE_HELP"),
+      openFiles_[sender()]->text(), _QT("BLOCK__INPUT_PARAM_IN_FILE_FILTER") + " (*.bmp *.pbm *.pgm *.ppm *.sr *.ras *.jpeg *.jpg *.jpe *.jp2 *.tiff *.tif *.png *.avi *.mov *.mxf *.wmv)");
+    if (!fileName.isEmpty())
+      openFiles_[sender()]->setText(fileName);
+  }
+  void ParamsConfigurator::accept_button()
+  {
+    close();
+  }
+  void ParamsConfigurator::reject_button()
+  {
+    close();
+  }
+
   NodeRepresentation::NodeRepresentation(Block* model)
   {
+    setObjectName("NodeRepresentation");
     paramActiv_ = NULL;
     isDragging_ = false;
 
     model_ = model;
-    QLabel *name = new QLabel(model->getName().c_str(), this);
-    name->setStyleSheet("background-color:rgba(255,255,255,32);border:none;border-radius:5px;");
+    QLabel *name = new QLabel(_QT(model->getName()), this);
     QRect sizeNameNode = name->fontMetrics().boundingRect(name->text());
     name->move(8, 5);//move the name at the top of node...
+    name->setObjectName("NodeTitle");
 
     int topPadding = sizeNameNode.height() + 20;
 
@@ -125,43 +278,50 @@ namespace charliesoft
     maxInputWidth = maxOutputWidth = 0;
 
     //for each input and output create buttons:
-    vector<string> inputParams = model->getListParams();
+    vector<ParamDefinition> inputParams = _PROCESS_MANAGER->getAlgo_InParams(model->getName());
     vector<ParamRepresentation*> tmpButtonsIn;
     QRect tmpSize;
+    int showIn = 0, showOut = 0;
     for (size_t i = 0; i < inputParams.size() ; i++)
     {
-      ParamRepresentation  *tmp = new ParamRepresentation(model, inputParams[i].c_str(), true, this);
+      ParamRepresentation  *tmp = new ParamRepresentation(model, inputParams[i], true, this);
       connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
       connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
-      listOfInputChilds_[inputParams[i]] = tmp;
+      listOfInputChilds_[inputParams[i].name_] = tmp;
 
       tmpButtonsIn.push_back(tmp);
-      tmp->setStyleSheet("background-color:rgba(255,255,255,255);border-radius:0px;");
       tmp->setMinimumWidth(5);
       tmp->move(-2, inputHeight);//move the name at the top of node...
       tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
-      inputHeight += tmpSize.height() + 10;
-      if (maxInputWidth < tmpSize.width())
-        maxInputWidth = tmpSize.width();
+      if (inputParams[i].show_)
+      {
+        showIn++;
+        inputHeight += tmpSize.height() + 10;
+        if (maxInputWidth < tmpSize.width())
+          maxInputWidth = tmpSize.width();
+      }
     }
 
-    vector<string> outputParams = model->getListOutputs();
+    vector<ParamDefinition> outputParams = _PROCESS_MANAGER->getAlgo_OutParams(model->getName());
     vector<ParamRepresentation*> tmpButtonsOut;
     for (size_t i = 0; i < outputParams.size(); i++)
     {
-      ParamRepresentation  *tmp = new ParamRepresentation(model, outputParams[i].c_str(), false, this);
+      ParamRepresentation  *tmp = new ParamRepresentation(model, outputParams[i], false, this);
       connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
       connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
-      listOfOutputChilds_[outputParams[i]] = tmp;
+      listOfOutputChilds_[outputParams[i].name_] = tmp;
 
       tmpButtonsOut.push_back(tmp);
-      tmp->setStyleSheet("background-color:rgba(255,255,255,255);border-radius:0px;");
       tmp->setMinimumWidth(5);
       tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
-      tmp->move(sizeNameNode.width() + 16 - tmpSize.width() - 4, outputHeight);//move the name at the top of node...
-      outputHeight += tmpSize.height() + 10;
-      if (maxOutputWidth < tmpSize.width())
-        maxOutputWidth = tmpSize.width();
+      tmp->move(sizeNameNode.width() + 16 - tmpSize.width() - 8, outputHeight);//move the name at the top of node...
+      if (outputParams[i].show_)
+      {
+        showOut++;
+        outputHeight += tmpSize.height() + 10;
+        if (maxOutputWidth < tmpSize.width())
+          maxOutputWidth = tmpSize.width();
+      }
     }
     maxInputWidth += 10;
     maxOutputWidth += 10;
@@ -172,31 +332,33 @@ namespace charliesoft
     else
     {
       inputHeight = outputHeight = topPadding;
-      if (inputParams.size() > outputParams.size())
-        outputHeight += (tmpSize.height() + 10) * ((static_cast<double>(inputParams.size()) - outputParams.size()) / 2.);
+      if (showIn > showOut)
+        outputHeight += (tmpSize.height() + 10) * ((static_cast<double>(showIn)-showOut) / 2.);
       else
-        inputHeight += (tmpSize.height() + 10) * ((static_cast<double>(outputParams.size()) - inputParams.size()) / 2.);
+        inputHeight += (tmpSize.height() + 10) * ((static_cast<double>(showOut)-showIn) / 2.);
 
       for (size_t i = 0; i < tmpButtonsIn.size(); i++)
       {
         QRect tmpSize = tmpButtonsIn[i]->fontMetrics().boundingRect(tmpButtonsIn[i]->text());
         tmpButtonsIn[i]->resize(maxInputWidth, tmpSize.height() + 5);
         tmpButtonsIn[i]->move(-2, inputHeight);//move the name at the top of node...
-        inputHeight += tmpSize.height() + 10;
+        if (inputParams[i].show_)
+          inputHeight += tmpSize.height() + 10;
       }
       for (size_t i = 0; i < tmpButtonsOut.size(); i++)
       {
         QRect tmpSize = tmpButtonsOut[i]->fontMetrics().boundingRect(tmpButtonsOut[i]->text());
         tmpButtonsOut[i]->resize(maxOutputWidth, tmpSize.height() + 5);
-        tmpButtonsOut[i]->move(newWidth - maxOutputWidth + 2, outputHeight);//move the name at the top of node...
-        outputHeight += tmpSize.height() + 10;
+        tmpButtonsOut[i]->move(newWidth - maxOutputWidth + 4, outputHeight);//move the name at the top of node...
+        if (outputParams[i].show_)
+          outputHeight += tmpSize.height() + 10;
       }
     }
 
     name->move((newWidth - sizeNameNode.width()) / 2, 5);//move the name at the top of node...
     QFrame* myFrame = new QFrame(this);//add a line...
     myFrame->setFrameShape(QFrame::HLine);
-    myFrame->setStyleSheet("border: 2px solid #555;border-radius:0px;");
+    myFrame->setObjectName("NodeTitleLine");
     myFrame->resize(newWidth, 2);
     myFrame->move(0, sizeNameNode.height() + 8 );//move the name at the top of node...
 
@@ -204,7 +366,6 @@ namespace charliesoft
     projectedHeight += max(inputHeight, outputHeight);
 
     resize(newWidth, projectedHeight-20);
-    setStyleSheet("border:2px solid #555;border-radius: 11px;background: qradialgradient(cx: 0.3, cy: -0.4, fx: 0.3, fy : -0.4, radius : 1.35, stop : 0 #fff, stop: 1 #888);");
 
     QGraphicsDropShadowEffect* shadowEffect = new QGraphicsDropShadowEffect();
     shadowEffect->setBlurRadius(15);
@@ -307,7 +468,16 @@ namespace charliesoft
 
   void NodeRepresentation::mouseDoubleClickEvent(QMouseEvent *)
   {
+    ParamsConfigurator config(this, listOfInputChilds_, listOfOutputChilds_);
+    int retour = config.exec();
   }
+
+  ParamRepresentation::ParamRepresentation(Block* model, ParamDefinition param, bool isInput, QWidget *father) :
+    QLabel(_QT(param.name_.c_str()), father), model_(model), param_(param), isInput_(isInput){
+    setObjectName("ParamRepresentation");
+    if (!param.show_) this->hide();
+    setToolTip(_QT(param.helper_));
+  };
 
   QPoint ParamRepresentation::getWorldAnchor()
   {
@@ -462,9 +632,9 @@ namespace charliesoft
 
   MainWidget::MainWidget(charliesoft::GraphOfProcess *model)
   {
+    setObjectName("MainWidget");
     startParam_ = NULL;
     model_ = model;
-    setStyleSheet("background:white;background-image:url(logo.png);background-repeat:no-repeat;background-position:center;");
     setAcceptDrops(true);
   }
 

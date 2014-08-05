@@ -14,35 +14,71 @@
 #endif
 
 #include "Internationalizator.h"
+#include "blocks/ParamValue.h"
 #include <iostream>
 #include "OpenCV_filter.h"
 #include "ProcessManager.h"
 
 //macro to add algo to list:
 #define BLOCK_INSTANTIATE(className, blockType, keyName) \
-  class className##_hidden{ \
-    static bool addToList; \
+  \
+  class className## :public Block \
+  { \
+      friend charliesoft::ProcessManager; \
+      static std::vector<ParamDefinition> getListParams(); \
+      static std::vector<ParamDefinition> getListOutputs(); \
+      static bool addedToList; \
+  protected: \
+    virtual void run(); \
+  public: \
+      className##(); \
   }; \
-  bool className##_hidden::addToList = \
+  \
+  bool className##::addedToList = \
     charliesoft::ProcessManager::getInstance()->addNewAlgo<##className##>(blockType, #keyName);
 
 namespace charliesoft
 {
   class GraphOfProcess;
   typedef boost::square_topology<>::point_type Point_;//position of vertex
+
+  struct ParamDefinition
+  {
+    bool show_;
+    ParamType type_;
+    std::string name_;
+    std::string helper_;
+    ParamDefinition(bool show, ParamType type, std::string name, std::string helper) :
+      show_(show), type_(type), name_(name), helper_(helper){};
+  };
+
   class Block{
+    friend charliesoft::ProcessManager;
+  protected:
     std::string name_;
     GraphOfProcess* graph_;//<Graph who own this block
     Point_* position_;//<link to VertexProperties_::position!
 
+    std::map<std::string, ParamValue> myOutputs_;
+    std::map<std::string, ParamValue> myInputs_;
+
+    void initParameters(std::vector<ParamDefinition>& inParam, 
+      std::vector<ParamDefinition>& outParam);
+
+    bool isUpToDate_;
+
+    virtual void run() = 0;
   public:
     Block(std::string name);
-    virtual void execute() = 0;
-    virtual std::string getName(){
+    std::string getName(){
       return name_;
     };
-    virtual std::vector<std::string> getListParams() = 0;
-    virtual std::vector<std::string> getListOutputs() = 0;
+
+    virtual void setParam(std::string nameParam_, ParamValue& value);
+    virtual ParamValue* getParam(std::string nameParam_);
+
+    void updateIfNeeded() { if (!isUpToDate_) { run(); setUpToDate(true); }; };
+    void setUpToDate(bool isFresh){ isUpToDate_ = isFresh; };
 
     Point_* getPosition() const { return position_; }
     void setPosition(Point_* val) { position_ = val; }

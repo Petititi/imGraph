@@ -61,6 +61,14 @@ namespace charliesoft
 
   void Internationalizator::initTranslations()
   {
+    translations["BUTTON_OK"] = "OK";
+    translations["BUTTON_CANCEL"] = "Cancel";
+    translations["BUTTON_BROWSE"] = "Browse...";
+
+    translations["MATRIX_EDITOR"] = "Matrix editor";
+    translations["VECTOR_EDITOR"] = "Vector editor";
+    translations["NOT_INITIALIZED"] = "Not initialized...";
+
     translations["MENU_FILE"] = "File";
     translations["MENU_FILE_OPEN"] = "Open";
     translations["MENU_FILE_OPEN_TIP"] = "Open a previous project";
@@ -79,22 +87,38 @@ namespace charliesoft
 
     translations["DOCK_TITLE"] = "Toolbox";
 
-
-    translations["BLOCK_INPUT"] = "Input";
-    translations["BLOCK_IMG_PROCESS"] = "2D processing";
-    translations["BLOCK_SIGNAL"] = "1D processing";
-    translations["BLOCK_MATH"] = "Math op.";
-    translations["BLOCK_OUTPUT"] = "Output";
-
     translations["ERROR_GENERIC_TITLE"] = "Error";
     translations["ERROR_LINK_WRONG_INPUT_OUTPUT"] = "You can't link %1$s to %2$s : same type (%3$s)!";
     translations["ERROR_LINK_SAME_BLOCK"] = "You can't link the same block!";
 
 
+    translations["BLOCK_TITLE_INPUT"] = "Input";
+    translations["BLOCK_TITLE_IMG_PROCESS"] = "2D processing";
+    translations["BLOCK_TITLE_SIGNAL"] = "1D processing";
+    translations["BLOCK_TITLE_MATH"] = "Math op.";
+    translations["BLOCK_TITLE_OUTPUT"] = "Output";
+
     translations["BLOCK__INPUT_NAME"] = "File Loader";
     translations["BLOCK__INPUT_PARAM_IN_FILE"] = "filename";
+    translations["BLOCK__INPUT_PARAM_IN_FILE_FILTER"] = "media files";
+    translations["BLOCK__INPUT_PARAM_IN_FILE_HELP"] = "File used to load the image(s).";
+    translations["BLOCK__INPUT_PARAM_IN_GREY"] = "grey";
+    translations["BLOCK__INPUT_PARAM_IN_GREY_HELP"] = "Convert image to a grayscale one";
+    translations["BLOCK__INPUT_PARAM_IN_COLOR"] = "color";
+    translations["BLOCK__INPUT_PARAM_IN_COLOR_HELP"] = "Convert image to a color one";
+    translations["BLOCK__INPUT_PARAM_OUT_IMAGE"] = "image";
+    translations["BLOCK__INPUT_PARAM_OUT_IMAGE_HELP"] = "Output image";
     translations["BLOCK__INPUT_PARAM_OUT_FRAMERATE"] = "framerate";
-    translations["BLOCK__INPUT_PARAM_OUT_WIDTH"] = "width";
-    translations["BLOCK__INPUT_PARAM_OUT_HEIGHT"] = "height";
+    translations["BLOCK__INPUT_PARAM_OUT_FRAMERATE_HELP"] = "Number of frames per second";
+    translations["BLOCK__INPUT_PARAM_INOUT_WIDTH"] = "width";
+    translations["BLOCK__INPUT_PARAM_INOUT_WIDTH_HELP"] = "Wanted width of images (in pixels)";
+    translations["BLOCK__INPUT_PARAM_INOUT_HEIGHT"] = "height";
+    translations["BLOCK__INPUT_PARAM_INOUT_HEIGHT_HELP"] = "Wanted height of images (in pixels)";
+    translations["BLOCK__INPUT_PARAM_INOUT_POS_FRAMES"] = "position";
+    translations["BLOCK__INPUT_PARAM_INOUT_POS_FRAMES_HELP"] = "0-based index of the frame to be decoded/captured";
+    translations["BLOCK__INPUT_PARAM_INOUT_POS_RATIO"] = "pos. ratio";
+    translations["BLOCK__INPUT_PARAM_INOUT_POS_RATIO_HELP"] = "Relative position in the video file (0-begining, 1-end)";
+    translations["BLOCK__INPUT_PARAM_OUT_FORMAT"] = "out format";
+    translations["BLOCK__INPUT_PARAM_OUT_FORMAT_HELP"] = "The format of the Mat objects";
   }
 }

@@ -111,14 +111,12 @@ namespace charliesoft
   void Window::fillDock(int idDock)
   {
     std::vector<std::string> list = ProcessManager::getInstance()->getAlgos(AlgoType(idDock));
-    QLabel* tmpLabel;
+    DraggableWidget* tmpLabel;
     auto it = list.begin();
     while (it != list.end())
     {
-      tmpLabel = new QLabel(_QT(*it), this);
+      tmpLabel = new DraggableWidget(_QT(*it), this);
       keysName_[tmpLabel] = *it;
-      tmpLabel->setAlignment(Qt::AlignCenter);
-      tmpLabel->setStyleSheet("max-height:50px; border:2px solid #555;border-radius: 11px;background: qradialgradient(cx: 0.3, cy: -0.4, fx: 0.3, fy : -0.4, radius : 1.35, stop : 0 #fff, stop: 1 #888);");
       docks_content_[idDock]->addWidget(tmpLabel);
       it++;
     }
@@ -144,7 +142,7 @@ namespace charliesoft
     for (int i = 0; i < 5; i++)
     {
       docks_content_.push_back(new QVBoxLayout());
-      DraggableWidget *tmpWidget = new DraggableWidget(this);
+      DraggableContainer *tmpWidget = new DraggableContainer(this);
       tmpWidget->setMaximumWidth(200);
       tmpWidget->setLayout(docks_content_[i]);
       docks_content_[i]->setAlignment(Qt::AlignTop);
@@ -152,19 +150,19 @@ namespace charliesoft
       switch (i)
       {
       case 0:
-        tabWidget_->addTab(tmpWidget, _QT("BLOCK_INPUT"));
+        tabWidget_->addTab(tmpWidget, _QT("BLOCK_TITLE_INPUT"));
         break;
       case 1:
-        tabWidget_->addTab(tmpWidget, _QT("BLOCK_IMG_PROCESS"));
+        tabWidget_->addTab(tmpWidget, _QT("BLOCK_TITLE_IMG_PROCESS"));
         break;
       case 2:
-        tabWidget_->addTab(tmpWidget, _QT("BLOCK_SIGNAL"));
+        tabWidget_->addTab(tmpWidget, _QT("BLOCK_TITLE_SIGNAL"));
         break;
       case 3:
-        tabWidget_->addTab(tmpWidget, _QT("BLOCK_MATH"));
+        tabWidget_->addTab(tmpWidget, _QT("BLOCK_TITLE_MATH"));
         break;
       default:
-        tabWidget_->addTab(tmpWidget, _QT("BLOCK_OUTPUT"));
+        tabWidget_->addTab(tmpWidget, _QT("BLOCK_TITLE_OUTPUT"));
       }
 
       fillDock(i);
@@ -183,15 +181,15 @@ namespace charliesoft
       mainLayout_, SLOT(synchronize(charliesoft::GraphOfProcess *)));
     connect(this, SIGNAL(askSynchro(charliesoft::GraphOfProcess *)),
       mainLayout_, SLOT(synchronize(charliesoft::GraphOfProcess *)));
+
+    setStyleSheet(config_->styleSheet_.c_str());
   }
 
   void Window::mousePressEvent(QMouseEvent *event)
   {
     if (event->button() == Qt::RightButton)
     {
-      Block* block = ProcessManager::getInstance()->createAlgoInstance("BlockLoader");
-      model_->addNewProcess(block);
-      emit askSynchro(model_);//as we updated the model, we ask the layout to redraw itself...
+      //show a popup menu!
     }
     else if (event->button() == Qt::MidButton)
       std::cout << "middle mouse click " << std::endl;
@@ -251,7 +249,7 @@ namespace charliesoft
 
   }
 
-  void DraggableWidget::mousePressEvent(QMouseEvent *mouse)
+  void DraggableContainer::mousePressEvent(QMouseEvent *mouse)
   {
     if (mouse->button() == Qt::LeftButton)
     {
@@ -269,4 +267,9 @@ namespace charliesoft
     }
   }
 
+  DraggableWidget::DraggableWidget(QString text, QWidget* p) :QLabel(_QT(text.toStdString()),p)
+  {
+    setObjectName("DraggableWidget");
+    setAlignment(Qt::AlignCenter);
+  };
 }
