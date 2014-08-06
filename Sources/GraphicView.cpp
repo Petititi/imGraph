@@ -1,4 +1,4 @@
-
+﻿
 #include "GraphicView.h"
 #include "Internationalizator.h"
 
@@ -22,7 +22,6 @@
 #include <QSplitter>
 #include <QLineEdit>
 #include <QGroupBox>
-#include <QCheckBox>
 #include <QScrollArea>
 #include <QDoubleValidator>
 #include <QIntValidator>
@@ -157,79 +156,119 @@ namespace charliesoft
     auto it = in_param_.begin();
     while (it!=in_param_.end())
     {
-      addParamIn(model, it->second);
+      addParamIn(it->second);
       it++;
     }
     it = out_param_.begin();
     while (it != out_param_.end())
     {
-      ParamRepresentation  *tmp = it->second;
-      tabs_content_[1]->addWidget(new QLabel(_QT(tmp->getParamName())));
-      ParamValue* param = model->getParam(tmp->getParamName());
-      tabs_content_[1]->addWidget(new QLineEdit(param->toString().c_str()));
+      addParamOut(it->second);
       it++;
     }
   };
 
-  void ParamsConfigurator::addParamIn(Block* model, ParamRepresentation  *p)
+
+  void ParamsConfigurator::addParamOut(ParamRepresentation  *p)
+  {
+    QGroupBox* group = new QGroupBox(_QT(p->getParamName()), tabWidget_->widget(1));
+    QVBoxLayout *vbox = new QVBoxLayout();
+    group->setLayout(vbox);
+    group->setCheckable(true);
+    tabs_content_[1]->addWidget(group);
+    group->setChecked(p->isVisible());
+
+    ParamValue* param = p->getParamValue();
+    outputGroup_[group] = p;
+    vbox->addWidget(new QLabel(_QT(p->getParamHelper())));
+    QLineEdit* tmp = new QLineEdit();
+    tmp->setEnabled(false);
+    tmp->setText(param->toString().c_str());
+    vbox->addWidget(tmp);
+  }
+
+  void ParamsConfigurator::addParamIn(ParamRepresentation  *p)
   {
     QGroupBox* group = new QGroupBox(_QT(p->getParamName()), tabWidget_->widget(0));
     QVBoxLayout *vbox = new QVBoxLayout();
     group->setLayout(vbox);
     group->setCheckable(true);
     tabs_content_[0]->addWidget(group);
-    ParamValue* param = model->getParam(p->getParamName());
+
+    ParamValue* param = p->getParamValue();
+    inputGroup_[group] = p;
 
     if (param->getType() != Boolean)
       vbox->addWidget(new QLabel(_QT(p->getParamHelper())));
-    if (p->isVisible())
-    {
+    if (param->isDefaultValue())
       group->setChecked(false);
-      return;//nothing to do more, the value is already set via graph...
-    }
 
+    QWidget* tmp = new QWidget();
+    vbox->addWidget(tmp);
+    QHBoxLayout* layout = new QHBoxLayout();
+    tmp->setLayout(layout);
+    QCheckBox* checkGraph = new QCheckBox();
+    layout->addWidget(checkGraph);
+    connect(checkGraph, SIGNAL(stateChanged(int)), this, SLOT(switchEnable(int)));
+    if (!p->isVisible())
+      checkGraph->setCheckState(Qt::Checked);
+    inputModificator_.insert(Modif_map_type(checkGraph, p));
     switch (param->getType())
     {
     case Boolean:
     {
       QCheckBox* checkTmp = new QCheckBox(_QT(p->getParamHelper()));
-      vbox->addWidget(checkTmp);
+      inputValue_.insert(Val_map_type(p, checkTmp));
+      layout->addWidget(checkTmp);
       break;
     }
     case Int:
     {
       QLineEdit* lineEdit = new QLineEdit(lexical_cast<string>(param->get<int>(false)).c_str());
+      if (p->isVisible())
+        lineEdit->setEnabled(false);
+      inputValue_.insert(Val_map_type(p, lineEdit));
       lineEdit->setValidator(new QIntValidator());
-      vbox->addWidget(lineEdit);
+      layout->addWidget(lineEdit);
       break;
     }
     case Float:
     {
       QLineEdit* lineEdit = new QLineEdit(lexical_cast<string>(param->get<double>(false)).c_str());
+      if (p->isVisible())
+        lineEdit->setEnabled(false);
+      inputValue_.insert(Val_map_type(p, lineEdit));
       lineEdit->setValidator(new QDoubleValidator());
-      vbox->addWidget(lineEdit);
+      layout->addWidget(lineEdit);
       break;
     }
     case Vector:
-      vbox->addWidget(new QPushButton(_QT("VECTOR_EDITOR")));
+      layout->addWidget(new QPushButton(_QT("VECTOR_EDITOR")));
       break;
     case Mat:
-      vbox->addWidget(new QPushButton(_QT("MATRIX_EDITOR")));
+      layout->addWidget(new QPushButton(_QT("MATRIX_EDITOR")));
       break;
     case String:
-      vbox->addWidget(new QLineEdit(param->toString().c_str()));
+    {
+      QLineEdit* lineEdit = new QLineEdit(param->toString().c_str());
+      if (p->isVisible())
+        lineEdit->setEnabled(false);
+      layout->addWidget(lineEdit);
+      inputValue_.insert(Val_map_type(p, lineEdit));
       break;
+    }
     case FilePath:
     {
       QPushButton* button = new QPushButton(_QT("BUTTON_BROWSE"));
       connect(button, SIGNAL(clicked()), this, SLOT(openFile()));
       QLineEdit* lineEdit = new QLineEdit(param->toString().c_str());
+      inputValue_.insert(Val_map_type(p, lineEdit));
       openFiles_[button] = lineEdit;
+      if (p->isVisible())
+      {
+        button->setEnabled(false);
+        lineEdit->setEnabled(false);
+      }
 
-      QWidget* tmp = new QWidget();
-      vbox->addWidget(tmp);
-      QHBoxLayout* layout = new QHBoxLayout();
-      tmp->setLayout(layout);
       layout->addWidget(lineEdit);
       button->setFixedWidth(70);
       layout->addWidget(button);
@@ -238,6 +277,34 @@ namespace charliesoft
     default://probably typeError
       break;
     }
+  }
+  void ParamsConfigurator::switchEnable(int newState)
+  {
+    QCheckBox* src = dynamic_cast<QCheckBox*>(sender());
+    if (src == NULL) return;
+    if (inputModificator_.left.find(src) == inputModificator_.left.end())
+      return;//nothing to do...
+    ParamRepresentation* p = inputModificator_.left.at(src);
+    if (p == NULL) return;
+    ParamValue* param = p->getParamValue();
+    QWidget* inputWidget = dynamic_cast<QWidget*>(inputValue_.left.at(p));
+    if (inputWidget == NULL)
+      return;
+    if (param->getType() == FilePath)
+    {
+      auto it = openFiles_.begin();
+      while (it != openFiles_.end())
+      {
+        if (it->second == inputWidget)
+        {
+          QWidget* buttonWidget = dynamic_cast<QWidget*>(it->first);
+          buttonWidget->setEnabled(newState == Qt::Checked);
+          break;
+        }
+        it++;
+      }
+    }
+    inputWidget->setEnabled(newState == Qt::Checked);
   }
 
   void ParamsConfigurator::openFile()
@@ -251,7 +318,42 @@ namespace charliesoft
   }
   void ParamsConfigurator::accept_button()
   {
+    auto it = inputGroup_.begin();
+    while (it != inputGroup_.end())
+    {
+      ParamValue* param = it->second->getParamValue();
+      if (it->first->isChecked())
+      {
+        if (inputModificator_.right.at(it->second)->isChecked())
+        {
+          it->second->setVisibility(false);
+          QLineEdit* value = dynamic_cast<QLineEdit*>(inputValue_.left.at(it->second));
+          if (value != NULL)
+            param->set(value->text());
+        }
+        else
+        {
+          it->second->setVisibility(true);
+          param->set((ParamValue*)NULL);
+        }
+      }
+      else
+      {
+        it->second->setVisibility(false);
+        param->set(Not_A_Value());
+      }
+      it++;
+    }
+
+    it = outputGroup_.begin();
+    while (it != outputGroup_.end())
+    {
+      it->second->setVisibility(it->first->isChecked());
+      it++;
+    }
+
     close();
+    node_->reshape();
   }
   void ParamsConfigurator::reject_button()
   {
@@ -265,17 +367,9 @@ namespace charliesoft
     isDragging_ = false;
 
     model_ = model;
-    QLabel *name = new QLabel(_QT(model->getName()), this);
-    QRect sizeNameNode = name->fontMetrics().boundingRect(name->text());
-    name->move(8, 5);//move the name at the top of node...
-    name->setObjectName("NodeTitle");
+    nodeTitle = new QLabel(_QT(model->getName()), this);
+    nodeTitle->setObjectName("NodeTitle");
 
-    int topPadding = sizeNameNode.height() + 20;
-
-    int projectedHeight = topPadding;
-    int inputHeight, outputHeight, maxInputWidth, maxOutputWidth;
-    inputHeight = outputHeight = topPadding;
-    maxInputWidth = maxOutputWidth = 0;
 
     //for each input and output create buttons:
     vector<ParamDefinition> inputParams = _PROCESS_MANAGER->getAlgo_InParams(model->getName());
@@ -288,18 +382,6 @@ namespace charliesoft
       connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
       connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
       listOfInputChilds_[inputParams[i].name_] = tmp;
-
-      tmpButtonsIn.push_back(tmp);
-      tmp->setMinimumWidth(5);
-      tmp->move(-2, inputHeight);//move the name at the top of node...
-      tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
-      if (inputParams[i].show_)
-      {
-        showIn++;
-        inputHeight += tmpSize.height() + 10;
-        if (maxInputWidth < tmpSize.width())
-          maxInputWidth = tmpSize.width();
-      }
     }
 
     vector<ParamDefinition> outputParams = _PROCESS_MANAGER->getAlgo_OutParams(model->getName());
@@ -310,12 +392,64 @@ namespace charliesoft
       connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
       connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
       listOfOutputChilds_[outputParams[i].name_] = tmp;
+    }
 
-      tmpButtonsOut.push_back(tmp);
+    lineTitle = new QFrame(this);//add a line...
+    lineTitle->setFrameShape(QFrame::HLine);
+    lineTitle->setObjectName("NodeTitleLine");
+
+    reshape();
+
+    QGraphicsDropShadowEffect* shadowEffect = new QGraphicsDropShadowEffect();
+    shadowEffect->setBlurRadius(15);
+    shadowEffect->setOffset(3, 3);
+    setGraphicsEffect(shadowEffect);
+
+    move((*model->getPosition())[0], (*model->getPosition())[1]);
+  }
+
+  void NodeRepresentation::reshape()
+  {
+    QRect sizeNameNode = nodeTitle->fontMetrics().boundingRect(nodeTitle->text());
+    
+    int topPadding = sizeNameNode.height() + 20;
+
+    int projectedHeight = topPadding;
+    int inputHeight, outputHeight, maxInputWidth, maxOutputWidth;
+    inputHeight = outputHeight = topPadding;
+    maxInputWidth = maxOutputWidth = 0;
+
+
+    //for each input and output create buttons:
+    auto it = listOfInputChilds_.begin();
+    QRect tmpSize;
+    int showIn = 0, showOut = 0;
+    for (; it != listOfInputChilds_.end(); it++)
+    {
+      ParamRepresentation  *tmp = it->second;
+      tmp->setMinimumWidth(5);
+      tmp->move(-2, inputHeight);//move the name at the top of node...
+      tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
+      tmp->setVisible(tmp->shouldShow());
+      if (tmp->shouldShow())
+      {
+        showIn++;
+        inputHeight += tmpSize.height() + 10;
+        if (maxInputWidth < tmpSize.width())
+          maxInputWidth = tmpSize.width();
+      }
+    }
+
+    it = listOfOutputChilds_.begin();
+    for (; it != listOfOutputChilds_.end(); it++)
+    {
+      ParamRepresentation  *tmp = it->second;
+
       tmp->setMinimumWidth(5);
       tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
       tmp->move(sizeNameNode.width() + 16 - tmpSize.width() - 8, outputHeight);//move the name at the top of node...
-      if (outputParams[i].show_)
+      tmp->setVisible(tmp->shouldShow());
+      if (tmp->shouldShow())
       {
         showOut++;
         outputHeight += tmpSize.height() + 10;
@@ -329,50 +463,41 @@ namespace charliesoft
     int newWidth = maxOutputWidth + maxInputWidth + 10;
     if (newWidth < sizeNameNode.width() + 16)
       newWidth = sizeNameNode.width() + 16;
-    else
-    {
-      inputHeight = outputHeight = topPadding;
-      if (showIn > showOut)
-        outputHeight += (tmpSize.height() + 10) * ((static_cast<double>(showIn)-showOut) / 2.);
-      else
-        inputHeight += (tmpSize.height() + 10) * ((static_cast<double>(showOut)-showIn) / 2.);
 
-      for (size_t i = 0; i < tmpButtonsIn.size(); i++)
-      {
-        QRect tmpSize = tmpButtonsIn[i]->fontMetrics().boundingRect(tmpButtonsIn[i]->text());
-        tmpButtonsIn[i]->resize(maxInputWidth, tmpSize.height() + 5);
-        tmpButtonsIn[i]->move(-2, inputHeight);//move the name at the top of node...
-        if (inputParams[i].show_)
-          inputHeight += tmpSize.height() + 10;
-      }
-      for (size_t i = 0; i < tmpButtonsOut.size(); i++)
-      {
-        QRect tmpSize = tmpButtonsOut[i]->fontMetrics().boundingRect(tmpButtonsOut[i]->text());
-        tmpButtonsOut[i]->resize(maxOutputWidth, tmpSize.height() + 5);
-        tmpButtonsOut[i]->move(newWidth - maxOutputWidth + 4, outputHeight);//move the name at the top of node...
-        if (outputParams[i].show_)
-          outputHeight += tmpSize.height() + 10;
-      }
+    inputHeight = outputHeight = topPadding;
+    if (showIn > showOut)
+      outputHeight += (tmpSize.height() + 10) * ((static_cast<double>(showIn)-showOut) / 2.);
+    else
+      inputHeight += (tmpSize.height() + 10) * ((static_cast<double>(showOut)-showIn) / 2.);
+
+    it = listOfInputChilds_.begin();
+    for (; it != listOfInputChilds_.end(); it++)
+    {
+      QRect tmpSize = it->second->fontMetrics().boundingRect(it->second->text());
+      it->second->resize(maxInputWidth, tmpSize.height() + 5);
+      it->second->move(-2, inputHeight);//move the name at the top of node...
+      if (it->second->shouldShow())
+        inputHeight += tmpSize.height() + 10;
+    }
+    it = listOfOutputChilds_.begin();
+    for (; it != listOfOutputChilds_.end(); it++)
+    {
+      QRect tmpSize = it->second->fontMetrics().boundingRect(it->second->text());
+      it->second->resize(maxOutputWidth, tmpSize.height() + 5);
+      it->second->move(newWidth - maxOutputWidth + 4, outputHeight);//move the name at the top of node...
+      if (it->second->shouldShow())
+        outputHeight += tmpSize.height() + 10;
     }
 
-    name->move((newWidth - sizeNameNode.width()) / 2, 5);//move the name at the top of node...
-    QFrame* myFrame = new QFrame(this);//add a line...
-    myFrame->setFrameShape(QFrame::HLine);
-    myFrame->setObjectName("NodeTitleLine");
-    myFrame->resize(newWidth, 2);
-    myFrame->move(0, sizeNameNode.height() + 8 );//move the name at the top of node...
+    nodeTitle->move((newWidth - sizeNameNode.width()) / 2, 5);//move the name at the top of node...
+
+    lineTitle->resize(newWidth, 2);
+    lineTitle->move(0, sizeNameNode.height() + 8);//move the name at the top of node...
 
 
     projectedHeight += max(inputHeight, outputHeight);
 
-    resize(newWidth, projectedHeight-20);
-
-    QGraphicsDropShadowEffect* shadowEffect = new QGraphicsDropShadowEffect();
-    shadowEffect->setBlurRadius(15);
-    shadowEffect->setOffset(3, 3);
-    setGraphicsEffect(shadowEffect);
-
-    move((*model->getPosition())[0], (*model->getPosition())[1]);
+    resize(newWidth, projectedHeight - 20);
   }
 
   void NodeRepresentation::setLink(const BlockLink& link)

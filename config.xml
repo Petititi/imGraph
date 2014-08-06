@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GlobConfig>
+  <LastProject/>
+  <PrefLang>en</PrefLang>
+  <styleSheet>
+  QToolTip {font-style:italic; color: #ffffff; background-color: #2a82aa; border: 1px solid white;}
+  QWidget#MainWidget{background:white;background-image:url(logo.png);background-repeat:no-repeat;background-position:center;}
+  QWidget#DraggableWidget{max-height:50px; padding: 2px; margin:5px; border:1px solid #888;border-radius: 5px;
+    background: qradialgradient(cx: 0.3, cy: -0.4, fx: 0.3, fy : -0.4, radius : 1.35, stop : 0 #fff, stop: 1 #bbb);}
+  QWidget#NodeRepresentation{border:2px solid #555;border-radius: 11px;
+    background: qradialgradient(cx: 0.3, cy: -0.4, fx: 0.3, fy : -0.4, radius : 1.35, stop : 0 #fff, stop: 1 #888);}
+  QWidget#NodeTitle{background-color:rgba(255,255,255,32);border:none;border-radius:5px;}
+  QWidget#NodeTitleLine{border: 2px solid #555;border-radius:0px;}
+  QWidget#ParamRepresentation{background-color:rgba(255,255,255,255);border:1px solid #555;padding:1px;}
+  </styleSheet>
+  <ShowMaximized>true</ShowMaximized>
+  <lastPosition>
+    <x>566</x>
+    <y>166</y>
+    <width>788</width>
+    <height>425</height>
+  </lastPosition>
+</GlobConfig>

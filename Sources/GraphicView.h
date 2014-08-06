@@ -14,7 +14,11 @@
 #include <QMainWindow>
 #include <QComboBox>
 #include <QDial>
+#include <QCheckBox>
 #include <QPainterPath>
+#include <QGroupBox>
+
+#include <boost/bimap.hpp>
 
 #include "blocks/Block.h"
 
@@ -51,7 +55,10 @@ namespace charliesoft
     virtual void mouseDoubleClickEvent(QMouseEvent *);
     virtual void mouseMoveEvent(QMouseEvent *);
 
+    bool shouldShow() const { return param_.show_; }
+    void setVisibility(bool visible) { param_.show_ = visible; }
     std::string getParamName() const { return param_.name_; }
+    ParamValue* getParamValue() const { return model_->getParam(param_.name_); }
     std::string getParamHelper() const { return param_.helper_; }
     Block* getModel() const { return model_; }
     bool isInput() const { return isInput_; }
@@ -64,6 +71,8 @@ namespace charliesoft
 
   class NodeRepresentation :public QWidget
   {
+    QFrame* lineTitle;
+    QLabel* nodeTitle;
     Block* model_;
     bool isDragging_;
     QPoint deltaClick_;
@@ -83,6 +92,8 @@ namespace charliesoft
     void setLink(const BlockLink& linkInfo);
     void paintLinks(QPainter& p);
 
+    void reshape();
+
   protected:
     virtual void mousePressEvent(QMouseEvent *);
     virtual void mouseReleaseEvent(QMouseEvent *);
@@ -99,7 +110,14 @@ namespace charliesoft
   {
     Q_OBJECT;
 
+    typedef boost::bimap<QCheckBox*, ParamRepresentation* >::value_type Modif_map_type;
+    typedef boost::bimap<ParamRepresentation*, QObject* >::value_type Val_map_type;
+
     std::map<QObject*, QLineEdit*> openFiles_;
+    std::map<QGroupBox*, ParamRepresentation*> inputGroup_;
+    std::map<QGroupBox*, ParamRepresentation*> outputGroup_;
+    boost::bimap< QCheckBox*, ParamRepresentation* > inputModificator_;
+    boost::bimap<ParamRepresentation*, QObject* > inputValue_;
     std::map<std::string, ParamRepresentation*>& in_param_;
     std::map<std::string, ParamRepresentation*>& out_param_;
     NodeRepresentation* node_;
@@ -109,7 +127,8 @@ namespace charliesoft
     QTabWidget* tabWidget_;
     std::vector<QVBoxLayout *> tabs_content_;
 
-    void addParamIn(Block* model, ParamRepresentation  *p);
+    void addParamOut(ParamRepresentation  *p);
+    void addParamIn(ParamRepresentation  *p);
   public:
     ParamsConfigurator(NodeRepresentation* node,
       std::map<std::string, ParamRepresentation*>& in_param,
@@ -119,6 +138,7 @@ namespace charliesoft
     void changeVisibility(bool isVisible);
 
     public slots:
+    void switchEnable(int);
     void openFile();
     void accept_button();
     void reject_button();

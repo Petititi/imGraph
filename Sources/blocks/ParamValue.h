@@ -7,6 +7,7 @@
 #endif
 #include <boost/variant.hpp>
 #include <opencv2/core/core.hpp>
+#include <QString>
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
@@ -58,6 +59,8 @@ namespace charliesoft
 
     std::string toString();
 
+    bool isDefaultValue(){ return value_.type() == typeid(Not_A_Value); };
+
     ParamType getType();
 
     template<typename T>
@@ -66,7 +69,10 @@ namespace charliesoft
       if (value_.type() == typeid(ParamValue*))
       {
         ParamValue* distantParam = boost::get<ParamValue*>(value_);
-        return distantParam->get<T>(update);
+        if (distantParam == NULL)
+          return T();
+        else
+          return distantParam->get<T>(update);
       }
       if (update)
         algo_->updateIfNeeded();
@@ -78,6 +84,7 @@ namespace charliesoft
     }
 
     void set(const VariantClasses& v);
+    void set(const QString& v);
   };
 }
 

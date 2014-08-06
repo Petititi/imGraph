@@ -17,7 +17,13 @@ namespace charliesoft
   std::string ParamValue::toString()
   {
     if (value_.type() == typeid(ParamValue*))
-      return boost::get<ParamValue*>(value_)->toString();
+    {
+      ParamValue* val = boost::get<ParamValue*>(value_);
+      if (val == NULL)
+        return "NULL";
+      else
+        return boost::get<ParamValue*>(value_)->toString();
+    }
     if (value_.type() == typeid(Not_A_Value))
       return _STR("NOT_INITIALIZED");
 
@@ -37,6 +43,18 @@ namespace charliesoft
   void ParamValue::set(const VariantClasses& v){
     value_ = v;
     algo_->setUpToDate(false);
+  };
+
+  //Boolean, Int, Float, Vector, Mat, String, FilePath, typeError
+  void ParamValue::set(const QString& v){
+    if (getType() == Boolean)
+      value_ = lexical_cast<bool>(v.toStdString());
+    if (getType() == Int)
+      value_ = lexical_cast<int>(v.toStdString());
+    if (getType() == Float)
+      value_ = lexical_cast<double>(v.toStdString());
+    if (getType() == String || getType() == FilePath)
+      value_ = v.toStdString();
   };
 
   ParamValue& ParamValue::operator = (bool const &rhs) {

@@ -99,26 +99,35 @@ namespace charliesoft
     translations["BLOCK_TITLE_OUTPUT"] = "Output";
 
     translations["BLOCK__INPUT_NAME"] = "File Loader";
-    translations["BLOCK__INPUT_PARAM_IN_FILE"] = "filename";
-    translations["BLOCK__INPUT_PARAM_IN_FILE_FILTER"] = "media files";
-    translations["BLOCK__INPUT_PARAM_IN_FILE_HELP"] = "File used to load the image(s).";
-    translations["BLOCK__INPUT_PARAM_IN_GREY"] = "grey";
-    translations["BLOCK__INPUT_PARAM_IN_GREY_HELP"] = "Convert image to a grayscale one";
-    translations["BLOCK__INPUT_PARAM_IN_COLOR"] = "color";
-    translations["BLOCK__INPUT_PARAM_IN_COLOR_HELP"] = "Convert image to a color one";
-    translations["BLOCK__INPUT_PARAM_OUT_IMAGE"] = "image";
-    translations["BLOCK__INPUT_PARAM_OUT_IMAGE_HELP"] = "Output image";
-    translations["BLOCK__INPUT_PARAM_OUT_FRAMERATE"] = "framerate";
-    translations["BLOCK__INPUT_PARAM_OUT_FRAMERATE_HELP"] = "Number of frames per second";
-    translations["BLOCK__INPUT_PARAM_INOUT_WIDTH"] = "width";
-    translations["BLOCK__INPUT_PARAM_INOUT_WIDTH_HELP"] = "Wanted width of images (in pixels)";
-    translations["BLOCK__INPUT_PARAM_INOUT_HEIGHT"] = "height";
-    translations["BLOCK__INPUT_PARAM_INOUT_HEIGHT_HELP"] = "Wanted height of images (in pixels)";
-    translations["BLOCK__INPUT_PARAM_INOUT_POS_FRAMES"] = "position";
-    translations["BLOCK__INPUT_PARAM_INOUT_POS_FRAMES_HELP"] = "0-based index of the frame to be decoded/captured";
-    translations["BLOCK__INPUT_PARAM_INOUT_POS_RATIO"] = "pos. ratio";
-    translations["BLOCK__INPUT_PARAM_INOUT_POS_RATIO_HELP"] = "Relative position in the video file (0-begining, 1-end)";
-    translations["BLOCK__INPUT_PARAM_OUT_FORMAT"] = "out format";
-    translations["BLOCK__INPUT_PARAM_OUT_FORMAT_HELP"] = "The format of the Mat objects";
+    translations["BLOCK__INPUT_IN_FILE"] = "filename";
+    translations["BLOCK__INPUT_IN_FILE_FILTER"] = "media files";
+    translations["BLOCK__INPUT_IN_FILE_HELP"] = "File used to load the image(s).";
+    translations["BLOCK__INPUT_IN_GREY"] = "grey";
+    translations["BLOCK__INPUT_IN_GREY_HELP"] = "Convert image to a grayscale one";
+    translations["BLOCK__INPUT_IN_COLOR"] = "color";
+    translations["BLOCK__INPUT_IN_COLOR_HELP"] = "Convert image to a color one";
+    translations["BLOCK__INPUT_OUT_IMAGE"] = "image";
+    translations["BLOCK__INPUT_OUT_IMAGE_HELP"] = "Output image";
+    translations["BLOCK__INPUT_OUT_FRAMERATE"] = "framerate";
+    translations["BLOCK__INPUT_OUT_FRAMERATE_HELP"] = "Number of frames per second";
+    translations["BLOCK__INPUT_INOUT_WIDTH"] = "width";
+    translations["BLOCK__INPUT_INOUT_WIDTH_HELP"] = "Wanted width of images (in pixels)";
+    translations["BLOCK__INPUT_INOUT_HEIGHT"] = "height";
+    translations["BLOCK__INPUT_INOUT_HEIGHT_HELP"] = "Wanted height of images (in pixels)";
+    translations["BLOCK__INPUT_INOUT_POS_FRAMES"] = "position";
+    translations["BLOCK__INPUT_INOUT_POS_FRAMES_HELP"] = "0-based index of the frame to be decoded/captured";
+    translations["BLOCK__INPUT_INOUT_POS_RATIO"] = "pos. ratio";
+    translations["BLOCK__INPUT_INOUT_POS_RATIO_HELP"] = "Relative position in the video file (0-begining, 1-end)";
+    translations["BLOCK__INPUT_OUT_FORMAT"] = "out format";
+    translations["BLOCK__INPUT_OUT_FORMAT_HELP"] = "The format of the Mat objects";
+
+    translations["BLOCK__OUTPUT_NAME"] = "Display image";
+    translations["BLOCK__OUTPUT_IN_IMAGE"] = "image";
+    translations["BLOCK__OUTPUT_IN_IMAGE_HELP"] = "Output image";
+    translations["BLOCK__OUTPUT_IN_WIDTH"] = translations["BLOCK__INPUT_INOUT_WIDTH"];
+    translations["BLOCK__OUTPUT_IN_WIDTH_HELP"] = translations["BLOCK__INPUT_INOUT_WIDTH_HELP"];
+    translations["BLOCK__OUTPUT_IN_HEIGHT"] = translations["BLOCK__INPUT_INOUT_HEIGHT"];
+    translations["BLOCK__OUTPUT_IN_HEIGHT_HELP"] = translations["BLOCK__INPUT_INOUT_HEIGHT_HELP"];
+
   }
 }
