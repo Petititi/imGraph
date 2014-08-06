@@ -25,6 +25,10 @@ namespace charliesoft
   struct Not_A_Value
   {
     bool justForMe_;
+    bool operator == (const Not_A_Value &b) const
+    {
+      return false;
+    }
   };
 
   typedef boost::variant <
@@ -47,6 +51,24 @@ namespace charliesoft
       algo_(algo), name_(name), isOutput_(isOutput), value_(Not_A_Value()){};
     ParamValue() :
       algo_(NULL), name_(""), isOutput_(false), value_(Not_A_Value()){};
+    ParamValue(bool v) :
+      algo_(NULL), name_(""), isOutput_(false), value_(v){};
+    ParamValue(int v) :
+      algo_(NULL), name_(""), isOutput_(false), value_(v){};
+    ParamValue(double v) :
+      algo_(NULL), name_(""), isOutput_(false), value_(v){};
+    ParamValue(std::string v) :
+      algo_(NULL), name_(""), isOutput_(false), value_(v){};
+    ParamValue(cv::Mat v) :
+      algo_(NULL), name_(""), isOutput_(false), value_(v){};
+    ParamValue(Not_A_Value v) :
+      algo_(NULL), name_(""), isOutput_(false), value_(Not_A_Value()){};
+    ParamValue(ParamValue* v) :
+      algo_(NULL), name_(""), isOutput_(false), value_(v){};
+    ParamValue(ParamValue& va) :
+      algo_(va.algo_), name_(va.name_), isOutput_(va.isOutput_), value_(va.value_){};
+
+    static ParamValue fromString(ParamType,std::string);
 
     ParamValue& operator=(bool const &rhs);
     ParamValue& operator=(int const &rhs);
@@ -56,10 +78,25 @@ namespace charliesoft
     ParamValue& operator=(Not_A_Value const &rhs);
     ParamValue& operator=(ParamValue const &rhs);
     ParamValue& operator=(ParamValue* rhs);
+    bool operator== (const ParamValue &b) const;
+    bool operator< (const ParamValue &b) const;
+    bool operator> (const ParamValue &b) const;
+    bool operator<= (const ParamValue &b) const
+    {
+      return this->operator==(b) || this->operator<(b);
+    }
+    bool operator>= (const ParamValue &b) const
+    {
+      return this->operator==(b) || this->operator>(b);
+    }
+    bool operator!= (const ParamValue &b) const
+    {
+      return !(this->operator==(b));
+    }
 
-    std::string toString();
+    std::string toString() const;
 
-    bool isDefaultValue(){ return value_.type() == typeid(Not_A_Value); };
+    bool isDefaultValue() const;
 
     ParamType getType();
 
@@ -80,11 +117,43 @@ namespace charliesoft
       {
         return T();
       }
-      return boost::get<T>(value_);
+      try
+      {
+        return boost::get<T>(value_);
+      }
+      catch (boost::bad_get&)
+      {
+        return T();
+      }
+    }
+
+    template<typename T>
+    T get_const() const
+    {
+      if (value_.type() == typeid(ParamValue*))
+      {
+        ParamValue* distantParam = boost::get<ParamValue*>(value_);
+        if (distantParam == NULL)
+          return T();
+        else
+          return distantParam->get_const<T>();
+      }
+      if (value_.type() == typeid(Not_A_Value))
+      {
+        return T();
+      }
+      try
+      {
+        return boost::get<T>(value_);
+      }
+      catch (boost::bad_get&)
+      {
+        return T();
+      }
     }
 
     void set(const VariantClasses& v);
-    void set(const QString& v);
+    void setString(const std::string& v);
   };
 }
 

@@ -14,6 +14,13 @@ namespace charliesoft
   recursive_mutex _internationalizatorMutex;
   Internationalizator *Internationalizator::ptr = NULL;
 
+  boost::format my_format(const std::string & f_string) {
+    using namespace boost::io;
+    boost::format fmter(f_string);
+    fmter.exceptions(no_error_bits);//no exceptions wanted!
+    return fmter;
+  }
+
   Internationalizator::Internationalizator()
   {
     initTranslations();
@@ -68,6 +75,14 @@ namespace charliesoft
     translations["MATRIX_EDITOR"] = "Matrix editor";
     translations["VECTOR_EDITOR"] = "Vector editor";
     translations["NOT_INITIALIZED"] = "Not initialized...";
+    translations["ERROR_GENERIC_TITLE"] = "Error!";
+    translations["ERROR_LINK_WRONG_INPUT_OUTPUT"] = "You can't link %1$s to %2$s : same type (%3$s)!";
+    translations["ERROR_LINK_SAME_BLOCK"] = "You can't link the same block!";
+    translations["ERROR_PARAM_EXCLUSIF"] = "Param \"%1$s\" and \"%2$s\" are mutually exclusive...";
+    translations["ERROR_PARAM_NEEDED"] = "Param \"%1$s\" is required...";
+    translations["ERROR_PARAM_ONLY_POSITIF"] = "Param \"%1$s\":<br/>only positive value are authorized!";
+    translations["ERROR_PARAM_ONLY_POSITIF_STRICT"] = "Param \"%1$s\":<br/>only strict positive value are authorized!";
+    translations["ERROR_PARAM_VALUE_BETWEEN"] = "Param \"%1$s\":<br/>should be between %2$f and %3$f";
 
     translations["MENU_FILE"] = "File";
     translations["MENU_FILE_OPEN"] = "Open";
@@ -87,10 +102,6 @@ namespace charliesoft
 
     translations["DOCK_TITLE"] = "Toolbox";
 
-    translations["ERROR_GENERIC_TITLE"] = "Error";
-    translations["ERROR_LINK_WRONG_INPUT_OUTPUT"] = "You can't link %1$s to %2$s : same type (%3$s)!";
-    translations["ERROR_LINK_SAME_BLOCK"] = "You can't link the same block!";
-
 
     translations["BLOCK_TITLE_INPUT"] = "Input";
     translations["BLOCK_TITLE_IMG_PROCESS"] = "2D processing";
@@ -102,6 +113,7 @@ namespace charliesoft
     translations["BLOCK__INPUT_IN_FILE"] = "filename";
     translations["BLOCK__INPUT_IN_FILE_FILTER"] = "media files";
     translations["BLOCK__INPUT_IN_FILE_HELP"] = "File used to load the image(s).";
+    translations["BLOCK__INPUT_IN_FILE_NOT_FOUND"] = "File \"%1$s\" not found!";
     translations["BLOCK__INPUT_IN_GREY"] = "grey";
     translations["BLOCK__INPUT_IN_GREY_HELP"] = "Convert image to a grayscale one";
     translations["BLOCK__INPUT_IN_COLOR"] = "color";

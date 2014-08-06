@@ -1,12 +1,16 @@
 #ifndef _INTERNATIONALIZATOR_HEADER_
 #define _INTERNATIONALIZATOR_HEADER_
 
+#include <boost/format.hpp>
+
 #include <string>
 #include <map>
 #include <QString>
 
 namespace charliesoft
 {
+  boost::format my_format(const std::string & f_string);
+
   class Internationalizator
   {
     Internationalizator();

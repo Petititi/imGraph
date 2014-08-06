@@ -205,6 +205,7 @@ namespace charliesoft
     QWidget* tmp = new QWidget();
     vbox->addWidget(tmp);
     QHBoxLayout* layout = new QHBoxLayout();
+    layout->setAlignment(Qt::AlignLeft);
     tmp->setLayout(layout);
     QCheckBox* checkGraph = new QCheckBox();
     layout->addWidget(checkGraph);
@@ -216,7 +217,8 @@ namespace charliesoft
     {
     case Boolean:
     {
-      QCheckBox* checkTmp = new QCheckBox(_QT(p->getParamHelper()));
+      QLabel* checkTmp = new QLabel(_QT(p->getParamHelper()));
+      checkTmp->setAlignment(Qt::AlignLeft);
       inputValue_.insert(Val_map_type(p, checkTmp));
       layout->addWidget(checkTmp);
       break;
@@ -311,8 +313,8 @@ namespace charliesoft
   {
     if (openFiles_.find(sender()) == openFiles_.end())
       return;//nothing to do...
-    QString fileName = QFileDialog::getOpenFileName(this, _QT("BLOCK__INPUT_PARAM_IN_FILE_HELP"),
-      openFiles_[sender()]->text(), _QT("BLOCK__INPUT_PARAM_IN_FILE_FILTER") + " (*.bmp *.pbm *.pgm *.ppm *.sr *.ras *.jpeg *.jpg *.jpe *.jp2 *.tiff *.tif *.png *.avi *.mov *.mxf *.wmv)");
+    QString fileName = QFileDialog::getOpenFileName(this, _QT("BLOCK__INPUT_IN_FILE_HELP"),
+      openFiles_[sender()]->text(), _QT("BLOCK__INPUT_IN_FILE_FILTER") + " (*.bmp *.pbm *.pgm *.ppm *.sr *.ras *.jpeg *.jpg *.jpe *.jp2 *.tiff *.tif *.png *.avi *.mov *.mxf *.wmv)");
     if (!fileName.isEmpty())
       openFiles_[sender()]->setText(fileName);
   }
@@ -329,7 +331,29 @@ namespace charliesoft
           it->second->setVisibility(false);
           QLineEdit* value = dynamic_cast<QLineEdit*>(inputValue_.left.at(it->second));
           if (value != NULL)
-            param->set(value->text());
+          {
+            if (!node_->getModel()->validateParams(it->second->getParamName(), 
+              ParamValue::fromString(param->getType(), value->text().toStdString())))
+            {//algo doesn't accept this value!
+              QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), node_->getModel()->getErrorMsg().c_str());
+              return;//stop here the validation: should correct the error!
+            }
+            param->setString(value->text().toStdString());
+          }
+          else
+          {//maybe a checkbox?
+            QLabel* value = dynamic_cast<QLabel*>(inputValue_.left.at(it->second));
+            if (value != NULL)
+            {
+              if (!node_->getModel()->validateParams(
+                it->second->getParamName(), true))
+              {//algo doesn't accept this value!
+                QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), node_->getModel()->getErrorMsg().c_str());
+                return;//stop here the validation: should correct the error!
+              }
+              param->set(true);
+            }
+          }
         }
         else
         {
@@ -340,6 +364,12 @@ namespace charliesoft
       else
       {
         it->second->setVisibility(false);
+        if (!node_->getModel()->validateParams(it->second->getParamName(), Not_A_Value()))
+        {//algo doesn't accept this value!
+          QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), node_->getModel()->getErrorMsg().c_str());
+          return;//stop here the validation: should correct the error!
+        }
+
         param->set(Not_A_Value());
       }
       it++;
@@ -352,8 +382,8 @@ namespace charliesoft
       it++;
     }
 
-    close();
     node_->reshape();
+    close();
   }
   void ParamsConfigurator::reject_button()
   {
@@ -822,7 +852,7 @@ namespace charliesoft
       {
         string typeLink = param->isInput() ? _STR("BLOCK_INPUT") : _STR("BLOCK_OUTPUT");
         QMessageBox messageBox;
-        string msg = (boost::format(_STR("ERROR_LINK_WRONG_INPUT_OUTPUT")) % startParam_->getParamName() % param->getParamName() % typeLink).str();
+        string msg = (my_format(_STR("ERROR_LINK_WRONG_INPUT_OUTPUT")) % startParam_->getParamName() % param->getParamName() % typeLink).str();
         messageBox.critical(0, _STR("ERROR_GENERIC_TITLE").c_str(), msg.c_str());
         return;
       }

@@ -20,10 +20,11 @@
 #include "ProcessManager.h"
 
 //macro to add algo to list:
-#define BLOCK_INSTANTIATE(className, blockType, keyName) \
+
+#define BLOCK_BEGIN_INSTANTIATION(className) \
   \
   class className## :public Block \
-  { \
+        { \
       friend charliesoft::ProcessManager; \
       static std::vector<ParamDefinition> getListParams(); \
       static std::vector<ParamDefinition> getListOutputs(); \
@@ -31,7 +32,9 @@
   protected: \
     virtual void run(); \
   public: \
-      className##(); \
+    className##();
+
+#define BLOCK_END_INSTANTIATION(className, blockType, keyName) \
   }; \
   \
   bool className##::addedToList = \
@@ -55,6 +58,7 @@ namespace charliesoft
   class Block{
     friend charliesoft::ProcessManager;
   protected:
+    std::string error_msg_;
     std::string name_;
     GraphOfProcess* graph_;//<Graph who own this block
     Point_* position_;//<link to VertexProperties_::position!
@@ -74,11 +78,17 @@ namespace charliesoft
       return name_;
     };
 
+    virtual bool validateParams(std::string param, const ParamValue&){ return true; };
+
+    std::string getErrorInfo(){ return error_msg_; };
+
     virtual void setParam(std::string nameParam_, ParamValue& value);
     virtual ParamValue* getParam(std::string nameParam_);
 
     void updateIfNeeded() { if (!isUpToDate_) { run(); setUpToDate(true); }; };
     void setUpToDate(bool isFresh){ isUpToDate_ = isFresh; };
+
+    std::string getErrorMsg() const { return error_msg_; }
 
     Point_* getPosition() const { return position_; }
     void setPosition(Point_* val) { position_ = val; }
