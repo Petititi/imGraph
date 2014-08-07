@@ -113,10 +113,10 @@ namespace charliesoft
     }
   }
 
-  ParamsConfigurator::ParamsConfigurator(NodeRepresentation* node,
+  ParamsConfigurator::ParamsConfigurator(VertexRepresentation* vertex,
     std::map<std::string, ParamRepresentation*>& in_param,
     std::map<std::string, ParamRepresentation*>& out_param) :
-    QDialog(node), node_(node), in_param_(in_param), out_param_(out_param)
+    QDialog(vertex), vertex_(vertex), in_param_(in_param), out_param_(out_param)
   {
     setModal(true);
     tabWidget_ = new QTabWidget(this);
@@ -151,7 +151,7 @@ namespace charliesoft
     tmpWidget->setLayout(tabs_content_[1]);
     tabWidget_->addTab(tmpWidget, _QT("BLOCK_TITLE_OUTPUT"));
 
-    Block* model = node->getModel();
+    Block* model = vertex->getModel();
     //fill input parameters:
     auto it = in_param_.begin();
     while (it!=in_param_.end())
@@ -329,44 +329,48 @@ namespace charliesoft
         if (inputModificator_.right.at(it->second)->isChecked())
         {
           it->second->setVisibility(false);
-          QLineEdit* value = dynamic_cast<QLineEdit*>(inputValue_.left.at(it->second));
-          if (value != NULL)
+          if (param->getType() == Boolean)
           {
-            if (!node_->getModel()->validateParams(it->second->getParamName(), 
-              ParamValue::fromString(param->getType(), value->text().toStdString())))
-            {//algo doesn't accept this value!
-              QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), node_->getModel()->getErrorMsg().c_str());
-              return;//stop here the validation: should correct the error!
-            }
-            param->setString(value->text().toStdString());
-          }
-          else
-          {//maybe a checkbox?
             QLabel* value = dynamic_cast<QLabel*>(inputValue_.left.at(it->second));
             if (value != NULL)
             {
-              if (!node_->getModel()->validateParams(
+              if (!vertex_->getModel()->validateParams(
                 it->second->getParamName(), true))
               {//algo doesn't accept this value!
-                QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), node_->getModel()->getErrorMsg().c_str());
+                QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), vertex_->getModel()->getErrorMsg().c_str());
                 return;//stop here the validation: should correct the error!
               }
               param->set(true);
+            }
+          }
+
+          if (param->getType() == Int || param->getType() == Float ||
+            param->getType() == String || param->getType() == FilePath)
+          {
+            QLineEdit* value = dynamic_cast<QLineEdit*>(inputValue_.left.at(it->second));
+            if (value != NULL)
+            {
+              if (!vertex_->getModel()->validateParams(it->second->getParamName(),
+                ParamValue::fromString(param->getType(), value->text().toStdString())))
+              {//algo doesn't accept this value!
+                QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), vertex_->getModel()->getErrorMsg().c_str());
+                return;//stop here the validation: should correct the error!
+              }
+              param->setString(value->text().toStdString());
             }
           }
         }
         else
         {
           it->second->setVisibility(true);
-          param->set((ParamValue*)NULL);
         }
       }
       else
       {
         it->second->setVisibility(false);
-        if (!node_->getModel()->validateParams(it->second->getParamName(), Not_A_Value()))
+        if (!vertex_->getModel()->validateParams(it->second->getParamName(), Not_A_Value()))
         {//algo doesn't accept this value!
-          QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), node_->getModel()->getErrorMsg().c_str());
+          QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), vertex_->getModel()->getErrorMsg().c_str());
           return;//stop here the validation: should correct the error!
         }
 
@@ -382,7 +386,7 @@ namespace charliesoft
       it++;
     }
 
-    node_->reshape();
+    vertex_->reshape();
     close();
   }
   void ParamsConfigurator::reject_button()
@@ -390,15 +394,15 @@ namespace charliesoft
     close();
   }
 
-  NodeRepresentation::NodeRepresentation(Block* model)
+  VertexRepresentation::VertexRepresentation(Block* model)
   {
-    setObjectName("NodeRepresentation");
+    setObjectName("VertexRepresentation");
     paramActiv_ = NULL;
     isDragging_ = false;
 
     model_ = model;
-    nodeTitle = new QLabel(_QT(model->getName()), this);
-    nodeTitle->setObjectName("NodeTitle");
+    vertexTitle_ = new QLabel(_QT(model->getName()), this);
+    vertexTitle_->setObjectName("VertexTitle");
 
 
     //for each input and output create buttons:
@@ -426,7 +430,7 @@ namespace charliesoft
 
     lineTitle = new QFrame(this);//add a line...
     lineTitle->setFrameShape(QFrame::HLine);
-    lineTitle->setObjectName("NodeTitleLine");
+    lineTitle->setObjectName("VertexTitleLine");
 
     reshape();
 
@@ -435,14 +439,14 @@ namespace charliesoft
     shadowEffect->setOffset(3, 3);
     setGraphicsEffect(shadowEffect);
 
-    move((*model->getPosition())[0], (*model->getPosition())[1]);
+    move(model->getPosition()[0], model->getPosition()[1]);
   }
 
-  void NodeRepresentation::reshape()
+  void VertexRepresentation::reshape()
   {
-    QRect sizeNameNode = nodeTitle->fontMetrics().boundingRect(nodeTitle->text());
+    QRect sizeNameVertex = vertexTitle_->fontMetrics().boundingRect(vertexTitle_->text());
     
-    int topPadding = sizeNameNode.height() + 20;
+    int topPadding = sizeNameVertex.height() + 20;
 
     int projectedHeight = topPadding;
     int inputHeight, outputHeight, maxInputWidth, maxOutputWidth;
@@ -458,7 +462,7 @@ namespace charliesoft
     {
       ParamRepresentation  *tmp = it->second;
       tmp->setMinimumWidth(5);
-      tmp->move(-2, inputHeight);//move the name at the top of node...
+      tmp->move(-2, inputHeight);//move the name at the top of vertex...
       tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
       tmp->setVisible(tmp->shouldShow());
       if (tmp->shouldShow())
@@ -477,7 +481,7 @@ namespace charliesoft
 
       tmp->setMinimumWidth(5);
       tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
-      tmp->move(sizeNameNode.width() + 16 - tmpSize.width() - 8, outputHeight);//move the name at the top of node...
+      tmp->move(sizeNameVertex.width() + 16 - tmpSize.width() - 8, outputHeight);//move the name at the top of vertex...
       tmp->setVisible(tmp->shouldShow());
       if (tmp->shouldShow())
       {
@@ -491,8 +495,8 @@ namespace charliesoft
     maxOutputWidth += 10;
     //now recompute with correct width:
     int newWidth = maxOutputWidth + maxInputWidth + 10;
-    if (newWidth < sizeNameNode.width() + 16)
-      newWidth = sizeNameNode.width() + 16;
+    if (newWidth < sizeNameVertex.width() + 16)
+      newWidth = sizeNameVertex.width() + 16;
 
     inputHeight = outputHeight = topPadding;
     if (showIn > showOut)
@@ -505,7 +509,7 @@ namespace charliesoft
     {
       QRect tmpSize = it->second->fontMetrics().boundingRect(it->second->text());
       it->second->resize(maxInputWidth, tmpSize.height() + 5);
-      it->second->move(-2, inputHeight);//move the name at the top of node...
+      it->second->move(-2, inputHeight);//move the name at the top of vertex...
       if (it->second->shouldShow())
         inputHeight += tmpSize.height() + 10;
     }
@@ -514,15 +518,15 @@ namespace charliesoft
     {
       QRect tmpSize = it->second->fontMetrics().boundingRect(it->second->text());
       it->second->resize(maxOutputWidth, tmpSize.height() + 5);
-      it->second->move(newWidth - maxOutputWidth + 4, outputHeight);//move the name at the top of node...
+      it->second->move(newWidth - maxOutputWidth + 4, outputHeight);//move the name at the top of vertex...
       if (it->second->shouldShow())
         outputHeight += tmpSize.height() + 10;
     }
 
-    nodeTitle->move((newWidth - sizeNameNode.width()) / 2, 5);//move the name at the top of node...
+    vertexTitle_->move((newWidth - sizeNameVertex.width()) / 2, 5);//move the name at the top of vertex...
 
     lineTitle->resize(newWidth, 2);
-    lineTitle->move(0, sizeNameNode.height() + 8);//move the name at the top of node...
+    lineTitle->move(0, sizeNameVertex.height() + 8);//move the name at the top of vertex...
 
 
     projectedHeight += max(inputHeight, outputHeight);
@@ -530,13 +534,13 @@ namespace charliesoft
     resize(newWidth, projectedHeight - 20);
   }
 
-  void NodeRepresentation::setLink(const BlockLink& link)
+  void VertexRepresentation::setEdge(const BlockLink& link)
   {
     try {
-      NodeRepresentation* toNode = Window::getGraphLayout()->getNodeRepresentation(link.to_);
+      VertexRepresentation* toVertex = Window::getGraphLayout()->getVertexRepresentation(link.to_);
       ParamRepresentation* fromWidget, *toWidget;
       fromWidget = listOfOutputChilds_[link.fromParam_];
-      toWidget = toNode->listOfInputChilds_[link.toParam_];
+      toWidget = toVertex->listOfInputChilds_[link.toParam_];
       if (fromWidget != NULL && toWidget != NULL)
       {
         QPainterPath* previousPath = links_[link];
@@ -550,14 +554,14 @@ namespace charliesoft
         path->closeSubpath();
 
         if (previousPath == NULL)
-          toNode->notifyBackLink(link, this);
+          toVertex->notifyBackLink(link, this);
       }
     }
     catch (const std::out_of_range&) {
     }
   }
 
-  void NodeRepresentation::paintLinks(QPainter& p)
+  void VertexRepresentation::paintLinks(QPainter& p)
   {
     if (!links_.empty())
     {
@@ -570,12 +574,12 @@ namespace charliesoft
     }
   }
 
-  void NodeRepresentation::setParamActiv(ParamRepresentation* param)
+  void VertexRepresentation::setParamActiv(ParamRepresentation* param)
   {
     paramActiv_ = param;
   }
 
-  void NodeRepresentation::mousePressEvent(QMouseEvent *mouseE)
+  void VertexRepresentation::mousePressEvent(QMouseEvent *mouseE)
   {
     raise();
     if (paramActiv_ == NULL && mouseE->button() == Qt::LeftButton)
@@ -589,12 +593,12 @@ namespace charliesoft
       mouseE->ignore();
   }
 
-  void NodeRepresentation::mouseReleaseEvent(QMouseEvent *)
+  void VertexRepresentation::mouseReleaseEvent(QMouseEvent *)
   {
     isDragging_ = false;
   }
 
-  void NodeRepresentation::mouseMoveEvent(QMouseEvent *mouseE)
+  void VertexRepresentation::mouseMoveEvent(QMouseEvent *mouseE)
   {
     if (isDragging_)
     {
@@ -606,14 +610,14 @@ namespace charliesoft
       auto iter = links_.begin();
       while (iter!=links_.end())
       {
-        setLink(iter->first);
+        setEdge(iter->first);
         iter++;
       }
-      //and ask other node to do the same:
+      //and ask other vertex to do the same:
       auto iter_back = back_links_.begin();
       while (iter_back != back_links_.end())
       {
-        iter_back->first->setLink(iter_back->second);
+        iter_back->first->setEdge(iter_back->second);
         iter_back++;
       }
     }
@@ -621,7 +625,7 @@ namespace charliesoft
       mouseE->ignore();
   }
 
-  void NodeRepresentation::mouseDoubleClickEvent(QMouseEvent *)
+  void VertexRepresentation::mouseDoubleClickEvent(QMouseEvent *)
   {
     ParamsConfigurator config(this, listOfInputChilds_, listOfOutputChilds_);
     int retour = config.exec();
@@ -645,16 +649,16 @@ namespace charliesoft
   
   void ParamRepresentation::mousePressEvent(QMouseEvent *e)
   {
-    if (NodeRepresentation* node = dynamic_cast<NodeRepresentation*>(parentWidget()))
-      node->setParamActiv(this);
+    if (VertexRepresentation* vertex = dynamic_cast<VertexRepresentation*>(parentWidget()))
+      vertex->setParamActiv(this);
     //get the position of widget inside main widget and send signal of a new link creation:
     emit creationLink(getWorldAnchor());
     e->ignore();
   }
   void ParamRepresentation::mouseReleaseEvent(QMouseEvent *e)
   {
-    if (NodeRepresentation* node = dynamic_cast<NodeRepresentation*>(parentWidget()))
-      node->setParamActiv(NULL);
+    if (VertexRepresentation* vertex = dynamic_cast<VertexRepresentation*>(parentWidget()))
+      vertex->setParamActiv(NULL);
 
     emit releaseLink(Window::getInstance()->getMainWidget()->mapFromGlobal(e->globalPos()));
   };
@@ -674,7 +678,7 @@ namespace charliesoft
   void GraphRepresentation::addItem(QLayoutItem * item)
   {
     //get widget:
-    if (NodeRepresentation* derived = dynamic_cast<NodeRepresentation*>(item->widget())) {
+    if (VertexRepresentation* derived = dynamic_cast<VertexRepresentation*>(item->widget())) {
       orderedBlocks_.push_back(derived->getModel());
       items_[derived->getModel()] = item;
     }
@@ -743,44 +747,47 @@ namespace charliesoft
     }
   }
 
-  void GraphRepresentation::drawLinks(QPainter& p)
+  void GraphRepresentation::drawEdges(QPainter& p)
   {
     auto iter = items_.begin();
     while (iter!=items_.end())
     {
-      ((NodeRepresentation*)iter->second->widget())->paintLinks(p);
+      ((VertexRepresentation*)iter->second->widget())->paintLinks(p);
       iter++;
     }
   }
 
-  NodeRepresentation* GraphRepresentation::getNodeRepresentation(Block* b)
+  VertexRepresentation* GraphRepresentation::getVertexRepresentation(Block* b)
   {
-    return dynamic_cast<NodeRepresentation*>(items_[b]->widget());
+    return dynamic_cast<VertexRepresentation*>(items_[b]->widget());
   }
 
   void GraphRepresentation::synchronize(charliesoft::GraphOfProcess *model)
   {
-    //for each node, we look for the corresponding representation:
-    std::vector<Block*> blocks = model->getNodes();
-    for (size_t i = 0; i < blocks.size() ; i++)
+    //for each vertex, we look for the corresponding representation:
+    std::vector<Block*> blocks = model->getVertices();
+    for (auto it = blocks.begin(); it != blocks.end(); it++)
     {
-      if (items_.find(blocks[i]) == items_.end())
+      if (items_.find(*it) == items_.end())
       {
-        //add this node to view:
-        addWidget(new NodeRepresentation(blocks[i]));
+        //add this vertex to view:
+        addWidget(new VertexRepresentation(*it));
       }
     }
     //now get each connections:
-    vector<BlockLink> links = model->getLinks();
-    for (size_t i = 0; i < links.size(); i++)
+    for (auto it = blocks.begin(); it != blocks.end(); it++)
     {
-      BlockLink& link = links[i];
-      NodeRepresentation* fromNode, *toNode;
-      fromNode = dynamic_cast<NodeRepresentation*>(items_[link.from_]->widget());
-      toNode = dynamic_cast<NodeRepresentation*>(items_[link.to_]->widget());
-      if (fromNode != NULL && toNode != NULL)
+      vector<BlockLink> edges = (*it)->getInEdges();
+      for (auto itEdges = edges.begin(); itEdges != edges.end(); itEdges++)
       {
-        fromNode->setLink(link);
+        BlockLink& link = *itEdges;
+        VertexRepresentation* fromVertex, *toVertex;
+        fromVertex = dynamic_cast<VertexRepresentation*>(items_[link.from_]->widget());
+        toVertex = dynamic_cast<VertexRepresentation*>(items_[link.to_]->widget());
+        if (fromVertex != NULL && toVertex != NULL)
+        {
+          fromVertex->setEdge(link);
+        }
       }
     }
   }
@@ -820,8 +827,8 @@ namespace charliesoft
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.setPen(QPen(Qt::black, 2));
 
-    //now ask each node to draw the links:
-    Window::getGraphLayout()->drawLinks(painter);
+    //now ask each vertex to draw the links:
+    Window::getGraphLayout()->drawEdges(painter);
 
     if (creatingLink_)
       painter.drawLine(startMouse_, endMouse_);

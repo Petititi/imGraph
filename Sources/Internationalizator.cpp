@@ -114,6 +114,7 @@ namespace charliesoft
     translations["BLOCK__INPUT_IN_FILE_FILTER"] = "media files";
     translations["BLOCK__INPUT_IN_FILE_HELP"] = "File used to load the image(s).";
     translations["BLOCK__INPUT_IN_FILE_NOT_FOUND"] = "File \"%1$s\" not found!";
+    translations["BLOCK__INPUT_IN_FILE_PROBLEM"] = "File \"%1$s\" can't be loaded!";
     translations["BLOCK__INPUT_IN_GREY"] = "grey";
     translations["BLOCK__INPUT_IN_GREY_HELP"] = "Convert image to a grayscale one";
     translations["BLOCK__INPUT_IN_COLOR"] = "color";
@@ -136,6 +137,8 @@ namespace charliesoft
     translations["BLOCK__OUTPUT_NAME"] = "Display image";
     translations["BLOCK__OUTPUT_IN_IMAGE"] = "image";
     translations["BLOCK__OUTPUT_IN_IMAGE_HELP"] = "Output image";
+    translations["BLOCK__OUTPUT_IN_WIN_NAME"] = "win. title";
+    translations["BLOCK__OUTPUT_IN_WIN_NAME_HELP"] = "Windows title";
     translations["BLOCK__OUTPUT_IN_WIDTH"] = translations["BLOCK__INPUT_INOUT_WIDTH"];
     translations["BLOCK__OUTPUT_IN_WIDTH_HELP"] = translations["BLOCK__INPUT_INOUT_WIDTH_HELP"];
     translations["BLOCK__OUTPUT_IN_HEIGHT"] = translations["BLOCK__INPUT_INOUT_HEIGHT"];

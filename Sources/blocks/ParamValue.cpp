@@ -43,13 +43,26 @@ namespace charliesoft
 
   bool ParamValue::isDefaultValue() const{
     return (value_.type() == typeid(Not_A_Value));
-      //|| (value_.type() == typeid(ParamValue*) && boost::get<ParamValue*>(value_) == NULL);
   };
 
   void ParamValue::set(const VariantClasses& v){
+    isNew_ = (v.type() != typeid(Not_A_Value));
+    if (v.type() == typeid(ParamValue *))
+    {
+      if (isLinked())
+        boost::get<ParamValue*>(value_)->distantListeners_.erase(this);
+      ParamValue* vDist = boost::get<ParamValue*>(v);
+      if (vDist != NULL) vDist->distantListeners_.insert(this);
+    }
     value_ = v;
-    algo_->setUpToDate(false);
   };
+
+
+  BlockLink ParamValue::toBlockLink() const
+  {
+    ParamValue* other = get_const<ParamValue*>();
+    return BlockLink(other->algo_, algo_, other->name_, name_);
+  }
 
 
   ParamValue ParamValue::fromString(ParamType type, std::string value)
@@ -67,6 +80,7 @@ namespace charliesoft
 
   //Boolean, Int, Float, Vector, Mat, String, FilePath, typeError
   void ParamValue::setString(const std::string& v){
+    isNew_ = true;
     if (getType() == Boolean)
       value_ = lexical_cast<bool>(v);
     if (getType() == Int)
@@ -78,35 +92,43 @@ namespace charliesoft
   };
 
   ParamValue& ParamValue::operator = (bool const &rhs) {
+    isNew_ = true;
     value_ = rhs;
     return *this;
   };
   ParamValue& ParamValue::operator = (int const &rhs) {
+    isNew_ = true;
     value_ = rhs;
     return *this;
   };
   ParamValue& ParamValue::operator = (double const &rhs) {
+    isNew_ = true;
     value_ = rhs;
     return *this;
   };
   ParamValue& ParamValue::operator = (std::string const &rhs) {
+    isNew_ = true;
     value_ = rhs;
     return *this;
   };
   ParamValue& ParamValue::operator = (cv::Mat const &rhs) {
+    isNew_ = true;
     value_ = rhs;
     return *this;
   };
   ParamValue& ParamValue::operator = (Not_A_Value const &rhs) {
+    isNew_ = false;
     value_ = rhs;
     return *this;
   };
   ParamValue& ParamValue::operator = (ParamValue *rhs) {
+    isNew_ = true;
     value_ = rhs;
     return *this;
   };
   ParamValue& ParamValue::operator = (ParamValue const &rhs) {
     if (this != &rhs) {
+      isNew_ = rhs.isNew_;
       value_ = rhs.value_;
       algo_ = rhs.algo_;
       name_ = rhs.name_;

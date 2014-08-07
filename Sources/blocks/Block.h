@@ -20,7 +20,6 @@
 #include "ProcessManager.h"
 
 //macro to add algo to list:
-
 #define BLOCK_BEGIN_INSTANTIATION(className) \
   \
   class className## :public Block \
@@ -30,20 +29,34 @@
       static std::vector<ParamDefinition> getListOutputs(); \
       static bool addedToList; \
   protected: \
-    virtual void run(); \
+    virtual bool run(); \
   public: \
     className##();
 
 #define BLOCK_END_INSTANTIATION(className, blockType, keyName) \
   }; \
-  \
   bool className##::addedToList = \
     charliesoft::ProcessManager::getInstance()->addNewAlgo<##className##>(blockType, #keyName);
+
+#define BEGIN_BLOCK_INPUT_PARAMS(className) \
+  std::vector<ParamDefinition> className##::getListParams(){ \
+  std::vector<ParamDefinition> output;
+
+#define BEGIN_BLOCK_OUTPUT_PARAMS(className) \
+  std::vector<ParamDefinition> className##::getListOutputs(){ \
+  std::vector<ParamDefinition> output;
+
+#define ADD_PARAMETER(show, type, name, helper) output.push_back(ParamDefinition( \
+  show, type, name, helper));
+
+#define END_BLOCK_PARAMS() return output; }
 
 namespace charliesoft
 {
   class GraphOfProcess;
   typedef boost::square_topology<>::point_type Point_;//position of vertex
+  struct BlockLink;
+  class GraphOfProcess;
 
   struct ParamDefinition
   {
@@ -56,12 +69,12 @@ namespace charliesoft
   };
 
   class Block{
+    friend class GraphOfProcess;
     friend charliesoft::ProcessManager;
   protected:
     std::string error_msg_;
     std::string name_;
-    GraphOfProcess* graph_;//<Graph who own this block
-    Point_* position_;//<link to VertexProperties_::position!
+    Point_ position_;
 
     std::map<std::string, ParamValue> myOutputs_;
     std::map<std::string, ParamValue> myInputs_;
@@ -71,7 +84,7 @@ namespace charliesoft
 
     bool isUpToDate_;
 
-    virtual void run() = 0;
+    virtual bool run() = 0;
   public:
     Block(std::string name);
     std::string getName(){
@@ -85,16 +98,16 @@ namespace charliesoft
     virtual void setParam(std::string nameParam_, ParamValue& value);
     virtual ParamValue* getParam(std::string nameParam_);
 
-    void updateIfNeeded() { if (!isUpToDate_) { run(); setUpToDate(true); }; };
-    void setUpToDate(bool isFresh){ isUpToDate_ = isFresh; };
+    void updateIfNeeded() { if (!isUpToDate()) run(); };
+
+    bool isUpToDate();
+
+    std::vector<BlockLink> getInEdges();
 
     std::string getErrorMsg() const { return error_msg_; }
 
-    Point_* getPosition() const { return position_; }
-    void setPosition(Point_* val) { position_ = val; }
-    void updatePosition(int x, int y) { (*position_)[0] = x; (*position_)[1] = y; };
-    GraphOfProcess* getGraph() const { return graph_; }
-    void setGraph(GraphOfProcess* val) { graph_ = val; }
+    const Point_& getPosition() const { return position_; }
+    void updatePosition(int x, int y) { position_[0] = x; position_[1] = y; };
     void createLink(std::string paramName, Block* dest, std::string paramNameDest);
   };
 
@@ -136,42 +149,17 @@ namespace charliesoft
 
   class GraphOfProcess
   {
-
-    struct VertexProperties_
-    {
-      Point_ position_;
-      Block* block_;
-      VertexProperties_(){ block_ = NULL; position_[0] = position_[1] = 0; };
-    };
-
-    struct EdgeProperty_
-    {
-      double weight;        //<not used now... Always equal to 1
-      std::string propFrom; //<name of the property the previous filter is connected to
-      std::string propTo;   //<name of the property the next filter is connected to
-      EdgeProperty_(std::string from, std::string to) :propFrom(from), propTo(to){ weight = 1.; };//each edges have same weight
-      EdgeProperty_(){ propFrom = propFrom = "no imp."; weight = 0; };
-    };
-
-
-    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS,
-      VertexProperties_, EdgeProperty_ > Graph_Intern_;
-    typedef boost::labeled_graph < Graph_Intern_, Block* > Graph_;
-
-    Graph_ myGraph_;
-
+    std::vector<Block*> vertices_;
+    //edges are stored into Block (myInputs_[]->isLinked())
   public:
     GraphOfProcess();
 
     void addNewProcess(Block* filter);
-    void createNewConnection(std::string propFrom, std::string propTo,
-      Block* from, Block* to);
-    void deleteConnection(std::string propFrom, std::string propTo,
-      Block* from, Block* to);
     void deleteProcess(Block* process);
 
-    std::vector<Block*> getNodes();
-    std::vector<BlockLink> getLinks();
+    bool run(Block* endingVertex = NULL);
+
+    std::vector<Block*>& getVertices();
   };
 }
 

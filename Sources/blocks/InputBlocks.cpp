@@ -3,6 +3,7 @@
 #include <boost/filesystem.hpp>
 
 #include "Block.h"
+using std::string;
 using std::vector;
 
 #include "InputProcessor.h"
@@ -18,46 +19,75 @@ protected:
   InputProcessor processor_;
   BLOCK_END_INSTANTIATION(BlockLoader, AlgoType::input, BLOCK__INPUT_NAME);
 
-  BlockLoader::BlockLoader() :Block("BLOCK__INPUT_NAME"){};
+  BEGIN_BLOCK_INPUT_PARAMS(BlockLoader);
+  //Add parameters, with following parameters:
+  //default visibility, type of parameter, name (key of internationalizor), helper...
+  ADD_PARAMETER(false, FilePath,"BLOCK__INPUT_IN_FILE",         "BLOCK__INPUT_IN_FILE_HELP");
+  ADD_PARAMETER(false, Boolean, "BLOCK__INPUT_IN_GREY",         "BLOCK__INPUT_IN_GREY_HELP");
+  ADD_PARAMETER(false, Boolean, "BLOCK__INPUT_IN_COLOR",        "BLOCK__INPUT_IN_COLOR_HELP");
+  ADD_PARAMETER(false, Int,     "BLOCK__INPUT_INOUT_WIDTH",     "BLOCK__INPUT_INOUT_WIDTH_HELP");
+  ADD_PARAMETER(false, Int,     "BLOCK__INPUT_INOUT_HEIGHT",    "BLOCK__INPUT_INOUT_HEIGHT_HELP");
+  ADD_PARAMETER(false, Int,     "BLOCK__INPUT_INOUT_POS_FRAMES","BLOCK__INPUT_INOUT_POS_FRAMES_HELP");
+  ADD_PARAMETER(false, Int,     "BLOCK__INPUT_INOUT_POS_RATIO", "BLOCK__INPUT_INOUT_POS_RATIO_HELP");
+  END_BLOCK_PARAMS();
   
-  void BlockLoader::run(){
-  };
+  BEGIN_BLOCK_OUTPUT_PARAMS(BlockLoader);
+  ADD_PARAMETER(true, Float,  "BLOCK__INPUT_OUT_IMAGE",       "BLOCK__INPUT_OUT_IMAGE_HELP");
+  ADD_PARAMETER(false, Float, "BLOCK__INPUT_OUT_FRAMERATE",   "BLOCK__INPUT_OUT_FRAMERATE_HELP");
+  ADD_PARAMETER(false, Int,   "BLOCK__INPUT_INOUT_WIDTH",     "BLOCK__INPUT_INOUT_WIDTH_HELP");
+  ADD_PARAMETER(false, Int,   "BLOCK__INPUT_INOUT_HEIGHT",    "BLOCK__INPUT_INOUT_HEIGHT_HELP");
+  ADD_PARAMETER(false, Int,   "BLOCK__INPUT_INOUT_POS_FRAMES","BLOCK__INPUT_INOUT_POS_FRAMES_HELP");
+  ADD_PARAMETER(false, Float, "BLOCK__INPUT_INOUT_POS_RATIO", "BLOCK__INPUT_INOUT_POS_RATIO_HELP");
+  ADD_PARAMETER(false, Int,   "BLOCK__INPUT_OUT_FORMAT",      "BLOCK__INPUT_OUT_FORMAT_HELP");
+  END_BLOCK_PARAMS();
 
-  std::vector<ParamDefinition> BlockLoader::getListParams(){
-    std::vector<ParamDefinition> output;
-    output.push_back(ParamDefinition(false, FilePath,
-      "BLOCK__INPUT_IN_FILE", "BLOCK__INPUT_IN_FILE_HELP"));
-    output.push_back(ParamDefinition(false, Boolean,
-      "BLOCK__INPUT_IN_GREY", "BLOCK__INPUT_IN_GREY_HELP"));
-    output.push_back(ParamDefinition(false, Boolean,
-      "BLOCK__INPUT_IN_COLOR", "BLOCK__INPUT_IN_COLOR_HELP"));
-    output.push_back(ParamDefinition(false, Int,
-      "BLOCK__INPUT_INOUT_WIDTH", "BLOCK__INPUT_INOUT_WIDTH_HELP"));
-    output.push_back(ParamDefinition(false, Int,
-      "BLOCK__INPUT_INOUT_HEIGHT", "BLOCK__INPUT_INOUT_HEIGHT_HELP"));
-    output.push_back(ParamDefinition(false, Int,
-      "BLOCK__INPUT_INOUT_POS_FRAMES", "BLOCK__INPUT_INOUT_POS_FRAMES_HELP"));
-    output.push_back(ParamDefinition(false, Int,
-      "BLOCK__INPUT_INOUT_POS_RATIO", "BLOCK__INPUT_INOUT_POS_RATIO_HELP"));
-    return output;
-  };
-  std::vector<ParamDefinition> BlockLoader::getListOutputs(){
-    std::vector<ParamDefinition> output;
-    output.push_back(ParamDefinition(true, Float,
-      "BLOCK__INPUT_OUT_IMAGE", "BLOCK__INPUT_OUT_IMAGE_HELP"));
-    output.push_back(ParamDefinition(false, Float,
-      "BLOCK__INPUT_OUT_FRAMERATE", "BLOCK__INPUT_OUT_FRAMERATE_HELP"));
-    output.push_back(ParamDefinition(false, Int,
-      "BLOCK__INPUT_INOUT_WIDTH", "BLOCK__INPUT_INOUT_WIDTH_HELP"));
-    output.push_back(ParamDefinition(false, Int,
-      "BLOCK__INPUT_INOUT_HEIGHT", "BLOCK__INPUT_INOUT_HEIGHT_HELP"));
-    output.push_back(ParamDefinition(false, Int,
-      "BLOCK__INPUT_INOUT_POS_FRAMES", "BLOCK__INPUT_INOUT_POS_FRAMES_HELP"));
-    output.push_back(ParamDefinition(false, Float,
-      "BLOCK__INPUT_INOUT_POS_RATIO", "BLOCK__INPUT_INOUT_POS_RATIO_HELP"));
-    output.push_back(ParamDefinition(false, Int,
-      "BLOCK__INPUT_OUT_FORMAT", "BLOCK__INPUT_OUT_FORMAT_HELP"));
-    return output;
+  BlockLoader::BlockLoader() :Block("BLOCK__INPUT_NAME"){};
+
+  bool BlockLoader::run(){
+    if (myInputs_["BLOCK__INPUT_IN_FILE"].isNew())
+    {
+      string fileName = myInputs_["BLOCK__INPUT_IN_FILE"].get<string>(true);
+      if (!processor_.setInputSource(fileName))
+      {
+        error_msg_ = (my_format(_STR("BLOCK__INPUT_IN_FILE_PROBLEM")) % fileName).str();
+        return false;
+      }
+    }
+    if (myInputs_["BLOCK__INPUT_IN_GREY"].isNew())
+      if (myInputs_["BLOCK__INPUT_IN_GREY"].get<bool>(true))
+        processor_.setProperty(cv::CAP_PROP_CONVERT_RGB, 0);
+
+    if (myInputs_["BLOCK__INPUT_IN_COLOR"].isNew())
+      if (myInputs_["BLOCK__INPUT_IN_COLOR"].get<bool>(true))
+        processor_.setProperty(cv::CAP_PROP_CONVERT_RGB, 1);
+
+    if (myInputs_["BLOCK__INPUT_INOUT_WIDTH"].isNew())
+      processor_.setProperty(cv::CAP_PROP_FRAME_WIDTH, 
+      myInputs_["BLOCK__INPUT_INOUT_WIDTH"].get<int>(true));
+
+    if (myInputs_["BLOCK__INPUT_INOUT_HEIGHT"].isNew())
+      processor_.setProperty(cv::CAP_PROP_FRAME_WIDTH, 
+      myInputs_["BLOCK__INPUT_INOUT_HEIGHT"].get<int>(true));
+
+    if (myInputs_["BLOCK__INPUT_INOUT_POS_FRAMES"].isNew())
+      processor_.setProperty(cv::CAP_PROP_POS_FRAMES, 
+      myInputs_["BLOCK__INPUT_INOUT_POS_FRAMES"].get<double>(true));
+
+    if (myInputs_["BLOCK__INPUT_INOUT_POS_RATIO"].isNew())
+      processor_.setProperty(cv::CAP_PROP_POS_AVI_RATIO, 
+      myInputs_["BLOCK__INPUT_INOUT_POS_RATIO"].get<double>(true));
+
+    //now set outputs:
+    cv::Mat frame = processor_.getFrame();
+    myOutputs_["BLOCK__INPUT_OUT_IMAGE"] = frame;
+    myOutputs_["BLOCK__INPUT_OUT_FRAMERATE"] = processor_.getProperty(cv::CAP_PROP_FPS);
+    myOutputs_["BLOCK__INPUT_INOUT_WIDTH"] = frame.cols;
+    myOutputs_["BLOCK__INPUT_INOUT_HEIGHT"] = frame.rows;
+    myOutputs_["BLOCK__INPUT_INOUT_POS_FRAMES"] = processor_.getProperty(cv::CAP_PROP_POS_FRAMES);
+    myOutputs_["BLOCK__INPUT_INOUT_POS_RATIO"] = processor_.getProperty(cv::CAP_PROP_POS_AVI_RATIO);
+    myOutputs_["BLOCK__INPUT_OUT_FORMAT"] = frame.type();
+
+    return true;
   };
 
   bool BlockLoader::validateParams(std::string paramName, const ParamValue& value){

@@ -195,6 +195,31 @@ namespace charliesoft
       std::cout << "middle mouse click " << std::endl;
   }
 
+  bool Window::event(QEvent *event)
+  {
+    if (event->type() == QEvent::KeyPress)
+    {
+      QKeyEvent *key = dynamic_cast<QKeyEvent *>(event);
+      if (key != NULL && ((key->key() == Qt::Key_Enter) || (key->key() == Qt::Key_Return)))
+      {
+        //Enter or return was pressed
+        model_->run();
+      }
+      else
+      {
+        return QMainWindow::event(event);
+      }
+      return true;
+    }
+    else
+    {
+      return QMainWindow::event(event);
+    }
+
+    return false;
+  }
+
+
   void Window::closeEvent(QCloseEvent *event)
   {
     if (!quitProg())

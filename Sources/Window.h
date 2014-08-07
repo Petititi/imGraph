@@ -71,6 +71,7 @@ namespace charliesoft
     void fillDock(int idDock);
 
     void mousePressEvent(QMouseEvent *event);
+    bool event(QEvent *event);
     void closeEvent(QCloseEvent *event);
 
   signals:

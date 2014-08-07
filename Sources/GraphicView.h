@@ -69,10 +69,10 @@ namespace charliesoft
     void releaseLink(QPoint endPos);
   };
 
-  class NodeRepresentation :public QWidget
+  class VertexRepresentation :public QWidget
   {
     QFrame* lineTitle;
-    QLabel* nodeTitle;
+    QLabel* vertexTitle_;
     Block* model_;
     bool isDragging_;
     QPoint deltaClick_;
@@ -82,14 +82,14 @@ namespace charliesoft
     std::map<std::string, ParamRepresentation*> listOfOutputChilds_;
 
     std::map<BlockLink, QPainterPath*> links_;
-    std::vector< std::pair<NodeRepresentation*, BlockLink> > back_links_;
+    std::vector< std::pair<VertexRepresentation*, BlockLink> > back_links_;
   public:
-    NodeRepresentation(Block* model);
+    VertexRepresentation(Block* model);
 
     Block* getModel() const { return model_; }
     void setParamActiv(ParamRepresentation*);
 
-    void setLink(const BlockLink& linkInfo);
+    void setEdge(const BlockLink& linkInfo);
     void paintLinks(QPainter& p);
 
     void reshape();
@@ -100,9 +100,9 @@ namespace charliesoft
     virtual void mouseDoubleClickEvent(QMouseEvent *);
     virtual void mouseMoveEvent(QMouseEvent *);
 
-    void notifyBackLink(const BlockLink& linkInfo, NodeRepresentation* otherNode)
+    void notifyBackLink(const BlockLink& linkInfo, VertexRepresentation* otherVertex)
     {
-      back_links_.push_back(std::pair<NodeRepresentation*, BlockLink>(otherNode, linkInfo));
+      back_links_.push_back(std::pair<VertexRepresentation*, BlockLink>(otherVertex, linkInfo));
     };
   };
 
@@ -120,7 +120,7 @@ namespace charliesoft
     boost::bimap<ParamRepresentation*, QObject* > inputValue_;
     std::map<std::string, ParamRepresentation*>& in_param_;
     std::map<std::string, ParamRepresentation*>& out_param_;
-    NodeRepresentation* node_;
+    VertexRepresentation* vertex_;
 
     QPushButton* OKbutton_;
     QPushButton* Cancelbutton_;
@@ -130,7 +130,7 @@ namespace charliesoft
     void addParamOut(ParamRepresentation  *p);
     void addParamIn(ParamRepresentation  *p);
   public:
-    ParamsConfigurator(NodeRepresentation* node,
+    ParamsConfigurator(VertexRepresentation* vertex,
       std::map<std::string, ParamRepresentation*>& in_param,
       std::map<std::string, ParamRepresentation*>& out_param);
 
@@ -162,8 +162,8 @@ namespace charliesoft
     virtual int count() const;
     virtual QSize sizeHint() const;
 
-    void drawLinks(QPainter& p);
-    NodeRepresentation* getNodeRepresentation(Block* b);
+    void drawEdges(QPainter& p);
+    VertexRepresentation* getVertexRepresentation(Block* b);
 
     public slots:
     void synchronize(charliesoft::GraphOfProcess *model);

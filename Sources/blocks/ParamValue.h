@@ -7,6 +7,7 @@
 #endif
 #include <boost/variant.hpp>
 #include <opencv2/core/core.hpp>
+#include <set>
 #include <QString>
 #ifdef _WIN32
 #pragma warning(pop)
@@ -16,6 +17,7 @@ namespace charliesoft
 {
   class ParamValue;
   class Block;
+  struct BlockLink;
 
   enum ParamType
   {
@@ -42,31 +44,55 @@ namespace charliesoft
 
   class ParamValue
   {
+    std::set<ParamValue*> distantListeners_;
     Block *algo_;
     std::string name_;
     bool isOutput_;
     VariantClasses value_;
+    bool isNew_;
   public:
     ParamValue(Block *algo, std::string name, bool isOutput) :
-      algo_(algo), name_(name), isOutput_(isOutput), value_(Not_A_Value()){};
+      algo_(algo), name_(name), isOutput_(isOutput), value_(Not_A_Value()), 
+      isNew_(true){};
     ParamValue() :
-      algo_(NULL), name_(""), isOutput_(false), value_(Not_A_Value()){};
+      algo_(NULL), name_(""), isOutput_(false), value_(Not_A_Value()),
+      isNew_(true){};
     ParamValue(bool v) :
-      algo_(NULL), name_(""), isOutput_(false), value_(v){};
+      algo_(NULL), name_(""), isOutput_(false), value_(v),
+      isNew_(true){};
     ParamValue(int v) :
-      algo_(NULL), name_(""), isOutput_(false), value_(v){};
+      algo_(NULL), name_(""), isOutput_(false), value_(v),
+      isNew_(true){};
     ParamValue(double v) :
-      algo_(NULL), name_(""), isOutput_(false), value_(v){};
+      algo_(NULL), name_(""), isOutput_(false), value_(v),
+      isNew_(true){};
     ParamValue(std::string v) :
-      algo_(NULL), name_(""), isOutput_(false), value_(v){};
+      algo_(NULL), name_(""), isOutput_(false), value_(v),
+      isNew_(true){};
     ParamValue(cv::Mat v) :
-      algo_(NULL), name_(""), isOutput_(false), value_(v){};
+      algo_(NULL), name_(""), isOutput_(false), value_(v),
+      isNew_(true){};
     ParamValue(Not_A_Value v) :
-      algo_(NULL), name_(""), isOutput_(false), value_(Not_A_Value()){};
+      algo_(NULL), name_(""), isOutput_(false), value_(Not_A_Value()),
+      isNew_(false){};
     ParamValue(ParamValue* v) :
-      algo_(NULL), name_(""), isOutput_(false), value_(v){};
+      algo_(NULL), name_(""), isOutput_(false), value_(v),
+      isNew_(true){
+      if (v != NULL) v->distantListeners_.insert(this);
+    };
     ParamValue(ParamValue& va) :
-      algo_(va.algo_), name_(va.name_), isOutput_(va.isOutput_), value_(va.value_){};
+      algo_(va.algo_), name_(va.name_), isOutput_(va.isOutput_), value_(va.value_),
+      isNew_(true){};
+
+    ~ParamValue()
+    {
+      for (auto it = distantListeners_.begin();
+        it != distantListeners_.end(); it++)
+      {
+        if (*it != NULL)
+          (*it)->set(Not_A_Value());
+      }
+    }
 
     static ParamValue fromString(ParamType,std::string);
 
@@ -95,21 +121,26 @@ namespace charliesoft
     }
 
     std::string toString() const;
+    BlockLink toBlockLink() const;
 
     bool isDefaultValue() const;
+    bool isLinked() const {
+      return (value_.type() == typeid(ParamValue*)) &&
+        boost::get<ParamValue*>(value_) != NULL;
+    };
 
     ParamType getType();
 
     template<typename T>
     T get(bool update)
     {
-      if (value_.type() == typeid(ParamValue*))
+      if (update)
+        valueRead();
+      if (isLinked())
       {
-        ParamValue* distantParam = boost::get<ParamValue*>(value_);
-        if (distantParam == NULL)
-          return T();
-        else
-          return distantParam->get<T>(update);
+        if (typeid(T) == typeid(ParamValue*))
+          return boost::get<T>(value_);
+        return boost::get<ParamValue*>(value_)->get<T>(update);
       }
       if (update)
         algo_->updateIfNeeded();
@@ -130,13 +161,11 @@ namespace charliesoft
     template<typename T>
     T get_const() const
     {
-      if (value_.type() == typeid(ParamValue*))
+      if (isLinked())
       {
-        ParamValue* distantParam = boost::get<ParamValue*>(value_);
-        if (distantParam == NULL)
-          return T();
-        else
-          return distantParam->get_const<T>();
+        if (typeid(T) == typeid(ParamValue*))
+          return boost::get<T>(value_);
+        return boost::get<ParamValue*>(value_)->get_const<T>();
       }
       if (value_.type() == typeid(Not_A_Value))
       {
@@ -154,6 +183,9 @@ namespace charliesoft
 
     void set(const VariantClasses& v);
     void setString(const std::string& v);
+
+    bool isNew(){ return isNew_; };
+    void valueRead(){ isNew_ = false; };
   };
 }
 
