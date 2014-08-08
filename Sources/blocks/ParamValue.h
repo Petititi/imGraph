@@ -184,7 +184,12 @@ namespace charliesoft
     void set(const VariantClasses& v);
     void setString(const std::string& v);
 
-    bool isNew(){ return isNew_; };
+    bool isNew(){
+      if (isLinked())
+        return boost::get<ParamValue*>(value_)->isNew();
+      else
+        return isNew_;
+    };
     void valueRead(){ isNew_ = false; };
   };
 }
