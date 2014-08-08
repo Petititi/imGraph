@@ -16,6 +16,7 @@
 namespace charliesoft
 {
   class ParamValue;
+  class ParamValidator;
   class Block;
   struct BlockLink;
 
@@ -44,44 +45,45 @@ namespace charliesoft
 
   class ParamValue
   {
+    std::vector<ParamValidator*> validators_;
     std::set<ParamValue*> distantListeners_;
-    Block *algo_;
+    Block *block_;
     std::string name_;
     bool isOutput_;
     VariantClasses value_;
     bool isNew_;
   public:
     ParamValue(Block *algo, std::string name, bool isOutput) :
-      algo_(algo), name_(name), isOutput_(isOutput), value_(Not_A_Value()), 
+      block_(algo), name_(name), isOutput_(isOutput), value_(Not_A_Value()), 
       isNew_(true){};
     ParamValue() :
-      algo_(NULL), name_(""), isOutput_(false), value_(Not_A_Value()),
+      block_(NULL), name_(""), isOutput_(false), value_(Not_A_Value()),
       isNew_(true){};
     ParamValue(bool v) :
-      algo_(NULL), name_(""), isOutput_(false), value_(v),
+      block_(NULL), name_(""), isOutput_(false), value_(v),
       isNew_(true){};
     ParamValue(int v) :
-      algo_(NULL), name_(""), isOutput_(false), value_(v),
+      block_(NULL), name_(""), isOutput_(false), value_(v),
       isNew_(true){};
     ParamValue(double v) :
-      algo_(NULL), name_(""), isOutput_(false), value_(v),
+      block_(NULL), name_(""), isOutput_(false), value_(v),
       isNew_(true){};
     ParamValue(std::string v) :
-      algo_(NULL), name_(""), isOutput_(false), value_(v),
+      block_(NULL), name_(""), isOutput_(false), value_(v),
       isNew_(true){};
     ParamValue(cv::Mat v) :
-      algo_(NULL), name_(""), isOutput_(false), value_(v),
+      block_(NULL), name_(""), isOutput_(false), value_(v),
       isNew_(true){};
     ParamValue(Not_A_Value v) :
-      algo_(NULL), name_(""), isOutput_(false), value_(Not_A_Value()),
+      block_(NULL), name_(""), isOutput_(false), value_(Not_A_Value()),
       isNew_(false){};
     ParamValue(ParamValue* v) :
-      algo_(NULL), name_(""), isOutput_(false), value_(v),
+      block_(NULL), name_(""), isOutput_(false), value_(v),
       isNew_(true){
       if (v != NULL) v->distantListeners_.insert(this);
     };
     ParamValue(ParamValue& va) :
-      algo_(va.algo_), name_(va.name_), isOutput_(va.isOutput_), value_(va.value_),
+      block_(va.block_), name_(va.name_), isOutput_(va.isOutput_), value_(va.value_),
       isNew_(true){};
 
     ~ParamValue()
@@ -123,13 +125,20 @@ namespace charliesoft
     std::string toString() const;
     BlockLink toBlockLink() const;
 
+    bool validate(const ParamValue& other);
+    void addValidator(std::initializer_list<ParamValidator*> list)
+    {
+      for (auto elem : list)
+        validators_.push_back(elem);
+    };
+
     bool isDefaultValue() const;
     bool isLinked() const {
       return (value_.type() == typeid(ParamValue*)) &&
         boost::get<ParamValue*>(value_) != NULL;
     };
 
-    ParamType getType();
+    ParamType getType() const;
 
     template<typename T>
     T get(bool update)
@@ -143,7 +152,7 @@ namespace charliesoft
         return boost::get<ParamValue*>(value_)->get<T>(update);
       }
       if (update)
-        algo_->updateIfNeeded();
+        block_->updateIfNeeded();
       if (value_.type() == typeid(Not_A_Value))
       {
         return T();

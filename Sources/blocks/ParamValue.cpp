@@ -2,6 +2,7 @@
 #include <string>
 #include <boost/lexical_cast.hpp>
 #include "ProcessManager.h"
+#include "ParamValidator.h"
 
 #include "blocks/Block.h"
 
@@ -10,9 +11,17 @@ using boost::lexical_cast;
 
 namespace charliesoft
 {
-  ParamType ParamValue::getType(){
-    return _PROCESS_MANAGER->getParamType(algo_->getName(), name_);
+  ParamType ParamValue::getType() const{
+    return _PROCESS_MANAGER->getParamType(block_->getName(), name_);
   };
+
+  bool ParamValue::validate(const ParamValue& other)
+  {
+    for (auto elem : validators_)
+      if (!elem->validate(other))
+        return false;
+    return true;
+  }
 
   std::string ParamValue::toString() const
   {
@@ -61,7 +70,7 @@ namespace charliesoft
   BlockLink ParamValue::toBlockLink() const
   {
     ParamValue* other = get_const<ParamValue*>();
-    return BlockLink(other->algo_, algo_, other->name_, name_);
+    return BlockLink(other->block_, block_, other->name_, name_);
   }
 
 
@@ -130,7 +139,7 @@ namespace charliesoft
     if (this != &rhs) {
       isNew_ = rhs.isNew_;
       value_ = rhs.value_;
-      algo_ = rhs.algo_;
+      block_ = rhs.block_;
       name_ = rhs.name_;
       isOutput_ = rhs.isOutput_;
     }

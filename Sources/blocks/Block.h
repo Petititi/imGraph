@@ -57,7 +57,6 @@ namespace charliesoft
   typedef boost::square_topology<>::point_type Point_;//position of vertex
   struct BlockLink;
   class GraphOfProcess;
-
   struct ParamDefinition
   {
     bool show_;

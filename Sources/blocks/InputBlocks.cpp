@@ -41,7 +41,9 @@ protected:
   ADD_PARAMETER(false, Int,   "BLOCK__INPUT_OUT_FORMAT",      "BLOCK__INPUT_OUT_FORMAT_HELP");
   END_BLOCK_PARAMS();
 
-  BlockLoader::BlockLoader() :Block("BLOCK__INPUT_NAME"){};
+  BlockLoader::BlockLoader() :Block("BLOCK__INPUT_NAME"){
+    myInputs_["BLOCK__INPUT_IN_FILE"].addValidator!
+  };
 
   bool BlockLoader::run(){
     if (myInputs_["BLOCK__INPUT_IN_FILE"].isNew())
@@ -96,11 +98,11 @@ protected:
     //we need BLOCK__INPUT_IN_FILE to be set:
     if (paramName.compare("BLOCK__INPUT_IN_FILE") == 0)
     {
-      if (value.isDefaultValue())
+      if (!myInputs_["BLOCK__INPUT_IN_FILE"].validate(value))
       {
         isOk = false;
         error_msg_ += (my_format(_STR("ERROR_PARAM_NEEDED")) % _STR("BLOCK__OUTPUT_IN_IMAGE")).str() + "<br/>";
-      }
+      }/*
       else
       {
         if (!boost::filesystem::exists(value.toString()))    // does p actually exist?
@@ -108,7 +110,7 @@ protected:
           isOk = false;
           error_msg_ += (my_format(_STR("BLOCK__INPUT_IN_FILE_NOT_FOUND")) % value.toString()).str() + "<br/>";
         }
-      }
+      }*/
     }
     //other are not required but some contraints exists:
     if (paramName.compare("BLOCK__INPUT_IN_GREY") == 0)
