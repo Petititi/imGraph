@@ -12,15 +12,24 @@ using boost::lexical_cast;
 namespace charliesoft
 {
   ParamType ParamValue::getType() const{
+    if (block_ == NULL)
+      return typeError;
     return _PROCESS_MANAGER->getParamType(block_->getName(), name_);
   };
 
-  bool ParamValue::validate(const ParamValue& other)
+  void ParamValue::addValidator(std::initializer_list<ParamValidator*> list)
+  {
+    for (auto elem : list)
+    {
+      elem->setParamOrigin(this);
+      validators_.push_back(elem);
+    }
+  };
+
+  void ParamValue::validate(const ParamValue& other) const
   {
     for (auto elem : validators_)
-      if (!elem->validate(other))
-        return false;
-    return true;
+      elem->validate(other);//throw ErrorValidator if not valid
   }
 
   std::string ParamValue::toString() const
@@ -54,16 +63,17 @@ namespace charliesoft
     return (value_.type() == typeid(Not_A_Value));
   };
 
-  void ParamValue::set(const VariantClasses& v){
-    isNew_ = (v.type() != typeid(Not_A_Value));
-    if (v.type() == typeid(ParamValue *))
+  void ParamValue::valid_and_set(const ParamValue& v){
+    validate(v);
+    isNew_ = (v.value_.type() != typeid(Not_A_Value));
+    if (v.value_.type() == typeid(ParamValue *))
     {
       if (isLinked())
         boost::get<ParamValue*>(value_)->distantListeners_.erase(this);
-      ParamValue* vDist = boost::get<ParamValue*>(v);
+      ParamValue* vDist = boost::get<ParamValue*>(v.value_);
       if (vDist != NULL) vDist->distantListeners_.insert(this);
     }
-    value_ = v;
+    value_ = v.value_;
   };
 
 
@@ -86,19 +96,6 @@ namespace charliesoft
       return ParamValue(value);
     return ParamValue();
   }
-
-  //Boolean, Int, Float, Vector, Mat, String, FilePath, typeError
-  void ParamValue::setString(const std::string& v){
-    isNew_ = true;
-    if (getType() == Boolean)
-      value_ = lexical_cast<bool>(v);
-    if (getType() == Int)
-      value_ = lexical_cast<int>(v);
-    if (getType() == Float)
-      value_ = lexical_cast<double>(v);
-    if (getType() == String || getType() == FilePath)
-      value_ = v;
-  };
 
   ParamValue& ParamValue::operator = (bool const &rhs) {
     isNew_ = true;

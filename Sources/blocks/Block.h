@@ -90,9 +90,8 @@ namespace charliesoft
       return name_;
     };
 
-    virtual bool validateParams(std::string param, const ParamValue&){ return true; };
-
     std::string getErrorInfo(){ return error_msg_; };
+    bool validateParams(std::string param, const ParamValue val);
 
     virtual void setParam(std::string nameParam_, ParamValue& value);
     virtual ParamValue* getParam(std::string nameParam_);
@@ -103,7 +102,7 @@ namespace charliesoft
 
     std::vector<BlockLink> getInEdges();
 
-    std::string getErrorMsg() const { return error_msg_; }
+    std::string getErrorMsg();
 
     const Point_& getPosition() const { return position_; }
     void updatePosition(int x, int y) { position_[0] = x; position_[1] = y; };

@@ -39,6 +39,7 @@
 #include "Window.h"
 
 #include "ProcessManager.h"
+#include "blocks/ParamValidator.h"
 
 using namespace std;
 using namespace charliesoft;
@@ -334,13 +335,15 @@ namespace charliesoft
             QLabel* value = dynamic_cast<QLabel*>(inputValue_.left.at(it->second));
             if (value != NULL)
             {
-              if (!vertex_->getModel()->validateParams(
-                it->second->getParamName(), true))
+              try
+              {
+                param->valid_and_set(true);
+              }
+              catch (ErrorValidator& e)
               {//algo doesn't accept this value!
-                QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), vertex_->getModel()->getErrorMsg().c_str());
+                QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), e.errorMsg.c_str());
                 return;//stop here the validation: should correct the error!
               }
-              param->set(true);
             }
           }
 
@@ -350,13 +353,16 @@ namespace charliesoft
             QLineEdit* value = dynamic_cast<QLineEdit*>(inputValue_.left.at(it->second));
             if (value != NULL)
             {
-              if (!vertex_->getModel()->validateParams(it->second->getParamName(),
-                ParamValue::fromString(param->getType(), value->text().toStdString())))
+              ParamValue& val = ParamValue::fromString(param->getType(), value->text().toStdString());
+              try
+              {
+                param->valid_and_set(val);
+              }
+              catch (ErrorValidator& e)
               {//algo doesn't accept this value!
-                QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), vertex_->getModel()->getErrorMsg().c_str());
+                QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), e.errorMsg.c_str());
                 return;//stop here the validation: should correct the error!
               }
-              param->setString(value->text().toStdString());
             }
           }
         }
@@ -368,13 +374,15 @@ namespace charliesoft
       else
       {
         it->second->setVisibility(false);
-        if (!vertex_->getModel()->validateParams(it->second->getParamName(), Not_A_Value()))
+        try
+        {
+          param->valid_and_set(Not_A_Value());
+        }
+        catch (ErrorValidator& e)
         {//algo doesn't accept this value!
-          QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), vertex_->getModel()->getErrorMsg().c_str());
+          QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), e.errorMsg.c_str());
           return;//stop here the validation: should correct the error!
         }
-
-        param->set(Not_A_Value());
       }
       it++;
     }

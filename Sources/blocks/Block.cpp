@@ -1,5 +1,6 @@
 #include "Block.h"
 #include <vector>
+#include "ParamValidator.h"
 
 using namespace lsis_org;
 using boost::graph_traits;
@@ -22,6 +23,25 @@ namespace charliesoft
       it++;
     }
     return true;
+  }
+
+  bool Block::validateParams(std::string param, const ParamValue val){
+    try
+    {
+      myInputs_[param].validate(val);
+    }
+    catch (ErrorValidator& e)
+    {
+      error_msg_ += e.errorMsg + "<br/>";
+      return false;
+    }
+    return true;
+  }
+
+  std::string Block::getErrorMsg() {
+    std::string tmp = error_msg_;
+    error_msg_ = "";
+    return tmp;
   }
 
   void Block::initParameters(std::vector<ParamDefinition>& inParam,

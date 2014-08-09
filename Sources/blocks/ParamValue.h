@@ -92,7 +92,7 @@ namespace charliesoft
         it != distantListeners_.end(); it++)
       {
         if (*it != NULL)
-          (*it)->set(Not_A_Value());
+          (*it)->value_ = Not_A_Value();
       }
     }
 
@@ -125,12 +125,10 @@ namespace charliesoft
     std::string toString() const;
     BlockLink toBlockLink() const;
 
-    bool validate(const ParamValue& other);
-    void addValidator(std::initializer_list<ParamValidator*> list)
-    {
-      for (auto elem : list)
-        validators_.push_back(elem);
-    };
+    void validate(const ParamValue& other) const;
+    void addValidator(std::initializer_list<ParamValidator*> list);
+
+    std::string getName() const { return name_; };
 
     bool isDefaultValue() const;
     bool isLinked() const {
@@ -190,8 +188,7 @@ namespace charliesoft
       }
     }
 
-    void set(const VariantClasses& v);
-    void setString(const std::string& v);
+    void valid_and_set(const ParamValue& v);
 
     bool isNew(){
       if (isLinked())

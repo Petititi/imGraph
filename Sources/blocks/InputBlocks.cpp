@@ -3,6 +3,7 @@
 #include <boost/filesystem.hpp>
 
 #include "Block.h"
+#include "ParamValidator.h"
 using std::string;
 using std::vector;
 
@@ -13,8 +14,6 @@ namespace charliesoft
 {
   BLOCK_BEGIN_INSTANTIATION(BlockLoader);
   //You can add methods, attributs, reimplement needed functions...
-  //Here we need validateParams:
-  virtual bool validateParams(std::string param, const ParamValue&);
 protected:
   InputProcessor processor_;
   BLOCK_END_INSTANTIATION(BlockLoader, AlgoType::input, BLOCK__INPUT_NAME);
@@ -42,7 +41,13 @@ protected:
   END_BLOCK_PARAMS();
 
   BlockLoader::BlockLoader() :Block("BLOCK__INPUT_NAME"){
-    myInputs_["BLOCK__INPUT_IN_FILE"].addValidator!
+    myInputs_["BLOCK__INPUT_IN_FILE"].addValidator({ new ValNeeded(), new ValFileExist() });
+    myInputs_["BLOCK__INPUT_INOUT_WIDTH"].addValidator({ new ValPositiv(true) });
+    myInputs_["BLOCK__INPUT_INOUT_HEIGHT"].addValidator({ new ValPositiv(true) });
+    myInputs_["BLOCK__INPUT_INOUT_POS_FRAMES"].addValidator({ new ValPositiv(false) });
+    myInputs_["BLOCK__INPUT_INOUT_POS_RATIO"].addValidator({ new ValRange(0, 1) });
+    myInputs_["BLOCK__INPUT_IN_GREY"].addValidator({ new ValExclusif(myInputs_["BLOCK__INPUT_IN_COLOR"]) });
+    myInputs_["BLOCK__INPUT_IN_COLOR"].addValidator({ new ValExclusif(myInputs_["BLOCK__INPUT_IN_GREY"]) });
   };
 
   bool BlockLoader::run(){
@@ -91,78 +96,5 @@ protected:
 
     return true;
   };
-
-  bool BlockLoader::validateParams(std::string paramName, const ParamValue& value){
-    bool isOk = true;
-    error_msg_ = "";
-    //we need BLOCK__INPUT_IN_FILE to be set:
-    if (paramName.compare("BLOCK__INPUT_IN_FILE") == 0)
-    {
-      if (!myInputs_["BLOCK__INPUT_IN_FILE"].validate(value))
-      {
-        isOk = false;
-        error_msg_ += (my_format(_STR("ERROR_PARAM_NEEDED")) % _STR("BLOCK__OUTPUT_IN_IMAGE")).str() + "<br/>";
-      }/*
-      else
-      {
-        if (!boost::filesystem::exists(value.toString()))    // does p actually exist?
-        {
-          isOk = false;
-          error_msg_ += (my_format(_STR("BLOCK__INPUT_IN_FILE_NOT_FOUND")) % value.toString()).str() + "<br/>";
-        }
-      }*/
-    }
-    //other are not required but some contraints exists:
-    if (paramName.compare("BLOCK__INPUT_IN_GREY") == 0)
-    {
-      if (value == myInputs_["BLOCK__INPUT_IN_COLOR"] && value.get_const<bool>())
-      {//parameters exclusif:
-        isOk = false;
-        error_msg_ += (my_format(_STR("ERROR_PARAM_EXCLUSIF")) % _STR("BLOCK__INPUT_IN_GREY") % _STR("BLOCK__INPUT_IN_COLOR")).str() + "<br/>";
-      }
-    }
-    if (paramName.compare("BLOCK__INPUT_IN_COLOR") == 0)
-    {
-      if (value == myInputs_["BLOCK__INPUT_IN_GREY"] && value.get_const<bool>())
-      {//parameters exclusif:
-        isOk = false;
-        error_msg_ += (my_format(_STR("ERROR_PARAM_EXCLUSIF")) % _STR("BLOCK__INPUT_IN_GREY") % _STR("BLOCK__INPUT_IN_COLOR")).str() + "<br/>";
-      }
-    }
-    if (paramName.compare("BLOCK__INPUT_INOUT_WIDTH") == 0)
-    {
-      if (value <= 0)
-      {//parameters wrong:
-        isOk = false;
-        error_msg_ += (my_format(_STR("ERROR_PARAM_ONLY_POSITIF_STRICT")) % _STR("BLOCK__INPUT_INOUT_WIDTH")).str() + "<br/>";
-      }
-    }
-    if (paramName.compare("BLOCK__INPUT_INOUT_HEIGHT") == 0)
-    {
-      if (value <= 0)
-      {//parameters wrong:
-        isOk = false;
-        error_msg_ += (my_format(_STR("ERROR_PARAM_ONLY_POSITIF_STRICT")) % _STR("BLOCK__INPUT_INOUT_HEIGHT")).str() + "<br/>";
-      }
-    }
-    if (paramName.compare("BLOCK__INPUT_INOUT_POS_FRAMES") == 0)
-    {
-      if (value < 0)
-      {//parameters wrong:
-        isOk = false;
-        error_msg_ += (my_format(_STR("ERROR_PARAM_ONLY_POSITIF")) % _STR("BLOCK__INPUT_INOUT_POS_FRAMES")).str() + "<br/>";
-      }
-    }
-    if (paramName.compare("BLOCK__INPUT_INOUT_POS_RATIO") == 0)
-    {
-      if (value < 0 || value > 1)
-      {//parameters wrong:
-        isOk = false;
-        error_msg_ += (my_format(_STR("ERROR_PARAM_VALUE_BETWEEN")) % _STR("BLOCK__INPUT_INOUT_POS_RATIO") % 0. % 1.).str() + "<br/>";
-      }
-    }
-    return isOk;
-  };
-
 
 };

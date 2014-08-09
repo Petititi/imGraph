@@ -2,27 +2,48 @@
 #define _BLOCK_PARAMVALIDATOR_HEADER_
 
 #include <boost/filesystem.hpp>
+#include <boost/exception/exception.hpp>
 #include <vector>
 #include <stdarg.h>
 #include "ParamValue.h"
+#include "Internationalizator.h"
 
 namespace charliesoft
 {
   class Block;
 
-  class ParamValidator
+  class ErrorValidator
   {
   public:
-    virtual bool validate(const ParamValue& value)=0;
+    std::string errorMsg;
+    ErrorValidator(std::string error){
+      errorMsg = error;
+    }
+  };
+
+  class ParamValidator
+  {
+  protected:
+    const ParamValue* paramToValid_;
+  public:
+    ParamValidator(){ paramToValid_ = NULL; };
+    void setParamOrigin(const ParamValue* p){ paramToValid_ = p; };
+    virtual void validate(const ParamValue& value)=0;
   };
 
   class ValNeeded :public ParamValidator
   {
   public:
     ValNeeded(){};
-    virtual bool validate(const ParamValue& value)
+    virtual void validate(const ParamValue& value)
     {
-      return !value.isDefaultValue();
+      if (value.isDefaultValue())
+      {
+        if (paramToValid_ == NULL)
+          throw (ErrorValidator(_STR("ERROR_GENERIC")));
+        else
+          throw (ErrorValidator((my_format(_STR("ERROR_PARAM_NEEDED")) % _STR(paramToValid_->getName())).str()));
+      }
     }
   };
 
@@ -30,9 +51,17 @@ namespace charliesoft
   {
   public:
     ValFileExist(){};
-    virtual bool validate(const ParamValue& value)
+    virtual void validate(const ParamValue& value)
     {
-      return boost::filesystem::exists(value.toString());
+      if (value.isDefaultValue())
+        return;//nothing to do as value is not set!
+      if (!boost::filesystem::exists(value.toString()))
+      {
+        if (paramToValid_ == NULL)
+          throw (ErrorValidator(_STR("ERROR_GENERIC")));
+        else
+          throw (ErrorValidator((my_format(_STR("BLOCK__INPUT_IN_FILE_NOT_FOUND")) % value.toString()).str()));
+      }
     }
   };
 
@@ -43,13 +72,27 @@ namespace charliesoft
     ValPositiv(bool strictOnly = false){
       isStrict_ = strictOnly;
     }
-    virtual bool validate(const ParamValue& value)
+    virtual void validate(const ParamValue& value)
     {
-      if (value.getType() != Int || value.getType() != Float)
-        return false;
+      if (value.isDefaultValue())
+        return;//nothing to do as value is not set!
+      bool isOK = true;
       if (isStrict_)
-        return value > 0;
-      return value >= 0;
+        isOK &= value > 0;
+      else
+        isOK &= value >= 0;
+      if (!isOK)
+      {
+        if (paramToValid_ == NULL)
+          throw (ErrorValidator(_STR("ERROR_GENERIC")));
+        else
+        {
+          std::string errorTmp = "";
+          if (isStrict_) errorTmp = "ERROR_PARAM_ONLY_POSITIF_STRICT";
+          else errorTmp = "ERROR_PARAM_ONLY_POSITIF";
+          throw (ErrorValidator((my_format(_STR(errorTmp)) % _STR(paramToValid_->getName())).str()));
+        }
+      }
     }
   };
 
@@ -60,26 +103,47 @@ namespace charliesoft
     ValNegativ(bool strictOnly = false){
       isStrict_ = strictOnly;
     }
-    virtual bool validate(const ParamValue& value)
+    virtual void validate(const ParamValue& value)
     {
-      if (value.getType() != Int || value.getType() != Float)
-        return false;
+      if (value.isDefaultValue())
+        return;//nothing to do as value is not set!
+      bool isOK = true;
       if (isStrict_)
-        return value < 0;
-      return value >= 0;
+        isOK &= value < 0;
+      else
+        isOK &= value <= 0;
+      if (!isOK)
+      {
+        if (paramToValid_ == NULL)
+          throw (ErrorValidator(_STR("ERROR_GENERIC")));
+        else
+        {
+          std::string errorTmp = "";
+          if (isStrict_) errorTmp = "ERROR_PARAM_ONLY_NEGATIF_STRICT";
+          else errorTmp = "ERROR_PARAM_ONLY_NEGATIF";
+          throw (ErrorValidator((my_format(_STR(errorTmp)) % _STR(paramToValid_->getName())).str()));
+        }
+      }
     }
   };
 
   class ValExclusif :public ParamValidator
   {
-    const ParamValue& val1;
-    const ParamValue& val2;
+    const ParamValue& otherVal_;
   public:
-    ValExclusif(const ParamValue& src, const ParamValue& dest):
-      val1(src), val2(dest){}
-    virtual bool validate(const ParamValue& value)
+    ValExclusif(const ParamValue& dest):
+      otherVal_(dest){}
+    virtual void validate(const ParamValue& value)
     {
-      return (val2 != value);
+      if (value.isDefaultValue())
+        return;//nothing to do as value is not set!
+      if (paramToValid_ == NULL)
+        throw (ErrorValidator(_STR("ERROR_GENERIC")));
+      else
+      {
+        if (otherVal_ == value)
+          throw (ErrorValidator((my_format(_STR("ERROR_PARAM_EXCLUSIF")) % _STR(paramToValid_->getName()) % _STR(otherVal_.getName())).str()));
+      }
     }
   };
 
@@ -90,9 +154,15 @@ namespace charliesoft
   public:
     ValRange(double minima, double maxima) :
       inf_(minima), sup_(maxima){}
-    virtual bool validate(const ParamValue& value)
+    virtual void validate(const ParamValue& value)
     {
-      return value >= inf_ && value <= sup_;
+      if (value < inf_ || value > sup_)
+      {
+        if (paramToValid_ == NULL)
+          throw (ErrorValidator(_STR("ERROR_GENERIC")));
+        else
+          throw (ErrorValidator((my_format(_STR("ERROR_PARAM_VALUE_BETWEEN")) % _STR(paramToValid_->getName()) % inf_ % sup_).str()));
+      }
     }
   };
 }
