@@ -64,6 +64,9 @@ namespace charliesoft
     localElement.put("GlobConfig.lastPosition.width", lastPosition.width());
     localElement.put("GlobConfig.lastPosition.height", lastPosition.height());
 
+    charliesoft::GraphOfProcess* graph = Window::getInstance()->getModel();
+    graph->saveGraph(localElement);
+
     boost::property_tree::xml_writer_settings<char> settings(' ', 2);
     write_xml("config.xml", localElement, std::locale(), settings);
   }
@@ -94,16 +97,27 @@ namespace charliesoft
       lastProject_ = xmlTree.get("GlobConfig.LastProject", "");
       prefLang_ = xmlTree.get("GlobConfig.PrefLang", "en");
       isMaximized = xmlTree.get("GlobConfig.ShowMaximized", true);
-      styleSheet_ = xmlTree.get("GlobConfig.styleSheet", "QWidget#MainWidget{background:white;background-image:url(logo.png);background-repeat:no-repeat;background-position:center;}");
+      styleSheet_ = xmlTree.get("GlobConfig.styleSheet", "");
 
       lastPosition.setLeft(xmlTree.get("GlobConfig.lastPosition.x", 0));
       lastPosition.setTop(xmlTree.get("GlobConfig.lastPosition.y", 0));
       lastPosition.setWidth(xmlTree.get("GlobConfig.lastPosition.width", 1024));
       lastPosition.setHeight(xmlTree.get("GlobConfig.lastPosition.height", 768));
+
+      charliesoft::GraphOfProcess* graph = Window::getInstance()->getModel();
+      graph->fromGraph(xmlTree);
     }
     else
     {
-      styleSheet_ = "QWidget#MainWidget{background:white;background-image:url(logo.png);background-repeat:no-repeat;background-position:center;}";
+      styleSheet_ = "QToolTip {font-style:italic; color: #ffffff; background-color: #2a82aa; border: 1px solid white;}"
+        "QWidget#MainWidget{ background:white; background-image:url(logo.png); background-repeat:no-repeat; background-position:center; }"
+        "QWidget#DraggableWidget{ max - height:50px; padding: 2px; margin:5px; border:1px solid #888; border-radius: 5px;"
+        " background: qradialgradient(cx : 0.3, cy : -0.4, fx : 0.3, fy : -0.4, radius : 1.35, stop : 0 #fff, stop: 1 #bbb); }"
+        "QWidget#VertexRepresentation{ border:2px solid #555; border-radius: 11px;"
+        " background: qradialgradient(cx : 0.3, cy : -0.4, fx : 0.3, fy : -0.4, radius : 1.35, stop : 0 #fff, stop: 1 #888); }"
+        "QWidget#VertexTitle{ background - color:rgba(255, 255, 255, 32); border:none; border-radius:5px; }"
+        "QWidget#VertexTitleLine{ border: 2px solid #555; border-radius:0px; }"
+        "QWidget#ParamRepresentation{ background-color:rgba(255, 255, 255, 255); border:1px solid #555; padding:1px; }";
       lastProject_ = "";
       prefLang_ = "en";
       isMaximized = true;
@@ -226,7 +240,7 @@ namespace charliesoft
     }
     case Int:
     {
-      QLineEdit* lineEdit = new QLineEdit(lexical_cast<string>(param->get<int>(false)).c_str());
+      QLineEdit* lineEdit = new QLineEdit(lexical_cast<string>(param->get<int>()).c_str());
       if (p->isVisible())
         lineEdit->setEnabled(false);
       inputValue_.insert(Val_map_type(p, lineEdit));
@@ -236,7 +250,7 @@ namespace charliesoft
     }
     case Float:
     {
-      QLineEdit* lineEdit = new QLineEdit(lexical_cast<string>(param->get<double>(false)).c_str());
+      QLineEdit* lineEdit = new QLineEdit(lexical_cast<string>(param->get<double>()).c_str());
       if (p->isVisible())
         lineEdit->setEnabled(false);
       inputValue_.insert(Val_map_type(p, lineEdit));
@@ -447,7 +461,7 @@ namespace charliesoft
     shadowEffect->setOffset(3, 3);
     setGraphicsEffect(shadowEffect);
 
-    move(model->getPosition()[0], model->getPosition()[1]);
+    move(model->getPosition().x, model->getPosition().y);
   }
 
   void VertexRepresentation::reshape()

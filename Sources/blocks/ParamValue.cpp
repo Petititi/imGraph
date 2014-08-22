@@ -64,8 +64,7 @@ namespace charliesoft
   };
 
   void ParamValue::valid_and_set(const ParamValue& v){
-    validate(v);
-    isNew_ = (v.value_.type() != typeid(Not_A_Value));
+    validate(v);//if not valid throw an error!
     if (v.value_.type() == typeid(ParamValue *))
     {
       if (isLinked())
@@ -74,71 +73,86 @@ namespace charliesoft
       if (vDist != NULL) vDist->distantListeners_.insert(this);
     }
     value_ = v.value_;
+    current_timestamp_ = GraphOfProcess::current_timestamp_;
+    cond_.notify_all();//wake up waiting thread (if any)
   };
 
 
   BlockLink ParamValue::toBlockLink() const
   {
-    ParamValue* other = get_const<ParamValue*>();
+    ParamValue* other = get<ParamValue*>();
     return BlockLink(other->block_, block_, other->name_, name_);
   }
 
 
   ParamValue ParamValue::fromString(ParamType type, std::string value)
   {
-    if (type == Boolean)
-      return ParamValue(lexical_cast<bool>(value));
-    if (type == Int)
-      return ParamValue(lexical_cast<int>(value));
-    if (type == Float)
-      return ParamValue(lexical_cast<double>(value));
-    if (type == String || type == FilePath)
-      return ParamValue(value);
+    try{
+      if (type == Boolean)
+        return ParamValue(lexical_cast<bool>(value));
+      if (type == Int)
+        return ParamValue(lexical_cast<int>(value));
+      if (type == Float)
+        return ParamValue(lexical_cast<double>(value));
+      if (type == String || type == FilePath)
+        return ParamValue(value);
+    }
+    catch (...)//not the correct type, so create an empty value...
+    {
+    }
     return ParamValue();
   }
 
   ParamValue& ParamValue::operator = (bool const &rhs) {
-    isNew_ = true;
     value_ = rhs;
+    current_timestamp_ = GraphOfProcess::current_timestamp_;
+    cond_.notify_all();//wake up waiting thread (if any)
     return *this;
   };
   ParamValue& ParamValue::operator = (int const &rhs) {
-    isNew_ = true;
     value_ = rhs;
+    current_timestamp_ = GraphOfProcess::current_timestamp_;
+    cond_.notify_all();//wake up waiting thread (if any)
     return *this;
   };
   ParamValue& ParamValue::operator = (double const &rhs) {
-    isNew_ = true;
     value_ = rhs;
+    current_timestamp_ = GraphOfProcess::current_timestamp_;
+    cond_.notify_all();//wake up waiting thread (if any)
     return *this;
   };
   ParamValue& ParamValue::operator = (std::string const &rhs) {
-    isNew_ = true;
     value_ = rhs;
+    current_timestamp_ = GraphOfProcess::current_timestamp_;
+    cond_.notify_all();//wake up waiting thread (if any)
     return *this;
   };
   ParamValue& ParamValue::operator = (cv::Mat const &rhs) {
-    isNew_ = true;
     value_ = rhs;
+    current_timestamp_ = GraphOfProcess::current_timestamp_;
+    cond_.notify_all();//wake up waiting thread (if any)
     return *this;
   };
   ParamValue& ParamValue::operator = (Not_A_Value const &rhs) {
-    isNew_ = false;
     value_ = rhs;
+    current_timestamp_ = GraphOfProcess::current_timestamp_;
     return *this;
   };
   ParamValue& ParamValue::operator = (ParamValue *rhs) {
-    isNew_ = true;
     value_ = rhs;
+    current_timestamp_ = GraphOfProcess::current_timestamp_;
+    cond_.notify_all();//wake up waiting thread (if any)
     return *this;
   };
   ParamValue& ParamValue::operator = (ParamValue const &rhs) {
     if (this != &rhs) {
-      isNew_ = rhs.isNew_;
       value_ = rhs.value_;
       block_ = rhs.block_;
       name_ = rhs.name_;
       isOutput_ = rhs.isOutput_;
+      current_timestamp_ = rhs.current_timestamp_;
+      if (value_.type() != typeid(Not_A_Value))
+        cond_.notify_all();//wake up waiting thread (if any)
     }
     return *this;
   };
@@ -152,7 +166,7 @@ namespace charliesoft
         return false;//always different!
 
       if (value_.type() == typeid(ParamValue*))
-      {//compare adresses
+      {//compare addresses
         ParamValue* val = boost::get<ParamValue*>(value_);
         ParamValue* val1 = boost::get<ParamValue*>(other.value_);
         return val == val1;
@@ -207,7 +221,7 @@ namespace charliesoft
         other.value_.type() == typeid(Not_A_Value))
 
         if (value_.type() == typeid(ParamValue*))
-        {//compare adresses
+        {//compare addresses
         ParamValue* val = boost::get<ParamValue*>(value_);
         ParamValue* val1 = boost::get<ParamValue*>(other.value_);
         return val < val1;

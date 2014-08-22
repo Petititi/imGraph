@@ -2,6 +2,11 @@
 #include "Window.h"
 #include "Internationalizator.h"
 
+#ifdef _WIN32
+#pragma warning(disable:4503)
+#pragma warning(push)
+#pragma warning(disable:4996 4251 4275 4800)
+#endif
 #include <QPaintEngine>
 #include <QPushButton>
 #include <QVBoxLayout>
@@ -31,6 +36,10 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/lock_guard.hpp>
+
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
 #include "GraphicView.h"
 #include "ProcessManager.h"
@@ -66,10 +75,9 @@ namespace charliesoft
 
   void Window::releaseInstance()
   {
-    lock_guard<recursive_mutex> guard(_windowMutex);//evite les problemes d'acces concurrent
+    lock_guard<recursive_mutex> guard(_windowMutex);//for multi-thread access
     if (ptr != NULL)
-      delete ptr;
-    ptr = NULL;//already set in destructor, but just in case processor want to do jokes...
+      delete ptr;//ptr set to NULL in destructor
   }
 
   Window::~Window()
@@ -79,11 +87,12 @@ namespace charliesoft
 
   Window::Window()
   {
+    ptr = this;
+    model_ = new GraphOfProcess();
+
     //first load config file:
     config_ = new GlobalConfig();
     config_->loadConfig();
-
-    model_ = new GraphOfProcess();
 
     menuFichier = menuBar()->addMenu(_QT("MENU_FILE"));
 
@@ -183,6 +192,8 @@ namespace charliesoft
       mainLayout_, SLOT(synchronize(charliesoft::GraphOfProcess *)));
 
     setStyleSheet(config_->styleSheet_.c_str());
+
+    mainLayout_->synchronize(model_);
   }
 
   void Window::mousePressEvent(QMouseEvent *event)

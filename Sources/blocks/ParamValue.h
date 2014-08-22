@@ -3,9 +3,10 @@
 
 #ifdef _WIN32
 #pragma warning(push)
-#pragma warning(disable:4996 4251 4275 4800)
+#pragma warning(disable:4996 4251 4275 4800 4503)
 #endif
 #include <boost/variant.hpp>
+#include <boost/thread/condition_variable.hpp>
 #include <opencv2/core/core.hpp>
 #include <set>
 #include <QString>
@@ -45,46 +46,37 @@ namespace charliesoft
 
   class ParamValue
   {
+    unsigned int current_timestamp_;  // timestamp of last update
+    boost::condition_variable cond_;  // parameter upgrade condition
     std::vector<ParamValidator*> validators_;
     std::set<ParamValue*> distantListeners_;
     Block *block_;
     std::string name_;
     bool isOutput_;
     VariantClasses value_;
-    bool isNew_;
   public:
     ParamValue(Block *algo, std::string name, bool isOutput) :
-      block_(algo), name_(name), isOutput_(isOutput), value_(Not_A_Value()), 
-      isNew_(true){};
+      block_(algo), name_(name), isOutput_(isOutput), value_(Not_A_Value()){};
     ParamValue() :
-      block_(NULL), name_(""), isOutput_(false), value_(Not_A_Value()),
-      isNew_(true){};
+      block_(NULL), name_(""), isOutput_(false), value_(Not_A_Value()){};
     ParamValue(bool v) :
-      block_(NULL), name_(""), isOutput_(false), value_(v),
-      isNew_(true){};
+      block_(NULL), name_(""), isOutput_(false), value_(v){};
     ParamValue(int v) :
-      block_(NULL), name_(""), isOutput_(false), value_(v),
-      isNew_(true){};
+      block_(NULL), name_(""), isOutput_(false), value_(v){};
     ParamValue(double v) :
-      block_(NULL), name_(""), isOutput_(false), value_(v),
-      isNew_(true){};
+      block_(NULL), name_(""), isOutput_(false), value_(v){};
     ParamValue(std::string v) :
-      block_(NULL), name_(""), isOutput_(false), value_(v),
-      isNew_(true){};
+      block_(NULL), name_(""), isOutput_(false), value_(v){};
     ParamValue(cv::Mat v) :
-      block_(NULL), name_(""), isOutput_(false), value_(v),
-      isNew_(true){};
+      block_(NULL), name_(""), isOutput_(false), value_(v){};
     ParamValue(Not_A_Value v) :
-      block_(NULL), name_(""), isOutput_(false), value_(Not_A_Value()),
-      isNew_(false){};
+      block_(NULL), name_(""), isOutput_(false), value_(Not_A_Value()){};
     ParamValue(ParamValue* v) :
-      block_(NULL), name_(""), isOutput_(false), value_(v),
-      isNew_(true){
+      block_(NULL), name_(""), isOutput_(false), value_(v){
       if (v != NULL) v->distantListeners_.insert(this);
     };
     ParamValue(ParamValue& va) :
-      block_(va.block_), name_(va.name_), isOutput_(va.isOutput_), value_(va.value_),
-      isNew_(true){};
+      block_(va.block_), name_(va.name_), isOutput_(va.isOutput_), value_(va.value_){};
 
     ~ParamValue()
     {
@@ -131,6 +123,12 @@ namespace charliesoft
     std::string getName() const { return name_; };
 
     bool isDefaultValue() const;
+    unsigned int getTimestamp() const{
+      if (isLinked())
+        return boost::get<ParamValue*>(value_)->getTimestamp();
+      else
+        return current_timestamp_;
+    }
     bool isLinked() const {
       return (value_.type() == typeid(ParamValue*)) &&
         boost::get<ParamValue*>(value_) != NULL;
@@ -139,18 +137,14 @@ namespace charliesoft
     ParamType getType() const;
 
     template<typename T>
-    T get(bool update)
+    T get() const
     {
-      if (update)
-        valueRead();
       if (isLinked())
       {
         if (typeid(T) == typeid(ParamValue*))
           return boost::get<T>(value_);
-        return boost::get<ParamValue*>(value_)->get<T>(update);
+        return boost::get<ParamValue*>(value_)->get<T>();
       }
-      if (update)
-        block_->updateIfNeeded();
       if (value_.type() == typeid(Not_A_Value))
       {
         return T();
@@ -166,37 +160,16 @@ namespace charliesoft
     }
 
     template<typename T>
-    T get_const() const
+    void waitForUpdate(T& mutex)
     {
       if (isLinked())
-      {
-        if (typeid(T) == typeid(ParamValue*))
-          return boost::get<T>(value_);
-        return boost::get<ParamValue*>(value_)->get_const<T>();
-      }
-      if (value_.type() == typeid(Not_A_Value))
-      {
-        return T();
-      }
-      try
-      {
-        return boost::get<T>(value_);
-      }
-      catch (boost::bad_get&)
-      {
-        return T();
-      }
+        return boost::get<ParamValue*>(value_)->waitForUpdate(mutex);
+      else
+        cond_.wait(mutex);
     }
 
     void valid_and_set(const ParamValue& v);
 
-    bool isNew(){
-      if (isLinked())
-        return boost::get<ParamValue*>(value_)->isNew();
-      else
-        return isNew_;
-    };
-    void valueRead(){ isNew_ = false; };
   };
 }
 

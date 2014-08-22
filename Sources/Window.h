@@ -1,6 +1,10 @@
 #ifndef _WINDOWS_IMGRAPH_HEADER_
 #define _WINDOWS_IMGRAPH_HEADER_
 
+#ifdef _WIN32
+#pragma warning(push)
+#pragma warning(disable:4996 4251 4275 4800 4503)
+#endif
 #include <QGraphicsView>
 #include <QResizeEvent>
 #include <QPainter>
@@ -14,6 +18,11 @@
 #include <QComboBox>
 #include <QDial>
 #include <QPainterPath>
+
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
+
 #include "blocks/Block.h"
 
 #include <map>
@@ -48,6 +57,7 @@ namespace charliesoft
   public:
     static Window* getInstance();
     static void releaseInstance();
+    charliesoft::GraphOfProcess * getModel() const { return model_; }
     static GraphRepresentation* getGraphLayout();
     void show();
     MainWidget* getMainWidget() const { return mainWidget_; }

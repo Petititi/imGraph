@@ -51,48 +51,58 @@ protected:
   };
 
   bool BlockLoader::run(){
-    if (myInputs_["BLOCK__INPUT_IN_FILE"].isNew())
+    if (!myInputs_["BLOCK__INPUT_IN_FILE"].isDefaultValue())
     {
-      string fileName = myInputs_["BLOCK__INPUT_IN_FILE"].get<string>(true);
+      string fileName = myInputs_["BLOCK__INPUT_IN_FILE"].get<string>();
       if (!processor_.setInputSource(fileName))
       {
         error_msg_ = (my_format(_STR("BLOCK__INPUT_IN_FILE_PROBLEM")) % fileName).str();
         return false;
       }
     }
-    if (myInputs_["BLOCK__INPUT_IN_GREY"].isNew())
-      if (myInputs_["BLOCK__INPUT_IN_GREY"].get<bool>(true))
+    if (!myInputs_["BLOCK__INPUT_IN_GREY"].isDefaultValue())
+      if (myInputs_["BLOCK__INPUT_IN_GREY"].get<bool>())
         processor_.setProperty(cv::CAP_PROP_CONVERT_RGB, 0);
 
-    if (myInputs_["BLOCK__INPUT_IN_COLOR"].isNew())
-      if (myInputs_["BLOCK__INPUT_IN_COLOR"].get<bool>(true))
+    if (!myInputs_["BLOCK__INPUT_IN_COLOR"].isDefaultValue())
+      if (myInputs_["BLOCK__INPUT_IN_COLOR"].get<bool>())
         processor_.setProperty(cv::CAP_PROP_CONVERT_RGB, 1);
 
-    if (myInputs_["BLOCK__INPUT_INOUT_WIDTH"].isNew())
+    if (!myInputs_["BLOCK__INPUT_INOUT_WIDTH"].isDefaultValue())
       processor_.setProperty(cv::CAP_PROP_FRAME_WIDTH, 
-      myInputs_["BLOCK__INPUT_INOUT_WIDTH"].get<int>(true));
+      myInputs_["BLOCK__INPUT_INOUT_WIDTH"].get<int>());
 
-    if (myInputs_["BLOCK__INPUT_INOUT_HEIGHT"].isNew())
+    if (!myInputs_["BLOCK__INPUT_INOUT_HEIGHT"].isDefaultValue())
       processor_.setProperty(cv::CAP_PROP_FRAME_WIDTH, 
-      myInputs_["BLOCK__INPUT_INOUT_HEIGHT"].get<int>(true));
+      myInputs_["BLOCK__INPUT_INOUT_HEIGHT"].get<int>());
 
-    if (myInputs_["BLOCK__INPUT_INOUT_POS_FRAMES"].isNew())
+    if (!myInputs_["BLOCK__INPUT_INOUT_POS_FRAMES"].isDefaultValue())
       processor_.setProperty(cv::CAP_PROP_POS_FRAMES, 
-      myInputs_["BLOCK__INPUT_INOUT_POS_FRAMES"].get<double>(true));
+      myInputs_["BLOCK__INPUT_INOUT_POS_FRAMES"].get<double>());
 
-    if (myInputs_["BLOCK__INPUT_INOUT_POS_RATIO"].isNew())
+    if (!myInputs_["BLOCK__INPUT_INOUT_POS_RATIO"].isDefaultValue())
       processor_.setProperty(cv::CAP_PROP_POS_AVI_RATIO, 
-      myInputs_["BLOCK__INPUT_INOUT_POS_RATIO"].get<double>(true));
+      myInputs_["BLOCK__INPUT_INOUT_POS_RATIO"].get<double>());
 
     //now set outputs:
     cv::Mat frame = processor_.getFrame();
-    myOutputs_["BLOCK__INPUT_OUT_IMAGE"] = frame;
-    myOutputs_["BLOCK__INPUT_OUT_FRAMERATE"] = processor_.getProperty(cv::CAP_PROP_FPS);
-    myOutputs_["BLOCK__INPUT_INOUT_WIDTH"] = frame.cols;
-    myOutputs_["BLOCK__INPUT_INOUT_HEIGHT"] = frame.rows;
-    myOutputs_["BLOCK__INPUT_INOUT_POS_FRAMES"] = processor_.getProperty(cv::CAP_PROP_POS_FRAMES);
-    myOutputs_["BLOCK__INPUT_INOUT_POS_RATIO"] = processor_.getProperty(cv::CAP_PROP_POS_AVI_RATIO);
-    myOutputs_["BLOCK__INPUT_OUT_FORMAT"] = frame.type();
+    double fps = MAX(1, processor_.getProperty(cv::CAP_PROP_FPS));
+    while (!frame.empty())
+    {
+      myOutputs_["BLOCK__INPUT_OUT_IMAGE"] = frame;
+      myOutputs_["BLOCK__INPUT_OUT_FRAMERATE"] = fps;
+      myOutputs_["BLOCK__INPUT_INOUT_WIDTH"] = frame.cols;
+      myOutputs_["BLOCK__INPUT_INOUT_HEIGHT"] = frame.rows;
+      myOutputs_["BLOCK__INPUT_INOUT_POS_FRAMES"] = processor_.getProperty(cv::CAP_PROP_POS_FRAMES);
+      myOutputs_["BLOCK__INPUT_INOUT_POS_RATIO"] = processor_.getProperty(cv::CAP_PROP_POS_AVI_RATIO);
+      myOutputs_["BLOCK__INPUT_OUT_FORMAT"] = frame.type();
+
+      notifySchedulerNewData();
+
+      //wait corresponding ms in order to keep fps:
+      boost::this_thread::sleep(boost::posix_time::milliseconds(1. / fps*1000.));
+      frame = processor_.getFrame();
+    }
 
     return true;
   };

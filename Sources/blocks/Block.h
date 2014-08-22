@@ -2,15 +2,17 @@
 #define _BLOCK_IMGRAPH_HEADER_
 
 #ifndef Q_MOC_RUN
+#ifdef _WIN32
+#pragma warning(push)
+#pragma warning(disable:4996 4251 4275 4800 4503)
+#endif
 #include <boost/config.hpp>
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/labeled_graph.hpp>
-#include <boost/graph/graph_utility.hpp>
-#include <boost/graph/simple_point.hpp>
-#include <boost/property_map/property_map.hpp>
-#include <boost/graph/circle_layout.hpp>
-#include <boost/graph/fruchterman_reingold.hpp>
-#include <boost/graph/kamada_kawai_spring_layout.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <opencv2/core.hpp>
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 #endif
 
 #include "Internationalizator.h"
@@ -34,8 +36,7 @@
     className##();
 
 #define BLOCK_END_INSTANTIATION(className, blockType, keyName) \
-  }; \
-  bool className##::addedToList = \
+  };bool className##::addedToList = \
     charliesoft::ProcessManager::getInstance()->addNewAlgo<##className##>(blockType, #keyName);
 
 #define BEGIN_BLOCK_INPUT_PARAMS(className) \
@@ -54,7 +55,6 @@
 namespace charliesoft
 {
   class GraphOfProcess;
-  typedef boost::square_topology<>::point_type Point_;//position of vertex
   struct BlockLink;
   class GraphOfProcess;
   struct ParamDefinition
@@ -70,10 +70,14 @@ namespace charliesoft
   class Block{
     friend class GraphOfProcess;
     friend charliesoft::ProcessManager;
+
   protected:
+    boost::mutex mtx_;    // explicit mutex declaration
+    int timestamp_;
+
     std::string error_msg_;
     std::string name_;
-    Point_ position_;
+    cv::Point2f position_;
 
     std::map<std::string, ParamValue> myOutputs_;
     std::map<std::string, ParamValue> myInputs_;
@@ -84,14 +88,17 @@ namespace charliesoft
     bool isUpToDate_;
 
     virtual bool run() = 0;
+    void notifySchedulerNewData();
   public:
     Block(std::string name);
     std::string getName(){
       return name_;
     };
+    void operator()();
 
     std::string getErrorInfo(){ return error_msg_; };
     bool validateParams(std::string param, const ParamValue val);
+    bool isReadyToRun();
 
     virtual void setParam(std::string nameParam_, ParamValue& value);
     virtual ParamValue* getParam(std::string nameParam_);
@@ -104,9 +111,11 @@ namespace charliesoft
 
     std::string getErrorMsg();
 
-    const Point_& getPosition() const { return position_; }
-    void updatePosition(int x, int y) { position_[0] = x; position_[1] = y; };
+    const cv::Point2f& getPosition() const { return position_; }
+    void updatePosition(float x, float y) { position_.x = x; position_.y = y; };
     void createLink(std::string paramName, Block* dest, std::string paramNameDest);
+
+    boost::property_tree::ptree getXML() const;
   };
 
 
@@ -151,6 +160,11 @@ namespace charliesoft
     //edges are stored into Block (myInputs_[]->isLinked())
   public:
     GraphOfProcess();
+
+    void saveGraph(boost::property_tree::ptree& tree) const;
+    void fromGraph(boost::property_tree::ptree& tree);
+
+    static unsigned int current_timestamp_;
 
     void addNewProcess(Block* filter);
     void deleteProcess(Block* process);

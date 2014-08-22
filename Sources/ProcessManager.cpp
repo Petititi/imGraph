@@ -17,15 +17,6 @@ namespace charliesoft
   ProcessManager* ProcessManager::ptr_ = NULL;
   recursive_mutex ProcessManager::_listBlockMutex;
 
-  /*
-  vector<cv::String> algorithms;
-  Algorithm::getList(algorithms);
-  cout << "Algorithms: " << algorithms.size() << endl;
-  for (size_t i = 0; i < algorithms.size(); i++)
-  cout << algorithms[i] << endl;
-  system("pause");
-  */
-
   ProcessManager::ProcessManager(){
     ptr_ = this;
   };

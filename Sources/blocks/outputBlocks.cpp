@@ -30,9 +30,9 @@ namespace charliesoft
   bool BlockShow::run(){
     if (myInputs_["BLOCK__OUTPUT_IN_IMAGE"].isDefaultValue())
       return false;
-    cv::Mat mat = myInputs_["BLOCK__OUTPUT_IN_IMAGE"].get<cv::Mat>(true);
+    cv::Mat mat = myInputs_["BLOCK__OUTPUT_IN_IMAGE"].get<cv::Mat>();
     if (!mat.empty())
-      cv::imshow(myInputs_["BLOCK__OUTPUT_IN_WIN_NAME"].get<string>(true), mat);
+      cv::imshow(myInputs_["BLOCK__OUTPUT_IN_WIN_NAME"].get<string>(), mat);
     return true;
   };
 
