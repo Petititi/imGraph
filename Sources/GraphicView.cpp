@@ -51,6 +51,7 @@ using boost::lock_guard;
 
 namespace charliesoft
 {
+  VertexRepresentation* VertexRepresentation::selectedBlock_ = NULL;
 
   void GlobalConfig::saveConfig()
   {
@@ -416,6 +417,22 @@ namespace charliesoft
     close();
   }
 
+  VertexRepresentation::~VertexRepresentation()
+  {
+    for (auto it = listOfInputChilds_.begin(); it != listOfInputChilds_.end(); it++)
+      delete it->second;
+    listOfInputChilds_.clear();
+    for (auto it = listOfOutputChilds_.begin(); it != listOfOutputChilds_.end(); it++)
+      delete it->second;
+    listOfOutputChilds_.clear();
+    for (auto it = links_.begin(); it != links_.end(); it++)
+      delete it->second;
+    for (auto it = back_links_.begin(); it != back_links_.end(); it++)
+      it->first->links_.erase(it->second);
+
+    links_.clear();
+  }
+
   VertexRepresentation::VertexRepresentation(Block* model)
   {
     setObjectName("VertexRepresentation");
@@ -601,11 +618,24 @@ namespace charliesoft
     paramActiv_ = param;
   }
 
+  void VertexRepresentation::changeStyleProperty(const char* propertyName, QVariant val)
+  {
+    setProperty(propertyName, val);
+    style()->unpolish(this);
+    style()->polish(this);
+    update();
+  }
   void VertexRepresentation::mousePressEvent(QMouseEvent *mouseE)
   {
-    raise();
+    if (selectedBlock_ != NULL)
+    {
+      selectedBlock_->changeStyleProperty("selected", false);
+    }
+    selectedBlock_ = NULL;
     if (paramActiv_ == NULL && mouseE->button() == Qt::LeftButton)
     {
+      selectedBlock_ = this;
+      changeStyleProperty("selected", true);
       isDragging_ = true;
       const QPoint p = mouseE->globalPos();
       QPoint myPos = pos();
@@ -613,6 +643,7 @@ namespace charliesoft
     }
     else
       mouseE->ignore();
+    raise();
   }
 
   void VertexRepresentation::mouseReleaseEvent(QMouseEvent *)
@@ -626,6 +657,7 @@ namespace charliesoft
     {
       QPoint p = mouseE->globalPos() + deltaClick_;
       move(p.x(), p.y());
+      model_->setPosition(p.x(), p.y());
       Window::getInstance()->update();
 
       //recompute owned link positions:
@@ -745,6 +777,16 @@ namespace charliesoft
     return -1;
   }
 
+  int GraphRepresentation::indexOf(Block *widget) const
+  {
+    for (size_t i = 0; i < orderedBlocks_.size(); i++)
+    {
+      if (orderedBlocks_[i] == widget)
+        return i;
+    }
+    return -1;
+  }
+
   int GraphRepresentation::count() const
   {
     return orderedBlocks_.size();
@@ -790,12 +832,29 @@ namespace charliesoft
     std::vector<Block*> blocks = model->getVertices();
     for (auto it = blocks.begin(); it != blocks.end(); it++)
     {
-      if (items_.find(*it) == items_.end())
-      {
-        //add this vertex to view:
+      if (items_.find(*it) == items_.end())//add this vertex to view:
         addWidget(new VertexRepresentation(*it));
+    }
+    //test if block still exist:
+    for (auto it_ = items_.begin(); it_ != items_.end(); it_++)
+    {
+      bool found = false;
+      for (auto it = blocks.begin(); it != blocks.end() && !found; it++)
+      {
+        if (it_->first == *it)
+          found = true;
+      }
+
+      if (!found)//remove this block from view:
+      {
+        int pos = indexOf(it_->first);
+        auto representation = takeAt(pos)->widget();
+        delete takeAt(pos);
+        delete representation;
+        it_ = items_.begin();//restart iteration (we can't presume for iterator position)
       }
     }
+    
     //now get each connections:
     for (auto it = blocks.begin(); it != blocks.end(); it++)
     {
@@ -807,11 +866,10 @@ namespace charliesoft
         fromVertex = dynamic_cast<VertexRepresentation*>(items_[link.from_]->widget());
         toVertex = dynamic_cast<VertexRepresentation*>(items_[link.to_]->widget());
         if (fromVertex != NULL && toVertex != NULL)
-        {
           fromVertex->setEdge(link);
-        }
       }
     }
+    Window::getInstance()->update();
   }
 
   MainWidget::MainWidget(charliesoft::GraphOfProcess *model)
@@ -865,6 +923,13 @@ namespace charliesoft
     }
   };
 
+  void MainWidget::mousePressEvent(QMouseEvent *)
+  {
+    if (VertexRepresentation::selectedBlock_ != NULL)
+      VertexRepresentation::selectedBlock_->changeStyleProperty("selected", false);
+    VertexRepresentation::selectedBlock_ = NULL;
+  }
+
   void MainWidget::endLinkCreation(QPoint end)
   {
     endMouse_ = end;
@@ -909,4 +974,5 @@ namespace charliesoft
     creatingLink_ = true;
     startParam_ = dynamic_cast<ParamRepresentation*>(sender());
   }
+
 }

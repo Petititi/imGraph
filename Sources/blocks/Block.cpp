@@ -149,6 +149,7 @@ namespace charliesoft
   {
     ptree tree;
     tree.put("name", name_);
+    tree.put("position", position_);
 
     for (auto it = myInputs_.begin();
       it != myInputs_.end(); it++)
@@ -176,6 +177,17 @@ namespace charliesoft
     return tree;
   };
 
+  void Block::createLink(std::string paramName, Block* dest, std::string paramNameDest)
+  {
+    dest->setParam(paramNameDest, myOutputs_[paramName]);
+  }
+
+  void Block::setPosition(int x, int y)
+  {
+    position_.x = x;
+    position_.y = y;
+  }
+
   GraphOfProcess::GraphOfProcess(){
   };
 
@@ -199,12 +211,7 @@ namespace charliesoft
   {
     return vertices_;
   }
-
-  void Block::createLink(std::string paramName, Block* dest, std::string paramNameDest)
-  {
-    dest->setParam(paramNameDest, myOutputs_[paramName]);
-  }
-
+  
   bool GraphOfProcess::run(Block* endingVertex)
   {
     current_timestamp_++;
@@ -242,8 +249,13 @@ namespace charliesoft
         {
           ptree *block = &it->second;
           string name = block->get("name", "Error");
+          string pos = block->get("position", "[0,0]");
+          int posSepare = pos.find_first_of(',') + 1;
+          string xPos = pos.substr(1, posSepare - 2);
+          string yPos = pos.substr(posSepare + 1, pos.size() - posSepare - 2);
           Block* tmp = ProcessManager::getInstance()->createAlgoInstance(name);
           addNewProcess(tmp);
+          tmp->setPosition(lexical_cast<float>(xPos), lexical_cast<float>(yPos));
           for (ptree::iterator it1 = block->begin(); it1 != block->end(); it1++)
           {
             if (it1->first.compare("Input") == 0)
@@ -279,7 +291,11 @@ namespace charliesoft
     //now make links:
     for (auto valToUpdate : toUpdate)
     {
-      (*valToUpdate.first) = addressesMap[valToUpdate.second];
+      Block* fromBlock = valToUpdate.first!=NULL?valToUpdate.first->getBlock():NULL;
+      ParamValue* secondVal = addressesMap[valToUpdate.second];
+      Block* toBlock = secondVal != NULL ? secondVal->getBlock() : NULL;
+      if (fromBlock != NULL && toBlock != NULL)
+        toBlock->createLink(secondVal->getName(), fromBlock, valToUpdate.first->getName());
     }
   }
 }

@@ -211,16 +211,27 @@ namespace charliesoft
     if (event->type() == QEvent::KeyPress)
     {
       QKeyEvent *key = dynamic_cast<QKeyEvent *>(event);
-      if (key != NULL && ((key->key() == Qt::Key_Enter) || (key->key() == Qt::Key_Return)))
+      if (key != NULL)
       {
-        //Enter or return was pressed
-        model_->run();
+        switch (key->key())
+        {
+        case Qt::Key_Enter:
+        case Qt::Key_Return:
+          //Enter or return was pressed
+          model_->run();
+          break;
+        case Qt::Key_Delete:
+          if (VertexRepresentation::selectedBlock_ != NULL)
+            model_->deleteProcess(VertexRepresentation::selectedBlock_->getModel());
+          VertexRepresentation::selectedBlock_ = NULL;
+          mainLayout_->synchronize(model_);
+          break;
+        default:
+          return QMainWindow::event(event);
+        }
+        return true;
       }
-      else
-      {
-        return QMainWindow::event(event);
-      }
-      return true;
+      return QMainWindow::event(event);
     }
     else
     {

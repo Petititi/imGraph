@@ -85,6 +85,7 @@ namespace charliesoft
     std::vector< std::pair<VertexRepresentation*, BlockLink> > back_links_;
   public:
     VertexRepresentation(Block* model);
+    ~VertexRepresentation();
 
     Block* getModel() const { return model_; }
     void setParamActiv(ParamRepresentation*);
@@ -94,6 +95,8 @@ namespace charliesoft
 
     void reshape();
 
+    void changeStyleProperty(const char* propertyName, QVariant val);
+    static VertexRepresentation* selectedBlock_;
   protected:
     virtual void mousePressEvent(QMouseEvent *);
     virtual void mouseReleaseEvent(QMouseEvent *);
@@ -159,6 +162,7 @@ namespace charliesoft
     virtual QLayoutItem * itemAt(int index) const;
     virtual QLayoutItem * takeAt(int index);
     virtual int indexOf(QWidget *) const;
+    virtual int indexOf(Block *) const;
     virtual int count() const;
     virtual QSize sizeHint() const;
 
@@ -180,6 +184,7 @@ namespace charliesoft
 
     virtual void paintEvent(QPaintEvent *);
     virtual void mouseMoveEvent(QMouseEvent *);
+    virtual void mousePressEvent(QMouseEvent *);
 
     virtual void dragEnterEvent(QDragEnterEvent *);
     virtual void dropEvent(QDropEvent *);
@@ -197,6 +202,7 @@ namespace charliesoft
     public slots:
     void initLinkCreation(QPoint start);
     void endLinkCreation(QPoint end);
+
   };
 
 }

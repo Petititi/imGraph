@@ -2,6 +2,7 @@
 #include <vector>
 
 #include "Block.h"
+#include "ParamValidator.h"
 using namespace lsis_org;
 using std::vector;
 using std::string;
@@ -10,9 +11,7 @@ using cv::Mat;
 namespace charliesoft
 {
   BLOCK_BEGIN_INSTANTIATION(BlockShow);
-  //You can add methods, reimplement needed functions...
-  //Here we need validateParams:
-  virtual bool validateParams();
+  //You can add methods, re implement needed functions...
   BLOCK_END_INSTANTIATION(BlockShow, AlgoType::output, BLOCK__OUTPUT_NAME);
 
   BEGIN_BLOCK_INPUT_PARAMS(BlockShow);
@@ -25,7 +24,9 @@ namespace charliesoft
   BEGIN_BLOCK_OUTPUT_PARAMS(BlockShow);
   END_BLOCK_PARAMS();
 
-  BlockShow::BlockShow() :Block("BLOCK__OUTPUT_NAME"){};
+  BlockShow::BlockShow() :Block("BLOCK__OUTPUT_NAME"){
+    myInputs_["BLOCK__OUTPUT_IN_IMAGE"].addValidator({ new ValNeeded() });
+  };
   
   bool BlockShow::run(){
     if (myInputs_["BLOCK__OUTPUT_IN_IMAGE"].isDefaultValue())
@@ -35,17 +36,4 @@ namespace charliesoft
       cv::imshow(myInputs_["BLOCK__OUTPUT_IN_WIN_NAME"].get<string>(), mat);
     return true;
   };
-
-  bool BlockShow::validateParams(){
-    bool isOk = true;
-    //we need BLOCK__OUTPUT_IN_IMAGE to be set:
-    if (myInputs_["BLOCK__OUTPUT_IN_IMAGE"].isDefaultValue())
-    {
-      isOk = false;
-      error_msg_ += (my_format(_STR("ERROR_PARAM_NEEDED")) % _STR("BLOCK__OUTPUT_IN_IMAGE")).str();
-    }
-    return isOk;
-  };
-
-
 };

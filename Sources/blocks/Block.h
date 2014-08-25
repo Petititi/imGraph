@@ -116,6 +116,7 @@ namespace charliesoft
     void createLink(std::string paramName, Block* dest, std::string paramNameDest);
 
     boost::property_tree::ptree getXML() const;
+    void setPosition(int x, int y);
   };
 
 

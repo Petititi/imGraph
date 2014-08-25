@@ -56,27 +56,46 @@ namespace charliesoft
     VariantClasses value_;
   public:
     ParamValue(Block *algo, std::string name, bool isOutput) :
-      block_(algo), name_(name), isOutput_(isOutput), value_(Not_A_Value()){};
+      block_(algo), name_(name), isOutput_(isOutput), value_(Not_A_Value()){
+      current_timestamp_ = 0;
+    };
     ParamValue() :
-      block_(NULL), name_(""), isOutput_(false), value_(Not_A_Value()){};
+      block_(NULL), name_(""), isOutput_(false), value_(Not_A_Value()){
+      current_timestamp_ = 0;
+    };
     ParamValue(bool v) :
-      block_(NULL), name_(""), isOutput_(false), value_(v){};
+      block_(NULL), name_(""), isOutput_(false), value_(v){
+      current_timestamp_ = 0;
+    };
     ParamValue(int v) :
-      block_(NULL), name_(""), isOutput_(false), value_(v){};
+      block_(NULL), name_(""), isOutput_(false), value_(v){
+      current_timestamp_ = 0;
+    };
     ParamValue(double v) :
-      block_(NULL), name_(""), isOutput_(false), value_(v){};
+      block_(NULL), name_(""), isOutput_(false), value_(v){
+      current_timestamp_ = 0;
+    };
     ParamValue(std::string v) :
-      block_(NULL), name_(""), isOutput_(false), value_(v){};
+      block_(NULL), name_(""), isOutput_(false), value_(v){
+      current_timestamp_ = 0;
+    };
     ParamValue(cv::Mat v) :
-      block_(NULL), name_(""), isOutput_(false), value_(v){};
+      block_(NULL), name_(""), isOutput_(false), value_(v){
+      current_timestamp_ = 0;
+    };
     ParamValue(Not_A_Value v) :
-      block_(NULL), name_(""), isOutput_(false), value_(Not_A_Value()){};
+      block_(NULL), name_(""), isOutput_(false), value_(Not_A_Value()){
+      current_timestamp_ = 0;
+    };
     ParamValue(ParamValue* v) :
       block_(NULL), name_(""), isOutput_(false), value_(v){
       if (v != NULL) v->distantListeners_.insert(this);
+      current_timestamp_ = 0;
     };
     ParamValue(ParamValue& va) :
-      block_(va.block_), name_(va.name_), isOutput_(va.isOutput_), value_(va.value_){};
+      block_(va.block_), name_(va.name_), isOutput_(va.isOutput_), value_(va.value_){
+      current_timestamp_ = 0;
+    };
 
     ~ParamValue()
     {
@@ -135,6 +154,7 @@ namespace charliesoft
     };
 
     ParamType getType() const;
+    Block * getBlock() const { return block_; };
 
     template<typename T>
     T get() const
