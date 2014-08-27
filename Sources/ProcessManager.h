@@ -34,10 +34,10 @@ namespace charliesoft
 
   class ProcessManager
   {
-    static std::map< AlgoType, std::vector<std::string> > listOfAlgorithms_;
-    static std::map< std::string, std::vector<ParamDefinition> > algorithmInParams_;
-    static std::map< std::string, std::vector<ParamDefinition> > algorithmOutParams_;
-    static std::map< std::string, Algo_factory > algo_factory_;
+    std::map< AlgoType, std::vector<std::string> > listOfAlgorithms_;
+    std::map< std::string, std::vector<ParamDefinition> > algorithmInParams_;
+    std::map< std::string, std::vector<ParamDefinition> > algorithmOutParams_;
+    std::map< std::string, Algo_factory > algo_factory_;
     static ProcessManager* ptr_;
 
     ProcessManager();

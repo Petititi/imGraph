@@ -218,6 +218,7 @@ namespace charliesoft
       if (*it == process)
       {
         vertices_.erase(it);
+        delete process;
         return;
       }
     }

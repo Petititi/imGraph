@@ -9,15 +9,98 @@
     background: qradialgradient(cx: 0.3, cy: -0.4, fx: 0.3, fy : -0.4, radius : 1.35, stop : 0 #fff, stop: 1 #bbb);}
   QWidget#VertexRepresentation{border:2px solid #555;border-radius: 11px;
     background: qradialgradient(cx: 0.3, cy: -0.4, fx: 0.3, fy : -0.4, radius : 1.35, stop : 0 #fff, stop: 1 #888);}
-  QWidget#VertexRepresentation[selected="true"]{border:2px solid #B44;}
+  QWidget#VertexRepresentation[selected=&quot;true&quot;]{border:2px solid #B44;}
   QWidget#VertexTitle{background-color:rgba(255,255,255,32);border:none;border-radius:5px;}
   QWidget#VertexTitleLine{border: 2px solid #555;border-radius:0px;}
   QWidget#ParamRepresentation{background-color:rgba(255,255,255,255);border:1px solid #555;padding:1px;}</styleSheet>
   <ShowMaximized>true</ShowMaximized>
   <lastPosition>
-    <x>566</x>
-    <y>166</y>
-    <width>788</width>
-    <height>425</height>
+    <x>0</x>
+    <y>0</y>
+    <width>1024</width>
+    <height>768</height>
   </lastPosition>
 </GlobConfig>
+<GraphOfProcess>
+  <Block>
+    <name>BLOCK__INPUT_NAME</name>
+    <position>[230, 226]</position>
+    <Input>
+      <Name>BLOCK__INPUT_INOUT_HEIGHT</Name>
+      <Link>false</Link>
+      <Value>Not initialized...</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__INPUT_INOUT_POS_FRAMES</Name>
+      <Link>false</Link>
+      <Value>Not initialized...</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__INPUT_INOUT_POS_RATIO</Name>
+      <Link>false</Link>
+      <Value>Not initialized...</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__INPUT_INOUT_WIDTH</Name>
+      <Link>false</Link>
+      <Value>Not initialized...</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__INPUT_IN_COLOR</Name>
+      <Link>false</Link>
+      <Value>Not initialized...</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__INPUT_IN_FILE</Name>
+      <Link>false</Link>
+      <Value>D:/Travail/Douane/data/sequence/video_compress.avi</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__INPUT_IN_GREY</Name>
+      <Link>false</Link>
+      <Value>Not initialized...</Value>
+    </Input>
+    <Output>
+      <Name>BLOCK__INPUT_INOUT_HEIGHT</Name>
+      <ID>17102976</ID>
+    </Output>
+    <Output>
+      <Name>BLOCK__INPUT_INOUT_POS_FRAMES</Name>
+      <ID>17103240</ID>
+    </Output>
+    <Output>
+      <Name>BLOCK__INPUT_INOUT_POS_RATIO</Name>
+      <ID>17151736</ID>
+    </Output>
+    <Output>
+      <Name>BLOCK__INPUT_INOUT_WIDTH</Name>
+      <ID>17102712</ID>
+    </Output>
+    <Output>
+      <Name>BLOCK__INPUT_OUT_FORMAT</Name>
+      <ID>17152528</ID>
+    </Output>
+    <Output>
+      <Name>BLOCK__INPUT_OUT_FRAMERATE</Name>
+      <ID>17102448</ID>
+    </Output>
+    <Output>
+      <Name>BLOCK__INPUT_OUT_IMAGE</Name>
+      <ID>17102184</ID>
+    </Output>
+  </Block>
+  <Block>
+    <name>BLOCK__OUTPUT_NAME</name>
+    <position>[590, 209]</position>
+    <Input>
+      <Name>BLOCK__OUTPUT_IN_IMAGE</Name>
+      <Link>true</Link>
+      <Value>17102184</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__OUTPUT_IN_WIN_NAME</Name>
+      <Link>false</Link>
+      <Value>Not initialized...</Value>
+    </Input>
+  </Block>
+</GraphOfProcess>

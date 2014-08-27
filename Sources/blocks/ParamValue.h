@@ -101,6 +101,8 @@ namespace charliesoft
 
     ~ParamValue()
     {
+      if (isLinked())
+        boost::get<ParamValue*>(value_)->distantListeners_.erase(this);
       for (auto it = distantListeners_.begin();
         it != distantListeners_.end(); it++)
       {

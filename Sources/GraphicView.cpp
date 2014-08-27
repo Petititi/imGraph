@@ -431,6 +431,7 @@ namespace charliesoft
       it->first->links_.erase(it->second);
 
     links_.clear();
+    back_links_.clear();
   }
 
   VertexRepresentation::VertexRepresentation(Block* model)

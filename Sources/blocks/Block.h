@@ -76,7 +76,7 @@ namespace charliesoft
   protected:
     boost::condition_variable cond_;  // parameter upgrade condition
     boost::mutex mtx_;    // explicit mutex declaration
-    int timestamp_;
+    unsigned int timestamp_;
 
     std::string error_msg_;
     std::string name_;

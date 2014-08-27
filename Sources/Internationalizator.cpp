@@ -139,13 +139,33 @@ namespace charliesoft
 
     translations["BLOCK__OUTPUT_NAME"] = "Display image";
     translations["BLOCK__OUTPUT_IN_IMAGE"] = "image";
-    translations["BLOCK__OUTPUT_IN_IMAGE_HELP"] = "Output image";
+    translations["BLOCK__OUTPUT_IN_IMAGE_HELP"] = "Image to show";
     translations["BLOCK__OUTPUT_IN_WIN_NAME"] = "win. title";
     translations["BLOCK__OUTPUT_IN_WIN_NAME_HELP"] = "Windows title";
     translations["BLOCK__OUTPUT_IN_WIDTH"] = translations["BLOCK__INPUT_INOUT_WIDTH"];
     translations["BLOCK__OUTPUT_IN_WIDTH_HELP"] = translations["BLOCK__INPUT_INOUT_WIDTH_HELP"];
     translations["BLOCK__OUTPUT_IN_HEIGHT"] = translations["BLOCK__INPUT_INOUT_HEIGHT"];
     translations["BLOCK__OUTPUT_IN_HEIGHT_HELP"] = translations["BLOCK__INPUT_INOUT_HEIGHT_HELP"];
+
+    translations["BLOCK__NORMALIZ_NAME"] = "Normalize image";
+    translations["BLOCK__NORMALIZ_IN_IMAGE"] = "image";
+    translations["BLOCK__NORMALIZ_IN_IMAGE_HELP"] = "Input image";
+    translations["BLOCK__NORMALIZ_OUT_IMAGE"] = "image";
+    translations["BLOCK__NORMALIZ_OUT_IMAGE_HELP"] = "Normalized image";
+
+    translations["BLOCK__CROP_NAME"] = "Crop image";
+    translations["BLOCK__CROP_IN_IMAGE"] = "image";
+    translations["BLOCK__CROP_IN_IMAGE_HELP"] = "Input image";
+    translations["BLOCK__CROP_IN_WIDTH"] = translations["BLOCK__INPUT_INOUT_WIDTH"];
+    translations["BLOCK__CROP_IN_WIDTH_HELP"] = translations["BLOCK__INPUT_INOUT_WIDTH_HELP"];
+    translations["BLOCK__CROP_IN_HEIGHT"] = translations["BLOCK__INPUT_INOUT_HEIGHT"];
+    translations["BLOCK__CROP_IN_HEIGHT_HELP"] = translations["BLOCK__INPUT_INOUT_HEIGHT_HELP"];
+    translations["BLOCK__CROP_IN_X"] = "X";
+    translations["BLOCK__CROP_IN_X_HELP"] = "Position of top-left corner (X)";
+    translations["BLOCK__CROP_IN_Y"] = "Y";
+    translations["BLOCK__CROP_IN_Y_HELP"] = "Position of top-left corner (Y)";
+    translations["BLOCK__CROP_OUT_IMAGE"] = "image";
+    translations["BLOCK__CROP_OUT_IMAGE_HELP"] = "Croped image";
 
   }
 }

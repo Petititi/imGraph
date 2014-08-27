@@ -9,11 +9,6 @@ using std::vector;
 
 namespace charliesoft
 {
-  std::map< AlgoType, std::vector<std::string> > ProcessManager::listOfAlgorithms_;
-  std::map< std::string, std::vector<ParamDefinition> > ProcessManager::algorithmInParams_;
-  std::map< std::string, std::vector<ParamDefinition> > ProcessManager::algorithmOutParams_;
-  std::map< std::string, Algo_factory > ProcessManager::algo_factory_;
-
   ProcessManager* ProcessManager::ptr_ = NULL;
   recursive_mutex ProcessManager::_listBlockMutex;
 

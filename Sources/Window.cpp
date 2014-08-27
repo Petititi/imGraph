@@ -222,9 +222,11 @@ namespace charliesoft
         case Qt::Key_Enter:
         case Qt::Key_Return:
           //Enter or return was pressed
+          switchRun = false;
           model_->run();
           break;
         case Qt::Key_End:
+          switchRun = true;
           model_->stop();
           break;
         case Qt::Key_Space:
