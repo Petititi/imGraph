@@ -54,6 +54,8 @@ namespace charliesoft
     std::string name_;
     bool isOutput_;
     VariantClasses value_;
+
+    void notifyUpdate();
   public:
     ParamValue(Block *algo, std::string name, bool isOutput) :
       block_(algo), name_(name), isOutput_(isOutput), value_(Not_A_Value()){
@@ -106,6 +108,8 @@ namespace charliesoft
           (*it)->value_ = Not_A_Value();
       }
     }
+
+    std::set<ParamValue*>& getListeners() { return  distantListeners_; };
 
     static ParamValue fromString(ParamType,std::string);
 

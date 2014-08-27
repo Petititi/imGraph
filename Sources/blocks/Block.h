@@ -7,8 +7,10 @@
 #pragma warning(disable:4996 4251 4275 4800 4503)
 #endif
 #include <boost/config.hpp>
+#include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include <boost/thread/condition_variable.hpp>
 #include <opencv2/core.hpp>
 #ifdef _WIN32
 #pragma warning(pop)
@@ -72,6 +74,7 @@ namespace charliesoft
     friend charliesoft::ProcessManager;
 
   protected:
+    boost::condition_variable cond_;  // parameter upgrade condition
     boost::mutex mtx_;    // explicit mutex declaration
     int timestamp_;
 
@@ -88,7 +91,6 @@ namespace charliesoft
     bool isUpToDate_;
 
     virtual bool run() = 0;
-    void notifySchedulerNewData();
   public:
     Block(std::string name);
     std::string getName(){
@@ -106,6 +108,7 @@ namespace charliesoft
     void updateIfNeeded() { if (!isUpToDate()) run(); };
 
     bool isUpToDate();
+    void wakeUp();
 
     std::vector<BlockLink> getInEdges();
 
@@ -157,6 +160,7 @@ namespace charliesoft
 
   class GraphOfProcess
   {
+    std::vector< boost::thread > runningThread_;
     std::vector<Block*> vertices_;
     //edges are stored into Block (myInputs_[]->isLinked())
   public:
@@ -170,7 +174,8 @@ namespace charliesoft
     void addNewProcess(Block* filter);
     void deleteProcess(Block* process);
 
-    bool run(Block* endingVertex = NULL);
+    bool run();
+    void stop();
 
     std::vector<Block*>& getVertices();
   };

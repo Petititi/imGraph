@@ -28,36 +28,52 @@ namespace charliesoft
   Block::Block(std::string name){
     name_ = name;
     isUpToDate_ = false;
+    timestamp_ = 0;
   };
 
   void Block::operator()()
   {
     boost::unique_lock<boost::mutex> lock(mtx_);
-    unsigned int current_timestamp = GraphOfProcess::current_timestamp_;
-    //are parameters ok?
-    bool parametersOK = false;
-    while (!parametersOK)
+    try
     {
-      parametersOK = true;
-      for (auto it = myInputs_.begin(); it != myInputs_.end(); it++)
+      while (true)//this will be stop when user stop the process...
       {
-        if (it->second.isLinked() &&
-          it->second.getTimestamp() < current_timestamp)
+        unsigned int current_timestamp = GraphOfProcess::current_timestamp_;
+        if (timestamp_ < current_timestamp)
         {
-          parametersOK = false;
-          //not OK! we must wait here until producer update value!
-          it->second.waitForUpdate(lock);
+          //are parameters ok?
+          bool parametersOK = false;
+          while (!parametersOK)
+          {
+            parametersOK = true;
+            for (auto it = myInputs_.begin(); it != myInputs_.end(); it++)
+            {
+              if (it->second.isLinked() &&
+                it->second.getTimestamp() < current_timestamp)
+              {
+                parametersOK = false;
+                //not OK! we must wait here until producer update value!
+                it->second.waitForUpdate(lock);
+              }
+            }
+          }
+
+          //now we can run the process:
+          run();
+          cond_.wait(lock);//wait for any parameter update...
         }
+        boost::this_thread::sleep(boost::posix_time::milliseconds(100.));
       }
     }
-
-    //now we can run process:
-    run();
+    catch (boost::thread_interrupted const&)
+    {
+      //end of thread (requested by interrupt())!
+    }
   }
 
-  void Block::notifySchedulerNewData()
+  void Block::wakeUp()
   {
-
+    cond_.notify_all();//wake up waiting thread (if needed)
   }
 
   bool Block::isUpToDate()
@@ -211,16 +227,21 @@ namespace charliesoft
   {
     return vertices_;
   }
+
+  void GraphOfProcess::stop()
+  {
+    for (int i = 0; i < runningThread_.size(); i++)
+      runningThread_[i].interrupt();
+    runningThread_.clear();
+  }
   
-  bool GraphOfProcess::run(Block* endingVertex)
+  bool GraphOfProcess::run()
   {
     current_timestamp_++;
-    if (endingVertex != NULL)
-      return endingVertex->run();
     bool res = true;
     for (auto it = vertices_.begin();
       it != vertices_.end(); it++)
-      boost::thread(boost::ref(**it));
+      runningThread_.push_back(boost::thread(boost::ref(**it)));
 
     return res;
   }

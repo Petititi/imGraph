@@ -74,7 +74,7 @@ namespace charliesoft
     }
     value_ = v.value_;
     current_timestamp_ = GraphOfProcess::current_timestamp_;
-    cond_.notify_all();//wake up waiting thread (if any)
+    notifyUpdate();//wake up waiting thread (if any)
   };
 
 
@@ -102,35 +102,37 @@ namespace charliesoft
     }
     return ParamValue();
   }
-
-  ParamValue& ParamValue::operator = (bool const &rhs) {
-    value_ = rhs;
+  
+  void ParamValue::notifyUpdate()
+  {
     current_timestamp_ = GraphOfProcess::current_timestamp_;
     cond_.notify_all();//wake up waiting thread (if any)
+    for (auto listener : distantListeners_)
+      listener->getBlock()->wakeUp();
+  }
+  ParamValue& ParamValue::operator = (bool const &rhs) {
+    value_ = rhs;
+    notifyUpdate();
     return *this;
   };
   ParamValue& ParamValue::operator = (int const &rhs) {
     value_ = rhs;
-    current_timestamp_ = GraphOfProcess::current_timestamp_;
-    cond_.notify_all();//wake up waiting thread (if any)
+    notifyUpdate();
     return *this;
   };
   ParamValue& ParamValue::operator = (double const &rhs) {
     value_ = rhs;
-    current_timestamp_ = GraphOfProcess::current_timestamp_;
-    cond_.notify_all();//wake up waiting thread (if any)
+    notifyUpdate();
     return *this;
   };
   ParamValue& ParamValue::operator = (std::string const &rhs) {
     value_ = rhs;
-    current_timestamp_ = GraphOfProcess::current_timestamp_;
-    cond_.notify_all();//wake up waiting thread (if any)
+    notifyUpdate();
     return *this;
   };
   ParamValue& ParamValue::operator = (cv::Mat const &rhs) {
     value_ = rhs;
-    current_timestamp_ = GraphOfProcess::current_timestamp_;
-    cond_.notify_all();//wake up waiting thread (if any)
+    notifyUpdate();
     return *this;
   };
   ParamValue& ParamValue::operator = (Not_A_Value const &rhs) {
@@ -138,10 +140,12 @@ namespace charliesoft
     current_timestamp_ = GraphOfProcess::current_timestamp_;
     return *this;
   };
-  ParamValue& ParamValue::operator = (ParamValue *rhs) {
-    value_ = rhs;
-    current_timestamp_ = GraphOfProcess::current_timestamp_;
-    cond_.notify_all();//wake up waiting thread (if any)
+  ParamValue& ParamValue::operator = (ParamValue *vDist) {
+    if (isLinked())
+      boost::get<ParamValue*>(value_)->distantListeners_.erase(this);
+    if (vDist != NULL) vDist->distantListeners_.insert(this);
+    value_ = vDist;
+    notifyUpdate();
     return *this;
   };
   ParamValue& ParamValue::operator = (ParamValue const &rhs) {
@@ -152,7 +156,7 @@ namespace charliesoft
       isOutput_ = rhs.isOutput_;
       current_timestamp_ = rhs.current_timestamp_;
       if (value_.type() != typeid(Not_A_Value))
-        cond_.notify_all();//wake up waiting thread (if any)
+        notifyUpdate();
     }
     return *this;
   };

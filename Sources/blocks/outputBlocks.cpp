@@ -2,6 +2,7 @@
 #include <vector>
 
 #include "Block.h"
+#include "window_QT.h"
 #include "ParamValidator.h"
 using namespace lsis_org;
 using std::vector;
@@ -33,7 +34,7 @@ namespace charliesoft
       return false;
     cv::Mat mat = myInputs_["BLOCK__OUTPUT_IN_IMAGE"].get<cv::Mat>();
     if (!mat.empty())
-      cv::imshow(myInputs_["BLOCK__OUTPUT_IN_WIN_NAME"].get<string>(), mat);
+      charliesoft::imshow(myInputs_["BLOCK__OUTPUT_IN_WIN_NAME"].get<string>(), mat); 
     return true;
   };
 };

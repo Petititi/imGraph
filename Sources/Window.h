@@ -62,6 +62,8 @@ namespace charliesoft
     void show();
     MainWidget* getMainWidget() const { return mainWidget_; }
     std::string getKey(QWidget* w){ return keysName_[w]; };
+
+    bool event(QEvent *event);
   private:
     Window();
     ~Window();
@@ -81,7 +83,6 @@ namespace charliesoft
     void fillDock(int idDock);
 
     void mousePressEvent(QMouseEvent *event);
-    bool event(QEvent *event);
     void closeEvent(QCloseEvent *event);
 
   signals:

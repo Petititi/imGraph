@@ -42,6 +42,7 @@
 #endif
 
 #include "GraphicView.h"
+#include "window_QT.h"
 #include "ProcessManager.h"
 
 using namespace std;
@@ -89,6 +90,8 @@ namespace charliesoft
   {
     ptr = this;
     model_ = new GraphOfProcess();
+    //create opencv main thread:
+    new GuiReceiver();
 
     //first load config file:
     config_ = new GlobalConfig();
@@ -208,6 +211,7 @@ namespace charliesoft
 
   bool Window::event(QEvent *event)
   {
+    static bool switchRun = true;
     if (event->type() == QEvent::KeyPress)
     {
       QKeyEvent *key = dynamic_cast<QKeyEvent *>(event);
@@ -219,6 +223,16 @@ namespace charliesoft
         case Qt::Key_Return:
           //Enter or return was pressed
           model_->run();
+          break;
+        case Qt::Key_End:
+          model_->stop();
+          break;
+        case Qt::Key_Space:
+          switchRun = !switchRun;
+          if (switchRun)
+            model_->stop();
+          else
+            model_->run();
           break;
         case Qt::Key_Delete:
           if (VertexRepresentation::selectedBlock_ != NULL)
