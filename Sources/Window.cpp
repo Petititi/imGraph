@@ -211,7 +211,7 @@ namespace charliesoft
 
   bool Window::event(QEvent *event)
   {
-    static bool switchRun = true;
+    static bool startRun = true;
     if (event->type() == QEvent::KeyPress)
     {
       QKeyEvent *key = dynamic_cast<QKeyEvent *>(event);
@@ -222,19 +222,23 @@ namespace charliesoft
         case Qt::Key_Enter:
         case Qt::Key_Return:
           //Enter or return was pressed
-          switchRun = false;
+          startRun = false;
+          GraphOfProcess::pauseProcess = false;
           model_->run();
           break;
         case Qt::Key_End:
-          switchRun = true;
+          startRun = true;
+          GraphOfProcess::pauseProcess = false;
           model_->stop();
           break;
         case Qt::Key_Space:
-          switchRun = !switchRun;
-          if (switchRun)
-            model_->stop();
-          else
+          if (startRun)
+          {
+            startRun = false;
             model_->run();
+          }
+          else
+            model_->switchPause();
           break;
         case Qt::Key_Delete:
           if (VertexRepresentation::selectedBlock_ != NULL)

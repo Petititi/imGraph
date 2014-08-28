@@ -164,6 +164,7 @@ namespace charliesoft
     std::vector<Block*> vertices_;
     //edges are stored into Block (myInputs_[]->isLinked())
   public:
+    static bool pauseProcess;
     GraphOfProcess();
 
     void saveGraph(boost::property_tree::ptree& tree) const;
@@ -176,6 +177,7 @@ namespace charliesoft
 
     bool run();
     void stop();
+    void switchPause();
 
     std::vector<Block*>& getVertices();
   };

@@ -583,6 +583,10 @@ namespace charliesoft
       toWidget = toVertex->listOfInputChilds_[link.toParam_];
       if (fromWidget != NULL && toWidget != NULL)
       {
+        fromWidget->setVisibility(true);
+        toWidget->setVisibility(true);
+        toVertex->reshape();
+        reshape();
         QPainterPath* previousPath = links_[link];
         if (previousPath != NULL)
           delete previousPath;
@@ -849,8 +853,8 @@ namespace charliesoft
       if (!found)//remove this block from view:
       {
         int pos = indexOf(it_->first);
-        auto representation = takeAt(pos)->widget();
-        delete takeAt(pos);
+        auto representation = takeAt(pos);
+        delete representation->widget();
         delete representation;
         it_ = items_.begin();//restart iteration (we can't presume for iterator position)
       }

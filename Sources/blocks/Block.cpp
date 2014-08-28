@@ -24,6 +24,7 @@ using boost::lexical_cast;
 namespace charliesoft
 {
   unsigned int GraphOfProcess::current_timestamp_ = 0;
+  bool GraphOfProcess::pauseProcess = false;
 
   Block::Block(std::string name){
     name_ = name;
@@ -38,6 +39,9 @@ namespace charliesoft
     {
       while (true)//this will be stop when user stop the process...
       {
+        while (GraphOfProcess::pauseProcess)
+          cond_.wait(lock);//wait for any parameter update...
+
         unsigned int current_timestamp = GraphOfProcess::current_timestamp_;
         if (timestamp_ < current_timestamp)
         {
@@ -245,6 +249,17 @@ namespace charliesoft
       runningThread_.push_back(boost::thread(boost::ref(**it)));
 
     return res;
+  }
+  void GraphOfProcess::switchPause()
+  {
+    GraphOfProcess::pauseProcess = !GraphOfProcess::pauseProcess;
+    if (!pauseProcess)
+    {
+      //wake up threads:
+      for (auto it = vertices_.begin();
+        it != vertices_.end(); it++)
+        (*it)->wakeUp();
+    }
   }
 
   void GraphOfProcess::saveGraph(boost::property_tree::ptree& tree) const

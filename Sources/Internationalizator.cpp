@@ -147,19 +147,35 @@ namespace charliesoft
     translations["BLOCK__OUTPUT_IN_HEIGHT"] = translations["BLOCK__INPUT_INOUT_HEIGHT"];
     translations["BLOCK__OUTPUT_IN_HEIGHT_HELP"] = translations["BLOCK__INPUT_INOUT_HEIGHT_HELP"];
 
+    translations["BLOCK__LINEDRAWER_NAME"] = "Draw lines";
+    translations["BLOCK__LINEDRAWER_IN_LINES"] = "lines list";
+    translations["BLOCK__LINEDRAWER_IN_LINES_HELP"] = "Input of lines (4 values per row)";
+    translations["BLOCK__LINEDRAWER_IN_WIDTH"] = translations["BLOCK__INPUT_INOUT_WIDTH"];
+    translations["BLOCK__LINEDRAWER_IN_WIDTH_HELP"] = translations["BLOCK__INPUT_INOUT_WIDTH_HELP"];
+    translations["BLOCK__LINEDRAWER_IN_HEIGHT"] = translations["BLOCK__INPUT_INOUT_HEIGHT"];
+    translations["BLOCK__LINEDRAWER_IN_HEIGHT_HELP"] = translations["BLOCK__INPUT_INOUT_HEIGHT_HELP"];
+    translations["BLOCK__LINEDRAWER_OUT_IMAGE"] = "image";
+    translations["BLOCK__LINEDRAWER_OUT_IMAGE_HELP"] = "Binary output image";
+
     translations["BLOCK__NORMALIZ_NAME"] = "Normalize image";
     translations["BLOCK__NORMALIZ_IN_IMAGE"] = "image";
     translations["BLOCK__NORMALIZ_IN_IMAGE_HELP"] = "Input image";
     translations["BLOCK__NORMALIZ_OUT_IMAGE"] = "image";
     translations["BLOCK__NORMALIZ_OUT_IMAGE_HELP"] = "Normalized image";
 
+    translations["BLOCK__LINE_FINDER_NAME"] = "Find lines";
+    translations["BLOCK__LINE_FINDER_IN_IMAGE"] = "image";
+    translations["BLOCK__LINE_FINDER_IN_IMAGE_HELP"] = "Input image";
+    translations["BLOCK__LINE_FINDER_OUT_IMAGE"] = "lines list";
+    translations["BLOCK__LINE_FINDER_OUT_IMAGE_HELP"] = "List of detected lines";
+
     translations["BLOCK__CROP_NAME"] = "Crop image";
     translations["BLOCK__CROP_IN_IMAGE"] = "image";
     translations["BLOCK__CROP_IN_IMAGE_HELP"] = "Input image";
-    translations["BLOCK__CROP_IN_WIDTH"] = translations["BLOCK__INPUT_INOUT_WIDTH"];
-    translations["BLOCK__CROP_IN_WIDTH_HELP"] = translations["BLOCK__INPUT_INOUT_WIDTH_HELP"];
-    translations["BLOCK__CROP_IN_HEIGHT"] = translations["BLOCK__INPUT_INOUT_HEIGHT"];
-    translations["BLOCK__CROP_IN_HEIGHT_HELP"] = translations["BLOCK__INPUT_INOUT_HEIGHT_HELP"];
+    translations["BLOCK__CROP_WIDTH"] = translations["BLOCK__INPUT_INOUT_WIDTH"];
+    translations["BLOCK__CROP_WIDTH_HELP"] = translations["BLOCK__INPUT_INOUT_WIDTH_HELP"];
+    translations["BLOCK__CROP_HEIGHT"] = translations["BLOCK__INPUT_INOUT_HEIGHT"];
+    translations["BLOCK__CROP_HEIGHT_HELP"] = translations["BLOCK__INPUT_INOUT_HEIGHT_HELP"];
     translations["BLOCK__CROP_IN_X"] = "X";
     translations["BLOCK__CROP_IN_X_HELP"] = "Position of top-left corner (X)";
     translations["BLOCK__CROP_IN_Y"] = "Y";
