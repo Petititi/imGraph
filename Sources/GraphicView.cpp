@@ -516,9 +516,9 @@ namespace charliesoft
     links_.erase(l);
 
     if (l.from_ == model_)
-      (*model_->getParam(l.fromParam_)) = Not_A_Value();
+      (*model_->getParam(l.fromParam_, false)) = Not_A_Value();
     if (l.to_ == model_)
-      (*model_->getParam(l.toParam_)) = Not_A_Value();
+      (*model_->getParam(l.toParam_, true)) = Not_A_Value();
   };
 
   void VertexRepresentation::reshape()

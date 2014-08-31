@@ -35,6 +35,8 @@ namespace charliesoft
 
   BlockCrop::BlockCrop() :Block("BLOCK__CROP_NAME"){
     myInputs_["BLOCK__CROP_IN_IMAGE"].addValidator({ new ValNeeded() });
+    myInputs_["BLOCK__CROP_WIDTH"].addValidator({ new ValPositiv(true) });
+    myInputs_["BLOCK__CROP_HEIGHT"].addValidator({ new ValPositiv(true) });
   };
 
   bool BlockCrop::run(){

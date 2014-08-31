@@ -1,6 +1,10 @@
 #ifndef _GRAPHICVIEW_HEADER_
 #define _GRAPHICVIEW_HEADER_
 
+#ifdef _WIN32
+#pragma warning(push)
+#pragma warning(disable:4996 4251 4275 4800 4503)
+#endif
 #include <QGraphicsView>
 #include <QResizeEvent>
 #include <QDialog >
@@ -19,6 +23,10 @@
 #include <QGroupBox>
 
 #include <boost/bimap.hpp>
+
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
 #include "blocks/Block.h"
 
@@ -79,7 +87,7 @@ namespace charliesoft
     bool shouldShow() const { return param_.show_; }
     void setVisibility(bool visible);
     std::string getParamName() const { return param_.name_; }
-    ParamValue* getParamValue() const { return model_->getParam(param_.name_); }
+    ParamValue* getParamValue() const { return model_->getParam(param_.name_, isInput_); }
     std::string getParamHelper() const { return param_.helper_; }
     Block* getModel() const { return model_; }
     bool isInput() const { return isInput_; }

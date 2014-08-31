@@ -145,14 +145,14 @@ namespace charliesoft
     else
       myOutputs_[nameParam_] = value;
   };
-  ParamValue* Block::getParam(std::string nameParam_){
-    if (myInputs_.find(nameParam_) != myInputs_.end())
+  ParamValue* Block::getParam(std::string nameParam_, bool input){
+    if (input && myInputs_.find(nameParam_) != myInputs_.end())
       return &myInputs_[nameParam_];
     else
-      if (myOutputs_.find(nameParam_) != myOutputs_.end())
+      if (!input && myOutputs_.find(nameParam_) != myOutputs_.end())
         return &myOutputs_[nameParam_];
-      else
-        return NULL;
+      
+    return NULL;
   };
 
   std::vector<BlockLink> Block::getInEdges()
@@ -303,7 +303,7 @@ namespace charliesoft
               string nameIn = it1->second.get("Name", "Error");
               bool link = it1->second.get("Link", false);
               string val = it1->second.get("Value", "Not initialized...");
-              ParamValue* tmpVal = tmp->getParam(nameIn);
+              ParamValue* tmpVal = tmp->getParam(nameIn, true);
               if (!link)
               {
                 try
@@ -321,7 +321,7 @@ namespace charliesoft
             {
               string nameOut = it1->second.get("Name", "Error");
               string val = it1->second.get("ID", "0");
-              ParamValue* tmpVal = tmp->getParam(nameOut);
+              ParamValue* tmpVal = tmp->getParam(nameOut, false);
               addressesMap[lexical_cast<unsigned int>(val)] = tmpVal;
             }
           }

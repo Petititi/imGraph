@@ -103,7 +103,7 @@ namespace charliesoft
     bool isReadyToRun();
 
     virtual void setParam(std::string nameParam_, ParamValue& value);
-    virtual ParamValue* getParam(std::string nameParam_);
+    virtual ParamValue* getParam(std::string nameParam_, bool input);
 
     void updateIfNeeded() { if (!isUpToDate()) run(); };
 
