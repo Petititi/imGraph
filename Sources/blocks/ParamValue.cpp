@@ -14,7 +14,7 @@ namespace charliesoft
   ParamType ParamValue::getType() const{
     if (block_ == NULL)
       return typeError;
-    return _PROCESS_MANAGER->getParamType(block_->getName(), name_);
+    return _PROCESS_MANAGER->getParamType(block_->getName(), name_, !isOutput_);
   };
 
   void ParamValue::addValidator(std::initializer_list<ParamValidator*> list)

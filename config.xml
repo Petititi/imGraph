@@ -9,7 +9,8 @@
     background: qradialgradient(cx: 0.3, cy: -0.4, fx: 0.3, fy : -0.4, radius : 1.35, stop : 0 #fff, stop: 1 #bbb);}
   QWidget#VertexRepresentation{border:2px solid #555;border-radius: 11px;
     background: qradialgradient(cx: 0.3, cy: -0.4, fx: 0.3, fy : -0.4, radius : 1.35, stop : 0 #fff, stop: 1 #888);}
-  QWidget#VertexRepresentation[selected=&quot;true&quot;]{border:2px solid #B44;}
+  QWidget#VertexRepresentation[selected=true]{border:2px solid #B44;}
+  QWidget#VertexRepresentation[inconsistent=true]{background-color:#E88;}
   QWidget#VertexTitle{background-color:rgba(255,255,255,32);border:none;border-radius:5px;}
   QWidget#VertexTitleLine{border: 2px solid #555;border-radius:0px;}
   QWidget#ParamRepresentation{background-color:rgba(255,255,255,255);border:1px solid #555;padding:1px;}</styleSheet>
@@ -24,7 +25,7 @@
 <GraphOfProcess>
   <Block>
     <name>BLOCK__INPUT_NAME</name>
-    <position>[230, 226]</position>
+    <position>[52, 330]</position>
     <Input>
       <Name>BLOCK__INPUT_INOUT_HEIGHT</Name>
       <Link>false</Link>
@@ -62,45 +63,136 @@
     </Input>
     <Output>
       <Name>BLOCK__INPUT_INOUT_HEIGHT</Name>
-      <ID>17102976</ID>
+      <ID>19731144</ID>
     </Output>
     <Output>
       <Name>BLOCK__INPUT_INOUT_POS_FRAMES</Name>
-      <ID>17103240</ID>
+      <ID>19732056</ID>
     </Output>
     <Output>
       <Name>BLOCK__INPUT_INOUT_POS_RATIO</Name>
-      <ID>17151736</ID>
+      <ID>19732968</ID>
     </Output>
     <Output>
       <Name>BLOCK__INPUT_INOUT_WIDTH</Name>
-      <ID>17102712</ID>
+      <ID>19730232</ID>
     </Output>
     <Output>
       <Name>BLOCK__INPUT_OUT_FORMAT</Name>
-      <ID>17152528</ID>
+      <ID>19733880</ID>
     </Output>
     <Output>
       <Name>BLOCK__INPUT_OUT_FRAMERATE</Name>
-      <ID>17102448</ID>
+      <ID>19729320</ID>
     </Output>
     <Output>
       <Name>BLOCK__INPUT_OUT_IMAGE</Name>
-      <ID>17102184</ID>
+      <ID>19728408</ID>
+    </Output>
+  </Block>
+  <Block>
+    <name>BLOCK__CROP_NAME</name>
+    <position>[212, 331]</position>
+    <Input>
+      <Name>BLOCK__CROP_HEIGHT</Name>
+      <Link>false</Link>
+      <Value>530</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__CROP_IN_IMAGE</Name>
+      <Link>true</Link>
+      <Value>19728408</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__CROP_IN_X</Name>
+      <Link>false</Link>
+      <Value>100</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__CROP_IN_Y</Name>
+      <Link>false</Link>
+      <Value>68</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__CROP_WIDTH</Name>
+      <Link>false</Link>
+      <Value>1180</Value>
+    </Input>
+    <Output>
+      <Name>BLOCK__CROP_HEIGHT</Name>
+      <ID>19830744</ID>
+    </Output>
+    <Output>
+      <Name>BLOCK__CROP_OUT_IMAGE</Name>
+      <ID>19828920</ID>
+    </Output>
+    <Output>
+      <Name>BLOCK__CROP_WIDTH</Name>
+      <ID>19829832</ID>
+    </Output>
+  </Block>
+  <Block>
+    <name>BLOCK__LINE_FINDER_NAME</name>
+    <position>[490, 203]</position>
+    <Input>
+      <Name>BLOCK__LINE_FINDER_IN_IMAGE</Name>
+      <Link>true</Link>
+      <Value>19828920</Value>
+    </Input>
+    <Output>
+      <Name>BLOCK__LINE_FINDER_OUT_IMAGE</Name>
+      <ID>19834328</ID>
+    </Output>
+  </Block>
+  <Block>
+    <name>BLOCK__LINEDRAWER_NAME</name>
+    <position>[783, 257]</position>
+    <Input>
+      <Name>BLOCK__LINEDRAWER_IN_HEIGHT</Name>
+      <Link>true</Link>
+      <Value>19830744</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__LINEDRAWER_IN_LINES</Name>
+      <Link>true</Link>
+      <Value>19834328</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__LINEDRAWER_IN_WIDTH</Name>
+      <Link>true</Link>
+      <Value>19829832</Value>
+    </Input>
+    <Output>
+      <Name>BLOCK__LINEDRAWER_OUT_IMAGE</Name>
+      <ID>19839872</ID>
     </Output>
   </Block>
   <Block>
     <name>BLOCK__OUTPUT_NAME</name>
-    <position>[590, 209]</position>
+    <position>[535, 518]</position>
     <Input>
       <Name>BLOCK__OUTPUT_IN_IMAGE</Name>
       <Link>true</Link>
-      <Value>17102184</Value>
+      <Value>19828920</Value>
     </Input>
     <Input>
       <Name>BLOCK__OUTPUT_IN_WIN_NAME</Name>
       <Link>false</Link>
-      <Value>Not initialized...</Value>
+      <Value>source</Value>
+    </Input>
+  </Block>
+  <Block>
+    <name>BLOCK__OUTPUT_NAME</name>
+    <position>[1122, 206]</position>
+    <Input>
+      <Name>BLOCK__OUTPUT_IN_IMAGE</Name>
+      <Link>true</Link>
+      <Value>19839872</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__OUTPUT_IN_WIN_NAME</Name>
+      <Link>false</Link>
+      <Value>Lines</Value>
     </Input>
   </Block>
 </GraphOfProcess>

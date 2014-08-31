@@ -121,8 +121,8 @@ namespace charliesoft
     return tmp;
   }
 
-  void Block::initParameters(std::vector<ParamDefinition>& inParam,
-    std::vector<ParamDefinition>& outParam)
+  void Block::initParameters(const std::vector<ParamDefinition>& inParam,
+    const std::vector<ParamDefinition>& outParam)
   {
     //add empty parameters:
     auto it = inParam.begin();

@@ -85,8 +85,8 @@ namespace charliesoft
     std::map<std::string, ParamValue> myOutputs_;
     std::map<std::string, ParamValue> myInputs_;
 
-    void initParameters(std::vector<ParamDefinition>& inParam, 
-      std::vector<ParamDefinition>& outParam);
+    void initParameters(const std::vector<ParamDefinition>& inParam, 
+      const std::vector<ParamDefinition>& outParam);
 
     bool isUpToDate_;
 

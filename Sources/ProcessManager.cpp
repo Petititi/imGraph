@@ -32,45 +32,60 @@ namespace charliesoft
     ptr_ = NULL;
   }
 
-  Block* ProcessManager::createAlgoInstance(std::string algo_name)
+  Block* ProcessManager::createAlgoInstance(std::string algo_name) const
   {
     lock_guard<recursive_mutex> guard(_listBlockMutex);
-    Block* b = algo_factory_[algo_name]();
-    b->initParameters(algorithmInParams_[algo_name], algorithmOutParams_[algo_name]);
+    Block* b = algo_factory_.at(algo_name)();
+    b->initParameters(algorithmInParams_.at(algo_name), algorithmOutParams_.at(algo_name));
     return b;
   }
 
-  std::vector<std::string>& ProcessManager::getAlgos(AlgoType type)
+  std::vector<std::string> ProcessManager::getAlgos(AlgoType type) const
   {
-    return listOfAlgorithms_[type];
+    if (listOfAlgorithms_.find(type) != listOfAlgorithms_.end())
+      return listOfAlgorithms_.at(type);
+    else
+      return std::vector<std::string>();
   }
 
-  std::vector<ParamDefinition>& ProcessManager::getAlgo_InParams(std::string name)
+  const std::vector<ParamDefinition>& ProcessManager::getAlgo_InParams(std::string name) const
   {
-    return algorithmInParams_[name];
+    if (algorithmInParams_.find(name) != algorithmInParams_.end())
+      return algorithmInParams_.at(name);
+    else
+      return emptyVector;
   }
-  std::vector<ParamDefinition>& ProcessManager::getAlgo_OutParams(std::string name)
+  const std::vector<ParamDefinition>& ProcessManager::getAlgo_OutParams(std::string name) const
   {
-    return algorithmOutParams_[name];
+    if (algorithmOutParams_.find(name) != algorithmOutParams_.end())
+      return algorithmOutParams_.at(name);
+    else
+      return emptyVector;
   }
 
-  ParamType ProcessManager::getParamType(std::string algo_name, std::string paramName)
+  ParamType ProcessManager::getParamType(std::string algo_name, std::string paramName, bool input) const
   {
-    std::vector<ParamDefinition> &params = getAlgo_InParams(algo_name);
-    auto it = params.begin();
-    while (it != params.end())
+    if (input)
     {
-      if (it->name_.compare(paramName) == 0)
-        return it->type_;
-      it++;
+      const std::vector<ParamDefinition> &params = getAlgo_InParams(algo_name);
+      auto it = params.begin();
+      while (it != params.end())
+      {
+        if (it->name_.compare(paramName) == 0)
+          return it->type_;
+        it++;
+      }
     }
-    params = getAlgo_OutParams(algo_name);
-    it = params.begin();
-    while (it != params.end())
+    else
     {
-      if (it->name_.compare(paramName) == 0)
-        return it->type_;
-      it++;
+      const std::vector<ParamDefinition> &params = getAlgo_OutParams(algo_name);
+      auto it = params.begin();
+      while (it != params.end())
+      {
+        if (it->name_.compare(paramName) == 0)
+          return it->type_;
+        it++;
+      }
     }
     return typeError;
   }

@@ -151,7 +151,7 @@ namespace charliesoft
     QLineF line;
     const QPainterPath::Element &p1 = elementAt(0);
     const QPainterPath::Element &p2 = elementAt(1);
-    if (rect.contains(p1.x, p1.y) || rect.contains(p2.x, p2.y))
+    if (rect.contains((int)p1.x, (int)p1.y) || rect.contains((int)p2.x, (int)p2.y))
       return true;
     line.setP1(QPointF(p1.x, p1.y));
     line.setP2(QPointF(p2.x, p2.y));
@@ -443,6 +443,7 @@ namespace charliesoft
     }
 
     vertex_->reshape();
+    Window::getGraphLayout()->synchronize(Window::getInstance()->getModel());
     close();
   }
   void ParamsConfigurator::reject_button()
@@ -508,7 +509,7 @@ namespace charliesoft
     shadowEffect->setOffset(3, 3);
     setGraphicsEffect(shadowEffect);
 
-    move(model->getPosition().x, model->getPosition().y);
+    move((int)model->getPosition().x, (int)model->getPosition().y);
   }
 
 
@@ -579,9 +580,9 @@ namespace charliesoft
 
     inputHeight = outputHeight = topPadding;
     if (showIn > showOut)
-      outputHeight += (tmpSize.height() + 10) * ((static_cast<double>(showIn)-showOut) / 2.);
+      outputHeight += (tmpSize.height() + 10) * (int)((static_cast<double>(showIn)-showOut) / 2.);
     else
-      inputHeight += (tmpSize.height() + 10) * ((static_cast<double>(showOut)-showIn) / 2.);
+      inputHeight += (tmpSize.height() + 10) * (int)((static_cast<double>(showOut)-showIn) / 2.);
 
     it = listOfInputChilds_.begin();
     for (; it != listOfInputChilds_.end(); it++)
@@ -736,9 +737,9 @@ namespace charliesoft
   {
     QPoint p = parentWidget()->mapTo(Window::getInstance()->getMainWidget(), mapTo(parentWidget(), pos()) / 2);
     if (isInput_)
-      return QPoint(p.x(), p.y() + height() / 2.);
+      return QPoint(p.x(), (int)(p.y() + height() / 2.));
     else
-      return QPoint(p.x() + width(), p.y() + height() / 2.);
+      return QPoint(p.x() + width(), (int)(p.y() + height() / 2.));
   }
   
   void ParamRepresentation::mousePressEvent(QMouseEvent *e)
@@ -972,6 +973,15 @@ namespace charliesoft
         it_ = items_.begin();//restart iteration (we can't presume for iterator position)
       }
     }
+
+    //test if blocks are ok:
+    for (auto item : items_)
+    {
+      VertexRepresentation* vertex = dynamic_cast<VertexRepresentation*>(item.second->widget());
+      if (vertex != NULL)
+        vertex->setProperty("inconsistent", !item.first->isReadyToRun());
+    }
+    
     
     //now get each connections:
     for (auto it = blocks.begin(); it != blocks.end(); it++)
@@ -1007,7 +1017,7 @@ namespace charliesoft
     Block* block = ProcessManager::getInstance()->createAlgoInstance(
       event->mimeData()->text().toStdString());
     model_->addNewProcess(block);
-    block->updatePosition(event->pos().x(), event->pos().y());
+    block->updatePosition((float)event->pos().x(), (float)event->pos().y());
     emit askSynchro(model_);//as we updated the model, we ask the layout to redraw itself...
   }
   
@@ -1029,7 +1039,7 @@ namespace charliesoft
       painter.drawLine(startMouse_, endMouse_);
     if (isSelecting_)
     {
-      painter.fillRect(selectBox_.x(), selectBox_.y(), selectBox_.width(), selectBox_.height(),
+      painter.fillRect((int)selectBox_.x(), (int)selectBox_.y(), (int)selectBox_.width(), (int)selectBox_.height(),
         QColor(0, 0, 255, 128));
       painter.setPen(QColor(0, 0, 200, 255));
       painter.drawRect(selectBox_);

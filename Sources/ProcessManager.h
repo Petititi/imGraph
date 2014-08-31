@@ -34,6 +34,7 @@ namespace charliesoft
 
   class ProcessManager
   {
+    std::vector<ParamDefinition> emptyVector;
     std::map< AlgoType, std::vector<std::string> > listOfAlgorithms_;
     std::map< std::string, std::vector<ParamDefinition> > algorithmInParams_;
     std::map< std::string, std::vector<ParamDefinition> > algorithmOutParams_;
@@ -42,14 +43,14 @@ namespace charliesoft
 
     ProcessManager();
     ~ProcessManager(){};
+    static boost::recursive_mutex _listBlockMutex;
   public:
     static ProcessManager* getInstance();
     static void releaseInstance();
-    static boost::recursive_mutex _listBlockMutex;
 
-    std::vector<std::string>& getAlgos(AlgoType type);
-    std::vector<ParamDefinition>& getAlgo_InParams(std::string name);
-    std::vector<ParamDefinition>& getAlgo_OutParams(std::string name);
+    std::vector<std::string> getAlgos(AlgoType type) const;
+    const std::vector<ParamDefinition>& getAlgo_InParams(std::string name) const;
+    const std::vector<ParamDefinition>& getAlgo_OutParams(std::string name) const;
 
     template<typename T>
     bool addNewAlgo(AlgoType type, std::string name)
@@ -62,8 +63,8 @@ namespace charliesoft
       return true;
     }
 
-    Block* createAlgoInstance(std::string algo_name);
-    ParamType getParamType(std::string algo_name, std::string paramName);
+    Block* createAlgoInstance(std::string algo_name) const;
+    ParamType getParamType(std::string algo_name, std::string paramName, bool input) const;
   };
 }
 
