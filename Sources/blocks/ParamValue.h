@@ -56,6 +56,7 @@ namespace charliesoft
     VariantClasses value_;
 
     void notifyUpdate();
+    void notifyRemove();
   public:
     ParamValue(Block *algo, std::string name, bool isOutput) :
       block_(algo), name_(name), isOutput_(isOutput), value_(Not_A_Value()){

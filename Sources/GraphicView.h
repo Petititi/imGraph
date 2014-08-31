@@ -40,6 +40,27 @@ namespace charliesoft
     QRect lastPosition;
   };
 
+  class LinkPath : public QPainterPath
+  {
+    bool selected_;
+  public:
+    LinkPath() :QPainterPath(){ selected_ = false; };
+
+    bool intersect(const QRect& pos) const;
+
+    void draw(QPainter& p)
+    {
+      if (selected_)
+        p.setPen(QPen(QColor(255, 0, 0), 2));
+      else
+        p.setPen(QPen(Qt::black, 2));
+      p.drawPath(*this);
+    }
+
+    bool isSelected() const { return selected_; }
+    void setSelected(bool val) { selected_ = val; }
+  };
+
   class ParamRepresentation :public QLabel
   {
     Q_OBJECT;
@@ -56,7 +77,7 @@ namespace charliesoft
     virtual void mouseMoveEvent(QMouseEvent *);
 
     bool shouldShow() const { return param_.show_; }
-    void setVisibility(bool visible) { param_.show_ = visible; }
+    void setVisibility(bool visible);
     std::string getParamName() const { return param_.name_; }
     ParamValue* getParamValue() const { return model_->getParam(param_.name_); }
     std::string getParamHelper() const { return param_.helper_; }
@@ -78,11 +99,9 @@ namespace charliesoft
     QPoint deltaClick_;
     ParamRepresentation* paramActiv_;
 
+    std::map<BlockLink, LinkPath*> links_;
     std::map<std::string, ParamRepresentation*> listOfInputChilds_;
     std::map<std::string, ParamRepresentation*> listOfOutputChilds_;
-
-    std::map<BlockLink, QPainterPath*> links_;
-    std::vector< std::pair<VertexRepresentation*, BlockLink> > back_links_;
   public:
     VertexRepresentation(Block* model);
     ~VertexRepresentation();
@@ -90,23 +109,28 @@ namespace charliesoft
     Block* getModel() const { return model_; }
     void setParamActiv(ParamRepresentation*);
 
-    void setEdge(const BlockLink& linkInfo);
-    void paintLinks(QPainter& p);
+    std::map<BlockLink, LinkPath*> getLinks() const { return links_; }
+
+    void addLink(BlockLink l, LinkPath* p){
+      links_[l] = p;
+    };
+    void removeLink(BlockLink l);
 
     void reshape();
 
     void changeStyleProperty(const char* propertyName, QVariant val);
-    static VertexRepresentation* selectedBlock_;
+    void setSelected(bool isSelected);
+    static void resetSelection();
+    static std::vector<VertexRepresentation*> getSelection(){
+      return selectedBlock_;
+    };
+    ParamRepresentation* getParamRep(std::string paramName, bool input);
   protected:
+    static std::vector<VertexRepresentation*> selectedBlock_;
     virtual void mousePressEvent(QMouseEvent *);
     virtual void mouseReleaseEvent(QMouseEvent *);
     virtual void mouseDoubleClickEvent(QMouseEvent *);
     virtual void mouseMoveEvent(QMouseEvent *);
-
-    void notifyBackLink(const BlockLink& linkInfo, VertexRepresentation* otherVertex)
-    {
-      back_links_.push_back(std::pair<VertexRepresentation*, BlockLink>(otherVertex, linkInfo));
-    };
   };
 
   class ParamsConfigurator :public QDialog
@@ -152,11 +176,19 @@ namespace charliesoft
     Q_OBJECT;
 
     std::map<Block*, QLayoutItem*> items_;
+    std::map<BlockLink, LinkPath*> links_;
     std::vector<Block*> orderedBlocks_;
   public:
     GraphRepresentation();
 
-    void clearLayout(QLayout* layout=NULL);
+    void removeLinks(VertexRepresentation* vertex);
+    void removeSelectedLinks();
+    void addLink(const BlockLink& link);
+    void updateLink(const BlockLink& link);
+
+    void clearLayout(QLayout* layout = NULL);
+    std::map<Block*, QLayoutItem*> getItems() const { return items_; }
+    std::map<BlockLink, LinkPath*> getLinks() const { return links_; }
 
     virtual void addItem(QLayoutItem *);
     virtual QLayoutItem * itemAt(int index) const;
@@ -180,11 +212,14 @@ namespace charliesoft
     ParamRepresentation* startParam_;
     QPoint startMouse_;
     QPoint endMouse_;
+    QRectF selectBox_;
+    bool isSelecting_;
     bool creatingLink_;
 
     virtual void paintEvent(QPaintEvent *);
     virtual void mouseMoveEvent(QMouseEvent *);
     virtual void mousePressEvent(QMouseEvent *);
+    virtual void mouseReleaseEvent(QMouseEvent *);
 
     virtual void dragEnterEvent(QDragEnterEvent *);
     virtual void dropEvent(QDropEvent *);

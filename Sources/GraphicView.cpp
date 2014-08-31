@@ -2,6 +2,11 @@
 #include "GraphicView.h"
 #include "Internationalizator.h"
 
+#ifdef _WIN32
+#pragma warning(disable:4503)
+#pragma warning(push)
+#pragma warning(disable:4996 4251 4275 4800)
+#endif
 #include <QPaintEngine>
 #include <QPushButton>
 #include <QVBoxLayout>
@@ -36,6 +41,9 @@
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/lock_guard.hpp>
 
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 #include "Window.h"
 
 #include "ProcessManager.h"
@@ -51,7 +59,7 @@ using boost::lock_guard;
 
 namespace charliesoft
 {
-  VertexRepresentation* VertexRepresentation::selectedBlock_ = NULL;
+  vector<VertexRepresentation*> VertexRepresentation::selectedBlock_;
 
   void GlobalConfig::saveConfig()
   {
@@ -129,6 +137,29 @@ namespace charliesoft
     }
   }
 
+  bool lineIntersect(QLineF& line1, double x1, double y1, double x2, double y2)
+  {
+    QLineF line;
+    line.setP1(QPointF(x1, y1));
+    line.setP2(QPointF(x2, y2));
+    QPointF intersection;
+    return line.intersect(line1, &intersection) == QLineF::BoundedIntersection;
+  }
+
+  bool LinkPath::intersect(const QRect& rect) const
+  {
+    QLineF line;
+    const QPainterPath::Element &p1 = elementAt(0);
+    const QPainterPath::Element &p2 = elementAt(1);
+    if (rect.contains(p1.x, p1.y) || rect.contains(p2.x, p2.y))
+      return true;
+    line.setP1(QPointF(p1.x, p1.y));
+    line.setP2(QPointF(p2.x, p2.y));
+    return lineIntersect(line, rect.x(), rect.y(), rect.x() + rect.width(), rect.y()) || 
+      lineIntersect(line, rect.x(), rect.y(), rect.x(), rect.y() + rect.height()) ||
+      lineIntersect(line, rect.x(), rect.y() + rect.height(), rect.x() + rect.width(), rect.y() + rect.height());
+  }
+
   ParamsConfigurator::ParamsConfigurator(VertexRepresentation* vertex,
     std::map<std::string, ParamRepresentation*>& in_param,
     std::map<std::string, ParamRepresentation*>& out_param) :
@@ -182,8 +213,7 @@ namespace charliesoft
       it++;
     }
   };
-
-
+  
   void ParamsConfigurator::addParamOut(ParamRepresentation  *p)
   {
     QGroupBox* group = new QGroupBox(_QT(p->getParamName()), tabWidget_->widget(1));
@@ -198,7 +228,10 @@ namespace charliesoft
     vbox->addWidget(new QLabel(_QT(p->getParamHelper())));
     QLineEdit* tmp = new QLineEdit();
     tmp->setEnabled(false);
-    tmp->setText(param->toString().c_str());
+    if (param->getType()!=ParamType::Mat)
+      tmp->setText(param->toString().c_str());
+    else
+      tmp->setText("Matrix...");
     vbox->addWidget(tmp);
   }
 
@@ -419,19 +452,15 @@ namespace charliesoft
 
   VertexRepresentation::~VertexRepresentation()
   {
+    Window::getGraphLayout()->removeLinks(this);
+
     for (auto it = listOfInputChilds_.begin(); it != listOfInputChilds_.end(); it++)
       delete it->second;
     listOfInputChilds_.clear();
     for (auto it = listOfOutputChilds_.begin(); it != listOfOutputChilds_.end(); it++)
       delete it->second;
     listOfOutputChilds_.clear();
-    for (auto it = links_.begin(); it != links_.end(); it++)
-      delete it->second;
-    for (auto it = back_links_.begin(); it != back_links_.end(); it++)
-      it->first->links_.erase(it->second);
-
     links_.clear();
-    back_links_.clear();
   }
 
   VertexRepresentation::VertexRepresentation(Block* model)
@@ -481,6 +510,16 @@ namespace charliesoft
 
     move(model->getPosition().x, model->getPosition().y);
   }
+
+
+  void VertexRepresentation::removeLink(BlockLink l){
+    links_.erase(l);
+
+    if (l.from_ == model_)
+      (*model_->getParam(l.fromParam_)) = Not_A_Value();
+    if (l.to_ == model_)
+      (*model_->getParam(l.toParam_)) = Not_A_Value();
+  };
 
   void VertexRepresentation::reshape()
   {
@@ -572,55 +611,29 @@ namespace charliesoft
     projectedHeight += max(inputHeight, outputHeight);
 
     resize(newWidth, projectedHeight - 20);
+
+    for (auto link : links_)
+      Window::getGraphLayout()->updateLink(link.first);
   }
-
-  void VertexRepresentation::setEdge(const BlockLink& link)
-  {
-    try {
-      VertexRepresentation* toVertex = Window::getGraphLayout()->getVertexRepresentation(link.to_);
-      ParamRepresentation* fromWidget, *toWidget;
-      fromWidget = listOfOutputChilds_[link.fromParam_];
-      toWidget = toVertex->listOfInputChilds_[link.toParam_];
-      if (fromWidget != NULL && toWidget != NULL)
-      {
-        fromWidget->setVisibility(true);
-        toWidget->setVisibility(true);
-        toVertex->reshape();
-        reshape();
-        QPainterPath* previousPath = links_[link];
-        if (previousPath != NULL)
-          delete previousPath;
-        QPainterPath* path = new QPainterPath();
-        links_[link] = path;
-
-        path->moveTo(fromWidget->getWorldAnchor());
-        path->lineTo(toWidget->getWorldAnchor());
-        path->closeSubpath();
-
-        if (previousPath == NULL)
-          toVertex->notifyBackLink(link, this);
-      }
-    }
-    catch (const std::out_of_range&) {
-    }
-  }
-
-  void VertexRepresentation::paintLinks(QPainter& p)
-  {
-    if (!links_.empty())
-    {
-      auto iter = links_.begin();
-      while (iter != links_.end())
-      {
-        p.drawPath(*(iter->second));
-        iter++;
-      }
-    }
-  }
-
+  
   void VertexRepresentation::setParamActiv(ParamRepresentation* param)
   {
     paramActiv_ = param;
+  }
+
+  ParamRepresentation* VertexRepresentation::getParamRep(std::string paramName, bool input)
+  {
+    if (input)
+    {
+      if (listOfInputChilds_.find(paramName) != listOfInputChilds_.end())
+        return listOfInputChilds_[paramName];
+    }
+    else
+    {
+      if (listOfOutputChilds_.find(paramName) != listOfOutputChilds_.end())
+        return listOfOutputChilds_[paramName];
+    }
+    return NULL;
   }
 
   void VertexRepresentation::changeStyleProperty(const char* propertyName, QVariant val)
@@ -630,16 +643,42 @@ namespace charliesoft
     style()->polish(this);
     update();
   }
+
+  void VertexRepresentation::setSelected(bool isSelected)
+  {
+    bool prevProperty = this->property("selected").toBool();
+    if (prevProperty == isSelected)
+      return;//nothing to do: already in correct state...
+    changeStyleProperty("selected", isSelected);
+    if (isSelected)
+      selectedBlock_.push_back(this);
+    else
+    {
+      //remove from list:
+      for (unsigned int pos = 0; pos < selectedBlock_.size(); pos++)
+      {
+        if (selectedBlock_[pos] == this)
+        {
+          selectedBlock_.erase(selectedBlock_.begin() + pos);
+          return;
+        }
+      }
+    }
+  }
+
+  void VertexRepresentation::resetSelection()
+  {
+    for (auto selection : selectedBlock_)
+      selection->changeStyleProperty("selected", false);
+    selectedBlock_.clear();
+  }
+
   void VertexRepresentation::mousePressEvent(QMouseEvent *mouseE)
   {
-    if (selectedBlock_ != NULL)
-    {
-      selectedBlock_->changeStyleProperty("selected", false);
-    }
-    selectedBlock_ = NULL;
+    resetSelection();
     if (paramActiv_ == NULL && mouseE->button() == Qt::LeftButton)
     {
-      selectedBlock_ = this;
+      setSelected(true);
       changeStyleProperty("selected", true);
       isDragging_ = true;
       const QPoint p = mouseE->globalPos();
@@ -664,21 +703,8 @@ namespace charliesoft
       move(p.x(), p.y());
       model_->setPosition(p.x(), p.y());
       Window::getInstance()->update();
-
-      //recompute owned link positions:
-      auto iter = links_.begin();
-      while (iter!=links_.end())
-      {
-        setEdge(iter->first);
-        iter++;
-      }
-      //and ask other vertex to do the same:
-      auto iter_back = back_links_.begin();
-      while (iter_back != back_links_.end())
-      {
-        iter_back->first->setEdge(iter_back->second);
-        iter_back++;
-      }
+      for (auto link : links_)
+        Window::getGraphLayout()->updateLink(link.first);
     }
     else
       mouseE->ignore();
@@ -696,6 +722,15 @@ namespace charliesoft
     if (!param.show_) this->hide();
     setToolTip(_QT(param.helper_));
   };
+  
+  void ParamRepresentation::setVisibility(bool visible)
+  {
+    if (param_.show_ == visible)
+      return;//Nothing to do...
+
+    param_.show_ = visible;
+    Window::getGraphLayout()->getVertexRepresentation(model_)->reshape();
+  }
 
   QPoint ParamRepresentation::getWorldAnchor()
   {
@@ -802,6 +837,86 @@ namespace charliesoft
     return QSize(128, 64);
   }
 
+  void GraphRepresentation::removeLinks(VertexRepresentation* vertex)
+  {
+    //remove every links connected to vertex (in and out):
+    map<BlockLink, LinkPath*> links = vertex->getLinks();
+    for (auto link : links)
+    {
+      if (links_.find(link.first) != links_.end())
+      {
+        links_.erase(link.first);//delete map association...
+        if (items_.find(link.first.from_)!=items_.end())
+          dynamic_cast<VertexRepresentation*>(items_[link.first.from_]->widget())->removeLink(link.first);
+        if (items_.find(link.first.to_) != items_.end())
+          dynamic_cast<VertexRepresentation*>(items_[link.first.to_]->widget())->removeLink(link.first);
+
+        delete link.second;//delete LinkPath
+      }
+    }
+  }
+
+  void GraphRepresentation::removeSelectedLinks()
+  {
+    for (auto it = links_.begin(); it != links_.end(); it++)
+    {
+      if (it->second->isSelected())
+      {
+        if (items_.find(it->first.from_) != items_.end())
+          dynamic_cast<VertexRepresentation*>(items_[it->first.from_]->widget())->removeLink(it->first);
+        if (items_.find(it->first.to_) != items_.end())
+          dynamic_cast<VertexRepresentation*>(items_[it->first.to_]->widget())->removeLink(it->first);
+
+        delete it->second;//delete LinkPath
+
+        links_.erase(it);//delete map association...
+        it = links_.begin();//as iterator is in undefined state...
+      }
+    }
+  }
+
+  void GraphRepresentation::addLink(const BlockLink& link)
+  {
+    if (links_.find(link) != links_.end())
+      return;//nothing to do...
+
+    VertexRepresentation* fromVertex, *toVertex;
+    fromVertex = dynamic_cast<VertexRepresentation*>(items_[link.from_]->widget());
+    toVertex = dynamic_cast<VertexRepresentation*>(items_[link.to_]->widget());
+    if (fromVertex != NULL && toVertex != NULL)
+    {
+      auto paramFrom = fromVertex->getParamRep(link.fromParam_, false);
+      auto paramTo = toVertex->getParamRep(link.toParam_, true);
+      paramFrom->setVisibility(true);
+      paramTo->setVisibility(true);
+      LinkPath* path = new LinkPath();
+      path->setFillRule(Qt::WindingFill);
+      links_[link] = path;
+      fromVertex->addLink(link, path);
+      toVertex->addLink(link, path);
+      path->moveTo(paramFrom->getWorldAnchor());
+      path->lineTo(paramTo->getWorldAnchor());
+    }
+  }
+
+  void GraphRepresentation::updateLink(const BlockLink& link)
+  {
+    VertexRepresentation* fromVertex, *toVertex;
+    fromVertex = dynamic_cast<VertexRepresentation*>(items_[link.from_]->widget());
+    toVertex = dynamic_cast<VertexRepresentation*>(items_[link.to_]->widget());
+    if (fromVertex != NULL && toVertex != NULL)
+    {
+      auto paramFrom = fromVertex->getParamRep(link.fromParam_, false);
+      auto paramTo = toVertex->getParamRep(link.toParam_, true);
+      LinkPath* path = links_[link];
+      int test = path->elementCount();
+      QPoint tmp = paramFrom->getWorldAnchor();
+      path->setElementPositionAt(0, tmp.x(), tmp.y());
+      tmp = paramTo->getWorldAnchor();
+      path->setElementPositionAt(1, tmp.x(), tmp.y());
+    }
+  }
+
   void GraphRepresentation::clearLayout(QLayout* layout)
   {
     if (layout == NULL)
@@ -818,16 +933,14 @@ namespace charliesoft
 
   void GraphRepresentation::drawEdges(QPainter& p)
   {
-    auto iter = items_.begin();
-    while (iter!=items_.end())
-    {
-      ((VertexRepresentation*)iter->second->widget())->paintLinks(p);
-      iter++;
-    }
+    for (auto iter : links_)
+      iter.second->draw(p);
   }
 
   VertexRepresentation* GraphRepresentation::getVertexRepresentation(Block* b)
   {
+    if (items_.find(b) == items_.end())
+      return NULL;
     return dynamic_cast<VertexRepresentation*>(items_[b]->widget());
   }
 
@@ -867,11 +980,7 @@ namespace charliesoft
       for (auto itEdges = edges.begin(); itEdges != edges.end(); itEdges++)
       {
         BlockLink& link = *itEdges;
-        VertexRepresentation* fromVertex, *toVertex;
-        fromVertex = dynamic_cast<VertexRepresentation*>(items_[link.from_]->widget());
-        toVertex = dynamic_cast<VertexRepresentation*>(items_[link.to_]->widget());
-        if (fromVertex != NULL && toVertex != NULL)
-          fromVertex->setEdge(link);
+        addLink(link);
       }
     }
     Window::getInstance()->update();
@@ -880,6 +989,7 @@ namespace charliesoft
   MainWidget::MainWidget(charliesoft::GraphOfProcess *model)
   {
     setObjectName("MainWidget");
+    isSelecting_ = creatingLink_ = false;
     startParam_ = NULL;
     model_ = model;
     setAcceptDrops(true);
@@ -917,6 +1027,13 @@ namespace charliesoft
 
     if (creatingLink_)
       painter.drawLine(startMouse_, endMouse_);
+    if (isSelecting_)
+    {
+      painter.fillRect(selectBox_.x(), selectBox_.y(), selectBox_.width(), selectBox_.height(),
+        QColor(0, 0, 255, 128));
+      painter.setPen(QColor(0, 0, 200, 255));
+      painter.drawRect(selectBox_);
+    }
   }
 
   void MainWidget::mouseMoveEvent(QMouseEvent *me)
@@ -926,14 +1043,60 @@ namespace charliesoft
       endMouse_ = me->pos();
       Window::getInstance()->update();
     }
+    if (isSelecting_)
+    {
+      selectBox_.setCoords(startMouse_.x(), startMouse_.y(),
+        me->x() + 1, me->y() + 1);
+      //test intersection between vertex representation and selection rect:
+      GraphRepresentation* representation = Window::getGraphLayout();
+      std::map<Block*, QLayoutItem*>& items = representation->getItems();
+
+      for (auto item : items)
+      {
+        if (VertexRepresentation* vertex = dynamic_cast<VertexRepresentation*>(item.second->widget()))
+        {
+          if (vertex->geometry().intersects(selectBox_.toRect()))
+            vertex->setSelected(true);
+          else
+            vertex->setSelected(false);
+        }
+      }
+
+      std::map<BlockLink, LinkPath*>& links = representation->getLinks();
+      for (auto link : links)
+      {
+        if (link.second->intersect(selectBox_.toRect()))
+          link.second->setSelected(true);
+        else
+          link.second->setSelected(false);
+      }
+      Window::getInstance()->update();
+    }
   };
 
-  void MainWidget::mousePressEvent(QMouseEvent *)
+  void MainWidget::mousePressEvent(QMouseEvent *mouseE)
   {
-    if (VertexRepresentation::selectedBlock_ != NULL)
-      VertexRepresentation::selectedBlock_->changeStyleProperty("selected", false);
-    VertexRepresentation::selectedBlock_ = NULL;
+    if (!creatingLink_ && mouseE->button() == Qt::LeftButton)
+    {
+      VertexRepresentation::resetSelection();
+      std::map<BlockLink, LinkPath*>& links = Window::getGraphLayout()->getLinks();
+      for (auto link : links)
+        link.second->setSelected(false);
+
+      startMouse_ = mouseE->pos();
+      //begin rect:
+      selectBox_.setCoords(startMouse_.x(), startMouse_.y(),
+        mouseE->x() + 1, mouseE->y() + 1);
+      isSelecting_ = true;
+    }
   }
+  
+  void MainWidget::mouseReleaseEvent(QMouseEvent *)
+  {
+    creatingLink_ = isSelecting_ = false;
+    Window::getInstance()->update();
+  }
+
 
   void MainWidget::endLinkCreation(QPoint end)
   {

@@ -102,6 +102,12 @@ namespace charliesoft
     }
     return ParamValue();
   }
+
+  void ParamValue::notifyRemove()
+  {
+    if (isLinked())
+      boost::get<ParamValue*>(value_)->distantListeners_.erase(this);
+  }
   
   void ParamValue::notifyUpdate()
   {
@@ -111,38 +117,43 @@ namespace charliesoft
       listener->getBlock()->wakeUp();
   }
   ParamValue& ParamValue::operator = (bool const &rhs) {
+    notifyRemove();
     value_ = rhs;
     notifyUpdate();
     return *this;
   };
   ParamValue& ParamValue::operator = (int const &rhs) {
+    notifyRemove();
     value_ = rhs;
     notifyUpdate();
     return *this;
   };
   ParamValue& ParamValue::operator = (double const &rhs) {
+    notifyRemove();
     value_ = rhs;
     notifyUpdate();
     return *this;
   };
   ParamValue& ParamValue::operator = (std::string const &rhs) {
+    notifyRemove();
     value_ = rhs;
     notifyUpdate();
     return *this;
   };
   ParamValue& ParamValue::operator = (cv::Mat const &rhs) {
+    notifyRemove();
     value_ = rhs;
     notifyUpdate();
     return *this;
   };
   ParamValue& ParamValue::operator = (Not_A_Value const &rhs) {
+    notifyRemove();
     value_ = rhs;
     current_timestamp_ = GraphOfProcess::current_timestamp_;
     return *this;
   };
   ParamValue& ParamValue::operator = (ParamValue *vDist) {
-    if (isLinked())
-      boost::get<ParamValue*>(value_)->distantListeners_.erase(this);
+    notifyRemove();
     if (vDist != NULL) vDist->distantListeners_.insert(this);
     value_ = vDist;
     notifyUpdate();
@@ -150,6 +161,7 @@ namespace charliesoft
   };
   ParamValue& ParamValue::operator = (ParamValue const &rhs) {
     if (this != &rhs) {
+      notifyRemove();
       value_ = rhs.value_;
       block_ = rhs.block_;
       name_ = rhs.name_;

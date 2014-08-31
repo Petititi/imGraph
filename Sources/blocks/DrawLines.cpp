@@ -24,7 +24,7 @@ namespace charliesoft
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_OUTPUT_PARAMS(LineDrawer);
-  ADD_PARAMETER(true, Float, "BLOCK__LINEDRAWER_OUT_IMAGE", "BLOCK__LINEDRAWER_OUT_IMAGE_HELP");
+  ADD_PARAMETER(true, Mat, "BLOCK__LINEDRAWER_OUT_IMAGE", "BLOCK__LINEDRAWER_OUT_IMAGE_HELP");
   END_BLOCK_PARAMS();
 
   LineDrawer::LineDrawer() :Block("BLOCK__LINEDRAWER_NAME"){
@@ -34,8 +34,8 @@ namespace charliesoft
   };
   
   bool LineDrawer::run(){
-    cv::Mat out = cv::Mat::zeros(myInputs_["BLOCK__LINEDRAWER_IN_WIDTH"].get<int>(),
-      myInputs_["BLOCK__LINEDRAWER_IN_HEIGHT"].get<int>(),
+    cv::Mat out = cv::Mat::zeros(myInputs_["BLOCK__LINEDRAWER_IN_HEIGHT"].get<int>(),
+      myInputs_["BLOCK__LINEDRAWER_IN_WIDTH"].get<int>(),
       CV_8UC1);
 
     cv::Mat lines = myInputs_["BLOCK__LINEDRAWER_IN_LINES"].get<cv::Mat>();

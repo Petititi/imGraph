@@ -241,9 +241,10 @@ namespace charliesoft
             model_->switchPause();
           break;
         case Qt::Key_Delete:
-          if (VertexRepresentation::selectedBlock_ != NULL)
-            model_->deleteProcess(VertexRepresentation::selectedBlock_->getModel());
-          VertexRepresentation::selectedBlock_ = NULL;
+          for (auto rep : VertexRepresentation::getSelection())
+            model_->deleteProcess(rep->getModel());
+          mainLayout_->removeSelectedLinks();
+          VertexRepresentation::resetSelection();
           mainLayout_->synchronize(model_);
           break;
         default:

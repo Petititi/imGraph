@@ -149,7 +149,10 @@ namespace charliesoft
     if (myInputs_.find(nameParam_) != myInputs_.end())
       return &myInputs_[nameParam_];
     else
-      return &myOutputs_[nameParam_];
+      if (myOutputs_.find(nameParam_) != myOutputs_.end())
+        return &myOutputs_[nameParam_];
+      else
+        return NULL;
   };
 
   std::vector<BlockLink> Block::getInEdges()
@@ -235,7 +238,7 @@ namespace charliesoft
 
   void GraphOfProcess::stop()
   {
-    for (int i = 0; i < runningThread_.size(); i++)
+    for (size_t i = 0; i < runningThread_.size(); i++)
       runningThread_[i].interrupt();
     runningThread_.clear();
   }
