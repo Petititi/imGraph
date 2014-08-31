@@ -859,7 +859,8 @@ namespace charliesoft
 
   void GraphRepresentation::removeSelectedLinks()
   {
-    for (auto it = links_.begin(); it != links_.end(); it++)
+    auto it = links_.begin();
+    while (it != links_.end())
     {
       if (it->second->isSelected())
       {
@@ -871,8 +872,10 @@ namespace charliesoft
         delete it->second;//delete LinkPath
 
         links_.erase(it);//delete map association...
-        it = links_.begin();//as iterator is in undefined state...
+        it = links_.begin();//as "it" is now in an undefined state...
       }
+      else
+        it++;
     }
   }
 
@@ -979,7 +982,7 @@ namespace charliesoft
     {
       VertexRepresentation* vertex = dynamic_cast<VertexRepresentation*>(item.second->widget());
       if (vertex != NULL)
-        vertex->setProperty("inconsistent", !item.first->isReadyToRun());
+        vertex->changeStyleProperty("inconsistent", !item.first->isReadyToRun());
     }
     
     
