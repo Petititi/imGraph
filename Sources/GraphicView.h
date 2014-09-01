@@ -104,7 +104,7 @@ namespace charliesoft
     QLabel* vertexTitle_;
     Block* model_;
     bool isDragging_;
-    QPoint deltaClick_;
+    QPoint startClick_;
     ParamRepresentation* paramActiv_;
 
     std::map<BlockLink, LinkPath*> links_;
@@ -135,6 +135,7 @@ namespace charliesoft
     ParamRepresentation* getParamRep(std::string paramName, bool input);
   protected:
     static std::vector<VertexRepresentation*> selectedBlock_;
+    void moveDelta(QPoint delta);
     virtual void mousePressEvent(QMouseEvent *);
     virtual void mouseReleaseEvent(QMouseEvent *);
     virtual void mouseDoubleClickEvent(QMouseEvent *);

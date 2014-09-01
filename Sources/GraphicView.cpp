@@ -676,15 +676,12 @@ namespace charliesoft
 
   void VertexRepresentation::mousePressEvent(QMouseEvent *mouseE)
   {
-    resetSelection();
     if (paramActiv_ == NULL && mouseE->button() == Qt::LeftButton)
     {
       setSelected(true);
       changeStyleProperty("selected", true);
       isDragging_ = true;
-      const QPoint p = mouseE->globalPos();
-      QPoint myPos = pos();
-      deltaClick_ = myPos - p;
+      startClick_ = mouseE->globalPos();
     }
     else
       mouseE->ignore();
@@ -696,16 +693,25 @@ namespace charliesoft
     isDragging_ = false;
   }
 
+  void VertexRepresentation::moveDelta(QPoint delta)
+  {
+    delta = pos() + delta;
+    move(delta.x(), delta.y());
+    model_->setPosition(delta.x(), delta.y());
+    Window::getInstance()->update();
+    for (auto link : links_)
+      Window::getGraphLayout()->updateLink(link.first);
+  }
+
   void VertexRepresentation::mouseMoveEvent(QMouseEvent *mouseE)
   {
     if (isDragging_)
     {
-      QPoint p = mouseE->globalPos() + deltaClick_;
-      move(p.x(), p.y());
-      model_->setPosition(p.x(), p.y());
-      Window::getInstance()->update();
-      for (auto link : links_)
-        Window::getGraphLayout()->updateLink(link.first);
+      QPoint p = mouseE->globalPos();
+      QPoint deltaClick_ = p - startClick_;
+      startClick_ = p;
+      for (VertexRepresentation* vRep:selectedBlock_)
+        vRep->moveDelta(deltaClick_);
     }
     else
       mouseE->ignore();
@@ -1007,7 +1013,6 @@ namespace charliesoft
     model_ = model;
     setAcceptDrops(true);
   }
-
 
   void MainWidget::dragEnterEvent(QDragEnterEvent *event)
   {
