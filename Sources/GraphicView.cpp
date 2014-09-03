@@ -1132,7 +1132,7 @@ namespace charliesoft
       {
         string typeLink = param->isInput() ? _STR("BLOCK_INPUT") : _STR("BLOCK_OUTPUT");
         QMessageBox messageBox;
-        string msg = (my_format(_STR("ERROR_LINK_WRONG_INPUT_OUTPUT")) % startParam_->getParamName() % param->getParamName() % typeLink).str();
+        string msg = (my_format(_STR("ERROR_LINK_WRONG_INPUT_OUTPUT")) % _STR(startParam_->getParamName()) % _STR(param->getParamName()) % typeLink).str();
         messageBox.critical(0, _STR("ERROR_GENERIC_TITLE").c_str(), msg.c_str());
         return;
       }
@@ -1145,10 +1145,18 @@ namespace charliesoft
       }
 
       //everything seems correct, create the link!!!
-      if (param->isInput())
-        startParam_->getModel()->createLink(startParam_->getParamName(), param->getModel(), param->getParamName());
-      else
-        param->getModel()->createLink(param->getParamName(), startParam_->getModel(), startParam_->getParamName());
+      try{
+        if (param->isInput())
+          startParam_->getModel()->createLink(startParam_->getParamName(), param->getModel(), param->getParamName());
+        else
+          param->getModel()->createLink(param->getParamName(), startParam_->getModel(), startParam_->getParamName());
+      }
+      catch (ErrorValidator& e)
+      {
+        QMessageBox messageBox;
+        messageBox.critical(0, _STR("ERROR_GENERIC_TITLE").c_str(), e.errorMsg.c_str());
+        return;
+      }
 
       emit askSynchro(model_);
     }

@@ -75,8 +75,11 @@ namespace charliesoft
     translations["MATRIX_EDITOR"] = "Matrix editor";
     translations["VECTOR_EDITOR"] = "Vector editor";
     translations["NOT_INITIALIZED"] = "Not initialized...";
+    translations["BLOCK_INPUT"] = "input";
+    translations["BLOCK_OUTPUT"] = "output";
     translations["ERROR_GENERIC"] = "Error undefined!";
     translations["ERROR_GENERIC_TITLE"] = "Error!";
+    translations["ERROR_TYPE"] = "The type of \"%1$s.%2$s\" (%3$s) doesn't correspond to \"%4$s.%5$s\" (%6$s)";
     translations["ERROR_LINK_WRONG_INPUT_OUTPUT"] = "You can't link %1$s to %2$s : same type (%3$s)!";
     translations["ERROR_LINK_SAME_BLOCK"] = "You can't link the same block!";
     translations["ERROR_PARAM_EXCLUSIF"] = "Params \"%1$s\" and \"%2$s\" are mutually exclusive...";

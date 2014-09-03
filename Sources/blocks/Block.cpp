@@ -9,10 +9,10 @@
 #include <boost/parameter.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/thread/lock_guard.hpp>
-#include "ParamValidator.h"
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
+#include "ParamValidator.h"
 
 using namespace lsis_org;
 using std::string;
@@ -23,6 +23,29 @@ using boost::lexical_cast;
 
 namespace charliesoft
 {
+  std::string typeName(ParamType type)
+  {
+    switch (type)
+    {
+    case Boolean:
+      return "Boolean";
+    case Int:
+      return "Int";
+    case Float:
+      return "Float";
+    case Vector:
+      return "Vector";
+    case Mat:
+      return "Mat";
+    case String:
+      return "String";
+    case FilePath:
+      return "FilePath";
+    default:
+      return "typeError";
+    }
+  }
+
   unsigned int GraphOfProcess::current_timestamp_ = 0;
   bool GraphOfProcess::pauseProcess = false;
 
@@ -92,7 +115,14 @@ namespace charliesoft
     {
       try
       {
-        it->second.validate(it->second);
+        if (it->second.isLinked())
+        {
+          ParamValue* other = it->second.get<ParamValue*>();
+          if (!other->getBlock()->isReadyToRun())
+            throw ErrorValidator(other->getBlock()->error_msg_);
+        }
+        else
+          it->second.validate(it->second);
       }
       catch (ErrorValidator& e)
       {
@@ -202,6 +232,14 @@ namespace charliesoft
 
   void Block::createLink(std::string paramName, Block* dest, std::string paramNameDest)
   {
+    ParamValue& valIn = dest->myInputs_[paramNameDest];
+    ParamValue& valOut = myOutputs_[paramName];
+    //first test type of input:
+    if (valIn.getType() != valOut.getType())
+    {
+      throw (ErrorValidator((my_format(_STR("ERROR_TYPE")) % _STR(getName()) % _STR(valIn.getName()) % typeName(valIn.getType()) %
+        _STR(dest->getName()) % _STR(valOut.getName()) % typeName(valOut.getType())).str()));
+    }
     dest->setParam(paramNameDest, myOutputs_[paramName]);
   }
 
@@ -335,7 +373,17 @@ namespace charliesoft
       ParamValue* secondVal = addressesMap[valToUpdate.second];
       Block* toBlock = secondVal != NULL ? secondVal->getBlock() : NULL;
       if (fromBlock != NULL && toBlock != NULL)
-        toBlock->createLink(secondVal->getName(), fromBlock, valToUpdate.first->getName());
+      {
+        try
+        {
+          toBlock->createLink(secondVal->getName(), fromBlock, valToUpdate.first->getName());
+        }
+        catch (ErrorValidator& e)
+        {//algo doesn't accept this value!
+          //QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), e.errorMsg.c_str());
+          std::cout << e.errorMsg << std::endl;
+        }
+      }
     }
   }
 }
