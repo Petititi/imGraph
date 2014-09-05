@@ -98,15 +98,13 @@ protected:
       _myOutputs["BLOCK__INPUT_INOUT_POS_RATIO"] = processor_.getProperty(cv::CAP_PROP_POS_AVI_RATIO);
       _myOutputs["BLOCK__INPUT_OUT_FORMAT"] = frame.type();
 
-      renderingDone();
-      std::ostringstream tmp;
-      tmp << "  InputRender: " << _work_timestamp << std::endl;
-      std::cout << tmp.str();
+      renderingDone(frame.empty());
 
       //wait corresponding ms in order to keep fps:
       boost::this_thread::sleep(boost::posix_time::milliseconds(1. / fps*1000.));
       frame = processor_.getFrame();
     }
+    renderingDone();
     return true;
   };
 

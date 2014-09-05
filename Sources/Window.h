@@ -71,7 +71,7 @@ namespace charliesoft
     GraphRepresentation* mainLayout_;
     QMenu *menuFichier;
     QMenu *menuAide;
-    MainWidget* mainWidget_;//input, imgProcess, signalProcess, mathOperator, output
+    MainWidget* mainWidget_;//input, imgProcess, videoProcess, mathOperator, output
 
     QTabWidget* tabWidget_;
     QDockWidget * dock_;

@@ -53,6 +53,7 @@ namespace charliesoft
   Block::Block(std::string name){
     _name = name;
     _timestamp = 0;
+    _fullyRendered = true;
   };
 
   void Block::operator()()
@@ -131,19 +132,21 @@ namespace charliesoft
     }
     return true;
   }
-  void Block::renderingDone()
+  void Block::renderingDone(bool fullyRendered)
   {
+    _fullyRendered = fullyRendered;
     {
       boost::unique_lock<boost::mutex> guard(_mtx_timestamp_inc);
       _timestamp = _work_timestamp;
-      _cond_sync.notify_all();//wake up waiting thread (if needed)
+      if (_fullyRendered)
+        _cond_sync.notify_all();//wake up waiting thread (if needed)
 
       while (GraphOfProcess::pauseProcess)
         _cond.wait(guard);//wait for any parameter update...
     }
     //test if we need to wait!
     _processes->synchronizeTimestamp(this);
-    if (isStartingBlock())
+    if (!_fullyRendered)
       _processes->_current_timestamp++;//next frame?
     _work_timestamp = _processes->_current_timestamp;
   }
@@ -185,7 +188,7 @@ namespace charliesoft
   {
     bool waiting = false;
     boost::unique_lock<boost::mutex> guard(_mtx_timestamp_inc);
-    while (timestamp > _timestamp)
+    while (!_fullyRendered || timestamp > _timestamp)
     {
       waiting = true;
       waitUpdate(guard);

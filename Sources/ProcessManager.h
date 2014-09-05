@@ -25,7 +25,7 @@ namespace charliesoft
 
   enum AlgoType
   {
-    input, imgProcess, signalProcess, mathOperator, output
+    input, imgProcess, videoProcess, mathOperator, output
   };
 
   typedef boost::function< Block*() > Algo_factory;

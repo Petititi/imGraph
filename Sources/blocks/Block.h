@@ -81,6 +81,7 @@ namespace charliesoft
     boost::mutex _mtx_timestamp_inc;    // Timestamps update
     unsigned int _timestamp;///<timestamp of produced values
     unsigned int _work_timestamp;///<timestamp of values we are working on
+    bool _fullyRendered;
 
     std::string _error_msg;
     std::string _name;
@@ -92,7 +93,7 @@ namespace charliesoft
     void initParameters(const std::vector<ParamDefinition>& inParam, 
       const std::vector<ParamDefinition>& outParam);
 
-    void renderingDone();
+    void renderingDone(bool fullyRendered=true);
 
     virtual bool run() = 0;
   public:

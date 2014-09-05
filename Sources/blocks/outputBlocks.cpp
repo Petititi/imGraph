@@ -37,9 +37,6 @@ namespace charliesoft
     if (!mat.empty())
       charliesoft::imshow(_myInputs["BLOCK__OUTPUT_IN_WIN_NAME"].get<string>(), mat);
     renderingDone();
-    std::ostringstream tmp;
-    tmp << "  OutputRender: " << _work_timestamp << std::endl;
-    std::cout << tmp.str();
     return true;
   };
 };

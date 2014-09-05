@@ -111,7 +111,7 @@ namespace charliesoft
 
     translations["BLOCK_TITLE_INPUT"] = "Input";
     translations["BLOCK_TITLE_IMG_PROCESS"] = "2D processing";
-    translations["BLOCK_TITLE_SIGNAL"] = "1D processing";
+    translations["BLOCK_TITLE_SIGNAL"] = "Video processing";
     translations["BLOCK_TITLE_MATH"] = "Math op.";
     translations["BLOCK_TITLE_OUTPUT"] = "Output";
 
@@ -171,6 +171,19 @@ namespace charliesoft
     translations["BLOCK__LINE_FINDER_IN_IMAGE_HELP"] = "Input image";
     translations["BLOCK__LINE_FINDER_OUT_IMAGE"] = "lines list";
     translations["BLOCK__LINE_FINDER_OUT_IMAGE_HELP"] = "List of detected lines";
+
+    translations["BLOCK__DEINTERLACE_NAME"] = "Deinterlace";
+    translations["BLOCK__DEINTERLACE_IN_IMAGE"] = "image";
+    translations["BLOCK__DEINTERLACE_IN_IMAGE_HELP"] = "Input image";
+    translations["BLOCK__DEINTERLACE_IN_TYPE_IN"] = "input type";
+    translations["BLOCK__DEINTERLACE_IN_TYPE"] = "output type";
+    translations["BLOCK__DEINTERLACE_IN_TYPE_HELP"] = "Deinterlacing type wanted";
+    translations["BLOCK__DEINTERLACE_IN_TYPE1"] = "Blend";
+    translations["BLOCK__DEINTERLACE_IN_TYPE2"] = "Bob";
+    translations["BLOCK__DEINTERLACE_IN_TYPE3"] = "Discard";
+    translations["BLOCK__DEINTERLACE_IN_TYPE4"] = "Unfold";
+    translations["BLOCK__DEINTERLACE_OUT_IMAGE"] = "image";
+    translations["BLOCK__DEINTERLACE_OUT_IMAGE"] = "Deinterlaced image";
 
     translations["BLOCK__MERGING_NAME"] = "Merge two images";
     translations["BLOCK__MERGING_IN_IMAGE1"] = "image1";
