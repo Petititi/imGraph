@@ -1,5 +1,6 @@
 
 #include <vector>
+#include <sstream>
 #include <boost/filesystem.hpp>
 
 #include "Block.h"
@@ -41,67 +42,71 @@ protected:
   END_BLOCK_PARAMS();
 
   BlockLoader::BlockLoader() :Block("BLOCK__INPUT_NAME"){
-    myInputs_["BLOCK__INPUT_IN_FILE"].addValidator({ new ValNeeded(), new ValFileExist() });
-    myInputs_["BLOCK__INPUT_INOUT_WIDTH"].addValidator({ new ValPositiv(true) });
-    myInputs_["BLOCK__INPUT_INOUT_HEIGHT"].addValidator({ new ValPositiv(true) });
-    myInputs_["BLOCK__INPUT_INOUT_POS_FRAMES"].addValidator({ new ValPositiv(false) });
-    myInputs_["BLOCK__INPUT_INOUT_POS_RATIO"].addValidator({ new ValRange(0, 1) });
-    myInputs_["BLOCK__INPUT_IN_GREY"].addValidator({ new ValExclusif(myInputs_["BLOCK__INPUT_IN_COLOR"]) });
-    myInputs_["BLOCK__INPUT_IN_COLOR"].addValidator({ new ValExclusif(myInputs_["BLOCK__INPUT_IN_GREY"]) });
+    _myInputs["BLOCK__INPUT_IN_FILE"].addValidator({ new ValNeeded(), new ValFileExist() });
+    _myInputs["BLOCK__INPUT_INOUT_WIDTH"].addValidator({ new ValPositiv(true) });
+    _myInputs["BLOCK__INPUT_INOUT_HEIGHT"].addValidator({ new ValPositiv(true) });
+    _myInputs["BLOCK__INPUT_INOUT_POS_FRAMES"].addValidator({ new ValPositiv(false) });
+    _myInputs["BLOCK__INPUT_INOUT_POS_RATIO"].addValidator({ new ValRange(0, 1) });
+    _myInputs["BLOCK__INPUT_IN_GREY"].addValidator({ new ValExclusif(_myInputs["BLOCK__INPUT_IN_COLOR"]) });
+    _myInputs["BLOCK__INPUT_IN_COLOR"].addValidator({ new ValExclusif(_myInputs["BLOCK__INPUT_IN_GREY"]) });
   };
 
   bool BlockLoader::run(){
-    if (!myInputs_["BLOCK__INPUT_IN_FILE"].isDefaultValue())
+    if (!_myInputs["BLOCK__INPUT_IN_FILE"].isDefaultValue())
     {
-      string fileName = myInputs_["BLOCK__INPUT_IN_FILE"].get<string>();
+      string fileName = _myInputs["BLOCK__INPUT_IN_FILE"].get<string>();
       if (!processor_.setInputSource(fileName))
       {
-        error_msg_ = (my_format(_STR("BLOCK__INPUT_IN_FILE_PROBLEM")) % fileName).str();
+        _error_msg = (my_format(_STR("BLOCK__INPUT_IN_FILE_PROBLEM")) % fileName).str();
         return false;
       }
     }
-    if (!myInputs_["BLOCK__INPUT_IN_GREY"].isDefaultValue())
-      if (myInputs_["BLOCK__INPUT_IN_GREY"].get<bool>())
+    if (!_myInputs["BLOCK__INPUT_IN_GREY"].isDefaultValue())
+      if (_myInputs["BLOCK__INPUT_IN_GREY"].get<bool>())
         processor_.setProperty(cv::CAP_PROP_CONVERT_RGB, 0);
 
-    if (!myInputs_["BLOCK__INPUT_IN_COLOR"].isDefaultValue())
-      if (myInputs_["BLOCK__INPUT_IN_COLOR"].get<bool>())
+    if (!_myInputs["BLOCK__INPUT_IN_COLOR"].isDefaultValue())
+      if (_myInputs["BLOCK__INPUT_IN_COLOR"].get<bool>())
         processor_.setProperty(cv::CAP_PROP_CONVERT_RGB, 1);
 
-    if (!myInputs_["BLOCK__INPUT_INOUT_WIDTH"].isDefaultValue())
+    if (!_myInputs["BLOCK__INPUT_INOUT_WIDTH"].isDefaultValue())
       processor_.setProperty(cv::CAP_PROP_FRAME_WIDTH, 
-      myInputs_["BLOCK__INPUT_INOUT_WIDTH"].get<int>());
+      _myInputs["BLOCK__INPUT_INOUT_WIDTH"].get<int>());
 
-    if (!myInputs_["BLOCK__INPUT_INOUT_HEIGHT"].isDefaultValue())
+    if (!_myInputs["BLOCK__INPUT_INOUT_HEIGHT"].isDefaultValue())
       processor_.setProperty(cv::CAP_PROP_FRAME_WIDTH, 
-      myInputs_["BLOCK__INPUT_INOUT_HEIGHT"].get<int>());
+      _myInputs["BLOCK__INPUT_INOUT_HEIGHT"].get<int>());
 
-    if (!myInputs_["BLOCK__INPUT_INOUT_POS_FRAMES"].isDefaultValue())
+    if (!_myInputs["BLOCK__INPUT_INOUT_POS_FRAMES"].isDefaultValue())
       processor_.setProperty(cv::CAP_PROP_POS_FRAMES, 
-      myInputs_["BLOCK__INPUT_INOUT_POS_FRAMES"].get<double>());
+      _myInputs["BLOCK__INPUT_INOUT_POS_FRAMES"].get<double>());
 
-    if (!myInputs_["BLOCK__INPUT_INOUT_POS_RATIO"].isDefaultValue())
+    if (!_myInputs["BLOCK__INPUT_INOUT_POS_RATIO"].isDefaultValue())
       processor_.setProperty(cv::CAP_PROP_POS_AVI_RATIO, 
-      myInputs_["BLOCK__INPUT_INOUT_POS_RATIO"].get<double>());
+      _myInputs["BLOCK__INPUT_INOUT_POS_RATIO"].get<double>());
 
     //now set outputs:
     cv::Mat frame = processor_.getFrame();
     double fps = MAX(1, processor_.getProperty(cv::CAP_PROP_FPS));
     while (!frame.empty())
     {
-      myOutputs_["BLOCK__INPUT_OUT_IMAGE"] = frame;
-      myOutputs_["BLOCK__INPUT_OUT_FRAMERATE"] = fps;
-      myOutputs_["BLOCK__INPUT_INOUT_WIDTH"] = frame.cols;
-      myOutputs_["BLOCK__INPUT_INOUT_HEIGHT"] = frame.rows;
-      myOutputs_["BLOCK__INPUT_INOUT_POS_FRAMES"] = processor_.getProperty(cv::CAP_PROP_POS_FRAMES);
-      myOutputs_["BLOCK__INPUT_INOUT_POS_RATIO"] = processor_.getProperty(cv::CAP_PROP_POS_AVI_RATIO);
-      myOutputs_["BLOCK__INPUT_OUT_FORMAT"] = frame.type();
+      _myOutputs["BLOCK__INPUT_OUT_IMAGE"] = frame;
+      _myOutputs["BLOCK__INPUT_OUT_FRAMERATE"] = fps;
+      _myOutputs["BLOCK__INPUT_INOUT_WIDTH"] = frame.cols;
+      _myOutputs["BLOCK__INPUT_INOUT_HEIGHT"] = frame.rows;
+      _myOutputs["BLOCK__INPUT_INOUT_POS_FRAMES"] = processor_.getProperty(cv::CAP_PROP_POS_FRAMES);
+      _myOutputs["BLOCK__INPUT_INOUT_POS_RATIO"] = processor_.getProperty(cv::CAP_PROP_POS_AVI_RATIO);
+      _myOutputs["BLOCK__INPUT_OUT_FORMAT"] = frame.type();
+
+      renderingDone();
+      std::ostringstream tmp;
+      tmp << "  InputRender: " << _work_timestamp << std::endl;
+      std::cout << tmp.str();
 
       //wait corresponding ms in order to keep fps:
       boost::this_thread::sleep(boost::posix_time::milliseconds(1. / fps*1000.));
       frame = processor_.getFrame();
     }
-
     return true;
   };
 

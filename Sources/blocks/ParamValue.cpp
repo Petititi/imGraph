@@ -14,7 +14,7 @@ namespace charliesoft
   ParamType ParamValue::getType() const{
     if (block_ == NULL)
       return typeError;
-    return _PROCESS_MANAGER->getParamType(block_->getName(), name_, !isOutput_);
+    return _PROCESS_MANAGER->getParamType(block_->getName(), _name, !isOutput_);
   };
 
   void ParamValue::addValidator(std::initializer_list<ParamValidator*> list)
@@ -73,7 +73,7 @@ namespace charliesoft
       if (vDist != NULL) vDist->distantListeners_.insert(this);
     }
     value_ = v.value_;
-    current_timestamp_ = GraphOfProcess::current_timestamp_;
+    current_timestamp_ = GraphOfProcess::_current_timestamp;
     notifyUpdate();//wake up waiting thread (if any)
   };
 
@@ -81,7 +81,7 @@ namespace charliesoft
   BlockLink ParamValue::toBlockLink() const
   {
     ParamValue* other = get<ParamValue*>();
-    return BlockLink(other->block_, block_, other->name_, name_);
+    return BlockLink(other->block_, block_, other->_name, _name);
   }
 
 
@@ -111,8 +111,8 @@ namespace charliesoft
   
   void ParamValue::notifyUpdate()
   {
-    current_timestamp_ = GraphOfProcess::current_timestamp_;
-    cond_.notify_all();//wake up waiting thread (if any)
+    current_timestamp_ = GraphOfProcess::_current_timestamp;
+    _cond.notify_all();//wake up waiting thread (if any)
     for (auto listener : distantListeners_)
       listener->getBlock()->wakeUp();
   }
@@ -149,7 +149,7 @@ namespace charliesoft
   ParamValue& ParamValue::operator = (Not_A_Value const &rhs) {
     notifyRemove();
     value_ = rhs;
-    current_timestamp_ = GraphOfProcess::current_timestamp_;
+    current_timestamp_ = GraphOfProcess::_current_timestamp;
     return *this;
   };
   ParamValue& ParamValue::operator = (ParamValue *vDist) {
@@ -164,7 +164,7 @@ namespace charliesoft
       notifyRemove();
       value_ = rhs.value_;
       block_ = rhs.block_;
-      name_ = rhs.name_;
+      _name = rhs._name;
       isOutput_ = rhs.isOutput_;
       current_timestamp_ = rhs.current_timestamp_;
       if (value_.type() != typeid(Not_A_Value))

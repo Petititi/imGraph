@@ -61,12 +61,12 @@ namespace charliesoft
   class GraphOfProcess;
   struct ParamDefinition
   {
-    bool show_;
-    ParamType type_;
-    std::string name_;
-    std::string helper_;
+    bool _show;
+    ParamType _type;
+    std::string _name;
+    std::string _helper;
     ParamDefinition(bool show, ParamType type, std::string name, std::string helper) :
-      show_(show), type_(type), name_(name), helper_(helper){};
+      _show(show), _type(type), _name(name), _helper(helper){};
   };
 
   class Block{
@@ -74,48 +74,61 @@ namespace charliesoft
     friend charliesoft::ProcessManager;
 
   protected:
-    boost::condition_variable cond_;  // parameter upgrade condition
-    boost::mutex mtx_;    // explicit mutex declaration
-    unsigned int timestamp_;
+    GraphOfProcess* _processes;///<list of process currently in use
+    boost::condition_variable _cond;  // parameter upgrade condition
+    boost::mutex _mtx;    // explicit mutex declaration
+    boost::condition_variable _cond_sync;  // global sync condition
+    boost::mutex _mtx_timestamp_inc;    // Timestamps update
+    unsigned int _timestamp;///<timestamp of produced values
+    unsigned int _work_timestamp;///<timestamp of values we are working on
 
-    std::string error_msg_;
-    std::string name_;
-    cv::Point2f position_;
+    std::string _error_msg;
+    std::string _name;
+    cv::Point2f _position;
 
-    std::map<std::string, ParamValue> myOutputs_;
-    std::map<std::string, ParamValue> myInputs_;
+    std::map<std::string, ParamValue> _myOutputs;
+    std::map<std::string, ParamValue> _myInputs;
 
     void initParameters(const std::vector<ParamDefinition>& inParam, 
       const std::vector<ParamDefinition>& outParam);
 
-    bool isUpToDate_;
+    void renderingDone();
 
     virtual bool run() = 0;
   public:
     Block(std::string name);
     std::string getName(){
-      return name_;
+      return _name;
     };
     void operator()();
 
-    std::string getErrorInfo(){ return error_msg_; };
+    void setGraph(GraphOfProcess* processes){
+      _processes = processes;
+    };
+
+    unsigned int getTimestamp(){ return _timestamp; };
+    std::string getErrorInfo(){ return _error_msg; };
     bool validateParams(std::string param, const ParamValue val);
     bool isReadyToRun();
 
     virtual void setParam(std::string nameParam_, ParamValue& value);
     virtual ParamValue* getParam(std::string nameParam_, bool input);
 
-    void updateIfNeeded() { if (!isUpToDate()) run(); };
-
-    bool isUpToDate();
+    bool isStartingBlock();
+    bool isAncestor(Block* other);
+    bool validTimestampOrWait(unsigned int timestamp);
     void wakeUp();
+    void waitUpdate(boost::unique_lock<boost::mutex>& lock);
+    boost::mutex& getMutex(){
+      return _mtx;
+    };
 
     std::vector<BlockLink> getInEdges();
 
     std::string getErrorMsg();
 
-    const cv::Point2f& getPosition() const { return position_; }
-    void updatePosition(float x, float y) { position_.x = x; position_.y = y; };
+    const cv::Point2f& getPosition() const { return _position; }
+    void updatePosition(float x, float y) { _position.x = x; _position.y = y; };
     void createLink(std::string paramName, Block* dest, std::string paramNameDest);
 
     boost::property_tree::ptree getXML() const;
@@ -162,7 +175,7 @@ namespace charliesoft
   {
     std::vector< boost::thread > runningThread_;
     std::vector<Block*> vertices_;
-    //edges are stored into Block (myInputs_[]->isLinked())
+    //edges are stored into Block (_myInputs[]->isLinked())
   public:
     static bool pauseProcess;
     GraphOfProcess();
@@ -170,10 +183,12 @@ namespace charliesoft
     void saveGraph(boost::property_tree::ptree& tree) const;
     void fromGraph(boost::property_tree::ptree& tree);
 
-    static unsigned int current_timestamp_;
+    static unsigned int _current_timestamp;
 
     void addNewProcess(Block* filter);
     void deleteProcess(Block* process);
+
+    void synchronizeTimestamp(Block* processToSynchronize);
 
     bool run();
     void stop();

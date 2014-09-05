@@ -156,7 +156,7 @@ private:
 };
 
 
-enum typeBar { type_CvTrackbar = 0, type_CvButtonbar = 1 };
+enum typeBar { _typeCvTrackbar = 0, _typeCvButtonbar = 1 };
 class CvBar : public QHBoxLayout
 {
 public:
@@ -260,7 +260,7 @@ private:
 //Both are top level window, so that a way to differenciate them.
 //if (obj->metaObject ()->className () == "CvWindow") does not give me robust result
 
-enum typeWindow { type_CvWindow = 1, type_CvWinProperties = 2 };
+enum typeWindow { _typeCvWindow = 1, _typeCvWinProperties = 2 };
 class CvWinModel : public QWidget
 {
 public:
@@ -371,7 +371,7 @@ private slots:
 };
 
 
-enum type_mouse_event { mouse_up = 0, mouse_down = 1, mouse_dbclick = 2, mouse_move = 3 };
+enum _typemouse_event { mouse_up = 0, mouse_down = 1, mouse_dbclick = 2, mouse_move = 3 };
 static const int tableMouseButtons[][3]={
     {CV_EVENT_LBUTTONUP, CV_EVENT_RBUTTONUP, CV_EVENT_MBUTTONUP},               //mouse_up
     {CV_EVENT_LBUTTONDOWN, CV_EVENT_RBUTTONDOWN, CV_EVENT_MBUTTONDOWN},         //mouse_down
@@ -457,7 +457,7 @@ private:
     CvOpenGlDrawCallback glDrawCallback;
     void* glDrawData;
 
-    void icvmouseHandler(QMouseEvent* event, type_mouse_event category, int& cv_event, int& flags);
+    void icvmouseHandler(QMouseEvent* event, _typemouse_event category, int& cv_event, int& flags);
     void icvmouseProcessing(QPointF pt, int cv_event, int flags);
 };
 
@@ -558,7 +558,7 @@ private:
     void draw2D(QPainter *painter);
     void drawStatusBar();
     void controlImagePosition();
-    void icvmouseHandler(QMouseEvent *event, type_mouse_event category, int &cv_event, int &flags);
+    void icvmouseHandler(QMouseEvent *event, _typemouse_event category, int &cv_event, int &flags);
     void icvmouseProcessing(QPointF pt, int cv_event, int flags);
 
 private slots:

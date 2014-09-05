@@ -369,7 +369,7 @@ static CvWindow* icvFindWindowByName(QString name)
     {
       CvWinModel* temp = (CvWinModel*)widget;
 
-      if (temp->type == type_CvWindow)
+      if (temp->type == _typeCvWindow)
       {
         CvWindow* w = (CvWindow*)temp;
         if (w->windowTitle() == name)
@@ -419,16 +419,16 @@ static CvTrackbar* icvFindTrackBarByName(const char* name_trackbar, const char* 
       CV_Error(CV_StsNullPtr, "NULL window handler");
 
     if (w->param_gui_mode == CV_GUI_NORMAL)
-      return (CvTrackbar*)icvFindBarByName(w->myBarLayout, nameQt, type_CvTrackbar);
+      return (CvTrackbar*)icvFindBarByName(w->myBarLayout, nameQt, _typeCvTrackbar);
 
     if (w->param_gui_mode == CV_GUI_EXPANDED)
     {
-      CvBar* result = icvFindBarByName(w->myBarLayout, nameQt, type_CvTrackbar);
+      CvBar* result = icvFindBarByName(w->myBarLayout, nameQt, _typeCvTrackbar);
 
       if (result)
         return (CvTrackbar*)result;
 
-      return (CvTrackbar*)icvFindBarByName(global_control_panel->myLayout, nameQt, type_CvTrackbar);
+      return (CvTrackbar*)icvFindBarByName(global_control_panel->myLayout, nameQt, _typeCvTrackbar);
     }
 
     return NULL;
@@ -436,7 +436,7 @@ static CvTrackbar* icvFindTrackBarByName(const char* name_trackbar, const char* 
   else
   {
     //layout was specified
-    return (CvTrackbar*)icvFindBarByName(layout, nameQt, type_CvTrackbar);
+    return (CvTrackbar*)icvFindBarByName(layout, nameQt, _typeCvTrackbar);
   }
 }
 
@@ -444,7 +444,7 @@ static CvTrackbar* icvFindTrackBarByName(const char* name_trackbar, const char* 
 static CvButtonbar* icvFindButtonBarByName(const char* button_name, QBoxLayout* layout)
 {
 QString nameQt(button_name);
-return (CvButtonbar*) icvFindBarByName(layout, nameQt, type_CvButtonbar);
+return (CvButtonbar*) icvFindBarByName(layout, nameQt, _typeCvButtonbar);
 }
 */
 
@@ -1050,7 +1050,7 @@ void GuiReceiver::enablePropertiesButtonEachWindow()
     if (widget->isWindow() && !widget->parentWidget()) //is a window without parent
     {
       CvWinModel* temp = (CvWinModel*)widget;
-      if (temp->type == type_CvWindow)
+      if (temp->type == _typeCvWindow)
       {
         CvWindow* w = (CvWindow*)widget;
 
@@ -1079,7 +1079,7 @@ void GuiReceiver::addButton(QString button_name, int button_type, int initial_bu
   {
     CvBar* lastbar = (CvBar*)global_control_panel->myLayout->itemAt(global_control_panel->myLayout->count() - 1);
 
-    if (lastbar->type == type_CvTrackbar) //if last bar is a trackbar, create a new buttonbar, else, attach to the current bar
+    if (lastbar->type == _typeCvTrackbar) //if last bar is a trackbar, create a new buttonbar, else, attach to the current bar
       b = CvWindow::createButtonBar(button_name); //the bar has the name of the first button attached to it
     else
       b = (CvButtonbar*)lastbar;
@@ -1225,7 +1225,7 @@ CvTrackbar::CvTrackbar(CvWindow* arg, QString name, int* value, int _count, CvTr
 
 void CvTrackbar::create(CvWindow* arg, QString name, int* value, int _count)
 {
-  type = type_CvTrackbar;
+  type = _typeCvTrackbar;
   myparent = arg;
   name_bar = name;
   setObjectName(name_bar);
@@ -1334,7 +1334,7 @@ void CvTrackbar::setLabel(int myvalue)
 //here CvButtonbar class
 CvButtonbar::CvButtonbar(QWidget* arg, QString arg2)
 {
-  type = type_CvButtonbar;
+  type = _typeCvButtonbar;
   myparent = arg;
   name_bar = arg2;
   setObjectName(name_bar);
@@ -1463,7 +1463,7 @@ void CvRadioButton::callCallBack(bool checked)
 CvWinProperties::CvWinProperties(QString name_paraWindow, QObject* /*parent*/)
 {
   //setParent(parent);
-  type = type_CvWinProperties;
+  type = _typeCvWinProperties;
   setWindowFlags(Qt::Tool);
   setContentsMargins(0, 0, 0, 0);
   setWindowTitle(name_paraWindow);
@@ -1532,7 +1532,7 @@ CvWinProperties::~CvWinProperties()
 
 CvWindow::CvWindow(QString name, int arg2)
 {
-  type = type_CvWindow;
+  type = _typeCvWindow;
   moveToThread(qApp->instance()->thread());
 
   param_flags = arg2 & 0x0000000F;
@@ -2075,14 +2075,14 @@ void CvWindow::icvLoadControlPanel()
     {
       CvBar* t = (CvBar*)global_control_panel->myLayout->layout()->itemAt(i);
       settings.setArrayIndex(i);
-      if (t->type == type_CvTrackbar)
+      if (t->type == _typeCvTrackbar)
       {
         if (t->name_bar == settings.value("namebar").toString())
         {
           ((CvTrackbar*)t)->slider->setValue(settings.value("valuebar").toInt());
         }
       }
-      if (t->type == type_CvButtonbar)
+      if (t->type == _typeCvButtonbar)
       {
         int subsize = settings.beginReadArray(QString("buttonbar") + i);
 
@@ -2108,12 +2108,12 @@ void CvWindow::icvSaveControlPanel()
   {
     CvBar* t = (CvBar*)global_control_panel->myLayout->layout()->itemAt(i);
     settings.setArrayIndex(i);
-    if (t->type == type_CvTrackbar)
+    if (t->type == _typeCvTrackbar)
     {
       settings.setValue("namebar", QString(t->name_bar));
       settings.setValue("valuebar", ((CvTrackbar*)t)->slider->value());
     }
-    if (t->type == type_CvButtonbar)
+    if (t->type == _typeCvButtonbar)
     {
       settings.beginWriteArray(QString("buttonbar") + i);
       icvSaveButtonbar((CvButtonbar*)t, &settings);
@@ -2780,7 +2780,7 @@ void DefaultViewPort::scaleView(qreal factor, QPointF center)
 
 
 //up, down, dclick, move
-void DefaultViewPort::icvmouseHandler(QMouseEvent *evnt, type_mouse_event category, int &cv_event, int &flags)
+void DefaultViewPort::icvmouseHandler(QMouseEvent *evnt, _typemouse_event category, int &cv_event, int &flags)
 {
   Qt::KeyboardModifiers modifiers = evnt->modifiers();
   Qt::MouseButtons buttons = evnt->buttons();
@@ -3167,7 +3167,7 @@ void OpenGlViewPort::mouseMoveEvent(QMouseEvent* evnt)
   QGLWidget::mouseMoveEvent(evnt);
 }
 
-void OpenGlViewPort::icvmouseHandler(QMouseEvent* evnt, type_mouse_event category, int& cv_event, int& flags)
+void OpenGlViewPort::icvmouseHandler(QMouseEvent* evnt, _typemouse_event category, int& cv_event, int& flags)
 {
   Qt::KeyboardModifiers modifiers = evnt->modifiers();
   Qt::MouseButtons buttons = evnt->buttons();

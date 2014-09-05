@@ -1,5 +1,6 @@
 
 #include <vector>
+#include <sstream>
 
 #include "Block.h"
 #include "window_QT.h"
@@ -26,15 +27,19 @@ namespace charliesoft
   END_BLOCK_PARAMS();
 
   BlockShow::BlockShow() :Block("BLOCK__OUTPUT_NAME"){
-    myInputs_["BLOCK__OUTPUT_IN_IMAGE"].addValidator({ new ValNeeded() });
+    _myInputs["BLOCK__OUTPUT_IN_IMAGE"].addValidator({ new ValNeeded() });
   };
   
   bool BlockShow::run(){
-    if (myInputs_["BLOCK__OUTPUT_IN_IMAGE"].isDefaultValue())
+    if (_myInputs["BLOCK__OUTPUT_IN_IMAGE"].isDefaultValue())
       return false;
-    cv::Mat mat = myInputs_["BLOCK__OUTPUT_IN_IMAGE"].get<cv::Mat>();
+    cv::Mat mat = _myInputs["BLOCK__OUTPUT_IN_IMAGE"].get<cv::Mat>();
     if (!mat.empty())
-      charliesoft::imshow(myInputs_["BLOCK__OUTPUT_IN_WIN_NAME"].get<string>(), mat); 
+      charliesoft::imshow(_myInputs["BLOCK__OUTPUT_IN_WIN_NAME"].get<string>(), mat);
+    renderingDone();
+    std::ostringstream tmp;
+    tmp << "  OutputRender: " << _work_timestamp << std::endl;
+    std::cout << tmp.str();
     return true;
   };
 };

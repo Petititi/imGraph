@@ -9,27 +9,27 @@ using std::vector;
 
 namespace charliesoft
 {
-  ProcessManager* ProcessManager::ptr_ = NULL;
+  ProcessManager* ProcessManager::_ptr = NULL;
   recursive_mutex ProcessManager::_listBlockMutex;
 
   ProcessManager::ProcessManager(){
-    ptr_ = this;
+    _ptr = this;
   };
 
   ProcessManager* ProcessManager::getInstance()
   {
     lock_guard<recursive_mutex> guard(_listBlockMutex);
-    if (ptr_ == NULL)
-      ptr_ = new ProcessManager();
-    return ptr_;
+    if (_ptr == NULL)
+      _ptr = new ProcessManager();
+    return _ptr;
   }
 
   void ProcessManager::releaseInstance()
   {
     lock_guard<recursive_mutex> guard(_listBlockMutex);
-    if (ptr_ != NULL)
-      delete ptr_;
-    ptr_ = NULL;
+    if (_ptr != NULL)
+      delete _ptr;
+    _ptr = NULL;
   }
 
   Block* ProcessManager::createAlgoInstance(std::string algo_name) const
@@ -38,6 +38,17 @@ namespace charliesoft
     Block* b = algo_factory_.at(algo_name)();
     b->initParameters(algorithmInParams_.at(algo_name), algorithmOutParams_.at(algo_name));
     return b;
+  }
+
+  AlgoType ProcessManager::getAlgoType(std::string algo_name) const
+  {
+    for (auto it : listOfAlgorithms_)
+    {
+      for (auto algo : it.second)
+        if (algo.compare(algo_name) == 0)
+          return it.first;
+    }
+    return output;
   }
 
   std::vector<std::string> ProcessManager::getAlgos(AlgoType type) const
@@ -71,8 +82,8 @@ namespace charliesoft
       auto it = params.begin();
       while (it != params.end())
       {
-        if (it->name_.compare(paramName) == 0)
-          return it->type_;
+        if (it->_name.compare(paramName) == 0)
+          return it->_type;
         it++;
       }
     }
@@ -82,8 +93,8 @@ namespace charliesoft
       auto it = params.begin();
       while (it != params.end())
       {
-        if (it->name_.compare(paramName) == 0)
-          return it->type_;
+        if (it->_name.compare(paramName) == 0)
+          return it->_type;
         it++;
       }
     }

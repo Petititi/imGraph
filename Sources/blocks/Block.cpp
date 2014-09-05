@@ -46,37 +46,37 @@ namespace charliesoft
     }
   }
 
-  unsigned int GraphOfProcess::current_timestamp_ = 0;
+  unsigned int GraphOfProcess::_current_timestamp = 0;
   bool GraphOfProcess::pauseProcess = false;
+  boost::mutex _mtx_synchro;
 
   Block::Block(std::string name){
-    name_ = name;
-    isUpToDate_ = false;
-    timestamp_ = 0;
+    _name = name;
+    _timestamp = 0;
   };
 
   void Block::operator()()
   {
-    boost::unique_lock<boost::mutex> lock(mtx_);
+    boost::unique_lock<boost::mutex> lock(_mtx);
     try
     {
-      while (true)//this will be stop when user stop the process...
+      while (true)//this will stop when user stop the process...
       {
         while (GraphOfProcess::pauseProcess)
-          cond_.wait(lock);//wait for any parameter update...
+          _cond.wait(lock);//wait for any parameter update...
 
-        unsigned int current_timestamp = GraphOfProcess::current_timestamp_;
-        if (timestamp_ < current_timestamp)
+        _work_timestamp = GraphOfProcess::_current_timestamp;
+        if (_timestamp < _work_timestamp)
         {
           //are parameters ok?
           bool parametersOK = false;
           while (!parametersOK)
           {
             parametersOK = true;
-            for (auto it = myInputs_.begin(); it != myInputs_.end(); it++)
+            for (auto it = _myInputs.begin(); it != _myInputs.end(); it++)
             {
               if (it->second.isLinked() &&
-                it->second.getTimestamp() < current_timestamp)
+                it->second.getTimestamp() < _work_timestamp)
               {
                 parametersOK = false;
                 //not OK! we must wait here until producer update value!
@@ -87,7 +87,7 @@ namespace charliesoft
 
           //now we can run the process:
           run();
-          cond_.wait(lock);//wait for any parameter update...
+          _cond.wait(lock);//wait for any parameter update...
         }
         boost::this_thread::sleep(boost::posix_time::milliseconds(100.));
       }
@@ -98,20 +98,69 @@ namespace charliesoft
     }
   }
 
-  void Block::wakeUp()
+
+  bool Block::isAncestor(Block* other)
   {
-    cond_.notify_all();//wake up waiting thread (if needed)
+    //add empty parameters:
+    auto it = _myInputs.begin();
+    while (it != _myInputs.end())
+    {
+      if (it->second.isLinked())
+      {
+        ParamValue* otherParam = it->second.get<ParamValue*>();
+        if (otherParam->getBlock() == other)
+          return true;
+        if (otherParam->getBlock()->isAncestor(other))
+          return true;
+      }
+      it++;
+    }
+    return false;
   }
 
-  bool Block::isUpToDate()
+  bool Block::isStartingBlock()
   {
-    return isUpToDate_;
+    if (ProcessManager::getInstance()->getAlgoType(_name) != input)
+      return false;
+    auto it = _myInputs.begin();
+    while (it != _myInputs.end())
+    {
+      if (it->second.isLinked())
+        return false;
+      it++;
+    }
+    return true;
+  }
+  void Block::renderingDone()
+  {
+    {
+      boost::unique_lock<boost::mutex> guard(_mtx_timestamp_inc);
+      _timestamp = _work_timestamp;
+      _cond_sync.notify_all();//wake up waiting thread (if needed)
+
+      while (GraphOfProcess::pauseProcess)
+        _cond.wait(guard);//wait for any parameter update...
+    }
+    //test if we need to wait!
+    _processes->synchronizeTimestamp(this);
+    if (isStartingBlock())
+      _processes->_current_timestamp++;//next frame?
+    _work_timestamp = _processes->_current_timestamp;
+  }
+
+  void Block::wakeUp()
+  {
+    _cond.notify_all();//wake up waiting thread (if needed)
+  }
+  void Block::waitUpdate(boost::unique_lock<boost::mutex>& lock)
+  {
+    _cond_sync.wait(lock);
   }
 
   bool Block::isReadyToRun()
   {
-    error_msg_ = "";
-    for (auto it = myInputs_.begin(); it != myInputs_.end(); it++)
+    _error_msg = "";
+    for (auto it = _myInputs.begin(); it != _myInputs.end(); it++)
     {
       try
       {
@@ -119,35 +168,47 @@ namespace charliesoft
         {
           ParamValue* other = it->second.get<ParamValue*>();
           if (!other->getBlock()->isReadyToRun())
-            throw ErrorValidator(other->getBlock()->error_msg_);
+            throw ErrorValidator(other->getBlock()->_error_msg);
         }
         else
           it->second.validate(it->second);
       }
       catch (ErrorValidator& e)
       {
-        error_msg_ += e.errorMsg + "<br/>";
+        _error_msg += e.errorMsg + "<br/>";
       }
     }
-    return error_msg_.empty();
+    return _error_msg.empty();
+  }
+
+  bool Block::validTimestampOrWait(unsigned int timestamp)
+  {
+    bool waiting = false;
+    boost::unique_lock<boost::mutex> guard(_mtx_timestamp_inc);
+    while (timestamp > _timestamp)
+    {
+      waiting = true;
+      waitUpdate(guard);
+    }
+    return !waiting;
   }
 
   bool Block::validateParams(std::string param, const ParamValue val){
     try
     {
-      myInputs_[param].validate(val);
+      _myInputs[param].validate(val);
     }
     catch (ErrorValidator& e)
     {
-      error_msg_ += e.errorMsg + "<br/>";
+      _error_msg += e.errorMsg + "<br/>";
       return false;
     }
     return true;
   }
 
   std::string Block::getErrorMsg() {
-    std::string tmp = error_msg_;
-    error_msg_ = "";
+    std::string tmp = _error_msg;
+    _error_msg = "";
     return tmp;
   }
 
@@ -158,29 +219,29 @@ namespace charliesoft
     auto it = inParam.begin();
     while (it != inParam.end())
     {
-      myInputs_[it->name_] = ParamValue(this, it->name_, false);
+      _myInputs[it->_name] = ParamValue(this, it->_name, false);
       it++;
     }
     it = outParam.begin();
     while (it != outParam.end())
     {
-      myOutputs_[it->name_] = ParamValue(this, it->name_, true);
+      _myOutputs[it->_name] = ParamValue(this, it->_name, true);
       it++;
     }
   }
 
   void Block::setParam(std::string nameParam_, ParamValue& value){
-    if (myInputs_.find(nameParam_) != myInputs_.end())
-      myInputs_[nameParam_] = &value;
+    if (_myInputs.find(nameParam_) != _myInputs.end())
+      _myInputs[nameParam_] = &value;
     else
-      myOutputs_[nameParam_] = value;
+      _myOutputs[nameParam_] = value;
   };
   ParamValue* Block::getParam(std::string nameParam_, bool input){
-    if (input && myInputs_.find(nameParam_) != myInputs_.end())
-      return &myInputs_[nameParam_];
+    if (input && _myInputs.find(nameParam_) != _myInputs.end())
+      return &_myInputs[nameParam_];
     else
-      if (!input && myOutputs_.find(nameParam_) != myOutputs_.end())
-        return &myOutputs_[nameParam_];
+      if (!input && _myOutputs.find(nameParam_) != _myOutputs.end())
+        return &_myOutputs[nameParam_];
       
     return NULL;
   };
@@ -188,8 +249,8 @@ namespace charliesoft
   std::vector<BlockLink> Block::getInEdges()
   {
     vector<BlockLink> out;
-    auto it = myInputs_.begin();
-    while (it != myInputs_.end())
+    auto it = _myInputs.begin();
+    while (it != _myInputs.end())
     {
       if (it->second.isLinked())
         out.push_back(BlockLink(it->second.toBlockLink()));
@@ -201,11 +262,11 @@ namespace charliesoft
   boost::property_tree::ptree Block::getXML() const
   {
     ptree tree;
-    tree.put("name", name_);
-    tree.put("position", position_);
+    tree.put("name", _name);
+    tree.put("position", _position);
 
-    for (auto it = myInputs_.begin();
-      it != myInputs_.end(); it++)
+    for (auto it = _myInputs.begin();
+      it != _myInputs.end(); it++)
     {
       ptree paramTree;
       paramTree.put("Name", it->first);
@@ -218,8 +279,8 @@ namespace charliesoft
       tree.add_child("Input", paramTree);
     }
 
-    for (auto it = myOutputs_.begin();
-      it != myOutputs_.end(); it++)
+    for (auto it = _myOutputs.begin();
+      it != _myOutputs.end(); it++)
     {
       ptree paramTree;
       paramTree.put("Name", it->first);
@@ -232,21 +293,21 @@ namespace charliesoft
 
   void Block::createLink(std::string paramName, Block* dest, std::string paramNameDest)
   {
-    ParamValue& valIn = dest->myInputs_[paramNameDest];
-    ParamValue& valOut = myOutputs_[paramName];
+    ParamValue& valIn = dest->_myInputs[paramNameDest];
+    ParamValue& valOut = _myOutputs[paramName];
     //first test type of input:
     if (valIn.getType() != valOut.getType())
     {
       throw (ErrorValidator((my_format(_STR("ERROR_TYPE")) % _STR(getName()) % _STR(valIn.getName()) % typeName(valIn.getType()) %
         _STR(dest->getName()) % _STR(valOut.getName()) % typeName(valOut.getType())).str()));
     }
-    dest->setParam(paramNameDest, myOutputs_[paramName]);
+    dest->setParam(paramNameDest, _myOutputs[paramName]);
   }
 
   void Block::setPosition(int x, int y)
   {
-    position_.x = x;
-    position_.y = y;
+    _position.x = x;
+    _position.y = y;
   }
 
   GraphOfProcess::GraphOfProcess(){
@@ -254,6 +315,7 @@ namespace charliesoft
 
   void GraphOfProcess::addNewProcess(Block* block){
     vertices_.push_back(block);
+    block->setGraph(this);
   };
 
   void GraphOfProcess::deleteProcess(Block* process){
@@ -269,6 +331,20 @@ namespace charliesoft
     }
   };
 
+  void GraphOfProcess::synchronizeTimestamp(Block* processToSynchronize)
+  {
+    bool isFullyRendered = true;
+    for (auto it = vertices_.begin();
+      it != vertices_.end(); it++)
+    {
+      //each block should have the same timestamp:
+      if ((*it)->isAncestor(processToSynchronize))
+      {
+        while (!(*it)->validTimestampOrWait(processToSynchronize->getTimestamp()))
+          isFullyRendered = false;
+      }
+    }
+  }
   std::vector<Block*>& GraphOfProcess::getVertices()
   {
     return vertices_;
@@ -283,7 +359,7 @@ namespace charliesoft
   
   bool GraphOfProcess::run()
   {
-    current_timestamp_++;
+    _current_timestamp++;
     bool res = true;
     for (auto it = vertices_.begin();
       it != vertices_.end(); it++)

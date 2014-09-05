@@ -68,8 +68,6 @@ namespace charliesoft
     Window();
     ~Window();
 
-    GlobalConfig* config_;
-
     GraphRepresentation* mainLayout_;
     QMenu *menuFichier;
     QMenu *menuAide;

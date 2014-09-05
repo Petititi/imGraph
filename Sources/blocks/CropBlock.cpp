@@ -34,33 +34,34 @@ namespace charliesoft
   END_BLOCK_PARAMS();
 
   BlockCrop::BlockCrop() :Block("BLOCK__CROP_NAME"){
-    myInputs_["BLOCK__CROP_IN_IMAGE"].addValidator({ new ValNeeded() });
-    myInputs_["BLOCK__CROP_WIDTH"].addValidator({ new ValPositiv(true) });
-    myInputs_["BLOCK__CROP_HEIGHT"].addValidator({ new ValPositiv(true) });
+    _myInputs["BLOCK__CROP_IN_IMAGE"].addValidator({ new ValNeeded() });
+    _myInputs["BLOCK__CROP_WIDTH"].addValidator({ new ValPositiv(true) });
+    _myInputs["BLOCK__CROP_HEIGHT"].addValidator({ new ValPositiv(true) });
   };
 
   bool BlockCrop::run(){
-    if (myInputs_["BLOCK__CROP_IN_IMAGE"].isDefaultValue())
+    if (_myInputs["BLOCK__CROP_IN_IMAGE"].isDefaultValue())
       return false;
-    cv::Mat mat = myInputs_["BLOCK__CROP_IN_IMAGE"].get<cv::Mat>();
+    cv::Mat mat = _myInputs["BLOCK__CROP_IN_IMAGE"].get<cv::Mat>();
     if (!mat.empty())
     {
-      if (!myInputs_["BLOCK__CROP_IN_X"].isDefaultValue())
+      if (!_myInputs["BLOCK__CROP_IN_X"].isDefaultValue())
         filter.set("x",
-        myInputs_["BLOCK__CROP_IN_X"].get<int>());
-      if (!myInputs_["BLOCK__CROP_IN_Y"].isDefaultValue())
+        _myInputs["BLOCK__CROP_IN_X"].get<int>());
+      if (!_myInputs["BLOCK__CROP_IN_Y"].isDefaultValue())
         filter.set("y",
-        myInputs_["BLOCK__CROP_IN_Y"].get<int>());
-      if (!myInputs_["BLOCK__CROP_WIDTH"].isDefaultValue())
+        _myInputs["BLOCK__CROP_IN_Y"].get<int>());
+      if (!_myInputs["BLOCK__CROP_WIDTH"].isDefaultValue())
         filter.set("width",
-        myInputs_["BLOCK__CROP_WIDTH"].get<int>());
-      if (!myInputs_["BLOCK__CROP_HEIGHT"].isDefaultValue())
+        _myInputs["BLOCK__CROP_WIDTH"].get<int>());
+      if (!_myInputs["BLOCK__CROP_HEIGHT"].isDefaultValue())
         filter.set("height",
-        myInputs_["BLOCK__CROP_HEIGHT"].get<int>());
-      myOutputs_["BLOCK__CROP_OUT_IMAGE"] = filter.process(mat);
-      myOutputs_["BLOCK__CROP_WIDTH"] = myInputs_["BLOCK__CROP_WIDTH"].get<int>();
-      myOutputs_["BLOCK__CROP_HEIGHT"] = myInputs_["BLOCK__CROP_HEIGHT"].get<int>();
+        _myInputs["BLOCK__CROP_HEIGHT"].get<int>());
+      _myOutputs["BLOCK__CROP_OUT_IMAGE"] = filter.process(mat);
+      _myOutputs["BLOCK__CROP_WIDTH"] = _myInputs["BLOCK__CROP_WIDTH"].get<int>();
+      _myOutputs["BLOCK__CROP_HEIGHT"] = _myInputs["BLOCK__CROP_HEIGHT"].get<int>();
     }
+    renderingDone();
     return true;
   };
 };

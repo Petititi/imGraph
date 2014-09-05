@@ -39,7 +39,7 @@ namespace charliesoft
     std::map< std::string, std::vector<ParamDefinition> > algorithmInParams_;
     std::map< std::string, std::vector<ParamDefinition> > algorithmOutParams_;
     std::map< std::string, Algo_factory > algo_factory_;
-    static ProcessManager* ptr_;
+    static ProcessManager* _ptr;
 
     ProcessManager();
     ~ProcessManager(){};
@@ -63,6 +63,7 @@ namespace charliesoft
       return true;
     }
 
+    AlgoType getAlgoType(std::string algo_name) const;
     Block* createAlgoInstance(std::string algo_name) const;
     ParamType getParamType(std::string algo_name, std::string paramName, bool input) const;
   };

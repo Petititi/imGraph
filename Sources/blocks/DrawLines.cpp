@@ -28,21 +28,21 @@ namespace charliesoft
   END_BLOCK_PARAMS();
 
   LineDrawer::LineDrawer() :Block("BLOCK__LINEDRAWER_NAME"){
-    myInputs_["BLOCK__LINEDRAWER_IN_LINES"].addValidator({ new ValNeeded() });
-    myInputs_["BLOCK__LINEDRAWER_IN_WIDTH"].addValidator({ new ValNeeded(), new ValPositiv(true) });
-    myInputs_["BLOCK__LINEDRAWER_IN_HEIGHT"].addValidator({ new ValNeeded(), new ValPositiv(true) });
+    _myInputs["BLOCK__LINEDRAWER_IN_LINES"].addValidator({ new ValNeeded() });
+    _myInputs["BLOCK__LINEDRAWER_IN_WIDTH"].addValidator({ new ValNeeded(), new ValPositiv(true) });
+    _myInputs["BLOCK__LINEDRAWER_IN_HEIGHT"].addValidator({ new ValNeeded(), new ValPositiv(true) });
   };
   
   bool LineDrawer::run(){
-    cv::Mat out = cv::Mat::zeros(myInputs_["BLOCK__LINEDRAWER_IN_HEIGHT"].get<int>(),
-      myInputs_["BLOCK__LINEDRAWER_IN_WIDTH"].get<int>(),
+    cv::Mat out = cv::Mat::zeros(_myInputs["BLOCK__LINEDRAWER_IN_HEIGHT"].get<int>(),
+      _myInputs["BLOCK__LINEDRAWER_IN_WIDTH"].get<int>(),
       CV_8UC1);
 
-    cv::Mat lines = myInputs_["BLOCK__LINEDRAWER_IN_LINES"].get<cv::Mat>();
+    cv::Mat lines = _myInputs["BLOCK__LINEDRAWER_IN_LINES"].get<cv::Mat>();
     int nbChanels = lines.channels();
     if (nbChanels!=1)
       lines = lines.reshape(1, lines.rows);
-    for (size_t i = 0; i < lines.rows; i++)
+    for (int i = 0; i < lines.rows; i++)
     {
       int type = lines.type();
       if (type == CV_32SC1)//int
@@ -65,7 +65,8 @@ namespace charliesoft
       }
     }
 
-    myOutputs_["BLOCK__LINEDRAWER_OUT_IMAGE"] = out;
+    _myOutputs["BLOCK__LINEDRAWER_OUT_IMAGE"] = out;
+    renderingDone();
     return true;
   };
 };

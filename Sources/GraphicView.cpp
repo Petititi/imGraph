@@ -61,82 +61,6 @@ namespace charliesoft
 {
   vector<VertexRepresentation*> VertexRepresentation::selectedBlock_;
 
-  void GlobalConfig::saveConfig()
-  {
-    ptree localElement;
-    localElement.put("GlobConfig.LastProject", lastProject_);
-    localElement.put("GlobConfig.PrefLang", prefLang_);
-    localElement.put("GlobConfig.styleSheet", styleSheet_);
-    localElement.put("GlobConfig.ShowMaximized", isMaximized);
-    localElement.put("GlobConfig.lastPosition.x", lastPosition.x());
-    localElement.put("GlobConfig.lastPosition.y", lastPosition.y());
-    localElement.put("GlobConfig.lastPosition.width", lastPosition.width());
-    localElement.put("GlobConfig.lastPosition.height", lastPosition.height());
-
-    charliesoft::GraphOfProcess* graph = Window::getInstance()->getModel();
-    graph->saveGraph(localElement);
-
-    boost::property_tree::xml_writer_settings<char> settings(' ', 2);
-    write_xml("config.xml", localElement, std::locale(), settings);
-  }
-
-  void GlobalConfig::loadConfig()
-  {
-    bool xmlOK = false;
-    ptree xmlTree;
-    //try to read config.xml:
-    ifstream ifs("config.xml");
-    if (ifs.is_open())
-    {
-      string str((istreambuf_iterator<char>(ifs)), istreambuf_iterator<char>());
-      stringstream contentStreamed;
-      contentStreamed << str;
-      try
-      {
-        read_xml(contentStreamed, xmlTree);
-        xmlOK = true;
-      }
-      catch (boost::property_tree::ptree_bad_path&)
-      {
-        //nothing to do...
-      }
-    }
-    if (xmlOK)
-    {
-      lastProject_ = xmlTree.get("GlobConfig.LastProject", "");
-      prefLang_ = xmlTree.get("GlobConfig.PrefLang", "en");
-      isMaximized = xmlTree.get("GlobConfig.ShowMaximized", true);
-      styleSheet_ = xmlTree.get("GlobConfig.styleSheet", "");
-
-      lastPosition.setLeft(xmlTree.get("GlobConfig.lastPosition.x", 0));
-      lastPosition.setTop(xmlTree.get("GlobConfig.lastPosition.y", 0));
-      lastPosition.setWidth(xmlTree.get("GlobConfig.lastPosition.width", 1024));
-      lastPosition.setHeight(xmlTree.get("GlobConfig.lastPosition.height", 768));
-
-      charliesoft::GraphOfProcess* graph = Window::getInstance()->getModel();
-      graph->fromGraph(xmlTree);
-    }
-    else
-    {
-      styleSheet_ = "QToolTip {font-style:italic; color: #ffffff; background-color: #2a82aa; border: 1px solid white;}"
-        "QWidget#MainWidget{ background:white; background-image:url(logo.png); background-repeat:no-repeat; background-position:center; }"
-        "QWidget#DraggableWidget{ max - height:50px; padding: 2px; margin:5px; border:1px solid #888; border-radius: 5px;"
-        " background: qradialgradient(cx : 0.3, cy : -0.4, fx : 0.3, fy : -0.4, radius : 1.35, stop : 0 #fff, stop: 1 #bbb); }"
-        "QWidget#VertexRepresentation{ border:2px solid #555; border-radius: 11px;"
-        " background: qradialgradient(cx : 0.3, cy : -0.4, fx : 0.3, fy : -0.4, radius : 1.35, stop : 0 #fff, stop: 1 #888); }"
-        "QWidget#VertexTitle{ background - color:rgba(255, 255, 255, 32); border:none; border-radius:5px; }"
-        "QWidget#VertexTitleLine{ border: 2px solid #555; border-radius:0px; }"
-        "QWidget#ParamRepresentation{ background-color:rgba(255, 255, 255, 255); border:1px solid #555; padding:1px; }";
-      lastProject_ = "";
-      prefLang_ = "en";
-      isMaximized = true;
-      lastPosition.setLeft(0);
-      lastPosition.setTop(0);
-      lastPosition.setWidth(1024);
-      lastPosition.setHeight(768);
-    }
-  }
-
   bool lineIntersect(QLineF& line1, double x1, double y1, double x2, double y2)
   {
     QLineF line;
@@ -485,7 +409,7 @@ namespace charliesoft
       ParamRepresentation  *tmp = new ParamRepresentation(model, inputParams[i], true, this);
       connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
       connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
-      listOfInputChilds_[inputParams[i].name_] = tmp;
+      listOfInputChilds_[inputParams[i]._name] = tmp;
     }
 
     vector<ParamDefinition> outputParams = _PROCESS_MANAGER->getAlgo_OutParams(model->getName());
@@ -495,7 +419,7 @@ namespace charliesoft
       ParamRepresentation  *tmp = new ParamRepresentation(model, outputParams[i], false, this);
       connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
       connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
-      listOfOutputChilds_[outputParams[i].name_] = tmp;
+      listOfOutputChilds_[outputParams[i]._name] = tmp;
     }
 
     lineTitle = new QFrame(this);//add a line...
@@ -724,18 +648,18 @@ namespace charliesoft
   }
 
   ParamRepresentation::ParamRepresentation(Block* model, ParamDefinition param, bool isInput, QWidget *father) :
-    QLabel(_QT(param.name_.c_str()), father), model_(model), param_(param), isInput_(isInput){
+    QLabel(_QT(param._name.c_str()), father), model_(model), param_(param), isInput_(isInput){
     setObjectName("ParamRepresentation");
-    if (!param.show_) this->hide();
-    setToolTip(_QT(param.helper_));
+    if (!param._show) this->hide();
+    setToolTip(_QT(param._helper));
   };
   
   void ParamRepresentation::setVisibility(bool visible)
   {
-    if (param_.show_ == visible)
+    if (param_._show == visible)
       return;//Nothing to do...
 
-    param_.show_ = visible;
+    param_._show = visible;
     Window::getGraphLayout()->getVertexRepresentation(model_)->reshape();
   }
 

@@ -94,8 +94,7 @@ namespace charliesoft
     new GuiReceiver();
 
     //first load config file:
-    config_ = new GlobalConfig();
-    config_->loadConfig();
+    GlobalConfig::getInstance()->loadConfig();
 
     menuFichier = menuBar()->addMenu(_QT("MENU_FILE"));
 
@@ -181,11 +180,11 @@ namespace charliesoft
     }
 
     
-    if (config_->isMaximized)
+    if (GlobalConfig::getInstance()->isMaximized)
       showMaximized();
     else
     {
-      resize(config_->lastPosition.size()); move(config_->lastPosition.topLeft());
+      resize(GlobalConfig::getInstance()->lastPosition.size()); move(GlobalConfig::getInstance()->lastPosition.topLeft());
       QMainWindow::show();
     }
 
@@ -194,7 +193,7 @@ namespace charliesoft
     connect(this, SIGNAL(askSynchro(charliesoft::GraphOfProcess *)),
       mainLayout_, SLOT(synchronize(charliesoft::GraphOfProcess *)));
 
-    setStyleSheet(config_->styleSheet_.c_str());
+    setStyleSheet(GlobalConfig::getInstance()->styleSheet_.c_str());
 
     mainLayout_->synchronize(model_);
   }
@@ -241,9 +240,9 @@ namespace charliesoft
             model_->switchPause();
           break;
         case Qt::Key_Delete:
+          mainLayout_->removeSelectedLinks();
           for (auto rep : VertexRepresentation::getSelection())
             model_->deleteProcess(rep->getModel());
-          mainLayout_->removeSelectedLinks();
           VertexRepresentation::resetSelection();
           mainLayout_->synchronize(model_);
           break;
@@ -273,10 +272,10 @@ namespace charliesoft
   void Window::openFile()
   {
     QString file = QFileDialog::getOpenFileName(this, _QT("PROJ_LOAD_FILE"),
-      config_->lastProject_.c_str(), _QT("CONF_FILE_TYPE"));
+      GlobalConfig::getInstance()->lastProject_.c_str(), _QT("CONF_FILE_TYPE"));
     if (!file.isEmpty())
     {
-      config_->lastProject_ = file.toStdString();
+      GlobalConfig::getInstance()->lastProject_ = file.toStdString();
       //load project...
     }
 
@@ -288,13 +287,13 @@ namespace charliesoft
 
   void Window::newProject()
   {
-    string lastDirectory = config_->lastProject_;
+    string lastDirectory = GlobalConfig::getInstance()->lastProject_;
     if (!lastDirectory.empty() && lastDirectory.find_last_of('/')!=string::npos)
       lastDirectory = lastDirectory.substr(0, lastDirectory.find_last_of('/'));
 
     QString file = QFileDialog::getSaveFileName(this, _QT("PROJ_CREATE_FILE"),
       lastDirectory.c_str(), _QT("CONF_FILE_TYPE"));
-    config_->lastProject_ = file.toStdString();
+    GlobalConfig::getInstance()->lastProject_ = file.toStdString();
 
     mainLayout_->clearLayout();
     if (model_ != NULL)
@@ -304,10 +303,10 @@ namespace charliesoft
 
   bool Window::quitProg()
   {
-    config_->isMaximized = isMaximized();
-    if (!config_->isMaximized)
-      config_->lastPosition = QRect(pos(), size());
-    config_->saveConfig();
+    GlobalConfig::getInstance()->isMaximized = isMaximized();
+    if (!GlobalConfig::getInstance()->isMaximized)
+      GlobalConfig::getInstance()->lastPosition = QRect(pos(), size());
+    GlobalConfig::getInstance()->saveConfig();
     QApplication::quit();
     return true;
   }

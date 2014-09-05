@@ -27,15 +27,16 @@ namespace charliesoft
   END_BLOCK_PARAMS();
 
   BlockNormalize::BlockNormalize() :Block("BLOCK__NORMALIZ_NAME"){
-    myInputs_["BLOCK__NORMALIZ_IN_IMAGE"].addValidator({ new ValNeeded() });
+    _myInputs["BLOCK__NORMALIZ_IN_IMAGE"].addValidator({ new ValNeeded() });
   };
   
   bool BlockNormalize::run(){
-    if (myInputs_["BLOCK__NORMALIZ_IN_IMAGE"].isDefaultValue())
+    if (_myInputs["BLOCK__NORMALIZ_IN_IMAGE"].isDefaultValue())
       return false;
-    cv::Mat mat = myInputs_["BLOCK__NORMALIZ_IN_IMAGE"].get<cv::Mat>();
+    cv::Mat mat = _myInputs["BLOCK__NORMALIZ_IN_IMAGE"].get<cv::Mat>();
     if (!mat.empty())
-      myOutputs_["BLOCK__NORMALIZ_OUT_IMAGE"] = filter.process(mat);
+      _myOutputs["BLOCK__NORMALIZ_OUT_IMAGE"] = filter.process(mat);
+    renderingDone();
     return true;
   };
 };

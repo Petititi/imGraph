@@ -172,6 +172,14 @@ namespace charliesoft
     translations["BLOCK__LINE_FINDER_OUT_IMAGE"] = "lines list";
     translations["BLOCK__LINE_FINDER_OUT_IMAGE_HELP"] = "List of detected lines";
 
+    translations["BLOCK__MERGING_NAME"] = "Merge two images";
+    translations["BLOCK__MERGING_IN_IMAGE1"] = "image1";
+    translations["BLOCK__MERGING_IN_IMAGE1_HELP"] = "First input image";
+    translations["BLOCK__MERGING_IN_IMAGE2"] = "image2";
+    translations["BLOCK__MERGING_IN_IMAGE2_HELP"] = "Second input image";
+    translations["BLOCK__MERGING_OUT_IMAGE"] = "image";
+    translations["BLOCK__MERGING_OUT_IMAGE_HELP"] = "Croped image";
+
     translations["BLOCK__CROP_NAME"] = "Crop image";
     translations["BLOCK__CROP_IN_IMAGE"] = "image";
     translations["BLOCK__CROP_IN_IMAGE_HELP"] = "Input image";

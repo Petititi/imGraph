@@ -32,21 +32,10 @@
 
 #include <map>
 #include "Window.h"
+#include "Configuration.h"
 
 namespace charliesoft
 {
-  class GlobalConfig
-  {
-  public:
-    void loadConfig();
-    void saveConfig();
-
-    std::string lastProject_;
-    std::string prefLang_;
-    std::string styleSheet_;
-    bool isMaximized;
-    QRect lastPosition;
-  };
 
   class LinkPath : public QPainterPath
   {
@@ -84,11 +73,11 @@ namespace charliesoft
     virtual void mouseDoubleClickEvent(QMouseEvent *);
     virtual void mouseMoveEvent(QMouseEvent *);
 
-    bool shouldShow() const { return param_.show_; }
+    bool shouldShow() const { return param_._show; }
     void setVisibility(bool visible);
-    std::string getParamName() const { return param_.name_; }
-    ParamValue* getParamValue() const { return model_->getParam(param_.name_, isInput_); }
-    std::string getParamHelper() const { return param_.helper_; }
+    std::string getParamName() const { return param_._name; }
+    ParamValue* getParamValue() const { return model_->getParam(param_._name, isInput_); }
+    std::string getParamHelper() const { return param_._helper; }
     Block* getModel() const { return model_; }
     bool isInput() const { return isInput_; }
 
