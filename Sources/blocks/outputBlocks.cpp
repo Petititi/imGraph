@@ -1,6 +1,7 @@
 
 #include <vector>
 #include <sstream>
+#include <boost/lexical_cast.hpp>
 
 #include "Block.h"
 #include "window_QT.h"
@@ -37,6 +38,8 @@ namespace charliesoft
     if (!mat.empty())
       charliesoft::imshow(_myInputs["BLOCK__OUTPUT_IN_WIN_NAME"].get<string>(), mat);
     renderingDone();
+    string output = "BlockShow " + boost::lexical_cast<string>(_timestamp)+" ; " + boost::lexical_cast<string>(_work_timestamp)+"\n";
+    std::cout << output;
     return true;
   };
 };

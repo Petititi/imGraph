@@ -64,7 +64,7 @@ namespace charliesoft
       while (true)//this will stop when user stop the process...
       {
         while (GraphOfProcess::pauseProcess)
-          _cond.wait(lock);//wait for any parameter update...
+          _cond_pause.wait(lock);//wait for any parameter update...
 
         _work_timestamp = GraphOfProcess::_current_timestamp;
         if (_timestamp < _work_timestamp)
@@ -76,21 +76,27 @@ namespace charliesoft
             parametersOK = true;
             for (auto it = _myInputs.begin(); it != _myInputs.end(); it++)
             {
-              if (it->second.isLinked() &&
+              while (it->second.isLinked() &&
                 it->second.getTimestamp() < _work_timestamp)
               {
+                ParamValue* t = it->second.get<ParamValue*>();
                 parametersOK = false;
+
+                string debug = "   " + _STR(getName()) + " blocked (" + _STR(it->second.getName()) + ")\n";
+                //std::cout << debug;
+
                 //not OK! we must wait here until producer update value!
-                it->second.waitForUpdate(lock);
+                _cond_sync.wait(lock);//wait for any parameter update...
               }
             }
           }
 
           //now we can run the process:
           run();
-          _cond.wait(lock);//wait for any parameter update...
+          _fullyRendered = true;
+          _cond_sync.notify_all();//wake up waiting thread (if needed)
         }
-        boost::this_thread::sleep(boost::posix_time::milliseconds(100.));
+        _cond_sync.wait(lock);//wait for any parameter update...
       }
     }
     catch (boost::thread_interrupted const&)
@@ -132,28 +138,43 @@ namespace charliesoft
     }
     return true;
   }
+
   void Block::renderingDone(bool fullyRendered)
   {
     _fullyRendered = fullyRendered;
     {
       boost::unique_lock<boost::mutex> guard(_mtx_timestamp_inc);
       _timestamp = _work_timestamp;
-      if (_fullyRendered)
-        _cond_sync.notify_all();//wake up waiting thread (if needed)
+
+      //wake other blocks:
+      for (auto output_val = _myOutputs.begin();
+        output_val != _myOutputs.end(); output_val++)//should use iterator to not create temp ParamValue
+      {
+        std::set<ParamValue*>& listeners = output_val->second.getListeners();
+        for (auto listener : listeners)
+        {
+          if (listener != NULL)
+            listener->getBlock()->wakeUp();
+        }
+      }
 
       while (GraphOfProcess::pauseProcess)
-        _cond.wait(guard);//wait for any parameter update...
+        _cond_pause.wait(guard);//wait for any parameter update...
     }
     //test if we need to wait!
     _processes->synchronizeTimestamp(this);
-    if (!_fullyRendered)
-      _processes->_current_timestamp++;//next frame?
+    if (!fullyRendered)
+    {
+      _processes->_current_timestamp++;//next frame
+      _work_timestamp = _processes->_current_timestamp;
+    }
     _work_timestamp = _processes->_current_timestamp;
   }
 
   void Block::wakeUp()
   {
-    _cond.notify_all();//wake up waiting thread (if needed)
+    _cond_sync.notify_all();//wake up waiting thread (if needed)
+    _cond_pause.notify_all();
   }
   void Block::waitUpdate(boost::unique_lock<boost::mutex>& lock)
   {
@@ -184,14 +205,18 @@ namespace charliesoft
     return _error_msg.empty();
   }
 
-  bool Block::validTimestampOrWait(unsigned int timestamp)
+  bool Block::validTimestampOrWait(Block* other)
   {
     bool waiting = false;
     boost::unique_lock<boost::mutex> guard(_mtx_timestamp_inc);
-    while (!_fullyRendered || timestamp > _timestamp)
+    while (!_fullyRendered || other->_timestamp > _timestamp)
     {
+      std::string debug = "  " + _STR(other->getName()) + " blocked at " + _STR(getName()) + " : " + lexical_cast<string>(_timestamp) + "\n";
+      //std::cout << debug;
       waiting = true;
       waitUpdate(guard);
+      debug = "   " + _STR(other->getName()) + " unblocked (" + _STR(getName()) + ")\n";
+      //std::cout << debug;
     }
     return !waiting;
   }
@@ -233,11 +258,9 @@ namespace charliesoft
     }
   }
 
-  void Block::setParam(std::string nameParam_, ParamValue& value){
+  void Block::setParamLink(std::string nameParam_, ParamValue* value){
     if (_myInputs.find(nameParam_) != _myInputs.end())
-      _myInputs[nameParam_] = &value;
-    else
-      _myOutputs[nameParam_] = value;
+      _myInputs[nameParam_] = value;
   };
   ParamValue* Block::getParam(std::string nameParam_, bool input){
     if (input && _myInputs.find(nameParam_) != _myInputs.end())
@@ -304,7 +327,7 @@ namespace charliesoft
       throw (ErrorValidator((my_format(_STR("ERROR_TYPE")) % _STR(getName()) % _STR(valIn.getName()) % typeName(valIn.getType()) %
         _STR(dest->getName()) % _STR(valOut.getName()) % typeName(valOut.getType())).str()));
     }
-    dest->setParam(paramNameDest, _myOutputs[paramName]);
+    dest->setParamLink(paramNameDest, &_myOutputs[paramName]);
   }
 
   void Block::setPosition(int x, int y)
@@ -317,17 +340,17 @@ namespace charliesoft
   };
 
   void GraphOfProcess::addNewProcess(Block* block){
-    vertices_.push_back(block);
+    _vertices.push_back(block);
     block->setGraph(this);
   };
 
   void GraphOfProcess::deleteProcess(Block* process){
-    for (auto it = vertices_.begin();
-      it != vertices_.end(); it++)
+    for (auto it = _vertices.begin();
+      it != _vertices.end(); it++)
     {
       if (*it == process)
       {
-        vertices_.erase(it);
+        _vertices.erase(it);
         delete process;
         return;
       }
@@ -336,21 +359,18 @@ namespace charliesoft
 
   void GraphOfProcess::synchronizeTimestamp(Block* processToSynchronize)
   {
-    bool isFullyRendered = true;
-    for (auto it = vertices_.begin();
-      it != vertices_.end(); it++)
+    for (auto it : _vertices)
     {
       //each block should have the same timestamp:
-      if ((*it)->isAncestor(processToSynchronize))
+      if (it != processToSynchronize && it->isAncestor(processToSynchronize))
       {
-        while (!(*it)->validTimestampOrWait(processToSynchronize->getTimestamp()))
-          isFullyRendered = false;
+        while (!it->validTimestampOrWait(processToSynchronize));
       }
     }
   }
   std::vector<Block*>& GraphOfProcess::getVertices()
   {
-    return vertices_;
+    return _vertices;
   }
 
   void GraphOfProcess::stop()
@@ -364,8 +384,8 @@ namespace charliesoft
   {
     _current_timestamp++;
     bool res = true;
-    for (auto it = vertices_.begin();
-      it != vertices_.end(); it++)
+    for (auto it = _vertices.begin();
+      it != _vertices.end(); it++)
       runningThread_.push_back(boost::thread(boost::ref(**it)));
 
     return res;
@@ -376,16 +396,16 @@ namespace charliesoft
     if (!pauseProcess)
     {
       //wake up threads:
-      for (auto it = vertices_.begin();
-        it != vertices_.end(); it++)
+      for (auto it = _vertices.begin();
+        it != _vertices.end(); it++)
         (*it)->wakeUp();
     }
   }
 
   void GraphOfProcess::saveGraph(boost::property_tree::ptree& tree) const
   {
-    for (auto it = vertices_.begin();
-      it != vertices_.end(); it++)
+    for (auto it = _vertices.begin();
+      it != _vertices.end(); it++)
     {
       tree.add_child("GraphOfProcess.Block", (*it)->getXML());
     }

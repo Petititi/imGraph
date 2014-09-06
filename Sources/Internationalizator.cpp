@@ -175,7 +175,6 @@ namespace charliesoft
     translations["BLOCK__DEINTERLACE_NAME"] = "Deinterlace";
     translations["BLOCK__DEINTERLACE_IN_IMAGE"] = "image";
     translations["BLOCK__DEINTERLACE_IN_IMAGE_HELP"] = "Input image";
-    translations["BLOCK__DEINTERLACE_IN_TYPE_IN"] = "input type";
     translations["BLOCK__DEINTERLACE_IN_TYPE"] = "output type";
     translations["BLOCK__DEINTERLACE_IN_TYPE_HELP"] = "Deinterlacing type wanted";
     translations["BLOCK__DEINTERLACE_IN_TYPE1"] = "Blend";
@@ -183,7 +182,15 @@ namespace charliesoft
     translations["BLOCK__DEINTERLACE_IN_TYPE3"] = "Discard";
     translations["BLOCK__DEINTERLACE_IN_TYPE4"] = "Unfold";
     translations["BLOCK__DEINTERLACE_OUT_IMAGE"] = "image";
-    translations["BLOCK__DEINTERLACE_OUT_IMAGE"] = "Deinterlaced image";
+    translations["BLOCK__DEINTERLACE_OUT_IMAGE_HELP"] = "Deinterlaced image";
+
+    translations["BLOCK__INTERLACE_NAME"] = "Interlace";
+    translations["BLOCK__INTERLACE_IN_IMAGE"] = "image";
+    translations["BLOCK__INTERLACE_IN_IMAGE_HELP"] = "Input image";
+    translations["BLOCK__INTERLACE_IN_TYPE"] = "Nth skip";
+    translations["BLOCK__INTERLACE_IN_TYPE_HELP"] = "Number of frames to skip";
+    translations["BLOCK__INTERLACE_OUT_IMAGE"] = "image";
+    translations["BLOCK__INTERLACE_OUT_IMAGE_HELP"] = "Interlaced image";
 
     translations["BLOCK__MERGING_NAME"] = "Merge two images";
     translations["BLOCK__MERGING_IN_IMAGE1"] = "image1";

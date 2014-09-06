@@ -6,7 +6,6 @@
 #pragma warning(disable:4996 4251 4275 4800 4503)
 #endif
 #include <boost/variant.hpp>
-#include <boost/thread/condition_variable.hpp>
 #include <opencv2/core/core.hpp>
 #include <set>
 #include <QString>
@@ -46,58 +45,58 @@ namespace charliesoft
 
   class ParamValue
   {
-    unsigned int current_timestamp_;  // timestamp of last update
-    boost::condition_variable _cond;  // parameter upgrade condition
+    unsigned int _current_timestamp;  // timestamp of last update
     std::vector<ParamValidator*> validators_;
     std::set<ParamValue*> distantListeners_;
     Block *block_;
     std::string _name;
     bool isOutput_;
-    VariantClasses value_;
 
     void notifyUpdate();
     void notifyRemove();
   public:
+    VariantClasses value_;
     ParamValue(Block *algo, std::string name, bool isOutput) :
       block_(algo), _name(name), isOutput_(isOutput), value_(Not_A_Value()){
-      current_timestamp_ = 0;
+      _current_timestamp = 0;
     };
     ParamValue() :
       block_(NULL), _name(""), isOutput_(false), value_(Not_A_Value()){
-      current_timestamp_ = 0;
+      _current_timestamp = 0;
     };
     ParamValue(bool v) :
       block_(NULL), _name(""), isOutput_(false), value_(v){
-      current_timestamp_ = 0;
+      _current_timestamp = 0;
     };
     ParamValue(int v) :
       block_(NULL), _name(""), isOutput_(false), value_(v){
-      current_timestamp_ = 0;
+      _current_timestamp = 0;
     };
     ParamValue(double v) :
       block_(NULL), _name(""), isOutput_(false), value_(v){
-      current_timestamp_ = 0;
+      _current_timestamp = 0;
     };
     ParamValue(std::string v) :
       block_(NULL), _name(""), isOutput_(false), value_(v){
-      current_timestamp_ = 0;
+      _current_timestamp = 0;
     };
     ParamValue(cv::Mat v) :
       block_(NULL), _name(""), isOutput_(false), value_(v){
-      current_timestamp_ = 0;
+      _current_timestamp = 0;
     };
     ParamValue(Not_A_Value v) :
       block_(NULL), _name(""), isOutput_(false), value_(Not_A_Value()){
-      current_timestamp_ = 0;
+      _current_timestamp = 0;
     };
     ParamValue(ParamValue* v) :
       block_(NULL), _name(""), isOutput_(false), value_(v){
       if (v != NULL) v->distantListeners_.insert(this);
-      current_timestamp_ = 0;
+      _current_timestamp = 0;
     };
-    ParamValue(ParamValue& va) :
-      block_(va.block_), _name(va._name), isOutput_(va.isOutput_), value_(va.value_){
-      current_timestamp_ = 0;
+    ParamValue(const ParamValue& va) :
+      block_(va.block_), _name(va._name), isOutput_(va.isOutput_), value_(va.value_),
+      validators_(va.validators_), distantListeners_(va.distantListeners_){
+      _current_timestamp = va._current_timestamp;
     };
 
     ~ParamValue()
@@ -153,7 +152,7 @@ namespace charliesoft
       if (isLinked())
         return boost::get<ParamValue*>(value_)->getTimestamp();
       else
-        return current_timestamp_;
+        return _current_timestamp;
     }
     bool isLinked() const {
       return (value_.type() == typeid(ParamValue*)) &&
@@ -184,15 +183,6 @@ namespace charliesoft
       {
         return T();
       }
-    }
-
-    template<typename T>
-    void waitForUpdate(T& mutex)
-    {
-      if (isLinked())
-        return boost::get<ParamValue*>(value_)->waitForUpdate(mutex);
-      else
-        _cond.wait(mutex);
     }
 
     void valid_and_set(const ParamValue& v);

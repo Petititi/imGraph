@@ -73,7 +73,7 @@ namespace charliesoft
       if (vDist != NULL) vDist->distantListeners_.insert(this);
     }
     value_ = v.value_;
-    current_timestamp_ = GraphOfProcess::_current_timestamp;
+    _current_timestamp = GraphOfProcess::_current_timestamp;
     notifyUpdate();//wake up waiting thread (if any)
   };
 
@@ -110,11 +110,12 @@ namespace charliesoft
   }
   
   void ParamValue::notifyUpdate()
-  {
-    current_timestamp_ = GraphOfProcess::_current_timestamp;
-    _cond.notify_all();//wake up waiting thread (if any)
+  { 
+    _current_timestamp = GraphOfProcess::_current_timestamp;
     for (auto listener : distantListeners_)
-      listener->getBlock()->wakeUp();
+    {
+      listener->_current_timestamp = _current_timestamp;
+    }
   }
   ParamValue& ParamValue::operator = (bool const &rhs) {
     notifyRemove();
@@ -149,7 +150,7 @@ namespace charliesoft
   ParamValue& ParamValue::operator = (Not_A_Value const &rhs) {
     notifyRemove();
     value_ = rhs;
-    current_timestamp_ = GraphOfProcess::_current_timestamp;
+    _current_timestamp = GraphOfProcess::_current_timestamp;
     return *this;
   };
   ParamValue& ParamValue::operator = (ParamValue *vDist) {
@@ -166,7 +167,7 @@ namespace charliesoft
       block_ = rhs.block_;
       _name = rhs._name;
       isOutput_ = rhs.isOutput_;
-      current_timestamp_ = rhs.current_timestamp_;
+      _current_timestamp = rhs._current_timestamp;
       if (value_.type() != typeid(Not_A_Value))
         notifyUpdate();
     }

@@ -75,7 +75,7 @@ namespace charliesoft
 
   protected:
     GraphOfProcess* _processes;///<list of process currently in use
-    boost::condition_variable _cond;  // parameter upgrade condition
+    boost::condition_variable _cond_pause;  // pause condition
     boost::mutex _mtx;    // explicit mutex declaration
     boost::condition_variable _cond_sync;  // global sync condition
     boost::mutex _mtx_timestamp_inc;    // Timestamps update
@@ -93,7 +93,7 @@ namespace charliesoft
     void initParameters(const std::vector<ParamDefinition>& inParam, 
       const std::vector<ParamDefinition>& outParam);
 
-    void renderingDone(bool fullyRendered=true);
+    void renderingDone(bool fullyRendered = true);
 
     virtual bool run() = 0;
   public:
@@ -112,12 +112,12 @@ namespace charliesoft
     bool validateParams(std::string param, const ParamValue val);
     bool isReadyToRun();
 
-    virtual void setParam(std::string nameParam_, ParamValue& value);
+    virtual void setParamLink(std::string nameParam_, ParamValue* value);
     virtual ParamValue* getParam(std::string nameParam_, bool input);
 
     bool isStartingBlock();
     bool isAncestor(Block* other);
-    bool validTimestampOrWait(unsigned int timestamp);
+    bool validTimestampOrWait(Block* other);
     void wakeUp();
     void waitUpdate(boost::unique_lock<boost::mutex>& lock);
     boost::mutex& getMutex(){
@@ -175,7 +175,7 @@ namespace charliesoft
   class GraphOfProcess
   {
     std::vector< boost::thread > runningThread_;
-    std::vector<Block*> vertices_;
+    std::vector<Block*> _vertices;
     //edges are stored into Block (_myInputs[]->isLinked())
   public:
     static bool pauseProcess;

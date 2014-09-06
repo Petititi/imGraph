@@ -2,6 +2,7 @@
 #include <vector>
 #include <sstream>
 #include <boost/filesystem.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include "Block.h"
 #include "ParamValidator.h"
@@ -98,13 +99,14 @@ protected:
       _myOutputs["BLOCK__INPUT_INOUT_POS_RATIO"] = processor_.getProperty(cv::CAP_PROP_POS_AVI_RATIO);
       _myOutputs["BLOCK__INPUT_OUT_FORMAT"] = frame.type();
 
-      renderingDone(frame.empty());
+      string output = "BlockLoader " + boost::lexical_cast<string>(_timestamp)+" ; " + boost::lexical_cast<string>(_work_timestamp)+"\n";
+      std::cout << output;
 
       //wait corresponding ms in order to keep fps:
       boost::this_thread::sleep(boost::posix_time::milliseconds(1. / fps*1000.));
       frame = processor_.getFrame();
+      renderingDone(false);
     }
-    renderingDone();
     return true;
   };
 
