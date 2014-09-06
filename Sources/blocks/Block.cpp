@@ -66,8 +66,7 @@ namespace charliesoft
         while (GraphOfProcess::pauseProcess)
           _cond_pause.wait(lock);//wait for any parameter update...
 
-        _work_timestamp = GraphOfProcess::_current_timestamp;
-        if (_timestamp < _work_timestamp)
+        if (_timestamp < _processes->_current_timestamp)
         {
           //are parameters ok?
           bool parametersOK = false;
@@ -77,7 +76,7 @@ namespace charliesoft
             for (auto it = _myInputs.begin(); it != _myInputs.end(); it++)
             {
               while (it->second.isLinked() &&
-                it->second.getTimestamp() < _work_timestamp)
+                it->second.getTimestamp() < _processes->_current_timestamp)
               {
                 ParamValue* t = it->second.get<ParamValue*>();
                 parametersOK = false;
@@ -144,7 +143,7 @@ namespace charliesoft
     _fullyRendered = fullyRendered;
     {
       boost::unique_lock<boost::mutex> guard(_mtx_timestamp_inc);
-      _timestamp = _work_timestamp;
+      _timestamp = _processes->_current_timestamp;
 
       //wake other blocks:
       for (auto output_val = _myOutputs.begin();
@@ -166,9 +165,7 @@ namespace charliesoft
     if (!fullyRendered)
     {
       _processes->_current_timestamp++;//next frame
-      _work_timestamp = _processes->_current_timestamp;
     }
-    _work_timestamp = _processes->_current_timestamp;
   }
 
   void Block::wakeUp()
@@ -179,6 +176,27 @@ namespace charliesoft
   void Block::waitUpdate(boost::unique_lock<boost::mutex>& lock)
   {
     _cond_sync.wait(lock);
+  }
+
+  void Block::skipRendering()
+  {
+    {
+      boost::unique_lock<boost::mutex> guard(_mtx_timestamp_inc);
+      _timestamp = _processes->_current_timestamp;
+    }
+    //go through outputs and skip it:
+    auto it = _myOutputs.begin();
+    while (it != _myOutputs.end())
+    {
+      std::set<ParamValue*>& listeners = it->second.getListeners();
+      for (auto listener : listeners)
+      {
+        if (listener != NULL)
+          listener->getBlock()->skipRendering();
+      }
+      it++;
+    }
+    _cond_sync.notify_all();//wake up waiting thread (if needed)
   }
 
   bool Block::isReadyToRun()
@@ -382,6 +400,7 @@ namespace charliesoft
   
   bool GraphOfProcess::run()
   {
+    stop();//just in case...
     _current_timestamp++;
     bool res = true;
     for (auto it = _vertices.begin();
@@ -431,35 +450,38 @@ namespace charliesoft
           string xPos = pos.substr(1, posSepare - 2);
           string yPos = pos.substr(posSepare + 1, pos.size() - posSepare - 2);
           Block* tmp = ProcessManager::getInstance()->createAlgoInstance(name);
-          addNewProcess(tmp);
-          tmp->setPosition(lexical_cast<float>(xPos), lexical_cast<float>(yPos));
-          for (ptree::iterator it1 = block->begin(); it1 != block->end(); it1++)
+          if (tmp != NULL)
           {
-            if (it1->first.compare("Input") == 0)
+            addNewProcess(tmp);
+            tmp->setPosition(lexical_cast<float>(xPos), lexical_cast<float>(yPos));
+            for (ptree::iterator it1 = block->begin(); it1 != block->end(); it1++)
             {
-              string nameIn = it1->second.get("Name", "Error");
-              bool link = it1->second.get("Link", false);
-              string val = it1->second.get("Value", "Not initialized...");
-              ParamValue* tmpVal = tmp->getParam(nameIn, true);
-              if (!link)
+              if (it1->first.compare("Input") == 0)
               {
-                try
+                string nameIn = it1->second.get("Name", "Error");
+                bool link = it1->second.get("Link", false);
+                string val = it1->second.get("Value", "Not initialized...");
+                ParamValue* tmpVal = tmp->getParam(nameIn, true);
+                if (!link)
                 {
-                  tmpVal->valid_and_set(tmpVal->fromString(tmpVal->getType(), val));
+                  try
+                  {
+                    tmpVal->valid_and_set(tmpVal->fromString(tmpVal->getType(), val));
+                  }
+                  catch (...)
+                  {
+                  }
                 }
-                catch (...)
-                {
-                }
+                else
+                  toUpdate.push_back(std::pair<ParamValue*, unsigned int>(tmpVal, lexical_cast<unsigned int>(val)));
               }
-              else
-                toUpdate.push_back(std::pair<ParamValue*, unsigned int>(tmpVal, lexical_cast<unsigned int>(val)));
-            }
-            if (it1->first.compare("Output") == 0)
-            {
-              string nameOut = it1->second.get("Name", "Error");
-              string val = it1->second.get("ID", "0");
-              ParamValue* tmpVal = tmp->getParam(nameOut, false);
-              addressesMap[lexical_cast<unsigned int>(val)] = tmpVal;
+              if (it1->first.compare("Output") == 0)
+              {
+                string nameOut = it1->second.get("Name", "Error");
+                string val = it1->second.get("ID", "0");
+                ParamValue* tmpVal = tmp->getParam(nameOut, false);
+                addressesMap[lexical_cast<unsigned int>(val)] = tmpVal;
+              }
             }
           }
         }

@@ -184,13 +184,13 @@ namespace charliesoft
     translations["BLOCK__DEINTERLACE_OUT_IMAGE"] = "image";
     translations["BLOCK__DEINTERLACE_OUT_IMAGE_HELP"] = "Deinterlaced image";
 
-    translations["BLOCK__INTERLACE_NAME"] = "Interlace";
-    translations["BLOCK__INTERLACE_IN_IMAGE"] = "image";
-    translations["BLOCK__INTERLACE_IN_IMAGE_HELP"] = "Input image";
-    translations["BLOCK__INTERLACE_IN_TYPE"] = "Nth skip";
-    translations["BLOCK__INTERLACE_IN_TYPE_HELP"] = "Number of frames to skip";
-    translations["BLOCK__INTERLACE_OUT_IMAGE"] = "image";
-    translations["BLOCK__INTERLACE_OUT_IMAGE_HELP"] = "Interlaced image";
+    translations["BLOCK__SKIP_FRAME_NAME"] = "Skip frame";
+    translations["BLOCK__SKIP_FRAME_IN_IMAGE"] = "image";
+    translations["BLOCK__SKIP_FRAME_IN_IMAGE_HELP"] = "Input image";
+    translations["BLOCK__SKIP_FRAME_IN_TYPE"] = "nb skip";
+    translations["BLOCK__SKIP_FRAME_IN_TYPE_HELP"] = "Number of frames to skip";
+    translations["BLOCK__SKIP_FRAME_OUT_IMAGE"] = "image";
+    translations["BLOCK__SKIP_FRAME_OUT_IMAGE_HELP"] = "Interlaced image";
 
     translations["BLOCK__MERGING_NAME"] = "Merge two images";
     translations["BLOCK__MERGING_IN_IMAGE1"] = "image1";

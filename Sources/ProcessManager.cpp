@@ -35,6 +35,8 @@ namespace charliesoft
   Block* ProcessManager::createAlgoInstance(std::string algo_name) const
   {
     lock_guard<recursive_mutex> guard(_listBlockMutex);
+    if (algo_factory_.find(algo_name) == algo_factory_.end())
+      return NULL;
     Block* b = algo_factory_.at(algo_name)();
     b->initParameters(algorithmInParams_.at(algo_name), algorithmOutParams_.at(algo_name));
     return b;

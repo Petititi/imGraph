@@ -80,7 +80,6 @@ namespace charliesoft
     boost::condition_variable _cond_sync;  // global sync condition
     boost::mutex _mtx_timestamp_inc;    // Timestamps update
     unsigned int _timestamp;///<timestamp of produced values
-    unsigned int _work_timestamp;///<timestamp of values we are working on
     bool _fullyRendered;
 
     std::string _error_msg;
@@ -111,6 +110,7 @@ namespace charliesoft
     std::string getErrorInfo(){ return _error_msg; };
     bool validateParams(std::string param, const ParamValue val);
     bool isReadyToRun();
+    void skipRendering();
 
     virtual void setParamLink(std::string nameParam_, ParamValue* value);
     virtual ParamValue* getParam(std::string nameParam_, bool input);
