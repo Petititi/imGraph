@@ -53,11 +53,11 @@ namespace charliesoft
 
     static Window* ptr;
 
-    charliesoft::GraphOfProcess *model_;
+    charliesoft::GraphOfProcess *_model;
   public:
     static Window* getInstance();
     static void releaseInstance();
-    charliesoft::GraphOfProcess * getModel() const { return model_; }
+    charliesoft::GraphOfProcess * getModel() const { return _model; }
     static GraphRepresentation* getGraphLayout();
     void show();
     MainWidget* getMainWidget() const { return mainWidget_; }

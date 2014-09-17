@@ -11,6 +11,8 @@
     background: qradialgradient(cx: 0.3, cy: -0.4, fx: 0.3, fy : -0.4, radius : 1.35, stop : 0 #fff, stop: 1 #888);}
   QWidget#VertexRepresentation[selected=true]{border:2px solid #B44;}
   QWidget#VertexRepresentation[inconsistent=true]{background-color:#E88;}
+  QWidget#CondRepresentation{border:2px solid #555;border-radius: 5px;
+    background: qradialgradient(cx: 0.3, cy: -0.4, fx: 0.3, fy : -0.4, radius : 1.35, stop : 0 #fff, stop: 1 #888);}
   QWidget#VertexTitle{background-color:rgba(255,255,255,32);border:none;border-radius:5px;}
   QWidget#VertexTitleLine{border: 2px solid #555;border-radius:0px;}
   QWidget#ParamRepresentation{background-color:rgba(255,255,255,255);border:1px solid #555;padding:1px;}</styleSheet>

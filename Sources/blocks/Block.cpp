@@ -50,15 +50,176 @@ namespace charliesoft
   bool GraphOfProcess::pauseProcess = false;
   boost::mutex _mtx_synchro;
 
+  ConditionOfRendering::ConditionOfRendering()
+  {
+    category_left = category_right = boolean_operator = 0;
+  }
+  ConditionOfRendering::ConditionOfRendering(unsigned char category_l,
+    ParamValue opt_value_l,
+    unsigned char category_r,
+    ParamValue opt_value_r,
+    unsigned char boolean_op):
+    category_left(category_l), opt_value_left(opt_value_l), category_right(category_r),
+    opt_value_right(opt_value_r), boolean_operator(boolean_op)
+  {
+  }
+
+  std::string ConditionOfRendering::toString()
+  {
+    if (category_left > 3 || category_right > 3 || boolean_operator > 5 || category_left == 0 || category_right == 0)
+      return "";
+    string left, right;
+    switch (category_left)
+    {
+    case 1://Output of block
+      left = "XXX";
+      break;
+    case 3://cardinal of block rendering
+      left = _STR("CONDITION_CARDINAL");
+      break;
+    default://nothing
+      left = opt_value_left.toString();
+      break;
+    }
+    switch (category_right)
+    {
+    case 1://Output of block
+      right = "XXX";
+      break;
+    case 3://Is empty
+      right = _STR("CONDITION_IS_EMPTY");
+    default://nothing
+      right = opt_value_right.toString();
+      break;
+    }
+
+    switch (boolean_operator)
+    {
+    case 0://==
+      return left + " == " + right;
+    case 1://!=
+      return left + " != " + right;
+    case 2://<
+      return left + " < " + right;
+    case 3://>
+      return left + " > " + right;
+    case 4://<=
+      return left + " <= " + right;
+    case 5://>=
+      return left + " >= " + right;
+    default://nothing
+      break;
+    }
+
+    return "";
+  }
+
+  bool ConditionOfRendering::canRender(Block* blockTested)
+  {
+    if (category_left > 3 || category_right > 3 || boolean_operator>5 || category_left == 0 || category_right == 0)
+      return true;
+    ParamValue left, right;
+    switch (category_left)
+    {
+    case 1://Output of block
+    {
+      ParamValue* tmp = opt_value_left.get<ParamValue*>();
+      if (tmp != NULL)
+        left = *tmp;
+      break;
+    }
+    case 2://Constante value
+      left = opt_value_left;
+      break;
+    case 3://cardinal of block rendering
+      left = static_cast<double>(blockTested->getNbRendering());
+      break;
+    default://nothing
+      break;
+  }
+    switch (category_right)
+    {
+    case 1://Output of block
+    {
+      ParamValue* tmp = opt_value_right.get<ParamValue*>();
+      if (tmp != NULL)
+        right = *tmp;
+      break;
+    }
+    case 2://Constante value
+      right = opt_value_right;
+      break;
+    case 3://Is empty
+      if (boolean_operator == 0)
+        return left.isDefaultValue();
+      else
+        return !left.isDefaultValue();
+    default://nothing
+      break;
+    }
+
+    switch (boolean_operator)
+    {
+    case 0://==
+      return left == right;
+    case 1://!=
+      return left != right;
+    case 2://<
+      return left < right;
+    case 3://>
+      return left > right;
+    case 4://<=
+      return left <= right;
+    case 5://>=
+      return left >= right;
+    default://nothing
+      return true;
+    }
+
+    return true;
+  }
+
+  void ConditionOfRendering::setValue(bool left, ParamValue* param2)
+  {
+    if (left)
+    {
+      switch (category_left)
+      {
+      case 1://Output of block
+      {
+        opt_value_left = param2;
+        break;
+      }
+      default://nothing
+        opt_value_left = *param2;
+      }
+    }
+    else
+    {
+      switch (category_right)
+      {
+      case 1://Output of block
+      {
+        opt_value_right = param2;
+        break;
+      }
+      default://nothing
+        opt_value_right = *param2;
+      }
+    }
+  }
+
   Block::Block(std::string name){
     _name = name;
     _timestamp = 0;
     _fullyRendered = true;
+    nbRendering = 0;
   };
 
   void Block::operator()()
   {
     boost::unique_lock<boost::mutex> lock(_mtx);
+    nbRendering = 0;
     try
     {
       while (true)//this will stop when user stop the process...
@@ -89,9 +250,18 @@ namespace charliesoft
               }
             }
           }
-
+          bool shouldRun = true;
+          for (ConditionOfRendering& condition : _conditions)
+          {
+            if (!condition.canRender(this))
+              shouldRun= false;
+          }
           //now we can run the process:
-          run();
+          if (shouldRun)
+            run();
+          else
+            skipRendering();
+          nbRendering++;
           _fullyRendered = true;
           _cond_sync.notify_all();//wake up waiting thread (if needed)
         }
@@ -342,8 +512,9 @@ namespace charliesoft
     //first test type of input:
     if (valIn.getType() != valOut.getType())
     {
-      throw (ErrorValidator((my_format(_STR("ERROR_TYPE")) % _STR(getName()) % _STR(valIn.getName()) % typeName(valIn.getType()) %
-        _STR(dest->getName()) % _STR(valOut.getName()) % typeName(valOut.getType())).str()));
+      throw (ErrorValidator((my_format(_STR("ERROR_TYPE")) %
+        _STR(getName()) % _STR(valOut.getName()) % typeName(valOut.getType()) %
+        _STR(dest->getName()) % _STR(valIn.getName()) % typeName(valIn.getType())).str()));
     }
     dest->setParamLink(paramNameDest, &_myOutputs[paramName]);
   }

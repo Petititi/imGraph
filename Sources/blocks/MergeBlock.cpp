@@ -1,5 +1,13 @@
+#ifdef _WIN32
+#pragma warning(disable:4503)
+#pragma warning(push)
+#pragma warning(disable:4996 4251 4275 4800)
+#endif
 #include <opencv2/imgproc.hpp>
 #include <vector>
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
 #include "Block.h"
 #include "ParamValidator.h"

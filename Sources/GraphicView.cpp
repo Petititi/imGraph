@@ -87,7 +87,7 @@ namespace charliesoft
   ParamsConfigurator::ParamsConfigurator(VertexRepresentation* vertex,
     std::map<std::string, ParamRepresentation*>& in_param,
     std::map<std::string, ParamRepresentation*>& out_param) :
-    QDialog(vertex), vertex_(vertex), in_param_(in_param), out_param_(out_param)
+    QDialog(vertex), _vertex(vertex), in_param_(in_param), out_param_(out_param)
   {
     setModal(true);
     tabWidget_ = new QTabWidget(this);
@@ -103,7 +103,10 @@ namespace charliesoft
     QWidget *buttonGroup = new QWidget(this);
     buttonGroup->setLayout(buttonLayout);
 
+    QPushButton* button = new QPushButton(_QT("CONDITION_EDITOR"));
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
+    mainLayout->addWidget(button);
+    connect(button, SIGNAL(clicked()), this, SLOT(configCondition()));
     mainLayout->addWidget(tabWidget_);
     mainLayout->addWidget(buttonGroup);
     setLayout(mainLayout);
@@ -136,6 +139,8 @@ namespace charliesoft
       addParamOut(it->second);
       it++;
     }
+
+    connect(this, SIGNAL(askSynchro()), vertex, SLOT(reshape()));
   };
   
   void ParamsConfigurator::addParamOut(ParamRepresentation  *p)
@@ -282,6 +287,12 @@ namespace charliesoft
     inputWidget->setEnabled(newState == Qt::Checked);
   }
 
+  void ParamsConfigurator::configCondition()
+  {
+    ConditionConfigurator config_condition(_vertex);
+    int retour = config_condition.exec();
+  }
+
   void ParamsConfigurator::openFile()
   {
     if (openFiles_.find(sender()) == openFiles_.end())
@@ -366,11 +377,139 @@ namespace charliesoft
       it++;
     }
 
-    vertex_->reshape();
+    emit askSynchro();
     Window::getGraphLayout()->synchronize(Window::getInstance()->getModel());
     close();
   }
   void ParamsConfigurator::reject_button()
+  {
+    close();
+  }
+
+  ConditionConfigurator::ConditionConfigurator(VertexRepresentation* vertex) :
+    QDialog(vertex), _vertex(vertex)
+  {
+    setModal(true);
+
+    OKbutton_ = new QPushButton(_QT("BUTTON_OK"));
+    Cancelbutton_ = new QPushButton(_QT("BUTTON_CANCEL"));
+    connect(OKbutton_, SIGNAL(clicked()), this, SLOT(accept_button()));
+    connect(Cancelbutton_, SIGNAL(clicked()), this, SLOT(reject_button()));
+
+    _condition_left = new QComboBox(this);
+    _condition_type = new QComboBox(this);
+    _condition_right = new QComboBox(this);
+
+    _value_left = new QLineEdit(this);
+    _value_left->hide();
+    _value_right = new QLineEdit(this);
+    _value_right->hide();
+
+    comboBoxLayout = new QGridLayout(this);
+    comboBoxLayout->addWidget(_condition_left, 0, 0);
+    comboBoxLayout->addWidget(_condition_type, 0, 1);
+    comboBoxLayout->addWidget(_condition_right, 0, 2);
+    comboBoxLayout->addWidget(_value_left, 1, 0);
+    comboBoxLayout->addWidget(_value_right, 1, 2);
+
+    connect(_condition_left, SIGNAL(currentIndexChanged(int)), this, SLOT(updateLeft(int)));
+    connect(_condition_right, SIGNAL(currentIndexChanged(int)), this, SLOT(updateRight(int)));
+
+    _condition_left->addItem("Choose left condition");
+    _condition_left->addItem("Output of block");
+    _condition_left->addItem("Constante value");
+    _condition_left->addItem("Cardinal of block rendering");
+
+    _condition_right->addItem("Choose right condition");
+    _condition_right->addItem("Output of block");
+    _condition_right->addItem("Constante value");
+    _condition_right->addItem("Is empty");
+
+    _condition_type->addItem("==");
+    _condition_type->addItem("!=");
+    _condition_type->addItem("<");
+    _condition_type->addItem(">");
+    _condition_type->addItem("<=");
+    _condition_type->addItem(">=");
+
+
+    QHBoxLayout* buttonLayout = new QHBoxLayout();
+    buttonLayout->addWidget(OKbutton_);
+    buttonLayout->addWidget(Cancelbutton_);
+    QWidget *buttonGroup = new QWidget(this);
+    buttonGroup->setLayout(buttonLayout);
+    QVBoxLayout* mainLayout = new QVBoxLayout();
+    mainLayout->addWidget(new QLabel(_QT("CONDITION_EDITOR_HELP")));
+    QWidget *comboGroup = new QWidget(this);
+    comboGroup->setLayout(comboBoxLayout);
+    mainLayout->addWidget(comboGroup);
+    mainLayout->addWidget(buttonGroup);
+    setLayout(mainLayout);
+
+    connect(this, SIGNAL(askSynchro()), vertex, SLOT(reshape()));
+  };
+
+  void ConditionConfigurator::updateLeft(int newIndex)
+  {
+    switch (newIndex)
+    {
+    case 2://Constante value
+      _value_left->show();
+      break;
+    default:
+      _value_left->hide();
+      break;
+    }
+  };
+
+  void ConditionConfigurator::updateRight(int newIndex)
+  {
+    switch (newIndex)
+    {
+    case 2://Constante value
+      _value_right->show();
+      break;
+    default:
+      _value_right->hide();
+      break;
+    }
+  };
+
+  void ConditionConfigurator::accept_button()
+  {
+    ParamValue left, right;
+    if (_condition_left->currentIndex() == 2)
+    {
+      try
+      {
+        left = lexical_cast<double>(_value_left->text().toStdString());
+      }
+      catch (boost::bad_lexical_cast&)
+      {
+      }
+    }
+    if (_condition_right->currentIndex() == 2)
+    {
+      try
+      {
+        right = lexical_cast<double>(_value_right->text().toStdString());
+      }
+      catch (boost::bad_lexical_cast&)
+      {
+      }
+    }
+
+    _vertex->getModel()->addCondition(ConditionOfRendering(
+      _condition_left->currentIndex(), left,
+      _condition_right->currentIndex(), right,
+      _condition_type->currentIndex()));
+
+    emit askSynchro();
+    Window::getGraphLayout()->synchronize(Window::getInstance()->getModel());
+    close();
+  };
+
+  void ConditionConfigurator::reject_button()
   {
     close();
   }
@@ -386,17 +525,35 @@ namespace charliesoft
       delete it->second;
     listOfOutputChilds_.clear();
     links_.clear();
+    delete _blockRepresentation;
+    delete _conditionsRepresentation;
   }
 
   VertexRepresentation::VertexRepresentation(Block* model)
   {
-    setObjectName("VertexRepresentation");
-    paramActiv_ = NULL;
-    isDragging_ = false;
+    _blockRepresentation = new QWidget(this);
+    _conditionsRepresentation = new QWidget(this);
 
-    model_ = model;
-    vertexTitle_ = new QLabel(_QT(model->getName()), this);
-    vertexTitle_->setObjectName("VertexTitle");
+    _blockRepresentation->setObjectName("VertexRepresentation");
+    _conditionsRepresentation->setObjectName("CondRepresentation");
+    _paramActiv = NULL;
+    _isDragging = false;
+
+    //QHBoxLayout* condLayout = new QHBoxLayout(_conditionsRepresentation);
+
+    _model = model;
+    _vertexTitle = new QLabel(_QT(model->getName()), _blockRepresentation);
+    _vertexTitle->setObjectName("VertexTitle");
+
+    _conditionTitle = new QLabel("Conditions", _conditionsRepresentation);
+    _conditionTitle->setObjectName("ConditionTitle");
+    _conditionTitle->setAlignment(Qt::AlignCenter);
+
+    _conditionsValues = new QLabel("No conditions...", _conditionsRepresentation);
+    _conditionsValues->setAlignment(Qt::AlignCenter);
+    _conditionsValues->setWordWrap(true);
+
+    //condLayout->addWidget(_conditionTitle);
 
 
     //for each input and output create buttons:
@@ -406,7 +563,7 @@ namespace charliesoft
     int showIn = 0, showOut = 0;
     for (size_t i = 0; i < inputParams.size() ; i++)
     {
-      ParamRepresentation  *tmp = new ParamRepresentation(model, inputParams[i], true, this);
+      ParamRepresentation  *tmp = new ParamRepresentation(model, inputParams[i], true, _blockRepresentation);
       connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
       connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
       listOfInputChilds_[inputParams[i]._name] = tmp;
@@ -416,39 +573,64 @@ namespace charliesoft
     vector<ParamRepresentation*> tmpButtonsOut;
     for (size_t i = 0; i < outputParams.size(); i++)
     {
-      ParamRepresentation  *tmp = new ParamRepresentation(model, outputParams[i], false, this);
+      ParamRepresentation  *tmp = new ParamRepresentation(model, outputParams[i], false, _blockRepresentation);
       connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
       connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
       listOfOutputChilds_[outputParams[i]._name] = tmp;
     }
 
-    lineTitle = new QFrame(this);//add a line...
-    lineTitle->setFrameShape(QFrame::HLine);
-    lineTitle->setObjectName("VertexTitleLine");
+    _lineTitle = new QFrame(_blockRepresentation);//add a line...
+    _lineTitle->setFrameShape(QFrame::HLine);
+    _lineTitle->setObjectName("VertexTitleLine");
 
     reshape();
 
     QGraphicsDropShadowEffect* shadowEffect = new QGraphicsDropShadowEffect();
     shadowEffect->setBlurRadius(15);
     shadowEffect->setOffset(3, 3);
-    setGraphicsEffect(shadowEffect);
+    _blockRepresentation->setGraphicsEffect(shadowEffect);
 
     move((int)model->getPosition().x, (int)model->getPosition().y);
+    _blockRepresentation->move(0, 5);
   }
-
 
   void VertexRepresentation::removeLink(BlockLink l){
     links_.erase(l);
 
-    if (l.from_ == model_)
-      (*model_->getParam(l.fromParam_, false)) = Not_A_Value();
-    if (l.to_ == model_)
-      (*model_->getParam(l.toParam_, true)) = Not_A_Value();
+    if (l.from_ == _model)
+      (*_model->getParam(l.fromParam_, false)) = Not_A_Value();
+    if (l.to_ == _model)
+      (*_model->getParam(l.toParam_, true)) = Not_A_Value();
   };
+
+  ConditionLinkRepresentation* VertexRepresentation::getCondition(ConditionOfRendering* cor, bool isLeft)
+  {
+    for (auto it : linksConditions_)
+    {
+      if (it.first == cor && (it.second->isLeftCond()==isLeft))
+        return it.second;
+    }
+    return NULL;
+  }
 
   void VertexRepresentation::reshape()
   {
-    QRect sizeNameVertex = vertexTitle_->fontMetrics().boundingRect(vertexTitle_->text());
+    QRect sizeNameVertex = _vertexTitle->fontMetrics().boundingRect(_vertexTitle->text());
+
+    //conditions:
+    vector<ConditionOfRendering>& conditions = _model->getConditions();
+    int heightOfConditions_tmp = 0;
+    int maxWidth = 0;
+    string conditionsText = "";
+    for (ConditionOfRendering& condition : conditions)
+    {
+      conditionsText += condition.toString() + "\n";
+      QRect sizeTMP_cond = _conditionsValues->fontMetrics().boundingRect(condition.toString().c_str());
+      if (maxWidth < sizeTMP_cond.width())maxWidth = sizeTMP_cond.width();
+      heightOfConditions_tmp += sizeNameVertex.height() + 5;
+    }
+    if (sizeNameVertex.width() < maxWidth + 26)
+      sizeNameVertex.setWidth(maxWidth + 26);
     
     int topPadding = sizeNameVertex.height() + 20;
 
@@ -456,7 +638,6 @@ namespace charliesoft
     int inputHeight, outputHeight, maxInputWidth, maxOutputWidth;
     inputHeight = outputHeight = topPadding;
     maxInputWidth = maxOutputWidth = 0;
-
 
     //for each input and output create buttons:
     auto it = listOfInputChilds_.begin();
@@ -527,23 +708,76 @@ namespace charliesoft
         outputHeight += tmpSize.height() + 10;
     }
 
-    vertexTitle_->move((newWidth - sizeNameVertex.width()) / 2, 5);//move the name at the top of vertex...
+    _vertexTitle->move((newWidth - sizeNameVertex.width()) / 2, 5);//move the name at the top of vertex...
 
-    lineTitle->resize(newWidth, 2);
-    lineTitle->move(0, sizeNameVertex.height() + 8);//move the name at the top of vertex...
+    _lineTitle->resize(newWidth, 2);
+    _lineTitle->move(0, sizeNameVertex.height() + 8);//move the name at the top of vertex...
 
 
     projectedHeight += max(inputHeight, outputHeight);
 
-    resize(newWidth, projectedHeight - 20);
+    heightOfConditions = sizeNameVertex.height();
+    _blockRepresentation->resize(newWidth, projectedHeight - 20);
+    _conditionTitle->resize(newWidth - 26, heightOfConditions);
+
+    _conditionsValues->move(0, heightOfConditions);
+
+    heightOfConditions += heightOfConditions_tmp;
+    _conditionsValues->resize(newWidth - 26, heightOfConditions);
+
+    //conditions reshaping:
+    _conditionsValues->setText(conditionsText.c_str());
+
+    _conditionsRepresentation->move(13, 0);
+
+    QRect prevSize = _conditionsRepresentation->geometry();
+    _conditionsRepresentation->setGeometry(QRect(prevSize.x(), prevSize.y(), newWidth - 26, heightOfConditions + 20));
+
+    //now add connection bloc for each needed conditions:
+    heightOfConditions_tmp = sizeNameVertex.height();
+    for (ConditionOfRendering& condition : conditions)
+    {
+      if (condition.getCategory_left() == 1)//output of block...
+      {
+        ConditionLinkRepresentation* tmp = getCondition(&condition, true);
+        if (tmp == NULL)
+        {
+          tmp = new ConditionLinkRepresentation(&condition, true, _conditionsRepresentation);
+          connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
+          connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
+          linksConditions_.push_back(std::pair<ConditionOfRendering*, ConditionLinkRepresentation*>(&condition, tmp));
+        }
+        tmp->move(-2, heightOfConditions_tmp);//move the name at the top of vertex...
+        tmp->show();
+      }
+      if (condition.getCategory_right() == 1)//output of block...
+      {
+        ConditionLinkRepresentation* tmp = getCondition(&condition, false);
+        if (tmp == NULL)
+        {
+          tmp = new ConditionLinkRepresentation(&condition, false, _conditionsRepresentation);
+          connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
+          connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
+          linksConditions_.push_back(std::pair<ConditionOfRendering*, ConditionLinkRepresentation*>(&condition, tmp));
+        }
+        QRect tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
+        tmp->move(newWidth - 32 - tmpSize.width(), heightOfConditions_tmp);//move the name at the top of vertex...
+        tmp->show();
+      }
+      heightOfConditions_tmp += sizeNameVertex.height() + 5;
+    }
+
+    _blockRepresentation->raise();
+
+    resize(newWidth + 10, projectedHeight - 10);
 
     for (auto link : links_)
       Window::getGraphLayout()->updateLink(link.first);
   }
   
-  void VertexRepresentation::setParamActiv(ParamRepresentation* param)
+  void VertexRepresentation::setParamActiv(LinkConnexionRepresentation* param)
   {
-    paramActiv_ = param;
+    _paramActiv = param;
   }
 
   ParamRepresentation* VertexRepresentation::getParamRep(std::string paramName, bool input)
@@ -563,15 +797,15 @@ namespace charliesoft
 
   void VertexRepresentation::changeStyleProperty(const char* propertyName, QVariant val)
   {
-    setProperty(propertyName, val);
-    style()->unpolish(this);
-    style()->polish(this);
-    update();
+    _blockRepresentation->setProperty(propertyName, val);
+    _blockRepresentation->style()->unpolish(_blockRepresentation);
+    _blockRepresentation->style()->polish(_blockRepresentation);
+    _blockRepresentation->update();
   }
 
   void VertexRepresentation::setSelected(bool isSelected)
   {
-    bool prevProperty = this->property("selected").toBool();
+    bool prevProperty = _blockRepresentation->property("selected").toBool();
     if (prevProperty == isSelected)
       return;//nothing to do: already in correct state...
     changeStyleProperty("selected", isSelected);
@@ -600,12 +834,23 @@ namespace charliesoft
 
   void VertexRepresentation::mousePressEvent(QMouseEvent *mouseE)
   {
-    if (paramActiv_ == NULL && mouseE->button() == Qt::LeftButton)
+    QPoint mouseP = mouseE->pos();
+    if (_paramActiv == NULL && mouseE->button() == Qt::LeftButton)
     {
-      setSelected(true);
-      changeStyleProperty("selected", true);
-      isDragging_ = true;
-      startClick_ = mouseE->globalPos();
+      if (mouseP.y()>heightOfConditions + 5)
+      {
+        bool prevProperty = _blockRepresentation->property("selected").toBool();
+        if (!prevProperty)//if not previously selected, we reset the selection list...
+          resetSelection();
+        setSelected(true);
+        _isDragging = true;
+        startClick_ = mouseE->globalPos();
+      }
+      if (mouseP.y()<heightOfConditions + 5)
+      {
+        resetSelection();
+        _isDragging = false;
+      }
     }
     else
       mouseE->ignore();
@@ -614,14 +859,14 @@ namespace charliesoft
 
   void VertexRepresentation::mouseReleaseEvent(QMouseEvent *)
   {
-    isDragging_ = false;
+    _isDragging = false;
   }
 
   void VertexRepresentation::moveDelta(QPoint delta)
   {
     delta = pos() + delta;
     move(delta.x(), delta.y());
-    model_->setPosition(delta.x(), delta.y());
+    _model->setPosition(delta.x(), delta.y());
     Window::getInstance()->update();
     for (auto link : links_)
       Window::getGraphLayout()->updateLink(link.first);
@@ -629,7 +874,7 @@ namespace charliesoft
 
   void VertexRepresentation::mouseMoveEvent(QMouseEvent *mouseE)
   {
-    if (isDragging_)
+    if (_isDragging)
     {
       QPoint p = mouseE->globalPos();
       QPoint deltaClick_ = p - startClick_;
@@ -641,17 +886,50 @@ namespace charliesoft
       mouseE->ignore();
   }
 
-  void VertexRepresentation::mouseDoubleClickEvent(QMouseEvent *)
+  void VertexRepresentation::mouseDoubleClickEvent(QMouseEvent *mouseE)
   {
-    ParamsConfigurator config(this, listOfInputChilds_, listOfOutputChilds_);
-    int retour = config.exec();
+    QPoint mouseP = mouseE->pos();
+    if (mouseP.y() > heightOfConditions + 5)
+    {
+      ParamsConfigurator config(this, listOfInputChilds_, listOfOutputChilds_);
+      int retour = config.exec();
+    }
+    else
+    {
+      ConditionConfigurator config(this);
+      int retour = config.exec();
+    }
   }
 
+  void VertexRepresentation::enterEvent(QEvent *)
+  {
+    QRect prevSize = geometry();
+    setGeometry(QRect(prevSize.x(), prevSize.y() - heightOfConditions, prevSize.width(), prevSize.height() + heightOfConditions));
+    _blockRepresentation->move(0, heightOfConditions + 5);
+  }
+
+  void VertexRepresentation::leaveEvent(QEvent *)
+  {
+    QRect prevSize = geometry();
+    setGeometry(QRect(prevSize.x(), prevSize.y() + heightOfConditions, prevSize.width(), prevSize.height() - heightOfConditions));
+    _blockRepresentation->move(0, 5);
+  }
+
+  ConditionLinkRepresentation::ConditionLinkRepresentation(ConditionOfRendering* model, bool isLeftCond, QWidget *father) :
+    LinkConnexionRepresentation(_STR(isLeftCond ? "CONDITION_BLOCK_LEFT" : "CONDITION_BLOCK_RIGHT"), isLeftCond, father), _model(model){
+    setObjectName("ParamRepresentation");
+    setToolTip(_QT("CONDITION_BLOCK_HELP"));
+
+    connect(this, SIGNAL(askSynchro()), (VertexRepresentation*)father->parentWidget(), SLOT(reshape()));
+  }
+  
   ParamRepresentation::ParamRepresentation(Block* model, ParamDefinition param, bool isInput, QWidget *father) :
-    QLabel(_QT(param._name.c_str()), father), model_(model), param_(param), isInput_(isInput){
+    LinkConnexionRepresentation(_STR(param._name), isInput, father), _model(model), param_(param){
     setObjectName("ParamRepresentation");
     if (!param._show) this->hide();
     setToolTip(_QT(param._helper));
+    
+    connect(this, SIGNAL(askSynchro()), (VertexRepresentation*)father->parentWidget(), SLOT(reshape()));
   };
   
   void ParamRepresentation::setVisibility(bool visible)
@@ -660,45 +938,48 @@ namespace charliesoft
       return;//Nothing to do...
 
     param_._show = visible;
-    Window::getGraphLayout()->getVertexRepresentation(model_)->reshape();
+    emit askSynchro();
   }
 
-  QPoint ParamRepresentation::getWorldAnchor()
+  LinkConnexionRepresentation::LinkConnexionRepresentation(std::string text, bool isInput, QWidget *father):
+    QLabel(text.c_str(), father), _isInput(isInput)
+  {
+
+  };
+  QPoint LinkConnexionRepresentation::getWorldAnchor()
   {
     QPoint p = parentWidget()->mapTo(Window::getInstance()->getMainWidget(), mapTo(parentWidget(), pos()) / 2);
-    if (isInput_)
+    if (_isInput)
       return QPoint(p.x(), (int)(p.y() + height() / 2.));
     else
       return QPoint(p.x() + width(), (int)(p.y() + height() / 2.));
   }
   
-  void ParamRepresentation::mousePressEvent(QMouseEvent *e)
+  void LinkConnexionRepresentation::mousePressEvent(QMouseEvent *e)
   {
-    if (VertexRepresentation* vertex = dynamic_cast<VertexRepresentation*>(parentWidget()))
+    QWidget* parent = parentWidget();
+    if (parent == NULL) return;//Nothing to do...
+    if (VertexRepresentation* vertex = dynamic_cast<VertexRepresentation*>(parent->parentWidget()))
       vertex->setParamActiv(this);
     //get the position of widget inside main widget and send signal of a new link creation:
     emit creationLink(getWorldAnchor());
     e->ignore();
   }
-  void ParamRepresentation::mouseReleaseEvent(QMouseEvent *e)
+  void LinkConnexionRepresentation::mouseReleaseEvent(QMouseEvent *e)
   {
     if (VertexRepresentation* vertex = dynamic_cast<VertexRepresentation*>(parentWidget()))
       vertex->setParamActiv(NULL);
 
     emit releaseLink(Window::getInstance()->getMainWidget()->mapFromGlobal(e->globalPos()));
   };
-  void ParamRepresentation::mouseDoubleClickEvent(QMouseEvent *)
+  void LinkConnexionRepresentation::mouseDoubleClickEvent(QMouseEvent *)
   {
 
   };
-  void ParamRepresentation::mouseMoveEvent(QMouseEvent *me)
+  void LinkConnexionRepresentation::mouseMoveEvent(QMouseEvent *me)
   {
     me->ignore();
   };
-
-  GraphRepresentation::GraphRepresentation()
-  {
-  }
 
   void GraphRepresentation::addItem(QLayoutItem * item)
   {
@@ -934,7 +1215,7 @@ namespace charliesoft
     setObjectName("MainWidget");
     isSelecting_ = creatingLink_ = false;
     startParam_ = NULL;
-    model_ = model;
+    _model = model;
     setAcceptDrops(true);
   }
 
@@ -948,9 +1229,9 @@ namespace charliesoft
   {
     Block* block = ProcessManager::getInstance()->createAlgoInstance(
       event->mimeData()->text().toStdString());
-    model_->addNewProcess(block);
+    _model->addNewProcess(block);
     block->updatePosition((float)event->pos().x(), (float)event->pos().y());
-    emit askSynchro(model_);//as we updated the model, we ask the layout to redraw itself...
+    emit askSynchro(_model);//as we updated the model, we ask the layout to redraw itself...
   }
   
   void MainWidget::paintEvent(QPaintEvent *pe)
@@ -1020,15 +1301,16 @@ namespace charliesoft
   {
     if (!creatingLink_ && mouseE->button() == Qt::LeftButton)
     {
+      startMouse_ = mouseE->pos();
+      //begin rect:
+      selectBox_.setCoords(startMouse_.x()-3, startMouse_.y()-3,
+        startMouse_.x() + 3, startMouse_.y() + 3);
+
       VertexRepresentation::resetSelection();
       std::map<BlockLink, LinkPath*>& links = Window::getGraphLayout()->getLinks();
       for (auto link : links)
-        link.second->setSelected(false);
+        link.second->setSelected(link.second->intersect(selectBox_.toRect()));
 
-      startMouse_ = mouseE->pos();
-      //begin rect:
-      selectBox_.setCoords(startMouse_.x(), startMouse_.y(),
-        mouseE->x() + 1, mouseE->y() + 1);
       isSelecting_ = true;
     }
   }
@@ -1039,7 +1321,6 @@ namespace charliesoft
     Window::getInstance()->update();
   }
 
-
   void MainWidget::endLinkCreation(QPoint end)
   {
     endMouse_ = end;
@@ -1048,20 +1329,22 @@ namespace charliesoft
     Window::getInstance()->update();//redraw window...
 
     //find an hypotetic param widget under mouse:
-    if (ParamRepresentation* param = dynamic_cast<ParamRepresentation*>(childAt(endMouse_)))
+    ParamRepresentation* param = dynamic_cast<ParamRepresentation*>(childAt(endMouse_));
+    ParamRepresentation* startParam = dynamic_cast<ParamRepresentation*>(startParam_);
+    if (param != NULL &&startParam != NULL)
     {
       //we have a candidate!
       //we should link input on output(or vice versa)
-      if (param->isInput() == startParam_->isInput())
+      if (param->isInput() == startParam->isInput())
       {
         string typeLink = param->isInput() ? _STR("BLOCK_INPUT") : _STR("BLOCK_OUTPUT");
         QMessageBox messageBox;
-        string msg = (my_format(_STR("ERROR_LINK_WRONG_INPUT_OUTPUT")) % _STR(startParam_->getParamName()) % _STR(param->getParamName()) % typeLink).str();
+        string msg = (my_format(_STR("ERROR_LINK_WRONG_INPUT_OUTPUT")) % _STR(startParam->getParamName()) % _STR(param->getParamName()) % typeLink).str();
         messageBox.critical(0, _STR("ERROR_GENERIC_TITLE").c_str(), msg.c_str());
         return;
       }
 
-      if (param->getModel() == startParam_->getModel())
+      if (param->getModel() == startParam->getModel())
       {
         QMessageBox messageBox;
         messageBox.critical(0, _STR("ERROR_GENERIC_TITLE").c_str(), _STR("ERROR_LINK_SAME_BLOCK").c_str());
@@ -1071,9 +1354,9 @@ namespace charliesoft
       //everything seems correct, create the link!!!
       try{
         if (param->isInput())
-          startParam_->getModel()->createLink(startParam_->getParamName(), param->getModel(), param->getParamName());
+          startParam->getModel()->createLink(startParam->getParamName(), param->getModel(), param->getParamName());
         else
-          param->getModel()->createLink(param->getParamName(), startParam_->getModel(), startParam_->getParamName());
+          param->getModel()->createLink(param->getParamName(), startParam->getModel(), startParam->getParamName());
       }
       catch (ErrorValidator& e)
       {
@@ -1082,10 +1365,33 @@ namespace charliesoft
         return;
       }
 
-      emit askSynchro(model_);
+      emit askSynchro(_model);
+    }
+
+    //if one is ConditionLinkRepresentation, other is ParamRepresentation:
+    ConditionLinkRepresentation* condParam;
+    if (param != NULL)
+      condParam = dynamic_cast<ConditionLinkRepresentation*>(startParam_);
+    if (startParam != NULL)
+    {
+      param = startParam;
+      condParam = dynamic_cast<ConditionLinkRepresentation*>(childAt(endMouse_));
+    }
+    if (param != NULL &&condParam != NULL)
+    {
+      if (param->isInput())
+      {
+        QMessageBox messageBox;
+        messageBox.critical(0, _STR("ERROR_GENERIC_TITLE").c_str(), _STR("CONDITION_BLOCK_ERROR_INPUT").c_str());
+        return;
+      }
+      ConditionOfRendering* model = condParam->getModel();
+      model->setValue(condParam->isLeftCond(), param->getParamValue());
+      emit askSynchro(_model);
     }
 
   }
+
   void MainWidget::initLinkCreation(QPoint start)
   {
     startMouse_ = endMouse_ = start;

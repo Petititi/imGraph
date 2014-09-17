@@ -2,6 +2,7 @@
 #define _GRAPHICVIEW_HEADER_
 
 #ifdef _WIN32
+#pragma warning(disable:4503)
 #pragma warning(push)
 #pragma warning(disable:4996 4251 4275 4800 4503)
 #endif
@@ -58,53 +59,85 @@ namespace charliesoft
     void setSelected(bool val) { selected_ = val; }
   };
 
-  class ParamRepresentation :public QLabel
+  class LinkConnexionRepresentation :public QLabel
   {
     Q_OBJECT;
-
-    Block* model_;
-    ParamDefinition param_;
-    bool isInput_;
+  protected:
+    bool _isInput;
   public:
-    ParamRepresentation(Block* model, ParamDefinition param, bool isInput, QWidget *father);
+    LinkConnexionRepresentation(std::string text, bool isInput, QWidget *father);
 
     virtual void mousePressEvent(QMouseEvent *);
     virtual void mouseReleaseEvent(QMouseEvent *);
     virtual void mouseDoubleClickEvent(QMouseEvent *);
     virtual void mouseMoveEvent(QMouseEvent *);
 
-    bool shouldShow() const { return param_._show; }
-    void setVisibility(bool visible);
-    std::string getParamName() const { return param_._name; }
-    ParamValue* getParamValue() const { return model_->getParam(param_._name, isInput_); }
-    std::string getParamHelper() const { return param_._helper; }
-    Block* getModel() const { return model_; }
-    bool isInput() const { return isInput_; }
+    bool isInput() const { return _isInput; }
 
     QPoint getWorldAnchor();
   signals:
     void creationLink(QPoint startPos);
     void releaseLink(QPoint endPos);
+    void askSynchro();
+  };
+
+  class ConditionLinkRepresentation :public LinkConnexionRepresentation
+  {
+    Q_OBJECT;
+
+    ConditionOfRendering* _model;
+    bool _isLeftCond;
+  public:
+    ConditionLinkRepresentation(ConditionOfRendering* model, bool isLeftCond, QWidget *father);
+    bool isLeftCond() const { return _isLeftCond; }
+    ConditionOfRendering* getModel() const { return _model; }
+  };
+
+  class ParamRepresentation :public LinkConnexionRepresentation
+  {
+    Q_OBJECT;
+
+    Block* _model;
+    ParamDefinition param_;
+
+  public:
+    ParamRepresentation(Block* model, ParamDefinition param, bool isInput, QWidget *father);
+
+    bool shouldShow() const { return param_._show; }
+    void setVisibility(bool visible);
+    std::string getParamName() const { return param_._name; }
+    ParamValue* getParamValue() const { return _model->getParam(param_._name, _isInput); }
+    std::string getParamHelper() const { return param_._helper; }
+    Block* getModel() const { return _model; }
+
   };
 
   class VertexRepresentation :public QWidget
   {
-    QFrame* lineTitle;
-    QLabel* vertexTitle_;
-    Block* model_;
-    bool isDragging_;
+    Q_OBJECT;
+
+    QWidget* _blockRepresentation;
+    QWidget* _conditionsRepresentation;
+    QFrame* _lineTitle;
+    QLabel* _vertexTitle;
+    QLabel* _conditionTitle;
+    QLabel* _conditionsValues;
+    Block* _model;
+    bool _isDragging;
     QPoint startClick_;
-    ParamRepresentation* paramActiv_;
+    LinkConnexionRepresentation* _paramActiv;
+    int heightOfConditions;
 
     std::map<BlockLink, LinkPath*> links_;
+    std::vector< std::pair<ConditionOfRendering*, ConditionLinkRepresentation*> > linksConditions_;
     std::map<std::string, ParamRepresentation*> listOfInputChilds_;
     std::map<std::string, ParamRepresentation*> listOfOutputChilds_;
   public:
     VertexRepresentation(Block* model);
     ~VertexRepresentation();
 
-    Block* getModel() const { return model_; }
-    void setParamActiv(ParamRepresentation*);
+    Block* getModel() const { return _model; }
+    void setParamActiv(LinkConnexionRepresentation*);
 
     std::map<BlockLink, LinkPath*> getLinks() const { return links_; }
 
@@ -112,8 +145,6 @@ namespace charliesoft
       links_[l] = p;
     };
     void removeLink(BlockLink l);
-
-    void reshape();
 
     void changeStyleProperty(const char* propertyName, QVariant val);
     void setSelected(bool isSelected);
@@ -123,12 +154,45 @@ namespace charliesoft
     };
     ParamRepresentation* getParamRep(std::string paramName, bool input);
   protected:
+    ConditionLinkRepresentation* getCondition(ConditionOfRendering*, bool isLeft);
     static std::vector<VertexRepresentation*> selectedBlock_;
     void moveDelta(QPoint delta);
     virtual void mousePressEvent(QMouseEvent *);
     virtual void mouseReleaseEvent(QMouseEvent *);
     virtual void mouseDoubleClickEvent(QMouseEvent *);
     virtual void mouseMoveEvent(QMouseEvent *);
+    virtual void enterEvent(QEvent *);
+    virtual void leaveEvent(QEvent *);
+
+    public slots:
+    void reshape();
+  };
+
+  class ConditionConfigurator :public QDialog
+  {
+    Q_OBJECT;
+    VertexRepresentation* _vertex;
+
+    QPushButton* OKbutton_;
+    QPushButton* Cancelbutton_;
+    QComboBox* _condition_left;
+    QComboBox* _condition_type;
+    QComboBox* _condition_right;
+
+    QLineEdit* _value_left;
+    QLineEdit* _value_right;
+
+    QGridLayout* comboBoxLayout;
+  public:
+    ConditionConfigurator(VertexRepresentation* vertex);
+    public slots:
+    void accept_button();
+    void reject_button();
+    void updateLeft(int);
+    void updateRight(int);
+
+  signals:
+    void askSynchro();
   };
 
   class ParamsConfigurator :public QDialog
@@ -145,7 +209,7 @@ namespace charliesoft
     boost::bimap<ParamRepresentation*, QObject* > inputValue_;
     std::map<std::string, ParamRepresentation*>& in_param_;
     std::map<std::string, ParamRepresentation*>& out_param_;
-    VertexRepresentation* vertex_;
+    VertexRepresentation* _vertex;
 
     QPushButton* OKbutton_;
     QPushButton* Cancelbutton_;
@@ -161,10 +225,12 @@ namespace charliesoft
 
   signals:
     void changeVisibility(bool isVisible);
+    void askSynchro();
 
     public slots:
     void switchEnable(int);
     void openFile();
+    void configCondition();
     void accept_button();
     void reject_button();
   };
@@ -177,7 +243,6 @@ namespace charliesoft
     std::map<BlockLink, LinkPath*> links_;
     std::vector<Block*> orderedBlocks_;
   public:
-    GraphRepresentation();
 
     void removeLinks(VertexRepresentation* vertex);
     void removeSelectedLinks();
@@ -207,7 +272,7 @@ namespace charliesoft
   {
     Q_OBJECT
 
-    ParamRepresentation* startParam_;
+    LinkConnexionRepresentation* startParam_;
     QPoint startMouse_;
     QPoint endMouse_;
     QRectF selectBox_;
@@ -222,11 +287,11 @@ namespace charliesoft
     virtual void dragEnterEvent(QDragEnterEvent *);
     virtual void dropEvent(QDropEvent *);
 
-    charliesoft::GraphOfProcess *model_;
+    charliesoft::GraphOfProcess *_model;
   public:
     MainWidget(charliesoft::GraphOfProcess *model);
 
-    void setModel(charliesoft::GraphOfProcess * val) { model_ = val; }
+    void setModel(charliesoft::GraphOfProcess * val) { _model = val; }
 
 
     signals:

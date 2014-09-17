@@ -48,6 +48,7 @@
 #include <Window.h>
 
 #ifdef _WIN32
+#pragma warning(disable:4503)
 #include <windows.h>
 #else
 #include <unistd.h>
@@ -99,7 +100,7 @@ CV_IMPL CvFont cvFontQt(const char* nameFont, int pointSize, CvScalar color, int
   float       dx;//spacing letter in Qt (0 default) in pixel
   int         line_type;//<- pointSize in Qt
   */
-  CvFont f = { nameFont, color, style, NULL, NULL, NULL, 0, 0, 0, weight, spacing, pointSize };
+  CvFont f = { nameFont, color, style, NULL, NULL, NULL, 0.f, 0.f, 0.f, weight, (float)spacing, pointSize };
   return f;
 }
 
@@ -800,7 +801,7 @@ void GuiReceiver::putText(void* arr, QString text, QPoint org, void* arg2)
     //cvScalar(blue_component, green_component, red_component[, alpha_component])
     //Qt map non-transparent to 0xFF and transparent to 0
     //OpenCV scalar is the reverse, so 255-font->color.val[3]
-    qp.setPen(QColor(font->color.val[2], font->color.val[1], font->color.val[0], 255 - font->color.val[3]));
+    qp.setPen(QColor((int)font->color.val[2], (int)font->color.val[1], (int)font->color.val[0], (int)(255 - font->color.val[3])));
     qp.setFont(f);
   }
   qp.drawText(org, text);
@@ -1441,7 +1442,7 @@ CvRadioButton::CvRadioButton(CvButtonbar* arg1, QString arg2, CvButtonCallback a
   userdata = arg4;
 
   setObjectName(button_name);
-  setChecked(initial_button_state);
+  setChecked(initial_button_state!=0);
   setText(button_name);
 
   if (isChecked())
@@ -2170,21 +2171,21 @@ void CvWindow::icvLoadButtonbar(CvButtonbar* b, QSettings* settings)
       CvPushButton* button = (CvPushButton*)temp;
 
       if (button->text() == settings->value("namebutton").toString())
-        button->setChecked(settings->value("valuebutton").toInt());
+        button->setChecked(settings->value("valuebutton").toInt() != 0);
     }
     else if (myclass == "CvCheckBox")
     {
       CvCheckBox* button = (CvCheckBox*)temp;
 
       if (button->text() == settings->value("namebutton").toString())
-        button->setChecked(settings->value("valuebutton").toInt());
+        button->setChecked(settings->value("valuebutton").toInt() != 0);
     }
     else if (myclass == "CvRadioButton")
     {
       CvRadioButton* button = (CvRadioButton*)temp;
 
       if (button->text() == settings->value("namebutton").toString())
-        button->setChecked(settings->value("valuebutton").toInt());
+        button->setChecked(settings->value("valuebutton").toInt() != 0);
     }
 
   }
@@ -2413,7 +2414,7 @@ void DefaultViewPort::updateGl()
 //Note: move 2 percent of the window
 void DefaultViewPort::siftWindowOnLeft()
 {
-  float delta = 2 * width() / (100.0 * param_matrixWorld.m11());
+  float delta = static_cast<float>(2 * width() / (100.0f * param_matrixWorld.m11()));
   moveView(QPointF(delta, 0));
 }
 
@@ -2421,7 +2422,7 @@ void DefaultViewPort::siftWindowOnLeft()
 //Note: move 2 percent of the window
 void DefaultViewPort::siftWindowOnRight()
 {
-  float delta = -2 * width() / (100.0 * param_matrixWorld.m11());
+  float delta = static_cast<float>(-2 * width() / (100.0f * param_matrixWorld.m11()));
   moveView(QPointF(delta, 0));
 }
 
@@ -2429,7 +2430,7 @@ void DefaultViewPort::siftWindowOnRight()
 //Note: move 2 percent of the window
 void DefaultViewPort::siftWindowOnUp()
 {
-  float delta = 2 * height() / (100.0 * param_matrixWorld.m11());
+  float delta = static_cast<float>(2 * height() / (100.0f * param_matrixWorld.m11()));
   moveView(QPointF(0, delta));
 }
 
@@ -2437,7 +2438,7 @@ void DefaultViewPort::siftWindowOnUp()
 //Note: move 2 percent of the window
 void DefaultViewPort::siftWindowOnDown()
 {
-  float delta = -2 * height() / (100.0 * param_matrixWorld.m11());
+  float delta = static_cast<float>(-2 * height() / (100.0f * param_matrixWorld.m11()));
   moveView(QPointF(0, delta));
 }
 
@@ -2726,8 +2727,8 @@ void DefaultViewPort::controlImagePosition()
   }
 
   //save corner position
-  positionCorners.setTopLeft(QPoint(left, top));
-  positionCorners.setBottomRight(QPoint(right, bottom));
+  positionCorners.setTopLeft(QPoint((int)left, (int)top));
+  positionCorners.setBottomRight(QPoint((int)right, (int)bottom));
   //save also the inv matrix
   matrixWorld_inv = param_matrixWorld.inverted();
 
@@ -2761,7 +2762,7 @@ void DefaultViewPort::scaleView(qreal factor, QPointF center)
 
   //inverse the transform
   int a, b;
-  matrixWorld_inv.map(center.x(), center.y(), &a, &b);
+  matrixWorld_inv.map((int)center.x(), (int)center.y(), &a, &b);
 
   param_matrixWorld.translate(a - factor*a, b - factor*b);
   param_matrixWorld.scale(factor, factor);
@@ -2826,8 +2827,8 @@ void DefaultViewPort::icvmouseProcessing(QPointF pt, int cv_event, int flags)
   qreal pfx, pfy;
   matrixWorld_inv.map(pt.x(), pt.y(), &pfx, &pfy);
 
-  mouseCoordinate.rx() = floor(pfx / ratioX);
-  mouseCoordinate.ry() = floor(pfy / ratioY);
+  mouseCoordinate.rx() = static_cast<int>(floor(pfx / ratioX));
+  mouseCoordinate.ry() = static_cast<int>(floor(pfy / ratioY));
 
   if (on_mouse)
     on_mouse(cv_event, mouseCoordinate.x(),
@@ -2915,7 +2916,7 @@ void DefaultViewPort::drawImgRegion(QPainter *painter)
   int original_font_size = f.pointSize();
   //change font size
   //f.setPointSize(4+(param_matrixWorld.m11()-threshold_zoom_img_region)/5);
-  f.setPixelSize(10 + (pixel_height - threshold_zoom_img_region) / 5);
+  f.setPixelSize(static_cast<int>(10 + (pixel_height - threshold_zoom_img_region) / 5));
   painter->setFont(f);
 
 
@@ -2929,7 +2930,7 @@ void DefaultViewPort::drawImgRegion(QPainter *painter)
     QPointF pos_in_image = matrixWorld_inv.map(pos_in_view);// Top left of pixel in view
     pos_in_image.rx() = pos_in_image.x() / ratioX;
     pos_in_image.ry() = pos_in_image.y() / ratioY;
-    QPoint point_in_image(pos_in_image.x() + 0.5f, pos_in_image.y() + 0.5f);// Add 0.5 for rounding
+    QPoint point_in_image(static_cast<int>(pos_in_image.x() + 0.5f), static_cast<int>(pos_in_image.y() + 0.5f));// Add 0.5 for rounding
 
     QRgb rgbValue;
     if (image2Draw_qt.valid(point_in_image))
@@ -2950,17 +2951,17 @@ void DefaultViewPort::drawImgRegion(QPainter *painter)
 
       val = tr("%1").arg(qRed(rgbValue));
       painter->setPen(QPen(Qt::red, 1));
-      painter->drawText(QRect(pos_in_view.x(), pos_in_view.y(), pixel_width, pixel_height / 3),
+      painter->drawText(QRect((int)pos_in_view.x(), (int)pos_in_view.y(), (int)pixel_width, (int)(pixel_height / 3)),
         Qt::AlignCenter, val);
 
       val = tr("%1").arg(qGreen(rgbValue));
       painter->setPen(QPen(Qt::green, 1));
-      painter->drawText(QRect(pos_in_view.x(), pos_in_view.y() + pixel_height / 3, pixel_width, pixel_height / 3),
+      painter->drawText(QRect((int)pos_in_view.x(), (int)(pos_in_view.y() + pixel_height / 3), (int)pixel_width, (int)(pixel_height / 3)),
         Qt::AlignCenter, val);
 
       val = tr("%1").arg(qBlue(rgbValue));
       painter->setPen(QPen(Qt::blue, 1));
-      painter->drawText(QRect(pos_in_view.x(), pos_in_view.y() + 2 * pixel_height / 3, pixel_width, pixel_height / 3),
+      painter->drawText(QRect((int)pos_in_view.x(), (int)(pos_in_view.y() + 2 * pixel_height / 3), (int)pixel_width, (int)(pixel_height / 3)),
         Qt::AlignCenter, val);
 
     }
@@ -2968,7 +2969,7 @@ void DefaultViewPort::drawImgRegion(QPainter *painter)
     if (nbChannelOriginImage == CV_8UC1)
     {
       QString val = tr("%1").arg(qRed(rgbValue));
-      painter->drawText(QRect(pos_in_view.x(), pos_in_view.y(), pixel_width, pixel_height),
+      painter->drawText(QRect((int)pos_in_view.x(), (int)pos_in_view.y(), (int)pixel_width, (int)pixel_height),
         Qt::AlignCenter, val);
     }
     }

@@ -59,6 +59,39 @@ namespace charliesoft
   class GraphOfProcess;
   struct BlockLink;
   class GraphOfProcess;
+  class Block;
+
+  class ConditionOfRendering
+  {
+    unsigned char category_left;
+    ParamValue opt_value_left;
+    unsigned char category_right;
+    ParamValue opt_value_right;
+    unsigned char boolean_operator;
+  public:
+    ConditionOfRendering();
+    ConditionOfRendering(unsigned char category_left,
+      ParamValue opt_value_left,
+      unsigned char category_right,
+      ParamValue opt_value_right,
+      unsigned char boolean_operator);
+    bool operator= (const ConditionOfRendering &b)
+    {
+      category_left = b.category_left;
+      opt_value_left = b.opt_value_left;
+      category_right = b.category_right;
+      opt_value_right = b.opt_value_right;
+      boolean_operator = b.boolean_operator;
+    }
+    unsigned char getCategory_left() const { return category_left; }
+    unsigned char getCategory_right() const { return category_right; }
+
+    std::string toString();
+
+    bool canRender(Block* blockTested);
+    void setValue(bool left, ParamValue* val);
+  };
+
   struct ParamDefinition
   {
     bool _show;
@@ -74,6 +107,7 @@ namespace charliesoft
     friend charliesoft::ProcessManager;
 
   protected:
+    unsigned int nbRendering;
     GraphOfProcess* _processes;///<list of process currently in use
     boost::condition_variable _cond_pause;  // pause condition
     boost::mutex _mtx;    // explicit mutex declaration
@@ -88,6 +122,7 @@ namespace charliesoft
 
     std::map<std::string, ParamValue> _myOutputs;
     std::map<std::string, ParamValue> _myInputs;
+    std::vector<ConditionOfRendering> _conditions;
 
     void initParameters(const std::vector<ParamDefinition>& inParam, 
       const std::vector<ParamDefinition>& outParam);
@@ -106,11 +141,19 @@ namespace charliesoft
       _processes = processes;
     };
 
+    unsigned int getNbRendering() const { return nbRendering; }
     unsigned int getTimestamp(){ return _timestamp; };
     std::string getErrorInfo(){ return _error_msg; };
     bool validateParams(std::string param, const ParamValue val);
     bool isReadyToRun();
     void skipRendering();
+
+    void addCondition(ConditionOfRendering& c){
+      _conditions.push_back(c);
+    };
+    std::vector<ConditionOfRendering>& getConditions(){
+      return _conditions;
+    };
 
     virtual void setParamLink(std::string nameParam_, ParamValue* value);
     virtual ParamValue* getParam(std::string nameParam_, bool input);

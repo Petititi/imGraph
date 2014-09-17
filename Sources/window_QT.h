@@ -45,6 +45,11 @@
 #include <QGLWidget>
 #endif
 
+#ifdef _WIN32
+#pragma warning(disable:4503)
+#pragma warning(push)
+#pragma warning(disable:4996 4251 4275 4800)
+#endif
 #include "opencv2/core/utility.hpp"
 #include "opencv2/highgui/highgui_c.h"
 
@@ -79,6 +84,9 @@
 #include <QRadioButton>
 #include <QButtonGroup>
 #include <QMenu>
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
 //start private enum
 enum { CV_MODE_NORMAL = 0, CV_MODE_OPENGL = 1 };

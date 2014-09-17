@@ -41,8 +41,8 @@
 #pragma warning(pop)
 #endif
 
-#include "GraphicView.h"
 #include "window_QT.h"
+#include "GraphicView.h"
 #include "ProcessManager.h"
 
 using namespace std;
@@ -89,7 +89,7 @@ namespace charliesoft
   Window::Window()
   {
     ptr = this;
-    model_ = new GraphOfProcess();
+    _model = new GraphOfProcess();
     //create opencv main thread:
     new GuiReceiver();
 
@@ -136,9 +136,15 @@ namespace charliesoft
   void Window::show()
   {
     mainLayout_ = new GraphRepresentation();
-    mainWidget_ = new MainWidget(model_);
-    setCentralWidget(mainWidget_);
+
+    mainWidget_ = new MainWidget(_model);
     mainWidget_->setLayout(mainLayout_);
+    setCentralWidget(mainWidget_);
+    
+    /*QScrollArea* scrollarea = new QScrollArea();
+    scrollarea->setWidgetResizable(true);
+    scrollarea->setWidget(mainWidget_);
+    setCentralWidget(scrollarea);*/
     
     statusBar();
 
@@ -195,7 +201,7 @@ namespace charliesoft
 
     setStyleSheet(GlobalConfig::getInstance()->styleSheet_.c_str());
 
-    mainLayout_->synchronize(model_);
+    mainLayout_->synchronize(_model);
   }
 
   void Window::mousePressEvent(QMouseEvent *event)
@@ -223,28 +229,28 @@ namespace charliesoft
           //Enter or return was pressed
           startRun = false;
           GraphOfProcess::pauseProcess = false;
-          model_->run();
+          _model->run();
           break;
         case Qt::Key_End:
           startRun = true;
           GraphOfProcess::pauseProcess = false;
-          model_->stop();
+          _model->stop();
           break;
         case Qt::Key_Space:
           if (startRun)
           {
             startRun = false;
-            model_->run();
+            _model->run();
           }
           else
-            model_->switchPause();
+            _model->switchPause();
           break;
         case Qt::Key_Delete:
           mainLayout_->removeSelectedLinks();
           for (auto rep : VertexRepresentation::getSelection())
-            model_->deleteProcess(rep->getModel());
+            _model->deleteProcess(rep->getModel());
           VertexRepresentation::resetSelection();
-          mainLayout_->synchronize(model_);
+          mainLayout_->synchronize(_model);
           break;
         default:
           return QMainWindow::event(event);
@@ -280,9 +286,9 @@ namespace charliesoft
     }
 
     mainLayout_->clearLayout();
-    if (model_ != NULL)
-      delete model_;
-    model_ = new GraphOfProcess();
+    if (_model != NULL)
+      delete _model;
+    _model = new GraphOfProcess();
   }
 
   void Window::newProject()
@@ -296,9 +302,9 @@ namespace charliesoft
     GlobalConfig::getInstance()->lastProject_ = file.toStdString();
 
     mainLayout_->clearLayout();
-    if (model_ != NULL)
-      delete model_; 
-    model_ = new GraphOfProcess();
+    if (_model != NULL)
+      delete _model; 
+    _model = new GraphOfProcess();
   }
 
   bool Window::quitProg()

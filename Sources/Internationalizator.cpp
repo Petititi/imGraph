@@ -74,7 +74,16 @@ namespace charliesoft
 
     translations["MATRIX_EDITOR"] = "Matrix editor";
     translations["VECTOR_EDITOR"] = "Vector editor";
+    translations["CONDITION_EDITOR"] = "Condition editor...";
+    translations["CONDITION_EDITOR_HELP"] = "You can define here which conditions are needed for block rendering!";
     translations["NOT_INITIALIZED"] = "Not initialized...";
+    translations["CONDITION_BLOCK_ERROR_INPUT"] = "Condition can't be input of block...";
+    translations["CONDITION_BLOCK_LEFT"] = "left";
+    translations["CONDITION_BLOCK_HELP"] = "link to the output's block<br/>whose value will be used in condition";
+    translations["CONDITION_BLOCK_RIGHT"] = "right";
+    translations["CONDITION_CARDINAL"] = "#rendering";
+    translations["CONDITION_IS_EMPTY"] = "is empty";
+    translations["BLOCK_OUTPUT"] = "output";
     translations["BLOCK_INPUT"] = "input";
     translations["BLOCK_OUTPUT"] = "output";
     translations["ERROR_GENERIC"] = "Error undefined!";
