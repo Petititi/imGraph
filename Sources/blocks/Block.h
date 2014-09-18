@@ -68,13 +68,16 @@ namespace charliesoft
     unsigned char category_right;
     ParamValue opt_value_right;
     unsigned char boolean_operator;
+
+    Block* _father;
   public:
     ConditionOfRendering();
     ConditionOfRendering(unsigned char category_left,
       ParamValue opt_value_left,
       unsigned char category_right,
       ParamValue opt_value_right,
-      unsigned char boolean_operator);
+      unsigned char boolean_operator,
+      Block* father);
     bool operator= (const ConditionOfRendering &b)
     {
       category_left = b.category_left;
@@ -82,14 +85,27 @@ namespace charliesoft
       category_right = b.category_right;
       opt_value_right = b.opt_value_right;
       boolean_operator = b.boolean_operator;
+      if (b._father != NULL)
+        _father = b._father;
     }
     unsigned char getCategory_left() const { return category_left; }
     unsigned char getCategory_right() const { return category_right; }
+    ParamValue getOpt_value_left() const { return opt_value_left; }
+    ParamValue getOpt_value_right() const { return opt_value_right; }
+    Block* getFather() const { return _father; }
 
     std::string toString();
 
+    boost::property_tree::ptree getXML() const;
+
     bool canRender(Block* blockTested);
+
     void setValue(bool left, ParamValue* val);
+    void setValue(bool left, ParamValue val) {
+      if (left)opt_value_left = val;
+      else opt_value_right = val;
+    }
+    void setFather(Block* val) { _father = val; }
   };
 
   struct ParamDefinition
@@ -179,45 +195,44 @@ namespace charliesoft
     void setPosition(int x, int y);
   };
 
-
   struct BlockLink
   {
-    Block* from_;
-    Block* to_;
-    std::string fromParam_;
-    std::string toParam_;
-    BlockLink(){ from_ = to_ = NULL; };
+    Block* _from;
+    Block* _to;
+    std::string _fromParam;
+    std::string _toParam;
+    BlockLink(){ _from = _to = NULL; };
     BlockLink(Block* from,Block* to,std::string fromParam,std::string toParam)
     {
-      from_ = from; to_ = to; fromParam_ = fromParam; toParam_ = toParam;
+      _from = from; _to = to; _fromParam = fromParam; _toParam = toParam;
     }
     bool operator==(const BlockLink &b) const{
-      return (from_ == b.from_) && (to_ == b.to_) &&
-        (fromParam_.compare(b.fromParam_) == 0) && (toParam_.compare(b.toParam_) == 0);
+      return (_from == b._from) && (_to == b._to) &&
+        (_fromParam.compare(b._fromParam) == 0) && (_toParam.compare(b._toParam) == 0);
     }
     bool operator<(const BlockLink & record2) const{
-      if (from_ < record2.from_) return true;
-      if (from_ > record2.from_) return false;
-      if (to_ < record2.to_) return true;
-      if (to_ > record2.to_) return false;
-      if (fromParam_ < record2.fromParam_) return true;
-      if (fromParam_ > record2.fromParam_) return false;
-      return toParam_ < record2.toParam_;
+      if (_from < record2._from) return true;
+      if (_from > record2._from) return false;
+      if (_to < record2._to) return true;
+      if (_to > record2._to) return false;
+      if (_fromParam < record2._fromParam) return true;
+      if (_fromParam > record2._fromParam) return false;
+      return _toParam < record2._toParam;
     }
     bool operator<(BlockLink & record2){
-      if (from_ < record2.from_) return true;
-      if (from_ > record2.from_) return false;
-      if (to_ < record2.to_) return true;
-      if (to_ > record2.to_) return false;
-      if (fromParam_ < record2.fromParam_) return true;
-      if (fromParam_ > record2.fromParam_) return false;
-      return toParam_ < record2.toParam_;
+      if (_from < record2._from) return true;
+      if (_from > record2._from) return false;
+      if (_to < record2._to) return true;
+      if (_to > record2._to) return false;
+      if (_fromParam < record2._fromParam) return true;
+      if (_fromParam > record2._fromParam) return false;
+      return _toParam < record2._toParam;
     }
   };
 
   class GraphOfProcess
   {
-    std::vector< boost::thread > runningThread_;
+    std::vector< boost::thread > _runningThread;
     std::vector<Block*> _vertices;
     //edges are stored into Block (_myInputs[]->isLinked())
   public:

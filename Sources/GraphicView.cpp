@@ -502,7 +502,7 @@ namespace charliesoft
     _vertex->getModel()->addCondition(ConditionOfRendering(
       _condition_left->currentIndex(), left,
       _condition_right->currentIndex(), right,
-      _condition_type->currentIndex()));
+      _condition_type->currentIndex(), _vertex->getModel()));
 
     emit askSynchro();
     Window::getGraphLayout()->synchronize(Window::getInstance()->getModel());
@@ -597,10 +597,10 @@ namespace charliesoft
   void VertexRepresentation::removeLink(BlockLink l){
     links_.erase(l);
 
-    if (l.from_ == _model)
-      (*_model->getParam(l.fromParam_, false)) = Not_A_Value();
-    if (l.to_ == _model)
-      (*_model->getParam(l.toParam_, true)) = Not_A_Value();
+    if (l._from == _model)
+      (*_model->getParam(l._fromParam, false)) = Not_A_Value();
+    if (l._to == _model)
+      (*_model->getParam(l._toParam, true)) = Not_A_Value();
   };
 
   ConditionLinkRepresentation* VertexRepresentation::getCondition(ConditionOfRendering* cor, bool isLeft)
@@ -1058,10 +1058,10 @@ namespace charliesoft
       if (links_.find(link.first) != links_.end())
       {
         links_.erase(link.first);//delete map association...
-        if (items_.find(link.first.from_)!=items_.end())
-          dynamic_cast<VertexRepresentation*>(items_[link.first.from_]->widget())->removeLink(link.first);
-        if (items_.find(link.first.to_) != items_.end())
-          dynamic_cast<VertexRepresentation*>(items_[link.first.to_]->widget())->removeLink(link.first);
+        if (items_.find(link.first._from)!=items_.end())
+          dynamic_cast<VertexRepresentation*>(items_[link.first._from]->widget())->removeLink(link.first);
+        if (items_.find(link.first._to) != items_.end())
+          dynamic_cast<VertexRepresentation*>(items_[link.first._to]->widget())->removeLink(link.first);
 
         delete link.second;//delete LinkPath
       }
@@ -1075,10 +1075,10 @@ namespace charliesoft
     {
       if (it->second->isSelected())
       {
-        if (items_.find(it->first.from_) != items_.end())
-          dynamic_cast<VertexRepresentation*>(items_[it->first.from_]->widget())->removeLink(it->first);
-        if (items_.find(it->first.to_) != items_.end())
-          dynamic_cast<VertexRepresentation*>(items_[it->first.to_]->widget())->removeLink(it->first);
+        if (items_.find(it->first._from) != items_.end())
+          dynamic_cast<VertexRepresentation*>(items_[it->first._from]->widget())->removeLink(it->first);
+        if (items_.find(it->first._to) != items_.end())
+          dynamic_cast<VertexRepresentation*>(items_[it->first._to]->widget())->removeLink(it->first);
 
         delete it->second;//delete LinkPath
 
@@ -1096,12 +1096,12 @@ namespace charliesoft
       return;//nothing to do...
 
     VertexRepresentation* fromVertex, *toVertex;
-    fromVertex = dynamic_cast<VertexRepresentation*>(items_[link.from_]->widget());
-    toVertex = dynamic_cast<VertexRepresentation*>(items_[link.to_]->widget());
+    fromVertex = dynamic_cast<VertexRepresentation*>(items_[link._from]->widget());
+    toVertex = dynamic_cast<VertexRepresentation*>(items_[link._to]->widget());
     if (fromVertex != NULL && toVertex != NULL)
     {
-      auto paramFrom = fromVertex->getParamRep(link.fromParam_, false);
-      auto paramTo = toVertex->getParamRep(link.toParam_, true);
+      auto paramFrom = fromVertex->getParamRep(link._fromParam, false);
+      auto paramTo = toVertex->getParamRep(link._toParam, true);
       paramFrom->setVisibility(true);
       paramTo->setVisibility(true);
       LinkPath* path = new LinkPath();
@@ -1117,12 +1117,12 @@ namespace charliesoft
   void GraphRepresentation::updateLink(const BlockLink& link)
   {
     VertexRepresentation* fromVertex, *toVertex;
-    fromVertex = dynamic_cast<VertexRepresentation*>(items_[link.from_]->widget());
-    toVertex = dynamic_cast<VertexRepresentation*>(items_[link.to_]->widget());
+    fromVertex = dynamic_cast<VertexRepresentation*>(items_[link._from]->widget());
+    toVertex = dynamic_cast<VertexRepresentation*>(items_[link._to]->widget());
     if (fromVertex != NULL && toVertex != NULL)
     {
-      auto paramFrom = fromVertex->getParamRep(link.fromParam_, false);
-      auto paramTo = toVertex->getParamRep(link.toParam_, true);
+      auto paramFrom = fromVertex->getParamRep(link._fromParam, false);
+      auto paramTo = toVertex->getParamRep(link._toParam, true);
       LinkPath* path = links_[link];
       int test = path->elementCount();
       QPoint tmp = paramFrom->getWorldAnchor();
@@ -1396,7 +1396,7 @@ namespace charliesoft
   {
     startMouse_ = endMouse_ = start;
     creatingLink_ = true;
-    startParam_ = dynamic_cast<ParamRepresentation*>(sender());
+    startParam_ = dynamic_cast<LinkConnexionRepresentation*>(sender());
   }
 
 }

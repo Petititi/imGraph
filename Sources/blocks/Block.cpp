@@ -53,16 +53,37 @@ namespace charliesoft
   ConditionOfRendering::ConditionOfRendering()
   {
     category_left = category_right = boolean_operator = 0;
+    _father = 0;
   }
   ConditionOfRendering::ConditionOfRendering(unsigned char category_l,
     ParamValue opt_value_l,
-    unsigned char category_r,
-    ParamValue opt_value_r,
-    unsigned char boolean_op):
+    unsigned char category_r, ParamValue opt_value_r,
+    unsigned char boolean_op, Block* father) :
     category_left(category_l), opt_value_left(opt_value_l), category_right(category_r),
-    opt_value_right(opt_value_r), boolean_operator(boolean_op)
+    opt_value_right(opt_value_r), boolean_operator(boolean_op), _father(father)
   {
+    opt_value_left.setBlock(father);
+    opt_value_right.setBlock(father);
   }
+
+  boost::property_tree::ptree ConditionOfRendering::getXML() const
+  {
+    ptree tree;
+    tree.put("category_left", category_left);
+    tree.put("category_right", category_right);
+    tree.put("boolean_operator", boolean_operator);
+
+    if (!opt_value_left.isLinked())
+      tree.put("Value_left", opt_value_left.toString());
+    else
+      tree.put("Value_left", (unsigned int)opt_value_left.get<ParamValue*>());
+    if (!opt_value_right.isLinked())
+      tree.put("Value_right", opt_value_right.toString());
+    else
+      tree.put("Value_right", (unsigned int)opt_value_right.get<ParamValue*>());
+    return tree;
+  }
+
 
   std::string ConditionOfRendering::toString()
   {
@@ -502,6 +523,11 @@ namespace charliesoft
 
       tree.add_child("Output", paramTree);
     }
+
+    for (auto it = _conditions.begin();
+      it != _conditions.end(); it++)
+      tree.add_child("Condition", it->getXML());
+
     return tree;
   };
 
@@ -564,9 +590,9 @@ namespace charliesoft
 
   void GraphOfProcess::stop()
   {
-    for (size_t i = 0; i < runningThread_.size(); i++)
-      runningThread_[i].interrupt();
-    runningThread_.clear();
+    for (size_t i = 0; i < _runningThread.size(); i++)
+      _runningThread[i].interrupt();
+    _runningThread.clear();
   }
   
   bool GraphOfProcess::run()
@@ -576,7 +602,7 @@ namespace charliesoft
     bool res = true;
     for (auto it = _vertices.begin();
       it != _vertices.end(); it++)
-      runningThread_.push_back(boost::thread(boost::ref(**it)));
+      _runningThread.push_back(boost::thread(boost::ref(**it)));
 
     return res;
   }
@@ -607,6 +633,7 @@ namespace charliesoft
 
     map<unsigned int, ParamValue*> addressesMap;
     vector < std::pair<ParamValue*, unsigned int> > toUpdate;
+    vector<ConditionOfRendering*> condToUpdate;
 
     if (vertices)
     {
@@ -653,6 +680,19 @@ namespace charliesoft
                 ParamValue* tmpVal = tmp->getParam(nameOut, false);
                 addressesMap[lexical_cast<unsigned int>(val)] = tmpVal;
               }
+              if (it1->first.compare("Condition") == 0)
+              {
+                int cLeft = it1->second.get("category_left", 0);
+                int cRight = it1->second.get("category_right", 0);
+                int cOperator = it1->second.get("boolean_operator", 0);
+
+                double valLeft = it1->second.get("Value_left", 0.);
+                double valRight = it1->second.get("Value_right", 0.);
+                tmp->addCondition(ConditionOfRendering(cLeft, valLeft, cRight, valRight, cOperator, 
+                  tmp));
+                if (cLeft==1||cRight==1)//output of block...
+                  condToUpdate.push_back(&tmp->getConditions().back());
+              }
             }
           }
         }
@@ -675,6 +715,20 @@ namespace charliesoft
           //QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), e.errorMsg.c_str());
           std::cout << e.errorMsg << std::endl;
         }
+      }
+    }
+    //and set correct values of conditions:
+    for (auto cond : condToUpdate)
+    {
+      if (cond->getCategory_left() == 1)//output of block:
+      {
+        unsigned int addr = static_cast<unsigned int>(cond->getOpt_value_left().get<double>() + 0.5);
+        cond->setValue(true, addressesMap[addr]);
+      }
+      if (cond->getCategory_right() == 1)//output of block:
+      {
+        unsigned int addr = static_cast<unsigned int>(cond->getOpt_value_right().get<double>() + 0.5);
+        cond->setValue(false, addressesMap[addr]);
       }
     }
   }

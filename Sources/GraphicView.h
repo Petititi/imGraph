@@ -40,23 +40,23 @@ namespace charliesoft
 
   class LinkPath : public QPainterPath
   {
-    bool selected_;
+    bool _selected;
   public:
-    LinkPath() :QPainterPath(){ selected_ = false; };
+    LinkPath() :QPainterPath(){ _selected = false; };
 
     bool intersect(const QRect& pos) const;
 
     void draw(QPainter& p)
     {
-      if (selected_)
+      if (_selected)
         p.setPen(QPen(QColor(255, 0, 0), 2));
       else
         p.setPen(QPen(Qt::black, 2));
       p.drawPath(*this);
     }
 
-    bool isSelected() const { return selected_; }
-    void setSelected(bool val) { selected_ = val; }
+    bool isSelected() const { return _selected; }
+    void setSelected(bool val) { _selected = val; }
   };
 
   class LinkConnexionRepresentation :public QLabel

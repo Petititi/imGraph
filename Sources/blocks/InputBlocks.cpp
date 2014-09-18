@@ -30,6 +30,7 @@ protected:
   ADD_PARAMETER(false, Int,     "BLOCK__INPUT_INOUT_HEIGHT",    "BLOCK__INPUT_INOUT_HEIGHT_HELP");
   ADD_PARAMETER(false, Int,     "BLOCK__INPUT_INOUT_POS_FRAMES","BLOCK__INPUT_INOUT_POS_FRAMES_HELP");
   ADD_PARAMETER(false, Int,     "BLOCK__INPUT_INOUT_POS_RATIO", "BLOCK__INPUT_INOUT_POS_RATIO_HELP");
+  ADD_PARAMETER(false, Float,   "BLOCK__INPUT_OUT_FRAMERATE",   "BLOCK__INPUT_OUT_FRAMERATE");
   END_BLOCK_PARAMS();
   
   BEGIN_BLOCK_OUTPUT_PARAMS(BlockLoader);
@@ -50,6 +51,7 @@ protected:
     _myInputs["BLOCK__INPUT_INOUT_POS_RATIO"].addValidator({ new ValRange(0, 1) });
     _myInputs["BLOCK__INPUT_IN_GREY"].addValidator({ new ValExclusif(_myInputs["BLOCK__INPUT_IN_COLOR"]) });
     _myInputs["BLOCK__INPUT_IN_COLOR"].addValidator({ new ValExclusif(_myInputs["BLOCK__INPUT_IN_GREY"]) });
+    _myInputs["BLOCK__INPUT_OUT_FRAMERATE"].addValidator({ new ValPositiv(true) });
   };
 
   bool BlockLoader::run(){
@@ -88,7 +90,9 @@ protected:
 
     //now set outputs:
     cv::Mat frame = processor_.getFrame();
-    double fps = MAX(1, processor_.getProperty(cv::CAP_PROP_FPS));
+    double fps = -1;// MAX(1, processor_.getProperty(cv::CAP_PROP_FPS));
+    if (!_myInputs["BLOCK__INPUT_OUT_FRAMERATE"].isDefaultValue())
+      fps = _myInputs["BLOCK__INPUT_OUT_FRAMERATE"].get<double>();
     while (!frame.empty())
     {
       _myOutputs["BLOCK__INPUT_OUT_IMAGE"] = frame;
@@ -100,7 +104,8 @@ protected:
       _myOutputs["BLOCK__INPUT_OUT_FORMAT"] = frame.type();
 
       //wait corresponding ms in order to keep fps:
-      //boost::this_thread::sleep(boost::posix_time::milliseconds(1. / fps*1000.));
+      if (fps>0)
+        boost::this_thread::sleep(boost::posix_time::milliseconds((1. / fps)*1000.));
       frame = processor_.getFrame();
       renderingDone(false);
     }

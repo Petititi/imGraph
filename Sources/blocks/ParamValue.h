@@ -161,6 +161,7 @@ namespace charliesoft
 
     ParamType getType() const;
     Block * getBlock() const { return block_; };
+    void setBlock(Block *b) { block_=b; };
 
     template<typename T>
     T get() const
