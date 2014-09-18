@@ -21,6 +21,7 @@
 #endif
 #include "Window.h"
 
+#include "Graph.h"
 #include "ProcessManager.h"
 #include "blocks/ParamValidator.h"
 

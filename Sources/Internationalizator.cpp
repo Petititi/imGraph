@@ -70,6 +70,7 @@ namespace charliesoft
   {
     translations["BUTTON_OK"] = "OK";
     translations["BUTTON_CANCEL"] = "Cancel";
+    translations["BUTTON_DELETE"] = "Delete";
     translations["BUTTON_BROWSE"] = "Browse...";
 
     translations["MATRIX_EDITOR"] = "Matrix editor";

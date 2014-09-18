@@ -1,5 +1,5 @@
 #include "ProcessManager.h"
-#include "blocks/Block.h"
+#include "Block.h"
 #include <vector>
 
 using namespace lsis_org;

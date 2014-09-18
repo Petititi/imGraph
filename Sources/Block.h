@@ -68,7 +68,6 @@ namespace charliesoft
     unsigned char category_right;
     ParamValue opt_value_right;
     unsigned char boolean_operator;
-
     Block* _father;
   public:
     ConditionOfRendering();
@@ -78,7 +77,7 @@ namespace charliesoft
       ParamValue opt_value_right,
       unsigned char boolean_operator,
       Block* father);
-    bool operator= (const ConditionOfRendering &b)
+    ConditionOfRendering& operator= (const ConditionOfRendering &b)
     {
       category_left = b.category_left;
       opt_value_left = b.opt_value_left;
@@ -87,7 +86,9 @@ namespace charliesoft
       boolean_operator = b.boolean_operator;
       if (b._father != NULL)
         _father = b._father;
+      return *this;
     }
+    unsigned char getCondition() const { return boolean_operator; }
     unsigned char getCategory_left() const { return category_left; }
     unsigned char getCategory_right() const { return category_right; }
     ParamValue getOpt_value_left() const { return opt_value_left; }
@@ -165,7 +166,10 @@ namespace charliesoft
     void skipRendering();
 
     void addCondition(ConditionOfRendering& c){
-      _conditions.push_back(c);
+      if (_conditions.empty())
+        _conditions.push_back(c);
+      else
+        _conditions[0] = c;
     };
     std::vector<ConditionOfRendering>& getConditions(){
       return _conditions;
@@ -193,6 +197,7 @@ namespace charliesoft
 
     boost::property_tree::ptree getXML() const;
     void setPosition(int x, int y);
+    void removeCondition();
   };
 
   struct BlockLink
@@ -230,31 +235,6 @@ namespace charliesoft
     }
   };
 
-  class GraphOfProcess
-  {
-    std::vector< boost::thread > _runningThread;
-    std::vector<Block*> _vertices;
-    //edges are stored into Block (_myInputs[]->isLinked())
-  public:
-    static bool pauseProcess;
-    GraphOfProcess();
-
-    void saveGraph(boost::property_tree::ptree& tree) const;
-    void fromGraph(boost::property_tree::ptree& tree);
-
-    static unsigned int _current_timestamp;
-
-    void addNewProcess(Block* filter);
-    void deleteProcess(Block* process);
-
-    void synchronizeTimestamp(Block* processToSynchronize);
-
-    bool run();
-    void stop();
-    void switchPause();
-
-    std::vector<Block*>& getVertices();
-  };
 }
 
 #endif

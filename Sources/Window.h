@@ -23,7 +23,7 @@
 #pragma warning(pop)
 #endif
 
-#include "blocks/Block.h"
+#include "Block.h"
 
 #include <map>
 

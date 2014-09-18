@@ -41,6 +41,7 @@
 #pragma warning(pop)
 #endif
 
+#include "Graph.h"
 #include "window_QT.h"
 #include "GraphicView.h"
 #include "ProcessManager.h"

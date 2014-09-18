@@ -4,7 +4,8 @@
 #include "ProcessManager.h"
 #include "ParamValidator.h"
 
-#include "blocks/Block.h"
+#include "Block.h"
+#include "Graph.h"
 
 using namespace std;
 using boost::lexical_cast;
@@ -57,7 +58,6 @@ namespace charliesoft
       return lexical_cast<string>(boost::get<cv::Mat>(value_));
     return "";
   }
-
 
   bool ParamValue::isDefaultValue() const{
     return (value_.type() == typeid(Not_A_Value));
