@@ -162,6 +162,7 @@ namespace charliesoft
     void configCondition();
     void accept_button();
     void reject_button();
+    void matrixEditor();
   };
 
   class GraphRepresentation :public QLayout

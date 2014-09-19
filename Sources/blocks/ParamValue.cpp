@@ -236,13 +236,14 @@ namespace charliesoft
     {
       if (value_.type() == typeid(Not_A_Value) ||
         other.value_.type() == typeid(Not_A_Value))
+        return false;
 
-        if (value_.type() == typeid(ParamValue*))
-        {//compare addresses
+      if (value_.type() == typeid(ParamValue*))
+      {//compare addresses
         ParamValue* val = boost::get<ParamValue*>(value_);
         ParamValue* val1 = boost::get<ParamValue*>(other.value_);
         return val < val1;
-        }
+      }
 
       if (value_.type() == typeid(bool))
       {
@@ -254,15 +255,19 @@ namespace charliesoft
       if (value_.type() == typeid(int))
       {
         int val = boost::get<int>(value_);
-        int val1 = boost::get<int>(other.value_);
-        return val < val1;
+        if (other.value_.type() == typeid(int))
+          return val < boost::get<int>(other.value_);
+        if (other.value_.type() == typeid(double))
+          return val < boost::get<double>(other.value_);
       }
 
       if (value_.type() == typeid(double))
       {
         double val = boost::get<double>(value_);
-        double val1 = boost::get<double>(other.value_);
-        return val < val1;
+        if (other.value_.type() == typeid(int))
+          return val < boost::get<int>(other.value_);
+        if (other.value_.type() == typeid(double))
+          return val < boost::get<double>(other.value_);
       }
 
       if (value_.type() == typeid(std::string))

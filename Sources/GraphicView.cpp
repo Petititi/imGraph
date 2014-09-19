@@ -366,6 +366,10 @@ namespace charliesoft
     close();
   }
 
+  void ParamsConfigurator::matrixEditor()
+  {
+  }
+
   ConditionConfigurator::ConditionConfigurator(VertexRepresentation* vertex) :
     QDialog(vertex), _vertex(vertex)
   {

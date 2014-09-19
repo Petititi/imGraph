@@ -98,7 +98,7 @@ namespace charliesoft
     translations["ERROR_PARAM_ONLY_POSITIF_STRICT"] = "Param \"%1$s\":<br/>only strict positive value are authorized!";
     translations["ERROR_PARAM_ONLY_NEGATIF"] = "Param \"%1$s\":<br/>only negative value are authorized!";
     translations["ERROR_PARAM_ONLY_NEGATIF_STRICT"] = "Param \"%1$s\":<br/>only strict negative value are authorized!";
-    translations["ERROR_PARAM_VALUE_BETWEEN"] = "Param \"%1$s\":<br/>should be between %2$f and %3$f";
+    translations["ERROR_PARAM_VALUE_BETWEEN"] = "Param \"%1$s\" (%2$f):<br/>should be between %3$f and %4$f";
 
     translations["MENU_FILE"] = "File";
     translations["MENU_FILE_OPEN"] = "Open";
@@ -230,6 +230,16 @@ namespace charliesoft
     translations["BLOCK__ACCUMULATOR_OUT_IMAGE"] = "image";
     translations["BLOCK__ACCUMULATOR_OUT_IMAGE_HELP"] = "Accumulated image";
 
-    
+    translations["BLOCK__MORPHOLOGIC_NAME"] = "Morpho math";
+    translations["BLOCK__MORPHOLOGIC_IN_IMAGE"] = "image";
+    translations["BLOCK__MORPHOLOGIC_IN_IMAGE_HELP"] = "Input image";
+    translations["BLOCK__MORPHOLOGIC_ELEMENT"] = "element";
+    translations["BLOCK__MORPHOLOGIC_ELEMENT_HELP"] = "Structuring element.";
+    translations["BLOCK__MORPHOLOGIC_OPERATOR"] = "op";
+    translations["BLOCK__MORPHOLOGIC_OPERATOR_HELP"] = "Operator (0:open, 1:close, 2:gradient, 3:tophat, 4:blackhat)";
+    translations["BLOCK__MORPHOLOGIC_ITERATIONS"] = "iterations";
+    translations["BLOCK__MORPHOLOGIC_ITERATIONS_HELP"] = "Number of times erosion and dilation are applied.";
+    translations["BLOCK__MORPHOLOGIC_OUT_IMAGE"] = "image";
+    translations["BLOCK__MORPHOLOGIC_OUT_IMAGE_HELP"] = "Filtered image";
   }
 }
