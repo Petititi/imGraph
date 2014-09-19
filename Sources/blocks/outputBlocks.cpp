@@ -6,6 +6,7 @@
 #include "Block.h"
 #include "window_QT.h"
 #include "ParamValidator.h"
+#include "OpenCV_filter.h"
 using namespace lsis_org;
 using std::vector;
 using std::string;
@@ -15,6 +16,7 @@ namespace charliesoft
 {
   BLOCK_BEGIN_INSTANTIATION(BlockShow);
   //You can add methods, re implement needed functions...
+  NormalizeFilter filter;
   BLOCK_END_INSTANTIATION(BlockShow, AlgoType::output, BLOCK__OUTPUT_NAME);
 
   BEGIN_BLOCK_INPUT_PARAMS(BlockShow);
@@ -22,6 +24,7 @@ namespace charliesoft
   //default visibility, type of parameter, name (key of internationalizor), helper...
   ADD_PARAMETER(true, Mat, "BLOCK__OUTPUT_IN_IMAGE", "BLOCK__OUTPUT_IN_IMAGE_HELP");
   ADD_PARAMETER(false, String, "BLOCK__OUTPUT_IN_WIN_NAME", "BLOCK__OUTPUT_IN_WIN_NAME_HELP");
+  ADD_PARAMETER(false, Boolean, "BLOCK__OUTPUT_IN_NORMALIZE", "BLOCK__OUTPUT_IN_NORMALIZE_HELP");
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_OUTPUT_PARAMS(BlockShow);
@@ -36,7 +39,12 @@ namespace charliesoft
       return false;
     cv::Mat mat = _myInputs["BLOCK__OUTPUT_IN_IMAGE"].get<cv::Mat>();
     if (!mat.empty())
+    {
+      if (_myInputs["BLOCK__OUTPUT_IN_NORMALIZE"].get<bool>())
+        mat = filter.process(mat);
+
       charliesoft::imshow(_myInputs["BLOCK__OUTPUT_IN_WIN_NAME"].get<string>(), mat);
+    }
     renderingDone();
     return true;
   };

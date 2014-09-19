@@ -155,10 +155,8 @@ namespace charliesoft
     translations["BLOCK__OUTPUT_IN_IMAGE_HELP"] = "Image to show";
     translations["BLOCK__OUTPUT_IN_WIN_NAME"] = "win. title";
     translations["BLOCK__OUTPUT_IN_WIN_NAME_HELP"] = "Windows title";
-    translations["BLOCK__OUTPUT_IN_WIDTH"] = translations["BLOCK__INPUT_INOUT_WIDTH"];
-    translations["BLOCK__OUTPUT_IN_WIDTH_HELP"] = translations["BLOCK__INPUT_INOUT_WIDTH_HELP"];
-    translations["BLOCK__OUTPUT_IN_HEIGHT"] = translations["BLOCK__INPUT_INOUT_HEIGHT"];
-    translations["BLOCK__OUTPUT_IN_HEIGHT_HELP"] = translations["BLOCK__INPUT_INOUT_HEIGHT_HELP"];
+    translations["BLOCK__OUTPUT_IN_NORMALIZE"] = "normalize";
+    translations["BLOCK__OUTPUT_IN_NORMALIZE_HELP"] = "Normalize image before show";
 
     translations["BLOCK__LINEDRAWER_NAME"] = "Draw lines";
     translations["BLOCK__LINEDRAWER_IN_LINES"] = "lines list";
@@ -224,5 +222,14 @@ namespace charliesoft
     translations["BLOCK__CROP_OUT_IMAGE"] = "image";
     translations["BLOCK__CROP_OUT_IMAGE_HELP"] = "Croped image";
 
+    translations["BLOCK__ACCUMULATOR_NAME"] = "Accumulator";
+    translations["BLOCK__ACCUMULATOR_IN_IMAGE"] = "image";
+    translations["BLOCK__ACCUMULATOR_IN_IMAGE_HELP"] = "Input image to accumulate";
+    translations["BLOCK__ACCUMULATOR_IN_NB_HISTORY"] = "history";
+    translations["BLOCK__ACCUMULATOR_IN_NB_HISTORY_HELP"] = "Size of accumulation history";
+    translations["BLOCK__ACCUMULATOR_OUT_IMAGE"] = "image";
+    translations["BLOCK__ACCUMULATOR_OUT_IMAGE_HELP"] = "Accumulated image";
+
+    
   }
 }

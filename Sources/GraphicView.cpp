@@ -70,14 +70,14 @@ namespace charliesoft
     setModal(true);
     tabWidget_ = new QTabWidget(this);
     
-    OKbutton_ = new QPushButton(_QT("BUTTON_OK"));
-    Cancelbutton_ = new QPushButton(_QT("BUTTON_CANCEL"));
-    connect(OKbutton_, SIGNAL(clicked()), this, SLOT(accept_button()));
-    connect(Cancelbutton_, SIGNAL(clicked()), this, SLOT(reject_button()));
+    _OKbutton = new QPushButton(_QT("BUTTON_OK"));
+    _Cancelbutton = new QPushButton(_QT("BUTTON_CANCEL"));
+    connect(_OKbutton, SIGNAL(clicked()), this, SLOT(accept_button()));
+    connect(_Cancelbutton, SIGNAL(clicked()), this, SLOT(reject_button()));
 
     QHBoxLayout* buttonLayout = new QHBoxLayout(this);
-    buttonLayout->addWidget(OKbutton_);
-    buttonLayout->addWidget(Cancelbutton_);
+    buttonLayout->addWidget(_OKbutton);
+    buttonLayout->addWidget(_Cancelbutton);
     QWidget *buttonGroup = new QWidget(this);
     buttonGroup->setLayout(buttonLayout);
 
@@ -105,16 +105,18 @@ namespace charliesoft
 
     Block* model = vertex->getModel();
     //fill input parameters:
-    auto it = in_param_.begin();
-    while (it!=in_param_.end())
+    const vector<ParamDefinition>& paramsIn = ProcessManager::getInstance()->getAlgo_InParams(model->getName());
+    auto it = paramsIn.begin();
+    while (it != paramsIn.end())
     {
-      addParamIn(it->second);
+      addParamIn(in_param_[it->_name]);
       it++;
     }
-    it = out_param_.begin();
-    while (it != out_param_.end())
+    const vector<ParamDefinition>& paramsOut = ProcessManager::getInstance()->getAlgo_OutParams(model->getName());
+    it = paramsOut.begin();
+    while (it != paramsOut.end())
     {
-      addParamOut(it->second);
+      addParamOut(out_param_[it->_name]);
       it++;
     }
 
@@ -369,12 +371,12 @@ namespace charliesoft
   {
     setModal(true);
 
-    OKbutton_ = new QPushButton(_QT("BUTTON_OK"));
-    Cancelbutton_ = new QPushButton(_QT("BUTTON_CANCEL"));
-    Deletebutton_ = new QPushButton(_QT("BUTTON_DELETE"));
-    connect(OKbutton_, SIGNAL(clicked()), this, SLOT(accept_button()));
-    connect(Deletebutton_, SIGNAL(clicked()), this, SLOT(delete_button()));
-    connect(Cancelbutton_, SIGNAL(clicked()), this, SLOT(reject_button()));
+    _OKbutton = new QPushButton(_QT("BUTTON_OK"));
+    _Cancelbutton = new QPushButton(_QT("BUTTON_CANCEL"));
+    _Deletebutton = new QPushButton(_QT("BUTTON_DELETE"));
+    connect(_OKbutton, SIGNAL(clicked()), this, SLOT(accept_button()));
+    connect(_Deletebutton, SIGNAL(clicked()), this, SLOT(delete_button()));
+    connect(_Cancelbutton, SIGNAL(clicked()), this, SLOT(reject_button()));
 
     _condition_left = new QComboBox(this);
     _condition_type = new QComboBox(this);
@@ -385,12 +387,12 @@ namespace charliesoft
     _value_right = new QLineEdit(this);
     _value_right->hide();
 
-    comboBoxLayout = new QGridLayout(this);
-    comboBoxLayout->addWidget(_condition_left, 0, 0);
-    comboBoxLayout->addWidget(_condition_type, 0, 1);
-    comboBoxLayout->addWidget(_condition_right, 0, 2);
-    comboBoxLayout->addWidget(_value_left, 1, 0);
-    comboBoxLayout->addWidget(_value_right, 1, 2);
+    _comboBoxLayout = new QGridLayout(this);
+    _comboBoxLayout->addWidget(_condition_left, 0, 0);
+    _comboBoxLayout->addWidget(_condition_type, 0, 1);
+    _comboBoxLayout->addWidget(_condition_right, 0, 2);
+    _comboBoxLayout->addWidget(_value_left, 1, 0);
+    _comboBoxLayout->addWidget(_value_right, 1, 2);
 
     connect(_condition_left, SIGNAL(currentIndexChanged(int)), this, SLOT(updateLeft(int)));
     connect(_condition_right, SIGNAL(currentIndexChanged(int)), this, SLOT(updateRight(int)));
@@ -414,15 +416,15 @@ namespace charliesoft
 
 
     QHBoxLayout* buttonLayout = new QHBoxLayout();
-    buttonLayout->addWidget(OKbutton_);
-    buttonLayout->addWidget(Deletebutton_);
-    buttonLayout->addWidget(Cancelbutton_);
+    buttonLayout->addWidget(_OKbutton);
+    buttonLayout->addWidget(_Deletebutton);
+    buttonLayout->addWidget(_Cancelbutton);
     QWidget *buttonGroup = new QWidget(this);
     buttonGroup->setLayout(buttonLayout);
     QVBoxLayout* mainLayout = new QVBoxLayout();
     mainLayout->addWidget(new QLabel(_QT("CONDITION_EDITOR_HELP")));
     QWidget *comboGroup = new QWidget(this);
-    comboGroup->setLayout(comboBoxLayout);
+    comboGroup->setLayout(_comboBoxLayout);
     mainLayout->addWidget(comboGroup);
     mainLayout->addWidget(buttonGroup);
     setLayout(mainLayout);
@@ -524,7 +526,7 @@ namespace charliesoft
     for (auto it = listOfOutputChilds_.begin(); it != listOfOutputChilds_.end(); it++)
       delete it->second;
     listOfOutputChilds_.clear();
-    links_.clear();
+    _links.clear();
     delete _blockRepresentation;
     delete _conditionsRepresentation;
   }
@@ -595,7 +597,7 @@ namespace charliesoft
   }
 
   void VertexRepresentation::removeLink(BlockLink l){
-    links_.erase(l);
+    _links.erase(l);
 
     if (l._from == _model)
       (*_model->getParam(l._fromParam, false)) = Not_A_Value();
@@ -640,12 +642,13 @@ namespace charliesoft
     maxInputWidth = maxOutputWidth = 0;
 
     //for each input and output create buttons:
-    auto it = listOfInputChilds_.begin();
+    vector<ParamDefinition> tmpParamsIn = _PROCESS_MANAGER->getAlgo_InParams(_model->getName());
+    auto it = tmpParamsIn.begin();
     QRect tmpSize;
     int showIn = 0, showOut = 0;
-    for (; it != listOfInputChilds_.end(); it++)
+    for (; it != tmpParamsIn.end(); it++)
     {
-      ParamRepresentation  *tmp = it->second;
+      ParamRepresentation  *tmp = listOfInputChilds_[it->_name];
       tmp->setMinimumWidth(5);
       tmp->move(-2, inputHeight);//move the name at the top of vertex...
       tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
@@ -659,10 +662,11 @@ namespace charliesoft
       }
     }
 
-    it = listOfOutputChilds_.begin();
-    for (; it != listOfOutputChilds_.end(); it++)
+    vector<ParamDefinition> tmpParamsOut = _PROCESS_MANAGER->getAlgo_OutParams(_model->getName());
+    it = tmpParamsOut.begin();
+    for (; it != tmpParamsOut.end(); it++)
     {
-      ParamRepresentation  *tmp = it->second;
+      ParamRepresentation  *tmp = listOfOutputChilds_[it->_name];
 
       tmp->setMinimumWidth(5);
       tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
@@ -689,22 +693,24 @@ namespace charliesoft
     else
       inputHeight += (tmpSize.height() + 10) * (int)((static_cast<double>(showOut)-showIn) / 2.);
 
-    it = listOfInputChilds_.begin();
-    for (; it != listOfInputChilds_.end(); it++)
+    it = tmpParamsIn.begin();
+    for (; it != tmpParamsIn.end(); it++)
     {
-      QRect tmpSize = it->second->fontMetrics().boundingRect(it->second->text());
-      it->second->resize(maxInputWidth, tmpSize.height() + 5);
-      it->second->move(-2, inputHeight);//move the name at the top of vertex...
-      if (it->second->shouldShow())
+      ParamRepresentation  *tmp = listOfInputChilds_[it->_name];
+      QRect tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
+      tmp->resize(maxInputWidth, tmpSize.height() + 5);
+      tmp->move(-2, inputHeight);//move the name at the top of vertex...
+      if (tmp->shouldShow())
         inputHeight += tmpSize.height() + 10;
     }
-    it = listOfOutputChilds_.begin();
-    for (; it != listOfOutputChilds_.end(); it++)
+    it = tmpParamsOut.begin();
+    for (; it != tmpParamsOut.end(); it++)
     {
-      QRect tmpSize = it->second->fontMetrics().boundingRect(it->second->text());
-      it->second->resize(maxOutputWidth, tmpSize.height() + 5);
-      it->second->move(newWidth - maxOutputWidth + 4, outputHeight);//move the name at the top of vertex...
-      if (it->second->shouldShow())
+      ParamRepresentation  *tmp = listOfOutputChilds_[it->_name];
+      QRect tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
+      tmp->resize(maxOutputWidth, tmpSize.height() + 5);
+      tmp->move(newWidth - maxOutputWidth + 4, outputHeight);//move the name at the top of vertex...
+      if (tmp->shouldShow())
         outputHeight += tmpSize.height() + 10;
     }
 
@@ -778,7 +784,7 @@ namespace charliesoft
 
     resize(newWidth + 10, projectedHeight - 10);
 
-    for (auto link : links_)
+    for (auto link : _links)
       Window::getGraphLayout()->updateLink(link.first);
   }
   
@@ -875,7 +881,7 @@ namespace charliesoft
     move(delta.x(), delta.y());
     _model->setPosition(delta.x(), delta.y());
     Window::getInstance()->update();
-    for (auto link : links_)
+    for (auto link : _links)
       Window::getGraphLayout()->updateLink(link.first);
   }
 
@@ -927,7 +933,7 @@ namespace charliesoft
     //get widget:
     if (VertexRepresentation* derived = dynamic_cast<VertexRepresentation*>(item->widget())) {
       orderedBlocks_.push_back(derived->getModel());
-      items_[derived->getModel()] = item;
+      _items[derived->getModel()] = item;
     }
   }
 
@@ -936,7 +942,7 @@ namespace charliesoft
     if (index >= (int)orderedBlocks_.size())
       return NULL;
     try {
-      QLayoutItem * tmp = items_.at(orderedBlocks_[index]);
+      QLayoutItem * tmp = _items.at(orderedBlocks_[index]);
       return tmp;
     }
     catch (const std::out_of_range&) {
@@ -946,10 +952,10 @@ namespace charliesoft
 
   QLayoutItem * GraphRepresentation::takeAt(int index)
   {
-    if (index >= (int)items_.size())
+    if (index >= (int)_items.size())
       return NULL;
-    QLayoutItem *output = items_[orderedBlocks_[index]];
-    items_.erase(orderedBlocks_[index]);
+    QLayoutItem *output = _items[orderedBlocks_[index]];
+    _items.erase(orderedBlocks_[index]);
     orderedBlocks_.erase(orderedBlocks_.begin() + index);
     //TODO: remove edges!
     return output;
@@ -960,7 +966,7 @@ namespace charliesoft
     for (size_t i = 0; i < orderedBlocks_.size(); i++)
     {
       try {
-        if (items_.at(orderedBlocks_[i])->widget() == widget)
+        if (_items.at(orderedBlocks_[i])->widget() == widget)
           return i;
       }
       catch (const std::out_of_range&) {
@@ -996,13 +1002,13 @@ namespace charliesoft
     map<BlockLink, LinkPath*> links = vertex->getLinks();
     for (auto link : links)
     {
-      if (links_.find(link.first) != links_.end())
+      if (_links.find(link.first) != _links.end())
       {
-        links_.erase(link.first);//delete map association...
-        if (items_.find(link.first._from)!=items_.end())
-          dynamic_cast<VertexRepresentation*>(items_[link.first._from]->widget())->removeLink(link.first);
-        if (items_.find(link.first._to) != items_.end())
-          dynamic_cast<VertexRepresentation*>(items_[link.first._to]->widget())->removeLink(link.first);
+        _links.erase(link.first);//delete map association...
+        if (_items.find(link.first._from)!=_items.end())
+          dynamic_cast<VertexRepresentation*>(_items[link.first._from]->widget())->removeLink(link.first);
+        if (_items.find(link.first._to) != _items.end())
+          dynamic_cast<VertexRepresentation*>(_items[link.first._to]->widget())->removeLink(link.first);
 
         delete link.second;//delete LinkPath
       }
@@ -1011,20 +1017,20 @@ namespace charliesoft
 
   void GraphRepresentation::removeSelectedLinks()
   {
-    auto it = links_.begin();
-    while (it != links_.end())
+    auto it = _links.begin();
+    while (it != _links.end())
     {
       if (it->second->isSelected())
       {
-        if (items_.find(it->first._from) != items_.end())
-          dynamic_cast<VertexRepresentation*>(items_[it->first._from]->widget())->removeLink(it->first);
-        if (items_.find(it->first._to) != items_.end())
-          dynamic_cast<VertexRepresentation*>(items_[it->first._to]->widget())->removeLink(it->first);
+        if (_items.find(it->first._from) != _items.end())
+          dynamic_cast<VertexRepresentation*>(_items[it->first._from]->widget())->removeLink(it->first);
+        if (_items.find(it->first._to) != _items.end())
+          dynamic_cast<VertexRepresentation*>(_items[it->first._to]->widget())->removeLink(it->first);
 
         delete it->second;//delete LinkPath
 
-        links_.erase(it);//delete map association...
-        it = links_.begin();//as "it" is now in an undefined state...
+        _links.erase(it);//delete map association...
+        it = _links.begin();//as "it" is now in an undefined state...
       }
       else
         it++;
@@ -1033,12 +1039,12 @@ namespace charliesoft
 
   void GraphRepresentation::addLink(const BlockLink& link)
   {
-    if (links_.find(link) != links_.end())
+    if (_links.find(link) != _links.end())
       return;//nothing to do...
 
     VertexRepresentation* fromVertex, *toVertex;
-    fromVertex = dynamic_cast<VertexRepresentation*>(items_[link._from]->widget());
-    toVertex = dynamic_cast<VertexRepresentation*>(items_[link._to]->widget());
+    fromVertex = dynamic_cast<VertexRepresentation*>(_items[link._from]->widget());
+    toVertex = dynamic_cast<VertexRepresentation*>(_items[link._to]->widget());
     if (fromVertex != NULL && toVertex != NULL)
     {
       auto paramFrom = fromVertex->getParamRep(link._fromParam, false);
@@ -1047,7 +1053,7 @@ namespace charliesoft
       paramTo->setVisibility(true);
       LinkPath* path = new LinkPath();
       path->setFillRule(Qt::WindingFill);
-      links_[link] = path;
+      _links[link] = path;
       fromVertex->addLink(link, path);
       toVertex->addLink(link, path);
       path->moveTo(paramFrom->getWorldAnchor());
@@ -1058,13 +1064,13 @@ namespace charliesoft
   void GraphRepresentation::updateLink(const BlockLink& link)
   {
     VertexRepresentation* fromVertex, *toVertex;
-    fromVertex = dynamic_cast<VertexRepresentation*>(items_[link._from]->widget());
-    toVertex = dynamic_cast<VertexRepresentation*>(items_[link._to]->widget());
+    fromVertex = dynamic_cast<VertexRepresentation*>(_items[link._from]->widget());
+    toVertex = dynamic_cast<VertexRepresentation*>(_items[link._to]->widget());
     if (fromVertex != NULL && toVertex != NULL)
     {
       auto paramFrom = fromVertex->getParamRep(link._fromParam, false);
       auto paramTo = toVertex->getParamRep(link._toParam, true);
-      LinkPath* path = links_[link];
+      LinkPath* path = _links[link];
       int test = path->elementCount();
       QPoint tmp = paramFrom->getWorldAnchor();
       path->setElementPositionAt(0, tmp.x(), tmp.y());
@@ -1089,15 +1095,15 @@ namespace charliesoft
 
   void GraphRepresentation::drawEdges(QPainter& p)
   {
-    for (auto iter : links_)
+    for (auto iter : _links)
       iter.second->draw(p);
   }
 
   VertexRepresentation* GraphRepresentation::getVertexRepresentation(Block* b)
   {
-    if (items_.find(b) == items_.end())
+    if (_items.find(b) == _items.end())
       return NULL;
-    return dynamic_cast<VertexRepresentation*>(items_[b]->widget());
+    return dynamic_cast<VertexRepresentation*>(_items[b]->widget());
   }
 
   void GraphRepresentation::synchronize(charliesoft::GraphOfProcess *model)
@@ -1106,11 +1112,11 @@ namespace charliesoft
     std::vector<Block*> blocks = model->getVertices();
     for (auto it = blocks.begin(); it != blocks.end(); it++)
     {
-      if (items_.find(*it) == items_.end())//add this vertex to view:
+      if (_items.find(*it) == _items.end())//add this vertex to view:
         addWidget(new VertexRepresentation(*it));
     }
     //test if block still exist:
-    for (auto it_ = items_.begin(); it_ != items_.end(); it_++)
+    for (auto it_ = _items.begin(); it_ != _items.end(); it_++)
     {
       bool found = false;
       for (auto it = blocks.begin(); it != blocks.end() && !found; it++)
@@ -1125,12 +1131,25 @@ namespace charliesoft
         auto representation = takeAt(pos);
         delete representation->widget();
         delete representation;
-        it_ = items_.begin();//restart iteration (we can't presume for iterator position)
+        it_ = _items.begin();//restart iteration (we can't presume for iterator position)
+      }
+    }
+
+    //test if link still exist:
+    for (auto link = _links.begin(); link != _links.end(); link++)
+    {
+      ParamValue* param = link->first._to->getParam(link->first._toParam, true);
+      if (param == NULL || !param->isLinked() ||
+        param->get<ParamValue*>()->getBlock() != link->first._from)
+      {
+        delete link->second;
+        auto tmpLink = link--;
+        _links.erase(tmpLink);
       }
     }
 
     //test if blocks are ok:
-    for (auto item : items_)
+    for (auto item : _items)
     {
       VertexRepresentation* vertex = dynamic_cast<VertexRepresentation*>(item.second->widget());
       if (vertex != NULL)

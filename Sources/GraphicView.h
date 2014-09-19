@@ -55,7 +55,7 @@ namespace charliesoft
     LinkConnexionRepresentation* _paramActiv;
     int heightOfConditions;
 
-    std::map<BlockLink, LinkPath*> links_;
+    std::map<BlockLink, LinkPath*> _links;
     std::vector< std::pair<ConditionOfRendering*, ConditionLinkRepresentation*> > linksConditions_;
     std::map<std::string, ParamRepresentation*> listOfInputChilds_;
     std::map<std::string, ParamRepresentation*> listOfOutputChilds_;
@@ -66,10 +66,10 @@ namespace charliesoft
     Block* getModel() const { return _model; }
     void setParamActiv(LinkConnexionRepresentation*);
 
-    std::map<BlockLink, LinkPath*> getLinks() const { return links_; }
+    std::map<BlockLink, LinkPath*> getLinks() const { return _links; }
 
     void addLink(BlockLink l, LinkPath* p){
-      links_[l] = p;
+      _links[l] = p;
     };
     void removeLink(BlockLink l);
 
@@ -100,9 +100,9 @@ namespace charliesoft
     Q_OBJECT;
     VertexRepresentation* _vertex;
 
-    QPushButton* OKbutton_;
-    QPushButton* Cancelbutton_;
-    QPushButton* Deletebutton_;
+    QPushButton* _OKbutton;
+    QPushButton* _Cancelbutton;
+    QPushButton* _Deletebutton;
     QComboBox* _condition_left;
     QComboBox* _condition_type;
     QComboBox* _condition_right;
@@ -110,7 +110,7 @@ namespace charliesoft
     QLineEdit* _value_left;
     QLineEdit* _value_right;
 
-    QGridLayout* comboBoxLayout;
+    QGridLayout* _comboBoxLayout;
   public:
     ConditionConfigurator(VertexRepresentation* vertex);
     public slots:
@@ -140,8 +140,8 @@ namespace charliesoft
     std::map<std::string, ParamRepresentation*>& out_param_;
     VertexRepresentation* _vertex;
 
-    QPushButton* OKbutton_;
-    QPushButton* Cancelbutton_;
+    QPushButton* _OKbutton;
+    QPushButton* _Cancelbutton;
     QTabWidget* tabWidget_;
     std::vector<QVBoxLayout *> tabs_content_;
 
@@ -168,8 +168,8 @@ namespace charliesoft
   {
     Q_OBJECT;
 
-    std::map<Block*, QLayoutItem*> items_;
-    std::map<BlockLink, LinkPath*> links_;
+    std::map<Block*, QLayoutItem*> _items;
+    std::map<BlockLink, LinkPath*> _links;
     std::vector<Block*> orderedBlocks_;
   public:
 
@@ -179,8 +179,8 @@ namespace charliesoft
     void updateLink(const BlockLink& link);
 
     void clearLayout(QLayout* layout = NULL);
-    std::map<Block*, QLayoutItem*> getItems() const { return items_; }
-    std::map<BlockLink, LinkPath*> getLinks() const { return links_; }
+    std::map<Block*, QLayoutItem*> getItems() const { return _items; }
+    std::map<BlockLink, LinkPath*> getLinks() const { return _links; }
 
     virtual void addItem(QLayoutItem *);
     virtual QLayoutItem * itemAt(int index) const;
