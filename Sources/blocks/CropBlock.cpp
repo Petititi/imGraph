@@ -57,9 +57,10 @@ namespace charliesoft
       if (!_myInputs["BLOCK__CROP_HEIGHT"].isDefaultValue())
         filter.set("height",
         _myInputs["BLOCK__CROP_HEIGHT"].get<int>());
-      _myOutputs["BLOCK__CROP_OUT_IMAGE"] = filter.process(mat);
-      _myOutputs["BLOCK__CROP_WIDTH"] = _myInputs["BLOCK__CROP_WIDTH"].get<int>();
-      _myOutputs["BLOCK__CROP_HEIGHT"] = _myInputs["BLOCK__CROP_HEIGHT"].get<int>();
+      cv::Mat imgTmp = filter.process(mat);
+      _myOutputs["BLOCK__CROP_OUT_IMAGE"] = imgTmp;
+      _myOutputs["BLOCK__CROP_WIDTH"] = imgTmp.cols;
+      _myOutputs["BLOCK__CROP_HEIGHT"] = imgTmp.rows;
     }
     renderingDone();
     return true;

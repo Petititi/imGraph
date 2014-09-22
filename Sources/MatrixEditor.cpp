@@ -158,6 +158,7 @@ namespace charliesoft
 
   MatrixEditor::MatrixEditor()
   {
+    setWindowTitle(_QT("MATRIX_EDITOR_TITLE"));
     _imgEditor = NULL;
     _mainLayout = new QVBoxLayout();
     setLayout(_mainLayout);

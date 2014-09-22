@@ -108,6 +108,9 @@ namespace charliesoft
     translations["MENU_FILE_QUIT"] = "Quit";
     translations["MENU_FILE_QUIT_TIP"] = "Quit application";
 
+    translations["MATRIX_EDITOR_TITLE"] = "Matrix editor";
+    translations["MATRIX_EDITOR_LOAD_MATRIX"] = "Load matrix";
+
     translations["MENU_HELP_INFO"] = "Info";
     translations["MENU_HELP_HELP"] = "Help";
 

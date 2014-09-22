@@ -40,11 +40,6 @@
 #ifndef __OPENCV_HIGHGUI_QT_H__
 #define __OPENCV_HIGHGUI_QT_H__
 
-#if defined( HAVE_QT_OPENGL )
-#include <QtOpenGL>
-#include <QGLWidget>
-#endif
-
 #ifdef _WIN32
 #pragma warning(disable:4503)
 #pragma warning(push)
@@ -52,6 +47,7 @@
 #endif
 #include "opencv2/core/utility.hpp"
 #include "opencv2/highgui/highgui_c.h"
+#include "opencv2/imgproc.hpp"
 
 #include <QAbstractEventDispatcher>
 #include <QApplication>
@@ -92,24 +88,23 @@
 enum { CV_MODE_NORMAL = 0, CV_MODE_OPENGL = 1 };
 
 //we can change the keyboard shortcuts from here !
-enum {	shortcut_zoom_normal 	= Qt::CTRL + Qt::Key_Z,
-        shortcut_zoom_imgRegion = Qt::CTRL + Qt::Key_X,
-        shortcut_save_img		= Qt::CTRL + Qt::Key_S,
-        shortcut_properties_win	= Qt::CTRL + Qt::Key_P,
-        shortcut_zoom_in 		= Qt::CTRL + Qt::Key_Plus,//QKeySequence(QKeySequence::ZoomIn),
-        shortcut_zoom_out		= Qt::CTRL + Qt::Key_Minus,//QKeySequence(QKeySequence::ZoomOut),
-        shortcut_panning_left 	= Qt::CTRL + Qt::Key_Left,
-        shortcut_panning_right 	= Qt::CTRL + Qt::Key_Right,
-        shortcut_panning_up 	= Qt::CTRL + Qt::Key_Up,
-        shortcut_panning_down 	= Qt::CTRL + Qt::Key_Down
-    };
+enum {
+  shortcut_zoom_normal = Qt::CTRL + Qt::Key_Z,
+  shortcut_zoom_imgRegion = Qt::CTRL + Qt::Key_X,
+  shortcut_save_img = Qt::CTRL + Qt::Key_S,
+  shortcut_edit_pen_img = Qt::CTRL + Qt::Key_E,
+  shortcut_properties_win = Qt::CTRL + Qt::Key_P,
+  shortcut_zoom_in = Qt::CTRL + Qt::Key_Plus,//QKeySequence(QKeySequence::ZoomIn),
+  shortcut_zoom_out = Qt::CTRL + Qt::Key_Minus,//QKeySequence(QKeySequence::ZoomOut),
+  shortcut_panning_left = Qt::CTRL + Qt::Key_Left,
+  shortcut_panning_right = Qt::CTRL + Qt::Key_Right,
+  shortcut_panning_up = Qt::CTRL + Qt::Key_Up,
+  shortcut_panning_down = Qt::CTRL + Qt::Key_Down
+};
 
 //end enum
 
-namespace charliesoft
-{
-  void imshow(cv::String name, cv::Mat im);
-}
+void imshow(cv::String name, cv::Mat im);
 
 class CvWindow;
 class ViewPort;
@@ -117,153 +112,41 @@ class ViewPort;
 
 class GuiReceiver : public QObject
 {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    GuiReceiver();
-    ~GuiReceiver();
+  GuiReceiver();
+  ~GuiReceiver();
 
-    int start();
-    void isLastWindow();
+  void isLastWindow();
 
-    bool bTimeOut;
-    QTimer* timer;
+  bool bTimeOut;
+  QTimer* timer;
 
-public slots:
-    void createWindow( QString name, int flags = 0 );
-    void destroyWindow(QString name);
-    void destroyAllWindow();
-    void addSlider(QString trackbar_name, QString window_name, void* value, int count, void* on_change);
-    void addSlider2(QString trackbar_name, QString window_name, void* value, int count, void* on_change, void *userdata);
-    void moveWindow(QString name, int x, int y);
-    void resizeWindow(QString name, int width, int height);
-    void showImage(QString name, void* arr);
-    void displayInfo( QString name, QString text, int delayms );
-    void displayStatusBar( QString name, QString text, int delayms );
-    void timeOut();
-    void toggleFullScreen(QString name, double flags );
-    double isFullScreen(QString name);
-    double getPropWindow(QString name);
-    void setPropWindow(QString name, double flags );
-    double getRatioWindow(QString name);
-    void setRatioWindow(QString name, double arg2 );
-    void saveWindowParameters(QString name);
-    void loadWindowParameters(QString name);
-    void putText(void* arg1, QString text, QPoint org, void* font);
-    void addButton(QString button_name, int button_type, int initial_button_state , void* on_change, void* userdata);
-    void enablePropertiesButtonEachWindow();
-
-    void setOpenGlDrawCallback(QString name, void* callback, void* userdata);
-    void setOpenGlContext(QString name);
-    void updateWindow(QString name);
-    double isOpenGl(QString name);
+  public slots:
+  void createWindow(QString name, int flags = 0);
+  void destroyWindow(QString name);
+  void destroyAllWindow();
+  void moveWindow(QString name, int x, int y);
+  void resizeWindow(QString name, int width, int height);
+  void showImage(QString name, cv::Mat arr);
+  void displayInfo(QString name, QString text, int delayms);
+  void timeOut();
+  void toggleFullScreen(QString name, double flags);
+  double isFullScreen(QString name);
+  double getPropWindow(QString name);
+  void setPropWindow(QString name, double flags);
+  double getRatioWindow(QString name);
+  void setRatioWindow(QString name, double arg2);
+  void saveWindowParameters(QString name);
+  void loadWindowParameters(QString name);
+  void enablePropertiesButtonEachWindow();
 
 private:
-    int nb_windows;
-    bool doesExternalQAppExist;
+  int nb_windows;
+  bool doesExternalQAppExist;
 };
 
-
-enum typeBar { _typeCvTrackbar = 0, _typeCvButtonbar = 1 };
-class CvBar : public QHBoxLayout
-{
-public:
-    typeBar type;
-    QString name_bar;
-    QPointer<QWidget> myparent;
-};
-
-
-class CvButtonbar : public CvBar
-{
-    Q_OBJECT
-public:
-    CvButtonbar(QWidget* arg, QString bar_name);
-
-    void addButton(QString button_name, CvButtonCallback call, void* userdata,  int button_type, int initial_button_state);
-
-private:
-    void setLabel();
-
-    QPointer<QLabel> label;
-    QPointer<QButtonGroup> group_button;
-};
-
-
-class CvPushButton : public QPushButton
-{
-    Q_OBJECT
-public:
-    CvPushButton(CvButtonbar* par, QString button_name, CvButtonCallback call, void* userdata);
-
-private:
-    CvButtonbar* myparent;
-    QString button_name ;
-    CvButtonCallback callback;
-    void* userdata;
-
-private slots:
-    void callCallBack(bool);
-};
-
-
-class CvCheckBox : public QCheckBox
-{
-    Q_OBJECT
-public:
-    CvCheckBox(CvButtonbar* par, QString button_name, CvButtonCallback call, void* userdata, int initial_button_state);
-
-private:
-    CvButtonbar* myparent;
-    QString button_name ;
-    CvButtonCallback callback;
-    void* userdata;
-
-private slots:
-    void callCallBack(bool);
-};
-
-
-class CvRadioButton : public QRadioButton
-{
-    Q_OBJECT
-public:
-    CvRadioButton(CvButtonbar* par, QString button_name, CvButtonCallback call, void* userdata, int initial_button_state);
-
-private:
-    CvButtonbar* myparent;
-    QString button_name ;
-    CvButtonCallback callback;
-    void* userdata;
-
-private slots:
-    void callCallBack(bool);
-};
-
-
-class CvTrackbar :  public CvBar
-{
-    Q_OBJECT
-public:
-    CvTrackbar(CvWindow* parent, QString name, int* value, int count, CvTrackbarCallback on_change);
-    CvTrackbar(CvWindow* parent, QString name, int* value, int count, CvTrackbarCallback2 on_change, void* data);
-
-    QPointer<QSlider> slider;
-
-private slots:
-    void createDialog();
-    void update(int myvalue);
-
-private:
-    void setLabel(int myvalue);
-    void create(CvWindow* arg, QString name, int* value, int count);
-    QString createLabel();
-    QPointer<QPushButton > label;
-    CvTrackbarCallback callback;
-    CvTrackbarCallback2 callback2;//look like it is use by python binding
-    int* dataSlider;
-    void* userdata;
-};
 
 //Both are top level window, so that a way to differenciate them.
 //if (obj->metaObject ()->className () == "CvWindow") does not give me robust result
@@ -272,305 +155,218 @@ enum typeWindow { _typeCvWindow = 1, _typeCvWinProperties = 2 };
 class CvWinModel : public QWidget
 {
 public:
-typeWindow type;
+  typeWindow type;
 };
 
 
 class CvWinProperties : public CvWinModel
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
-    CvWinProperties(QString name, QObject* parent);
-    ~CvWinProperties();
-    QPointer<QBoxLayout> myLayout;
+  CvWinProperties(QString name, QObject* parent);
+  ~CvWinProperties();
+  QPointer<QBoxLayout> myLayout;
 
 private:
-    void closeEvent ( QCloseEvent * e );
-    void showEvent ( QShowEvent * event ) ;
-    void hideEvent ( QHideEvent * event ) ;
+  void closeEvent(QCloseEvent * e);
+  void showEvent(QShowEvent * event);
+  void hideEvent(QHideEvent * event);
 };
 
 
 class CvWindow : public CvWinModel
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
-    CvWindow(QString arg2, int flag = CV_WINDOW_NORMAL);
-    ~CvWindow();
+  CvWindow(QString arg2, int flag = CV_WINDOW_NORMAL);
+  ~CvWindow();
 
-    void setMouseCallBack(CvMouseCallback m, void* param);
+  void writeSettings();
+  void readSettings();
 
-    void writeSettings();
-    void readSettings();
+  double getRatio();
+  void setRatio(int flags);
 
-    double getRatio();
-    void setRatio(int flags);
+  int getPropWindow();
+  void setPropWindow(int flags);
+  
+  bool isPencil_mode() const { return pencil_mode; };
 
-    int getPropWindow();
-    void setPropWindow(int flags);
+  void toggleFullScreen(int flags);
 
-    void toggleFullScreen(int flags);
+  void updateImage(cv::Mat arr);
 
-    void updateImage(void* arr);
+  void displayInfo(QString text, int delayms);
+  void displayStatusBar(QString text, int delayms);
 
-    void displayInfo(QString text, int delayms);
-    void displayStatusBar(QString text, int delayms);
+  void enablePropertiesButton();
 
-    void enablePropertiesButton();
+  void setViewportSize(QSize size);
 
-    static CvButtonbar* createButtonBar(QString bar_name);
+  //parameters (will be save/load)
+  int param_flags;
+  int param_gui_mode;
+  int param_ratio_mode;
 
-    static void addSlider(CvWindow* w, QString name, int* value, int count, CvTrackbarCallback on_change CV_DEFAULT(NULL));
-    static void addSlider2(CvWindow* w, QString name, int* value, int count, CvTrackbarCallback2 on_change CV_DEFAULT(NULL), void* userdata CV_DEFAULT(0));
+  QPointer<QBoxLayout> myGlobalLayout; //All the widget (toolbar, view, LayoutBar, ...) are attached to it
+  QPointer<QBoxLayout> myBarLayout;
 
-    void setOpenGlDrawCallback(CvOpenGlDrawCallback callback, void* userdata);
-    void makeCurrentOpenGlContext();
-    void updateGl();
-    bool isOpenGl();
+  QVector<QAction*> vect_QActions;
 
-    void setViewportSize(QSize size);
-
-    //parameters (will be save/load)
-    int param_flags;
-    int param_gui_mode;
-    int param_ratio_mode;
-
-    QPointer<QBoxLayout> myGlobalLayout; //All the widget (toolbar, view, LayoutBar, ...) are attached to it
-    QPointer<QBoxLayout> myBarLayout;
-
-    QVector<QAction*> vect_QActions;
-
-    QPointer<QStatusBar> myStatusBar;
-    QPointer<QToolBar> myToolBar;
-    QPointer<QLabel> myStatusBar_msg;
+  QPointer<QStatusBar> myStatusBar;
+  QPointer<QToolBar> myToolBar;
+  QPointer<QLabel> myStatusBar_msg;
 
 protected:
-    virtual void keyPressEvent(QKeyEvent* event);
+  virtual void keyPressEvent(QKeyEvent* event);
 
 private:
+  bool pencil_mode;
+  int mode_display; //opengl or native
+  ViewPort* myView;
 
-    int mode_display; //opengl or native
-    ViewPort* myView;
+  QVector<QShortcut*> vect_QShortcuts;
 
-    QVector<QShortcut*> vect_QShortcuts;
+  void createActions();
+  void createShortcuts();
+  void createView();
+  void createGlobalLayout();
+  CvWinProperties* createParameterWindow();
 
-    void icvLoadTrackbars(QSettings *settings);
-    void icvSaveTrackbars(QSettings *settings);
-    void icvLoadControlPanel();
-    void icvSaveControlPanel();
-    void icvLoadButtonbar(CvButtonbar* t,QSettings *settings);
-    void icvSaveButtonbar(CvButtonbar* t,QSettings *settings);
+  void hideTools();
+  void showTools();
+  QSize getAvailableSize();
 
-    void createActions();
-    void createShortcuts();
-    void createToolBar();
-    void createView();
-    void createStatusBar();
-    void createGlobalLayout();
-    void createBarLayout();
-    CvWinProperties* createParameterWindow();
-
-    void hideTools();
-    void showTools();
-    QSize getAvailableSize();
-
-private slots:
-    void displayPropertiesWin();
+  private slots:
+  void displayPropertiesWin();
+  void switchEditingImg();
 };
 
 
 enum _typemouse_event { mouse_up = 0, mouse_down = 1, mouse_dbclick = 2, mouse_move = 3 };
-static const int tableMouseButtons[][3]={
-    {CV_EVENT_LBUTTONUP, CV_EVENT_RBUTTONUP, CV_EVENT_MBUTTONUP},               //mouse_up
-    {CV_EVENT_LBUTTONDOWN, CV_EVENT_RBUTTONDOWN, CV_EVENT_MBUTTONDOWN},         //mouse_down
-    {CV_EVENT_LBUTTONDBLCLK, CV_EVENT_RBUTTONDBLCLK, CV_EVENT_MBUTTONDBLCLK},   //mouse_dbclick
-    {CV_EVENT_MOUSEMOVE, CV_EVENT_MOUSEMOVE, CV_EVENT_MOUSEMOVE}                //mouse_move
+static const int tableMouseButtons[][3] = {
+    { CV_EVENT_LBUTTONUP, CV_EVENT_RBUTTONUP, CV_EVENT_MBUTTONUP },               //mouse_up
+    { CV_EVENT_LBUTTONDOWN, CV_EVENT_RBUTTONDOWN, CV_EVENT_MBUTTONDOWN },         //mouse_down
+    { CV_EVENT_LBUTTONDBLCLK, CV_EVENT_RBUTTONDBLCLK, CV_EVENT_MBUTTONDBLCLK },   //mouse_dbclick
+    { CV_EVENT_MOUSEMOVE, CV_EVENT_MOUSEMOVE, CV_EVENT_MOUSEMOVE }                //mouse_move
 };
 
 
 class ViewPort
 {
 public:
-    virtual ~ViewPort() {}
+  virtual ~ViewPort() {}
 
-    virtual QWidget* getWidget() = 0;
+  virtual QWidget* getWidget() = 0;
 
-    virtual void setMouseCallBack(CvMouseCallback callback, void* param) = 0;
+  virtual void writeSettings(QSettings& settings) = 0;
+  virtual void readSettings(QSettings& settings) = 0;
 
-    virtual void writeSettings(QSettings& settings) = 0;
-    virtual void readSettings(QSettings& settings) = 0;
+  virtual double getRatio() = 0;
+  virtual void setRatio(int flags) = 0;
 
-    virtual double getRatio() = 0;
-    virtual void setRatio(int flags) = 0;
+  virtual void updateImage(const cv::Mat arr) = 0;
 
-    virtual void updateImage(const CvArr* arr) = 0;
+  virtual void startDisplayInfo(QString text, int delayms) = 0;
 
-    virtual void startDisplayInfo(QString text, int delayms) = 0;
-
-    virtual void setOpenGlDrawCallback(CvOpenGlDrawCallback callback, void* userdata) = 0;
-    virtual void makeCurrentOpenGlContext() = 0;
-    virtual void updateGl() = 0;
-
-    virtual void setSize(QSize size_) = 0;
+  virtual void setSize(QSize size_) = 0;
 };
 
 
-
-#ifdef HAVE_QT_OPENGL
-
-class OpenGlViewPort : public QGLWidget, public ViewPort
-{
-public:
-    explicit OpenGlViewPort(QWidget* parent);
-    ~OpenGlViewPort();
-
-    QWidget* getWidget();
-
-    void setMouseCallBack(CvMouseCallback callback, void* param);
-
-    void writeSettings(QSettings& settings);
-    void readSettings(QSettings& settings);
-
-    double getRatio();
-    void setRatio(int flags);
-
-    void updateImage(const CvArr* arr);
-
-    void startDisplayInfo(QString text, int delayms);
-
-    void setOpenGlDrawCallback(CvOpenGlDrawCallback callback, void* userdata);
-    void makeCurrentOpenGlContext();
-    void updateGl();
-
-    void setSize(QSize size_);
-
-protected:
-    void initializeGL();
-    void resizeGL(int w, int h);
-    void paintGL();
-
-    void mouseMoveEvent(QMouseEvent* event);
-    void mousePressEvent(QMouseEvent* event);
-    void mouseReleaseEvent(QMouseEvent* event);
-    void mouseDoubleClickEvent(QMouseEvent* event);
-
-    QSize sizeHint() const;
-
-private:
-    QSize size;
-
-    CvMouseCallback mouseCallback;
-    void* mouseData;
-
-    CvOpenGlDrawCallback glDrawCallback;
-    void* glDrawData;
-
-    void icvmouseHandler(QMouseEvent* event, _typemouse_event category, int& cv_event, int& flags);
-    void icvmouseProcessing(QPointF pt, int cv_event, int flags);
-};
-
-#endif // HAVE_QT_OPENGL
 
 
 class DefaultViewPort : public QGraphicsView, public ViewPort
 {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    DefaultViewPort(CvWindow* centralWidget, int arg2);
-    ~DefaultViewPort();
+  DefaultViewPort(CvWindow* centralWidget, int arg2);
+  ~DefaultViewPort();
 
-    QWidget* getWidget();
+  QWidget* getWidget();
 
-    void setMouseCallBack(CvMouseCallback callback, void* param);
+  void writeSettings(QSettings& settings);
+  void readSettings(QSettings& settings);
 
-    void writeSettings(QSettings& settings);
-    void readSettings(QSettings& settings);
+  double getRatio();
+  void setRatio(int flags);
 
-    double getRatio();
-    void setRatio(int flags);
+  void updateImage(const cv::Mat arr);
 
-    void updateImage(const CvArr* arr);
+  void startDisplayInfo(QString text, int delayms);
 
-    void startDisplayInfo(QString text, int delayms);
+  void setSize(QSize size_);
 
-    void setOpenGlDrawCallback(CvOpenGlDrawCallback callback, void* userdata);
-    void makeCurrentOpenGlContext();
-    void updateGl();
+  public slots:
+  //reference:
+  //http://www.qtcentre.org/wiki/index.php?title=QGraphicsView:_Smooth_Panning_and_Zooming
+  //http://doc.qt.nokia.com/4.6/gestures-imagegestures-imagewidget-cpp.html
 
-    void setSize(QSize size_);
+  void siftWindowOnLeft();
+  void siftWindowOnRight();
+  void siftWindowOnUp();
+  void siftWindowOnDown();
 
-public slots:
-    //reference:
-    //http://www.qtcentre.org/wiki/index.php?title=QGraphicsView:_Smooth_Panning_and_Zooming
-    //http://doc.qt.nokia.com/4.6/gestures-imagegestures-imagewidget-cpp.html
+  void resetZoom();
+  void imgRegion();
+  void ZoomIn();
+  void ZoomOut();
 
-    void siftWindowOnLeft();
-    void siftWindowOnRight();
-    void siftWindowOnUp() ;
-    void siftWindowOnDown();
-
-    void resetZoom();
-    void imgRegion();
-    void ZoomIn();
-    void ZoomOut();
-
-    void saveView();
+  void saveView();
 
 protected:
-    void contextMenuEvent(QContextMenuEvent* event);
-    void resizeEvent(QResizeEvent* event);
-    void paintEvent(QPaintEvent* paintEventInfo);
-    void wheelEvent(QWheelEvent* event);
-    void mouseMoveEvent(QMouseEvent* event);
-    void mousePressEvent(QMouseEvent* event);
-    void mouseReleaseEvent(QMouseEvent* event);
-    void mouseDoubleClickEvent(QMouseEvent* event);
+  void contextMenuEvent(QContextMenuEvent* event);
+  void resizeEvent(QResizeEvent* event);
+  void paintEvent(QPaintEvent* paintEventInfo);
+  void wheelEvent(QWheelEvent* event);
+  void mouseMoveEvent(QMouseEvent* event);
+  void mousePressEvent(QMouseEvent* event);
+  void mouseReleaseEvent(QMouseEvent* event);
+  void mouseDoubleClickEvent(QMouseEvent* event);
 
 private:
-    int param_keepRatio;
+  int param_keepRatio;
 
-    //parameters (will be save/load)
-    QTransform param_matrixWorld;
+  //parameters (will be save/load)
+  QTransform param_matrixWorld;
 
-    CvMat* image2Draw_mat;
-    QImage image2Draw_qt;
-    int nbChannelOriginImage;
+  cv::Mat image2Draw_mat;
+  QImage image2Draw_qt;
+  int nbChannelOriginImage;
 
-    //for mouse callback
-    CvMouseCallback on_mouse;
-    void* on_mouse_param;
+  //for mouse callback
+  CvMouseCallback on_mouse;
+  void* on_mouse_param;
 
 
-    void scaleView(qreal scaleFactor, QPointF center);
-    void moveView(QPointF delta);
+  void scaleView(qreal scaleFactor, QPointF center);
+  void moveView(QPointF delta);
 
-    QPoint mouseCoordinate;
-    QPointF positionGrabbing;
-    QRect  positionCorners;
-    QTransform matrixWorld_inv;
-    float ratioX, ratioY;
+  QPoint mouseCoordinate;
+  QPointF positionGrabbing;
+  QRect  positionCorners;
+  QTransform matrixWorld_inv;
+  float ratioX, ratioY;
 
-    bool isSameSize(IplImage* img1,IplImage* img2);
+  bool isSameSize(IplImage* img1, IplImage* img2);
 
-    QSize sizeHint() const;
-    QPointer<CvWindow> centralWidget;
-    QPointer<QTimer> timerDisplay;
-    bool drawInfo;
-    QString infoText;
-    QRectF target;
+  QSize sizeHint() const;
+  QPointer<CvWindow> centralWidget;
+  QPointer<QTimer> timerDisplay;
+  bool drawInfo;
+  QString infoText;
+  QRectF target;
 
-    void drawInstructions(QPainter *painter);
-    void drawViewOverview(QPainter *painter);
-    void drawImgRegion(QPainter *painter);
-    void draw2D(QPainter *painter);
-    void drawStatusBar();
-    void controlImagePosition();
-    void icvmouseHandler(QMouseEvent *event, _typemouse_event category, int &cv_event, int &flags);
-    void icvmouseProcessing(QPointF pt, int cv_event, int flags);
+  void drawInstructions(QPainter *painter);
+  void drawViewOverview(QPainter *painter);
+  void drawImgRegion(QPainter *painter);
+  void draw2D(QPainter *painter);
+  void drawStatusBar();
+  void controlImagePosition();
+  void icvmouseProcessing(QPointF pt, int cv_event, int flags);
 
-private slots:
-    void stopDisplayInfo();
+  private slots:
+  void stopDisplayInfo();
 };
 
 #endif

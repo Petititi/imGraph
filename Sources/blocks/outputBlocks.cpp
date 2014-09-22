@@ -43,7 +43,7 @@ namespace charliesoft
       if (_myInputs["BLOCK__OUTPUT_IN_NORMALIZE"].get<bool>())
         mat = filter.process(mat);
 
-      charliesoft::imshow(_myInputs["BLOCK__OUTPUT_IN_WIN_NAME"].get<string>(), mat);
+      imshow(_myInputs["BLOCK__OUTPUT_IN_WIN_NAME"].get<string>(), mat);
     }
     renderingDone();
     return true;
