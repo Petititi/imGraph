@@ -163,8 +163,6 @@ namespace charliesoft
     _mainLayout = new QVBoxLayout();
     setLayout(_mainLayout);
 
-    QHBoxLayout *titleLayout;
-
     QLabel* tmpLabel = new QLabel("Repertoire du ground truth pour la classification:");
     _mainLayout->addWidget(tmpLabel);
 

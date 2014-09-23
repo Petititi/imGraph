@@ -1,16 +1,16 @@
 <RCC>
-    <qresource prefix="/">
-        <file alias="no_edit-icon">Milky/64/1.png</file>
-        <file alias="edit_pen-icon">Milky/64/2.png</file>
-        <file alias="save-icon">Milky/64/7.png</file>
-        <file alias="up-icon">Milky/64/19.png</file>
-        <file alias="right-icon">Milky/64/23.png</file>
-        <file alias="down-icon">Milky/64/24.png</file>
-        <file alias="zoom_x1-icon">Milky/64/27.png</file>
-        <file alias="left-icon">Milky/64/28.png</file>
-        <file alias="properties-icon">Milky/64/38.png</file>
-        <file alias="imgRegion-icon">Milky/64/61.png</file>
-        <file alias="zoom_in-icon">Milky/64/106.png</file>
-        <file alias="zoom_out-icon">Milky/64/107.png</file>
-    </qresource>
+  <qresource prefix="/">
+    <file alias="save-icon">Milky/64/7.png</file>
+    <file alias="up-icon">Milky/64/19.png</file>
+    <file alias="right-icon">Milky/64/23.png</file>
+    <file alias="down-icon">Milky/64/24.png</file>
+    <file alias="zoom_x1-icon">Milky/64/27.png</file>
+    <file alias="left-icon">Milky/64/28.png</file>
+    <file alias="properties-icon">Milky/64/38.png</file>
+    <file alias="imgRegion-icon">Milky/64/61.png</file>
+    <file alias="edit_pen-icon">Milky/64/62.png</file>
+    <file alias="no_edit-icon">Milky/64/63.png</file>
+    <file alias="zoom_in-icon">Milky/64/106.png</file>
+    <file alias="zoom_out-icon">Milky/64/107.png</file>
+  </qresource>
 </RCC>

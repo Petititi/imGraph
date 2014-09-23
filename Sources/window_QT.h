@@ -107,7 +107,7 @@ enum {
 void imshow(cv::String name, cv::Mat im);
 
 class CvWindow;
-class ViewPort;
+class DefaultViewPort;
 
 
 class GuiReceiver : public QObject
@@ -223,7 +223,7 @@ protected:
 private:
   bool pencil_mode;
   int mode_display; //opengl or native
-  ViewPort* myView;
+  DefaultViewPort* myView;
 
   QVector<QShortcut*> vect_QShortcuts;
 
@@ -240,6 +240,7 @@ private:
   private slots:
   void displayPropertiesWin();
   void switchEditingImg();
+  void chooseColor();
 };
 
 
@@ -313,6 +314,8 @@ public:
   void ZoomOut();
 
   void saveView();
+  QColor getPenColor() const { return myPenColor; }
+  void setPenColor(QColor val) { myPenColor = val; }
 
 protected:
   void contextMenuEvent(QContextMenuEvent* event);
@@ -324,8 +327,15 @@ protected:
   void mouseReleaseEvent(QMouseEvent* event);
   void mouseDoubleClickEvent(QMouseEvent* event);
 
+  void drawLineTo(const QPointF &endPoint);
+  QPointF toImgCoord(QPointF src);
 private:
   int param_keepRatio;
+  bool scribbling;
+  QPointF lastPoint;
+
+  QColor myPenColor;
+  float myPenWidth;
 
   //parameters (will be save/load)
   QTransform param_matrixWorld;

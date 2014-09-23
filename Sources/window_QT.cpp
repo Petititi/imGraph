@@ -44,6 +44,7 @@
 #include <window_QT.h>
 
 #include <math.h>
+#include <QColorDialog>
 #include <QString>
 #include <Window.h>
 
@@ -520,6 +521,10 @@ CvWindow::CvWindow(QString name, int arg2)
 
     foreach(QAction *a, vect_QActions)
       myToolBar->addAction(a);
+
+    myToolBar->widgetForAction(vect_QActions[11])->setObjectName("ColorPick");
+    vect_QActions[11]->setVisible(false);
+    myToolBar->setStyleSheet("QToolButton#ColorPick { background: none; color: black; }");
   }
 
   //Now attach everything
@@ -671,13 +676,11 @@ void CvWindow::enablePropertiesButton()
 }
 
 
-
 void CvWindow::setViewportSize(QSize _size)
 {
   myView->getWidget()->resize(_size);
   myView->setSize(_size);
 }
-
 
 
 void CvWindow::createGlobalLayout()
@@ -704,7 +707,7 @@ void CvWindow::createView()
 
 void CvWindow::createActions()
 {
-  vect_QActions.resize(11);
+  vect_QActions.resize(12);
 
   QWidget* view = myView->getWidget();
 
@@ -755,6 +758,10 @@ void CvWindow::createActions()
   vect_QActions[10] = new QAction(QIcon(":/edit_pen-icon"), "Edit image (CTRL+E)", this);
   vect_QActions[10]->setIconVisibleInMenu(true);
   QObject::connect(vect_QActions[10], SIGNAL(triggered()), this, SLOT(switchEditingImg()));
+
+  vect_QActions[11] = new QAction("Color", this);
+  vect_QActions[11]->setIconVisibleInMenu(false);
+  QObject::connect(vect_QActions[11], SIGNAL(triggered()), this, SLOT(chooseColor()));
 }
 
 
@@ -799,7 +806,6 @@ void CvWindow::createShortcuts()
 }
 
 
-
 void CvWindow::hideTools()
 {
   if (myToolBar)
@@ -840,18 +846,30 @@ void CvWindow::displayPropertiesWin()
     global_control_panel->hide();
 }
 
+void CvWindow::chooseColor()
+{
+  QColor tmpColor = QColorDialog::getColor(myView->getPenColor(), this);
+  if (tmpColor.isValid())
+  {
+    myView->setPenColor(tmpColor);
+    QString style = "background: rgb(%1, %2, %3);";
+    myToolBar->setStyleSheet("QToolButton#ColorPick { " + style.arg(tmpColor.red()).arg(tmpColor.green()).arg(tmpColor.blue()) + "; color: black; }");
+  }
+}
 
 void CvWindow::switchEditingImg()
 {
   pencil_mode = !pencil_mode;
   if (pencil_mode)
   {
-    setCursor(Qt::CrossCursor);
+    vect_QActions[11]->setVisible(true);
+    myView->setCursor(Qt::CrossCursor);
     vect_QActions[10]->setIcon(QIcon(":/no_edit-icon"));
   }
   else
   {
-    unsetCursor();
+    vect_QActions[11]->setVisible(false);
+    myView->unsetCursor();
     vect_QActions[10]->setIcon(QIcon(":/edit_pen-icon"));
   }
 }
@@ -887,6 +905,9 @@ void CvWindow::keyPressEvent(QKeyEvent *evnt)
 
 DefaultViewPort::DefaultViewPort(CvWindow* arg, int arg2) : QGraphicsView(arg)
 {
+  myPenColor = Qt::black;
+  myPenWidth = 2;
+  scribbling = false;
   centralWidget = arg;
   param_keepRatio = arg2;
 
@@ -1170,6 +1191,19 @@ void DefaultViewPort::resizeEvent(QResizeEvent* evnt)
   return QGraphicsView::resizeEvent(evnt);
 }
 
+void DefaultViewPort::drawLineTo(const QPointF &endPoint)
+{
+  QPainter painter(&image2Draw_qt);
+  QColor tmpColor = myPenColor;
+  painter.setPen(QPen(tmpColor, myPenWidth, Qt::SolidLine, Qt::RoundCap,
+    Qt::RoundJoin));
+  painter.drawLine(lastPoint, endPoint);
+
+  int rad = static_cast<int>((myPenWidth / 2) + 2);
+  update(QRect(lastPoint.toPoint(), endPoint.toPoint()).normalized()
+    .adjusted(-rad, -rad, +rad, +rad));
+  lastPoint = endPoint;
+}
 
 void DefaultViewPort::wheelEvent(QWheelEvent* evnt)
 {
@@ -1177,6 +1211,19 @@ void DefaultViewPort::wheelEvent(QWheelEvent* evnt)
   viewport()->update();
 }
 
+QPointF DefaultViewPort::toImgCoord(QPointF src)
+{
+  double pixel_width = param_matrixWorld.m11()*ratioX;
+  double pixel_height = param_matrixWorld.m11()*ratioY;
+
+  double pointDx = src.x() / pixel_width;
+  double pointDy = src.y() / pixel_height;
+
+  qreal offsetX = param_matrixWorld.dx() / pixel_width;
+  qreal offsetY = param_matrixWorld.dy() / pixel_height;
+
+  return QPointF(pointDx - offsetX, pointDy - offsetY);
+}
 
 void DefaultViewPort::mousePressEvent(QMouseEvent* evnt)
 {
@@ -1186,11 +1233,20 @@ void DefaultViewPort::mousePressEvent(QMouseEvent* evnt)
   //icvmouseHandler: pass parameters for cv_event, flags
   icvmouseProcessing(QPointF(pt), cv_event, flags);
 
-  if (param_matrixWorld.m11() > 1)
+  positionGrabbing = evnt->pos();
+  if (centralWidget->isPencil_mode())
   {
-    if (!centralWidget->isPencil_mode())
-      setCursor(Qt::ClosedHandCursor);
-    positionGrabbing = evnt->pos();
+    scribbling = true;
+
+    lastPoint = toImgCoord(positionGrabbing);
+  } 
+  else
+  {
+    if (param_matrixWorld.m11() > 1)
+    {
+      if (!centralWidget->isPencil_mode())
+        setCursor(Qt::ClosedHandCursor);
+    }
   }
 
   QWidget::mousePressEvent(evnt);
@@ -1232,11 +1288,19 @@ void DefaultViewPort::mouseMoveEvent(QMouseEvent* evnt)
   //icvmouseHandler: pass parameters for cv_event, flags
   icvmouseProcessing(QPointF(pt), cv_event, flags);
 
-  if (param_matrixWorld.m11() > 1 && evnt->buttons() == Qt::LeftButton)
+  if (scribbling)
   {
-    QPointF dxy = (pt - positionGrabbing) / param_matrixWorld.m11();
-    positionGrabbing = evnt->pos();
-    moveView(dxy);
+    if (evnt->buttons() & Qt::LeftButton)
+      drawLineTo(toImgCoord(pt));
+  }
+  else
+  {
+    if (param_matrixWorld.m11() > 1 && evnt->buttons() == Qt::LeftButton)
+    {
+      QPointF dxy = (pt - positionGrabbing) / param_matrixWorld.m11();
+      positionGrabbing = evnt->pos();
+      moveView(dxy);
+    }
   }
 
   //I update the statusbar here because if the user does a cvWaitkey(0) (like with inpaint.cpp)
