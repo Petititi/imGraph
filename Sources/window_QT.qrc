@@ -12,5 +12,6 @@
     <file alias="no_edit-icon">Milky/64/63.png</file>
     <file alias="zoom_in-icon">Milky/64/106.png</file>
     <file alias="zoom_out-icon">Milky/64/107.png</file>
+    <file alias="load-icon">Milky/64/119.png</file>
   </qresource>
 </RCC>

@@ -45,6 +45,8 @@
 
 #include <math.h>
 #include <QColorDialog>
+#include <boost/lexical_cast.hpp>
+#include <opencv2/highgui.hpp>
 #include <QString>
 #include <Window.h>
 
@@ -55,6 +57,8 @@
 #include <unistd.h>
 #endif
 
+using boost::lexical_cast;
+using namespace cv;
 
 //Static and global first
 static GuiReceiver *guiMainThread = NULL;
@@ -461,6 +465,8 @@ CvWinProperties::~CvWinProperties()
 
 CvWindow::CvWindow(QString name, int arg2)
 {
+  pencilSize = NULL;
+  pencilSize_Action = NULL;
   pencil_mode = false;
   type = _typeCvWindow;
   moveToThread(qApp->instance()->thread());
@@ -522,8 +528,8 @@ CvWindow::CvWindow(QString name, int arg2)
     foreach(QAction *a, vect_QActions)
       myToolBar->addAction(a);
 
-    myToolBar->widgetForAction(vect_QActions[11])->setObjectName("ColorPick");
-    vect_QActions[11]->setVisible(false);
+    myToolBar->widgetForAction(vect_QActions[__ACT_IMGRAPH_PEN_COLOR])->setObjectName("ColorPick");
+    vect_QActions[__ACT_IMGRAPH_PEN_COLOR]->setVisible(false);
     myToolBar->setStyleSheet("QToolButton#ColorPick { background: none; color: black; }");
   }
 
@@ -707,61 +713,54 @@ void CvWindow::createView()
 
 void CvWindow::createActions()
 {
-  vect_QActions.resize(12);
+  vect_QActions.resize(11);
 
   QWidget* view = myView->getWidget();
 
   //if the shortcuts are changed in window_QT.h, we need to update the tooltip manually
-  vect_QActions[0] = new QAction(QIcon(":/left-icon"), "Panning left (CTRL+arrowLEFT)", this);
-  vect_QActions[0]->setIconVisibleInMenu(true);
-  QObject::connect(vect_QActions[0], SIGNAL(triggered()), view, SLOT(siftWindowOnLeft()));
+  vect_QActions[__ACT_IMGRAPH_LEFT] = new QAction(QIcon(":/left-icon"), "Panning left (CTRL+arrowLEFT)", this);
+  vect_QActions[__ACT_IMGRAPH_LEFT]->setIconVisibleInMenu(true);
+  QObject::connect(vect_QActions[__ACT_IMGRAPH_LEFT], SIGNAL(triggered()), view, SLOT(siftWindowOnLeft()));
 
-  vect_QActions[1] = new QAction(QIcon(":/right-icon"), "Panning right (CTRL+arrowRIGHT)", this);
-  vect_QActions[1]->setIconVisibleInMenu(true);
-  QObject::connect(vect_QActions[1], SIGNAL(triggered()), view, SLOT(siftWindowOnRight()));
+  vect_QActions[__ACT_IMGRAPH_RIGHT] = new QAction(QIcon(":/right-icon"), "Panning right (CTRL+arrowRIGHT)", this);
+  vect_QActions[__ACT_IMGRAPH_RIGHT]->setIconVisibleInMenu(true);
+  QObject::connect(vect_QActions[__ACT_IMGRAPH_RIGHT], SIGNAL(triggered()), view, SLOT(siftWindowOnRight()));
 
-  vect_QActions[2] = new QAction(QIcon(":/up-icon"), "Panning up (CTRL+arrowUP)", this);
-  vect_QActions[2]->setIconVisibleInMenu(true);
-  QObject::connect(vect_QActions[2], SIGNAL(triggered()), view, SLOT(siftWindowOnUp()));
+  vect_QActions[__ACT_IMGRAPH_UP] = new QAction(QIcon(":/up-icon"), "Panning up (CTRL+arrowUP)", this);
+  vect_QActions[__ACT_IMGRAPH_UP]->setIconVisibleInMenu(true);
+  QObject::connect(vect_QActions[__ACT_IMGRAPH_UP], SIGNAL(triggered()), view, SLOT(siftWindowOnUp()));
 
-  vect_QActions[3] = new QAction(QIcon(":/down-icon"), "Panning down (CTRL+arrowDOWN)", this);
-  vect_QActions[3]->setIconVisibleInMenu(true);
-  QObject::connect(vect_QActions[3], SIGNAL(triggered()), view, SLOT(siftWindowOnDown()));
+  vect_QActions[__ACT_IMGRAPH_DOWN] = new QAction(QIcon(":/down-icon"), "Panning down (CTRL+arrowDOWN)", this);
+  vect_QActions[__ACT_IMGRAPH_DOWN]->setIconVisibleInMenu(true);
+  QObject::connect(vect_QActions[__ACT_IMGRAPH_DOWN], SIGNAL(triggered()), view, SLOT(siftWindowOnDown()));
 
-  vect_QActions[4] = new QAction(QIcon(":/zoom_x1-icon"), "Zoom x1 (CTRL+P)", this);
-  vect_QActions[4]->setIconVisibleInMenu(true);
-  QObject::connect(vect_QActions[4], SIGNAL(triggered()), view, SLOT(resetZoom()));
+  vect_QActions[__ACT_IMGRAPH_ZOOM_X1] = new QAction(QIcon(":/zoom_x1-icon"), "Zoom x1 (CTRL+P)", this);
+  vect_QActions[__ACT_IMGRAPH_ZOOM_X1]->setIconVisibleInMenu(true);
+  QObject::connect(vect_QActions[__ACT_IMGRAPH_ZOOM_X1], SIGNAL(triggered()), view, SLOT(resetZoom()));
 
-  vect_QActions[5] = new QAction(QIcon(":/imgRegion-icon"), tr("Zoom x%1 (see label) (CTRL+X)").arg(threshold_zoom_img_region), this);
-  vect_QActions[5]->setIconVisibleInMenu(true);
-  QObject::connect(vect_QActions[5], SIGNAL(triggered()), view, SLOT(imgRegion()));
+  vect_QActions[__ACT_IMGRAPH_ZOOM_IN] = new QAction(QIcon(":/zoom_in-icon"), "Zoom in (CTRL++)", this);
+  vect_QActions[__ACT_IMGRAPH_ZOOM_IN]->setIconVisibleInMenu(true);
+  QObject::connect(vect_QActions[__ACT_IMGRAPH_ZOOM_IN], SIGNAL(triggered()), view, SLOT(ZoomIn()));
 
-  vect_QActions[6] = new QAction(QIcon(":/zoom_in-icon"), "Zoom in (CTRL++)", this);
-  vect_QActions[6]->setIconVisibleInMenu(true);
-  QObject::connect(vect_QActions[6], SIGNAL(triggered()), view, SLOT(ZoomIn()));
+  vect_QActions[__ACT_IMGRAPH_ZOOM_OUT] = new QAction(QIcon(":/zoom_out-icon"), "Zoom out (CTRL+-)", this);
+  vect_QActions[__ACT_IMGRAPH_ZOOM_OUT]->setIconVisibleInMenu(true);
+  QObject::connect(vect_QActions[__ACT_IMGRAPH_ZOOM_OUT], SIGNAL(triggered()), view, SLOT(ZoomOut()));
 
-  vect_QActions[7] = new QAction(QIcon(":/zoom_out-icon"), "Zoom out (CTRL+-)", this);
-  vect_QActions[7]->setIconVisibleInMenu(true);
-  QObject::connect(vect_QActions[7], SIGNAL(triggered()), view, SLOT(ZoomOut()));
+  vect_QActions[__ACT_IMGRAPH_SAVE] = new QAction(QIcon(":/save-icon"), "Save current image (CTRL+S)", this);
+  vect_QActions[__ACT_IMGRAPH_SAVE]->setIconVisibleInMenu(true);
+  QObject::connect(vect_QActions[__ACT_IMGRAPH_SAVE], SIGNAL(triggered()), view, SLOT(saveView()));
 
-  vect_QActions[8] = new QAction(QIcon(":/save-icon"), "Save current image (CTRL+S)", this);
-  vect_QActions[8]->setIconVisibleInMenu(true);
-  QObject::connect(vect_QActions[8], SIGNAL(triggered()), view, SLOT(saveView()));
+  vect_QActions[__ACT_IMGRAPH_LOAD] = new QAction(QIcon(":/load-icon"), "Load new image (CTRL+O)", this);
+  vect_QActions[__ACT_IMGRAPH_LOAD]->setIconVisibleInMenu(true);
+  QObject::connect(vect_QActions[__ACT_IMGRAPH_LOAD], SIGNAL(triggered()), view, SLOT(loadMatrix()));
 
-  vect_QActions[9] = new QAction(QIcon(":/properties-icon"), "Display properties window (CTRL+P)", this);
-  vect_QActions[9]->setIconVisibleInMenu(true);
-  QObject::connect(vect_QActions[9], SIGNAL(triggered()), this, SLOT(displayPropertiesWin()));
+  vect_QActions[__ACT_IMGRAPH_PEN_EDIT] = new QAction(QIcon(":/edit_pen-icon"), "Edit image (CTRL+E)", this);
+  vect_QActions[__ACT_IMGRAPH_PEN_EDIT]->setIconVisibleInMenu(true);
+  QObject::connect(vect_QActions[__ACT_IMGRAPH_PEN_EDIT], SIGNAL(triggered()), this, SLOT(switchEditingImg()));
 
-  if (global_control_panel->myLayout->count() == 0)
-    vect_QActions[9]->setDisabled(true);
-
-  vect_QActions[10] = new QAction(QIcon(":/edit_pen-icon"), "Edit image (CTRL+E)", this);
-  vect_QActions[10]->setIconVisibleInMenu(true);
-  QObject::connect(vect_QActions[10], SIGNAL(triggered()), this, SLOT(switchEditingImg()));
-
-  vect_QActions[11] = new QAction("Color", this);
-  vect_QActions[11]->setIconVisibleInMenu(false);
-  QObject::connect(vect_QActions[11], SIGNAL(triggered()), this, SLOT(chooseColor()));
+  vect_QActions[__ACT_IMGRAPH_PEN_COLOR] = new QAction("Color", this);
+  vect_QActions[__ACT_IMGRAPH_PEN_COLOR]->setIconVisibleInMenu(false);
+  QObject::connect(vect_QActions[__ACT_IMGRAPH_PEN_COLOR], SIGNAL(triggered()), this, SLOT(chooseColor()));
 }
 
 
@@ -862,18 +861,35 @@ void CvWindow::switchEditingImg()
   pencil_mode = !pencil_mode;
   if (pencil_mode)
   {
-    vect_QActions[11]->setVisible(true);
+    vect_QActions[__ACT_IMGRAPH_PEN_COLOR]->setVisible(true);
+    if (pencilSize_Action != NULL)
+      myToolBar->removeAction(pencilSize_Action);
+    if (pencilSize != NULL)
+      delete pencilSize;
+    pencilSize = new QLineEdit(lexical_cast<std::string>(myView->getPenSize()).c_str(), this);
+    connect(pencilSize, SIGNAL(editingFinished()), this, SLOT(changePenSize()));
+    pencilSize_Action = myToolBar->addWidget(pencilSize);
     myView->setCursor(Qt::CrossCursor);
-    vect_QActions[10]->setIcon(QIcon(":/no_edit-icon"));
+    vect_QActions[__ACT_IMGRAPH_PEN_EDIT]->setIcon(QIcon(":/no_edit-icon"));
   }
   else
   {
-    vect_QActions[11]->setVisible(false);
+    vect_QActions[__ACT_IMGRAPH_PEN_COLOR]->setVisible(false);
+    if (pencilSize_Action != NULL)
+      myToolBar->removeAction(pencilSize_Action);
+    pencilSize_Action = NULL;
     myView->unsetCursor();
-    vect_QActions[10]->setIcon(QIcon(":/edit_pen-icon"));
+    vect_QActions[__ACT_IMGRAPH_PEN_EDIT]->setIcon(QIcon(":/edit_pen-icon"));
   }
 }
 
+
+void CvWindow::changePenSize()
+{
+  QLineEdit* s = dynamic_cast<QLineEdit*>(sender());
+  if (s != NULL)
+    myView->setPenSize(s->text().toFloat());
+}
 
 //Need more test here !
 void CvWindow::keyPressEvent(QKeyEvent *evnt)
@@ -1093,6 +1109,16 @@ void DefaultViewPort::ZoomOut()
   scaleView(-0.5, QPointF(size().width() / 2, size().height() / 2));
 }
 
+void DefaultViewPort::loadMatrix()
+{
+  QString fileName = QFileDialog::getOpenFileName(this, QString(), QString(),
+    "matrices (*.bmp *.pbm *.pgm *.ppm *.sr *.ras *.jpeg *.jpg *.jpe *.jp2 *.tiff *.tif *.png)");
+  if (!fileName.isEmpty())
+  {
+    Mat img = imread(fileName.toStdString());
+    updateImage(img);
+  }
+}
 
 //can save as JPG, JPEG, BMP, PNG
 void DefaultViewPort::saveView()

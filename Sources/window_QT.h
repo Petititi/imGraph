@@ -173,6 +173,17 @@ private:
   void hideEvent(QHideEvent * event);
 };
 
+#define __ACT_IMGRAPH_LEFT       0
+#define __ACT_IMGRAPH_RIGHT      __ACT_IMGRAPH_LEFT     +1
+#define __ACT_IMGRAPH_UP         __ACT_IMGRAPH_RIGHT    +1
+#define __ACT_IMGRAPH_DOWN       __ACT_IMGRAPH_UP       +1
+#define __ACT_IMGRAPH_ZOOM_X1    __ACT_IMGRAPH_DOWN     +1
+#define __ACT_IMGRAPH_ZOOM_IN    __ACT_IMGRAPH_ZOOM_X1  +1
+#define __ACT_IMGRAPH_ZOOM_OUT   __ACT_IMGRAPH_ZOOM_IN  +1
+#define __ACT_IMGRAPH_LOAD       __ACT_IMGRAPH_ZOOM_OUT +1
+#define __ACT_IMGRAPH_SAVE       __ACT_IMGRAPH_LOAD     +1
+#define __ACT_IMGRAPH_PEN_EDIT   __ACT_IMGRAPH_SAVE     +1
+#define __ACT_IMGRAPH_PEN_COLOR  __ACT_IMGRAPH_PEN_EDIT +1
 
 class CvWindow : public CvWinModel
 {
@@ -212,11 +223,15 @@ public:
   QPointer<QBoxLayout> myBarLayout;
 
   QVector<QAction*> vect_QActions;
+  QAction* pencilSize_Action;
+  QLineEdit* pencilSize;
 
   QPointer<QStatusBar> myStatusBar;
   QPointer<QToolBar> myToolBar;
   QPointer<QLabel> myStatusBar_msg;
 
+  public slots:
+  void changePenSize();
 protected:
   virtual void keyPressEvent(QKeyEvent* event);
 
@@ -313,10 +328,12 @@ public:
   void ZoomIn();
   void ZoomOut();
 
+  void loadMatrix();
   void saveView();
   QColor getPenColor() const { return myPenColor; }
   void setPenColor(QColor val) { myPenColor = val; }
-
+  float getPenSize() const { return myPenWidth; }
+  void setPenSize(float newSize) { myPenWidth = newSize; }
 protected:
   void contextMenuEvent(QContextMenuEvent* event);
   void resizeEvent(QResizeEvent* event);
