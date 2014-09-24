@@ -147,19 +147,7 @@ private:
   bool doesExternalQAppExist;
 };
 
-
-//Both are top level window, so that a way to differenciate them.
-//if (obj->metaObject ()->className () == "CvWindow") does not give me robust result
-
-enum typeWindow { _typeCvWindow = 1, _typeCvWinProperties = 2 };
-class CvWinModel : public QWidget
-{
-public:
-  typeWindow type;
-};
-
-
-class CvWinProperties : public CvWinModel
+class CvWinProperties : public QWidget
 {
   Q_OBJECT
 public:
@@ -185,7 +173,7 @@ private:
 #define __ACT_IMGRAPH_PEN_EDIT   __ACT_IMGRAPH_SAVE     +1
 #define __ACT_IMGRAPH_PEN_COLOR  __ACT_IMGRAPH_PEN_EDIT +1
 
-class CvWindow : public CvWinModel
+class CvWindow : public QFrame
 {
   Q_OBJECT
 public:
@@ -334,6 +322,8 @@ public:
   void setPenColor(QColor val) { myPenColor = val; }
   float getPenSize() const { return myPenWidth; }
   void setPenSize(float newSize) { myPenWidth = newSize; }
+
+  void updateImage();
 protected:
   void contextMenuEvent(QContextMenuEvent* event);
   void resizeEvent(QResizeEvent* event);
@@ -345,10 +335,9 @@ protected:
   void mouseDoubleClickEvent(QMouseEvent* event);
 
   void drawLineTo(const QPointF &endPoint);
-  QPointF toImgCoord(QPointF src);
+  QPoint toImgCoord(QPointF src);
 private:
   int param_keepRatio;
-  bool scribbling;
   QPointF lastPoint;
 
   QColor myPenColor;
@@ -361,16 +350,11 @@ private:
   QImage image2Draw_qt;
   int nbChannelOriginImage;
 
-  //for mouse callback
-  CvMouseCallback on_mouse;
-  void* on_mouse_param;
-
-
   void scaleView(qreal scaleFactor, QPointF center);
   void moveView(QPointF delta);
 
   QPoint mouseCoordinate;
-  QPointF positionGrabbing;
+  QPoint positionGrabbing;
   QRect  positionCorners;
   QTransform matrixWorld_inv;
   float ratioX, ratioY;
@@ -383,6 +367,15 @@ private:
   bool drawInfo;
   QString infoText;
   QRectF target;
+  bool labelsShown;
+
+  QPoint pixelEdit;
+  int canalEdit;
+  bool updateEdits;
+  QLineEdit *imgEditPixel_R;
+  QLineEdit *imgEditPixel_G;
+  QLineEdit *imgEditPixel_B;
+  QLineEdit *imgEditPixel_A;
 
   void drawInstructions(QPainter *painter);
   void drawViewOverview(QPainter *painter);

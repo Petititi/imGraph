@@ -258,14 +258,8 @@ namespace charliesoft
         }
         return true;
       }
-      return QMainWindow::event(event);
     }
-    else
-    {
-      return QMainWindow::event(event);
-    }
-
-    return false;
+    return QMainWindow::event(event);
   }
 
 

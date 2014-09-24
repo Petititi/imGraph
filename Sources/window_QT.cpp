@@ -90,11 +90,8 @@ static CvWindow* icvFindWindowByName(QString name)
   {
     if (widget->isWindow() && !widget->parentWidget())//is a window without parent
     {
-      CvWinModel* temp = (CvWinModel*)widget;
-
-      if (temp->type == _typeCvWindow)
+      if (CvWindow* w = dynamic_cast<CvWindow*>(widget))
       {
-        CvWindow* w = (CvWindow*)temp;
         if (w->windowTitle() == name)
         {
           window = w;
@@ -375,11 +372,8 @@ void GuiReceiver::enablePropertiesButtonEachWindow()
   {
     if (widget->isWindow() && !widget->parentWidget()) //is a window without parent
     {
-      CvWinModel* temp = (CvWinModel*)widget;
-      if (temp->type == _typeCvWindow)
+      if (CvWindow* w = dynamic_cast<CvWindow*>(widget))
       {
-        CvWindow* w = (CvWindow*)widget;
-
         //active window properties button
         w->enablePropertiesButton();
       }
@@ -395,7 +389,6 @@ void GuiReceiver::enablePropertiesButtonEachWindow()
 CvWinProperties::CvWinProperties(QString name_paraWindow, QObject* /*parent*/)
 {
   //setParent(parent);
-  type = _typeCvWinProperties;
   setWindowFlags(Qt::Tool);
   setContentsMargins(0, 0, 0, 0);
   setWindowTitle(name_paraWindow);
@@ -468,14 +461,13 @@ CvWindow::CvWindow(QString name, int arg2)
   pencilSize = NULL;
   pencilSize_Action = NULL;
   pencil_mode = false;
-  type = _typeCvWindow;
   moveToThread(qApp->instance()->thread());
 
   param_flags = arg2 & 0x0000000F;
   param_gui_mode = arg2 & 0x000000F0;
   param_ratio_mode = arg2 & 0x00000F00;
 
-  //setAttribute(Qt::WA_DeleteOnClose); //in other case, does not release memory
+  setAttribute(Qt::WA_DeleteOnClose); //in other case, does not release memory
   setContentsMargins(0, 0, 0, 0);
   setWindowTitle(name);
   setObjectName(name);
@@ -909,8 +901,16 @@ void CvWindow::keyPressEvent(QKeyEvent *evnt)
     key_pressed.wakeAll();
     //evnt->accept();
   }
+  
+  // get focus widget:
+  QLineEdit* focus = dynamic_cast<QLineEdit*>(this->focusWidget());
+  if (focus)
+  {
+    return;
+  }
+  
   charliesoft::Window::getInstance()->event(evnt);
-  QWidget::keyPressEvent(evnt);
+  //QWidget::keyPressEvent(evnt);
 }
 
 
@@ -921,9 +921,10 @@ void CvWindow::keyPressEvent(QKeyEvent *evnt)
 
 DefaultViewPort::DefaultViewPort(CvWindow* arg, int arg2) : QGraphicsView(arg)
 {
+  imgEditPixel_R = imgEditPixel_G = imgEditPixel_B = imgEditPixel_A = NULL;
+  labelsShown = false;
   myPenColor = Qt::black;
   myPenWidth = 2;
-  scribbling = false;
   centralWidget = arg;
   param_keepRatio = arg2;
 
@@ -938,11 +939,9 @@ DefaultViewPort::DefaultViewPort(CvWindow* arg, int arg2) : QGraphicsView(arg)
   connect(timerDisplay, SIGNAL(timeout()), this, SLOT(stopDisplayInfo()));
 
   drawInfo = false;
-  positionGrabbing = QPointF(0, 0);
+  positionGrabbing = QPoint(0, 0);
   positionCorners = QRect(0, 0, size().width(), size().height());
 
-  on_mouse = 0;
-  on_mouse_param = 0;
   mouseCoordinate = QPoint(-1, -1);
 
   //no border
@@ -1237,7 +1236,7 @@ void DefaultViewPort::wheelEvent(QWheelEvent* evnt)
   viewport()->update();
 }
 
-QPointF DefaultViewPort::toImgCoord(QPointF src)
+QPoint DefaultViewPort::toImgCoord(QPointF src)
 {
   double pixel_width = param_matrixWorld.m11()*ratioX;
   double pixel_height = param_matrixWorld.m11()*ratioY;
@@ -1248,7 +1247,7 @@ QPointF DefaultViewPort::toImgCoord(QPointF src)
   qreal offsetX = param_matrixWorld.dx() / pixel_width;
   qreal offsetY = param_matrixWorld.dy() / pixel_height;
 
-  return QPointF(pointDx - offsetX, pointDy - offsetY);
+  return QPoint((int)(pointDx - offsetX), (int)(pointDy - offsetY));
 }
 
 void DefaultViewPort::mousePressEvent(QMouseEvent* evnt)
@@ -1262,8 +1261,6 @@ void DefaultViewPort::mousePressEvent(QMouseEvent* evnt)
   positionGrabbing = evnt->pos();
   if (centralWidget->isPencil_mode())
   {
-    scribbling = true;
-
     lastPoint = toImgCoord(positionGrabbing);
   } 
   else
@@ -1278,7 +1275,6 @@ void DefaultViewPort::mousePressEvent(QMouseEvent* evnt)
   QWidget::mousePressEvent(evnt);
 }
 
-
 void DefaultViewPort::mouseReleaseEvent(QMouseEvent* evnt)
 {
   int cv_event = -1, flags = 0;
@@ -1290,6 +1286,46 @@ void DefaultViewPort::mouseReleaseEvent(QMouseEvent* evnt)
   if (param_matrixWorld.m11() > 1 && !centralWidget->isPencil_mode())
     setCursor(Qt::OpenHandCursor);
 
+  if (centralWidget->isPencil_mode() && labelsShown)
+  {
+    pixelEdit = toImgCoord(pt);
+    canalEdit = 0;
+
+    updateEdits = true;
+
+    if (imgEditPixel_R == NULL)
+    {
+      imgEditPixel_R = new QLineEdit("0", this);
+      connect(imgEditPixel_R, SIGNAL(editingFinished()), this, SLOT(updateImage()));
+    }
+    imgEditPixel_R->setAlignment(Qt::AlignHCenter);
+
+    if (nbChannelOriginImage > 1)
+    {
+      if (imgEditPixel_G == NULL)
+      {
+        imgEditPixel_G = new QLineEdit("0", this);
+        connect(imgEditPixel_G, SIGNAL(editingFinished()), this, SLOT(updateImage()));
+      }
+      if (imgEditPixel_B == NULL)
+      {
+        imgEditPixel_B = new QLineEdit("0", this);
+        connect(imgEditPixel_B, SIGNAL(editingFinished()), this, SLOT(updateImage()));
+      }
+      imgEditPixel_G->setAlignment(Qt::AlignHCenter);
+      imgEditPixel_B->setAlignment(Qt::AlignHCenter);
+    }
+    if (nbChannelOriginImage > 3)
+    {
+      if (imgEditPixel_A == NULL)
+      {
+        imgEditPixel_A = new QLineEdit("0", this);
+        connect(imgEditPixel_A, SIGNAL(editingFinished()), this, SLOT(updateImage()));
+      }
+      imgEditPixel_A->setAlignment(Qt::AlignHCenter);
+    }
+  }
+  
   QWidget::mouseReleaseEvent(evnt);
 }
 
@@ -1314,7 +1350,7 @@ void DefaultViewPort::mouseMoveEvent(QMouseEvent* evnt)
   //icvmouseHandler: pass parameters for cv_event, flags
   icvmouseProcessing(QPointF(pt), cv_event, flags);
 
-  if (scribbling)
+  if (centralWidget->isPencil_mode())
   {
     if (evnt->buttons() & Qt::LeftButton)
       drawLineTo(toImgCoord(pt));
@@ -1352,7 +1388,23 @@ void DefaultViewPort::paintEvent(QPaintEvent* evnt)
   if (param_matrixWorld.m11()*ratioX >= threshold_zoom_img_region &&
     param_matrixWorld.m11()*ratioY >= threshold_zoom_img_region)
   {
+    labelsShown = true;
+    if (centralWidget->isPencil_mode())
+    {
+      if (imgEditPixel_R != NULL)imgEditPixel_R->show();
+      if (imgEditPixel_G != NULL)imgEditPixel_G->show();
+      if (imgEditPixel_B != NULL)imgEditPixel_B->show();
+      if (imgEditPixel_A != NULL)imgEditPixel_A->show();
+    }
     drawImgRegion(&myPainter);
+  }
+  else
+  {
+    labelsShown = false;
+    if (imgEditPixel_R != NULL)imgEditPixel_R->hide();
+    if (imgEditPixel_G != NULL)imgEditPixel_G->hide();
+    if (imgEditPixel_B != NULL)imgEditPixel_B->hide();
+    if (imgEditPixel_A != NULL)imgEditPixel_A->hide();
   }
 
   //in mode zoom/panning
@@ -1477,7 +1529,6 @@ void DefaultViewPort::scaleView(qreal factor, QPointF center)
 }
 
 
-
 void DefaultViewPort::icvmouseProcessing(QPointF pt, int cv_event, int flags)
 {
   //to convert mouse coordinate
@@ -1487,9 +1538,6 @@ void DefaultViewPort::icvmouseProcessing(QPointF pt, int cv_event, int flags)
   mouseCoordinate.rx() = static_cast<int>(floor(pfx / ratioX));
   mouseCoordinate.ry() = static_cast<int>(floor(pfy / ratioY));
 
-  if (on_mouse)
-    on_mouse(cv_event, mouseCoordinate.x(),
-    mouseCoordinate.y(), flags, on_mouse_param);
 }
 
 
@@ -1543,6 +1591,30 @@ void DefaultViewPort::drawStatusBar()
         );
     }
   }
+}
+
+void DefaultViewPort::updateImage()
+{
+  QLineEdit* focusedEdit = dynamic_cast<QLineEdit*>(sender());
+  if (focusedEdit == NULL)
+    return;
+  QRgb rgbValue = image2Draw_qt.pixel(pixelEdit);
+  int newVal = focusedEdit->text().toInt();
+  if (focusedEdit == imgEditPixel_R)
+  {
+    if (nbChannelOriginImage > 1)
+      rgbValue = qRgb(newVal, qGreen(rgbValue), qBlue(rgbValue));
+    else
+      rgbValue = qRgb(newVal, newVal, newVal);
+  }
+  if (focusedEdit == imgEditPixel_G)
+    rgbValue = qRgb(qRed(rgbValue), newVal, qBlue(rgbValue));
+  if (focusedEdit == imgEditPixel_B)
+    rgbValue = qRgb(qRed(rgbValue), qGreen(rgbValue), newVal);
+  if (focusedEdit == imgEditPixel_A)
+    rgbValue = qRgba(qRed(rgbValue), qGreen(rgbValue), qBlue(rgbValue), newVal);
+
+  image2Draw_qt.setPixel(pixelEdit, rgbValue);
 }
 
 //accept only CV_8UC1 and CV_8UC8 image for now
@@ -1603,17 +1675,34 @@ void DefaultViewPort::drawImgRegion(QPainter *painter)
       painter->setPen(QPen(Qt::red, 1));
       painter->drawText(QRect((int)pos_in_view.x(), (int)pos_in_view.y(), (int)pixel_width, (int)(pixel_height / 3)),
         Qt::AlignCenter, val);
+      if (point_in_image == pixelEdit && imgEditPixel_R != NULL)
+      {
+        imgEditPixel_R->setGeometry(QRect((int)pos_in_view.x(), (int)pos_in_view.y(), (int)pixel_width, (int)(pixel_height / 3)));
+        if (updateEdits)
+          imgEditPixel_R->setText(val);
+      }
 
       val = tr("%1").arg(qGreen(rgbValue));
       painter->setPen(QPen(Qt::green, 1));
       painter->drawText(QRect((int)pos_in_view.x(), (int)(pos_in_view.y() + pixel_height / 3), (int)pixel_width, (int)(pixel_height / 3)),
         Qt::AlignCenter, val);
+      if (point_in_image == pixelEdit && imgEditPixel_G != NULL)
+      {
+        imgEditPixel_G->setGeometry(QRect((int)pos_in_view.x(), (int)(pos_in_view.y() + pixel_height / 3), (int)pixel_width, (int)(pixel_height / 3)));
+        if (updateEdits)
+          imgEditPixel_G->setText(val);
+      }
 
       val = tr("%1").arg(qBlue(rgbValue));
       painter->setPen(QPen(Qt::blue, 1));
       painter->drawText(QRect((int)pos_in_view.x(), (int)(pos_in_view.y() + 2 * pixel_height / 3), (int)pixel_width, (int)(pixel_height / 3)),
         Qt::AlignCenter, val);
-
+      if (point_in_image == pixelEdit && imgEditPixel_B != NULL)
+      {
+        imgEditPixel_B->setGeometry(QRect((int)pos_in_view.x(), (int)(pos_in_view.y() + 2 * pixel_height / 3), (int)pixel_width, (int)(pixel_height / 3)));
+        if (updateEdits)
+          imgEditPixel_B->setText(val);
+      }
     }
 
     if (nbChannelOriginImage == 1)
@@ -1621,6 +1710,13 @@ void DefaultViewPort::drawImgRegion(QPainter *painter)
       QString val = tr("%1").arg(qRed(rgbValue));
       painter->drawText(QRect((int)pos_in_view.x(), (int)pos_in_view.y(), (int)pixel_width, (int)pixel_height),
         Qt::AlignCenter, val);
+
+      if (point_in_image == pixelEdit && imgEditPixel_R != NULL)
+      {
+        imgEditPixel_R->setGeometry(QRect((int)pos_in_view.x(), (int)pos_in_view.y(), (int)pixel_width, (int)pixel_height));
+        if (updateEdits)
+          imgEditPixel_R->setText(val);
+      }
     }
   }
 
@@ -1631,7 +1727,7 @@ void DefaultViewPort::drawImgRegion(QPainter *painter)
   //restore font size
   f.setPointSize(original_font_size);
   painter->setFont(f);
-
+  updateEdits = false;
 }
 
 void DefaultViewPort::drawViewOverview(QPainter *painter)
