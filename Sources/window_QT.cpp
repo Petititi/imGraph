@@ -62,7 +62,6 @@ using namespace cv;
 
 //Static and global first
 static GuiReceiver *guiMainThread = NULL;
-static CvWinProperties* global_control_panel = NULL;
 static bool multiThreads = false;
 static int last_key = -1;
 QWaitCondition key_pressed;
@@ -131,16 +130,6 @@ void GuiReceiver::isLastWindow()
     {
       qApp->quit();
     }
-  }
-}
-
-
-GuiReceiver::~GuiReceiver()
-{
-  if (global_control_panel)
-  {
-    delete global_control_panel;
-    global_control_panel = NULL;
   }
 }
 
@@ -288,7 +277,7 @@ void GuiReceiver::showImage(QString name, cv::Mat arr)
   {
     QMetaObject::invokeMethod(w,
       "show",
-      Qt::BlockingQueuedConnection);
+      Qt::AutoConnection);
   }
 }
 
@@ -386,7 +375,7 @@ void GuiReceiver::enablePropertiesButtonEachWindow()
 
 
 //here CvWinProperties class
-CvWinProperties::CvWinProperties(QString name_paraWindow, QObject* /*parent*/)
+ToolsWindow::ToolsWindow(QString name_paraWindow, QObject* /*parent*/)
 {
   //setParent(parent);
   setWindowFlags(Qt::Tool);
@@ -406,15 +395,19 @@ CvWinProperties::CvWinProperties(QString name_paraWindow, QObject* /*parent*/)
   hide();
 }
 
+void ToolsWindow::addWidget(QWidget* obj)
+{
+  myLayout->addWidget(obj);
+}
 
-void CvWinProperties::closeEvent(QCloseEvent* e)
+void ToolsWindow::closeEvent(QCloseEvent* e)
 {
   e->accept(); //intersept the close event (not sure I really need it)
   //an hide event is also sent. I will intercept it and do some processing
 }
 
 
-void CvWinProperties::showEvent(QShowEvent* evnt)
+void ToolsWindow::showEvent(QShowEvent* evnt)
 {
   //why -1,-1 ?: do this trick because the first time the code is run,
   //no value pos was saved so we let Qt move the window in the middle of its parent (event ignored).
@@ -435,7 +428,7 @@ void CvWinProperties::showEvent(QShowEvent* evnt)
 }
 
 
-void CvWinProperties::hideEvent(QHideEvent* evnt)
+void ToolsWindow::hideEvent(QHideEvent* evnt)
 {
   QSettings settings("OpenCV2", windowTitle());
   settings.setValue("pos", pos()); //there is an offset of 6 pixels (so the window's position is wrong -- why ?)
@@ -443,7 +436,7 @@ void CvWinProperties::hideEvent(QHideEvent* evnt)
 }
 
 
-CvWinProperties::~CvWinProperties()
+ToolsWindow::~ToolsWindow()
 {
   //clear the setting pos
   QSettings settings("OpenCV2", windowTitle());
@@ -458,8 +451,9 @@ CvWinProperties::~CvWinProperties()
 
 CvWindow::CvWindow(QString name, int arg2)
 {
+  color_choose = NULL;
+  myTools = NULL;
   pencilSize = NULL;
-  pencilSize_Action = NULL;
   pencil_mode = false;
   moveToThread(qApp->instance()->thread());
 
@@ -478,8 +472,8 @@ CvWindow::CvWindow(QString name, int arg2)
   setMinimumSize(1, 1);
 
   //1: create control panel
-  if (!global_control_panel)
-    global_control_panel = createParameterWindow();
+  //if (!myTools)
+  //  myTools = createParameterWindow();
 
   //2: Layouts
   myBarLayout = new QBoxLayout(QBoxLayout::TopToBottom);
@@ -520,9 +514,7 @@ CvWindow::CvWindow(QString name, int arg2)
     foreach(QAction *a, vect_QActions)
       myToolBar->addAction(a);
 
-    myToolBar->widgetForAction(vect_QActions[__ACT_IMGRAPH_PEN_COLOR])->setObjectName("ColorPick");
-    vect_QActions[__ACT_IMGRAPH_PEN_COLOR]->setVisible(false);
-    myToolBar->setStyleSheet("QToolButton#ColorPick { background: none; color: black; }");
+    myToolBar->setStyleSheet("QPushButton#ColorPick { background: none; color: black; }");
   }
 
   //Now attach everything
@@ -545,6 +537,12 @@ CvWindow::~CvWindow()
 {
   if (guiMainThread)
     guiMainThread->isLastWindow();
+
+  if (myTools != NULL)
+  {
+    delete myTools;
+    myTools = NULL;
+  }
 }
 
 
@@ -705,7 +703,7 @@ void CvWindow::createView()
 
 void CvWindow::createActions()
 {
-  vect_QActions.resize(11);
+  vect_QActions.resize(10);
 
   QWidget* view = myView->getWidget();
 
@@ -749,10 +747,10 @@ void CvWindow::createActions()
   vect_QActions[__ACT_IMGRAPH_PEN_EDIT] = new QAction(QIcon(":/edit_pen-icon"), "Edit image (CTRL+E)", this);
   vect_QActions[__ACT_IMGRAPH_PEN_EDIT]->setIconVisibleInMenu(true);
   QObject::connect(vect_QActions[__ACT_IMGRAPH_PEN_EDIT], SIGNAL(triggered()), this, SLOT(switchEditingImg()));
-
+  /*
   vect_QActions[__ACT_IMGRAPH_PEN_COLOR] = new QAction("Color", this);
   vect_QActions[__ACT_IMGRAPH_PEN_COLOR]->setIconVisibleInMenu(false);
-  QObject::connect(vect_QActions[__ACT_IMGRAPH_PEN_COLOR], SIGNAL(triggered()), this, SLOT(chooseColor()));
+  QObject::connect(vect_QActions[__ACT_IMGRAPH_PEN_COLOR], SIGNAL(triggered()), this, SLOT(chooseColor()));*/
 }
 
 
@@ -805,8 +803,9 @@ void CvWindow::hideTools()
   if (myStatusBar)
     myStatusBar->hide();
 
-  if (global_control_panel)
-    global_control_panel->hide();}
+  if (myTools)
+    myTools->hide();
+}
 
 
 void CvWindow::showTools()
@@ -819,22 +818,26 @@ void CvWindow::showTools()
 }
 
 
-CvWinProperties* CvWindow::createParameterWindow()
+ToolsWindow* CvWindow::createParameterWindow()
 {
+  if (myTools != NULL)
+    return myTools;
   QString name_paraWindow = QFileInfo(QApplication::applicationFilePath()).fileName() + " settings";
 
-  CvWinProperties* result = new CvWinProperties(name_paraWindow, guiMainThread);
-
-  return result;
+  myTools = new ToolsWindow(name_paraWindow, guiMainThread);
+  displayPropertiesWin();
+  return myTools;
 }
 
 
 void CvWindow::displayPropertiesWin()
 {
-  if (global_control_panel->isHidden())
-    global_control_panel->show();
+  if (myTools == NULL)
+    return;
+  if (myTools->isHidden())
+    myTools->show();
   else
-    global_control_panel->hide();
+    myTools->hide();
 }
 
 void CvWindow::chooseColor()
@@ -844,7 +847,7 @@ void CvWindow::chooseColor()
   {
     myView->setPenColor(tmpColor);
     QString style = "background: rgb(%1, %2, %3);";
-    myToolBar->setStyleSheet("QToolButton#ColorPick { " + style.arg(tmpColor.red()).arg(tmpColor.green()).arg(tmpColor.blue()) + "; color: black; }");
+    myTools->setStyleSheet("QPushButton#ColorPick { " + style.arg(tmpColor.red()).arg(tmpColor.green()).arg(tmpColor.blue()) + "; color: black; }");
   }
 }
 
@@ -853,23 +856,30 @@ void CvWindow::switchEditingImg()
   pencil_mode = !pencil_mode;
   if (pencil_mode)
   {
-    vect_QActions[__ACT_IMGRAPH_PEN_COLOR]->setVisible(true);
-    if (pencilSize_Action != NULL)
-      myToolBar->removeAction(pencilSize_Action);
-    if (pencilSize != NULL)
-      delete pencilSize;
-    pencilSize = new QLineEdit(lexical_cast<std::string>(myView->getPenSize()).c_str(), this);
-    connect(pencilSize, SIGNAL(editingFinished()), this, SLOT(changePenSize()));
-    pencilSize_Action = myToolBar->addWidget(pencilSize);
+    if (myTools == NULL)
+    {
+      myTools = createParameterWindow();
+
+      if (color_choose != NULL)
+        delete color_choose;
+      if (pencilSize != NULL)
+        delete pencilSize;
+      pencilSize = new QLineEdit(lexical_cast<std::string>(myView->getPenSize()).c_str(), myTools);
+      connect(pencilSize, SIGNAL(editingFinished()), this, SLOT(changePenSize()));
+      color_choose = new QPushButton("Color", myTools);
+      color_choose->setObjectName("ColorPick");
+      QObject::connect(color_choose, SIGNAL(released()), this, SLOT(chooseColor()));
+
+      myTools->addWidget(color_choose);
+      myTools->addWidget(pencilSize);
+    }
     myView->setCursor(Qt::CrossCursor);
+    myTools->show();
     vect_QActions[__ACT_IMGRAPH_PEN_EDIT]->setIcon(QIcon(":/no_edit-icon"));
   }
   else
   {
-    vect_QActions[__ACT_IMGRAPH_PEN_COLOR]->setVisible(false);
-    if (pencilSize_Action != NULL)
-      myToolBar->removeAction(pencilSize_Action);
-    pencilSize_Action = NULL;
+    myTools->hide();
     myView->unsetCursor();
     vect_QActions[__ACT_IMGRAPH_PEN_EDIT]->setIcon(QIcon(":/edit_pen-icon"));
   }
@@ -1600,6 +1610,8 @@ void DefaultViewPort::updateImage()
     return;
   QRgb rgbValue = image2Draw_qt.pixel(pixelEdit);
   int newVal = focusedEdit->text().toInt();
+  if (newVal > 255)newVal = 255;
+  if (newVal < 0)newVal = 0;
   if (focusedEdit == imgEditPixel_R)
   {
     if (nbChannelOriginImage > 1)
