@@ -117,8 +117,6 @@ class GuiReceiver : public QObject
 public:
   GuiReceiver();
 
-  void isLastWindow();
-
   bool bTimeOut;
   QTimer* timer;
 

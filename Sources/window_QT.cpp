@@ -119,21 +119,6 @@ GuiReceiver::GuiReceiver() : bTimeOut(false), nb_windows(0)
 }
 
 
-void GuiReceiver::isLastWindow()
-{
-  if (--nb_windows <= 0)
-  {
-    delete guiMainThread;//delete global_control_panel too
-    guiMainThread = NULL;
-
-    if (!doesExternalQAppExist)
-    {
-      qApp->quit();
-    }
-  }
-}
-
-
 void GuiReceiver::saveWindowParameters(QString name)
 {
   QPointer<CvWindow> w = icvFindWindowByName(name);
@@ -535,9 +520,6 @@ CvWindow::CvWindow(QString name, int arg2)
 
 CvWindow::~CvWindow()
 {
-  if (guiMainThread)
-    guiMainThread->isLastWindow();
-
   if (myTools != NULL)
   {
     delete myTools;
