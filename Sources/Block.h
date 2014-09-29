@@ -8,8 +8,8 @@
 #endif
 #include <boost/config.hpp>
 #include <boost/thread/thread.hpp>
-#include <boost/thread/mutex.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <opencv2/core.hpp>
 #ifdef _WIN32

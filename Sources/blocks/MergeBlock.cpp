@@ -26,12 +26,12 @@ namespace charliesoft
   BEGIN_BLOCK_INPUT_PARAMS(MergingBlock);
   //Add parameters, with following parameters:
   //default visibility, type of parameter, name (key of internationalizor), helper...
-  ADD_PARAMETER(true, Mat, "BLOCK__MERGING_IN_IMAGE1", "BLOCK__MERGING_IN_IMAGE1_HELP");
-  ADD_PARAMETER(true, Mat, "BLOCK__MERGING_IN_IMAGE2", "BLOCK__MERGING_IN_IMAGE2_HELP");
+  ADD_PARAMETER(true, Matrix, "BLOCK__MERGING_IN_IMAGE1", "BLOCK__MERGING_IN_IMAGE1_HELP");
+  ADD_PARAMETER(true, Matrix, "BLOCK__MERGING_IN_IMAGE2", "BLOCK__MERGING_IN_IMAGE2_HELP");
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_OUTPUT_PARAMS(MergingBlock);
-  ADD_PARAMETER(true, Mat, "BLOCK__MERGING_OUT_IMAGE", "BLOCK__MERGING_OUT_IMAGE");
+  ADD_PARAMETER(true, Matrix, "BLOCK__MERGING_OUT_IMAGE", "BLOCK__MERGING_OUT_IMAGE");
   END_BLOCK_PARAMS();
 
   MergingBlock::MergingBlock() :Block("BLOCK__MERGING_NAME"){

@@ -36,7 +36,7 @@ namespace charliesoft
       return "Float";
     case Vector:
       return "Vector";
-    case Mat:
+    case Matrix:
       return "Mat";
     case String:
       return "String";

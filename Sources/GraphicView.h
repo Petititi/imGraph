@@ -132,9 +132,12 @@ namespace charliesoft
     typedef boost::bimap<ParamRepresentation*, QObject* >::value_type Val_map_type;
 
     std::map<QObject*, QLineEdit*> openFiles_;
+    std::map<ParamRepresentation*, cv::Mat> _paramMatrix;
+
     std::map<QGroupBox*, ParamRepresentation*> inputGroup_;
     std::map<QGroupBox*, ParamRepresentation*> outputGroup_;
-    boost::bimap< QCheckBox*, ParamRepresentation* > inputModificator_;
+
+    boost::bimap< QCheckBox*, ParamRepresentation* > inputModificator_; 
     boost::bimap<ParamRepresentation*, QObject* > inputValue_;
     std::map<std::string, ParamRepresentation*>& in_param_;
     std::map<std::string, ParamRepresentation*>& out_param_;

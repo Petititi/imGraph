@@ -80,9 +80,16 @@
 #include <QRadioButton>
 #include <QButtonGroup>
 #include <QMenu>
+#include <QDialog>
+
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/condition_variable.hpp>
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
+
+class CvWindow;
+class DefaultViewPort;
 
 //start private enum
 enum { CV_MODE_NORMAL = 0, CV_MODE_OPENGL = 1 };
@@ -103,11 +110,9 @@ enum {
 };
 
 //end enum
-
+#define _WINDOW_MATRIX_CREATION_MODE  0x00010000
 void imshow(cv::String name, cv::Mat im);
-
-class CvWindow;
-class DefaultViewPort;
+CvWindow* createWindow(cv::String name, int params = 0);
 
 
 class GuiReceiver : public QObject
@@ -172,12 +177,18 @@ protected:
 #define __ACT_IMGRAPH_ZOOM_OUT   __ACT_IMGRAPH_ZOOM_IN  +1
 #define __ACT_IMGRAPH_PEN_EDIT   __ACT_IMGRAPH_ZOOM_OUT +1
 
-class CvWindow : public QFrame
+class CvWindow : public QDialog
 {
-  Q_OBJECT
+  Q_OBJECT;
+
+  boost::condition_variable _cond_waitEnd;  // wait end condition
+  boost::mutex _mtx;    // explicit mutex declaration
 public:
   CvWindow(QString arg2, int flag = CV_WINDOW_NORMAL);
   ~CvWindow();
+
+  ///wait until window is closed!
+  void waitEnd();
 
   void writeSettings();
   void readSettings();
@@ -193,6 +204,7 @@ public:
   void toggleFullScreen(int flags);
 
   void updateImage(cv::Mat arr);
+  cv::Mat getMatrix();
 
   void displayInfo(QString text, int delayms);
   void displayStatusBar(QString text, int delayms);
@@ -205,6 +217,7 @@ public:
   int param_flags;
   int param_gui_mode;
   int param_ratio_mode;
+  int param_creation_mode;
 
   QPointer<QBoxLayout> myGlobalLayout; //All the widget (toolbar, view, LayoutBar, ...) are attached to it
   QPointer<QBoxLayout> myBarLayout;
@@ -326,6 +339,7 @@ public:
   void setPenSize(float newSize) { myPenWidth = newSize; }
 
   void updateImage();
+  cv::Mat getMatrix();
 protected:
   void contextMenuEvent(QContextMenuEvent* event);
   void resizeEvent(QResizeEvent* event);
@@ -338,6 +352,7 @@ protected:
 
   void drawLineTo(const QPointF &endPoint);
   QPoint toImgCoord(QPointF src);
+
 private:
   int param_keepRatio;
   QPointF lastPoint;

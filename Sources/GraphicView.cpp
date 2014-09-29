@@ -30,6 +30,7 @@
 #include <QScrollArea>
 #include <QDoubleValidator>
 #include <QIntValidator>
+#include "opencv2/core.hpp"
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
@@ -47,6 +48,9 @@
 #include "Window.h"
 #include "Graph.h"
 
+
+#include "window_QT.h"
+
 #include "ProcessManager.h"
 #include "blocks/ParamValidator.h"
 
@@ -57,6 +61,7 @@ using boost::recursive_mutex;
 using boost::property_tree::ptree;
 using boost::lexical_cast;
 using boost::lock_guard;
+using cv::Mat;
 
 namespace charliesoft
 {
@@ -67,7 +72,7 @@ namespace charliesoft
     std::map<std::string, ParamRepresentation*>& out_param) :
     QDialog(vertex), _vertex(vertex), in_param_(in_param), out_param_(out_param)
   {
-    setModal(true);
+    setWindowFlags(Qt::Tool);
     tabWidget_ = new QTabWidget(this);
     
     _OKbutton = new QPushButton(_QT("BUTTON_OK"));
@@ -137,7 +142,7 @@ namespace charliesoft
     vbox->addWidget(new QLabel(_QT(p->getParamHelper())));
     QLineEdit* tmp = new QLineEdit();
     tmp->setEnabled(false);
-    if (param->getType()!=ParamType::Mat)
+    if (param->getType()!=ParamType::Matrix)
       tmp->setText(param->toString().c_str());
     else
       tmp->setText("Matrix...");
@@ -204,9 +209,14 @@ namespace charliesoft
     case Vector:
       layout->addWidget(new QPushButton(_QT("VECTOR_EDITOR")));
       break;
-    case Mat:
-      layout->addWidget(new QPushButton(_QT("MATRIX_EDITOR")));
+    case Matrix:
+    {
+      QPushButton* matEditor = new QPushButton(_QT("MATRIX_EDITOR"));
+      layout->addWidget(matEditor);
+      inputValue_.insert(Val_map_type(p, matEditor));
+      connect(matEditor, SIGNAL(clicked()), this, SLOT(matrixEditor()));
       break;
+    }
     case String:
     {
       QLineEdit* lineEdit = new QLineEdit(param->toString().c_str());
@@ -328,6 +338,20 @@ namespace charliesoft
               }
             }
           }
+
+          if (param->getType() == Matrix)
+          {
+            ParamValue val = _paramMatrix[it->second];
+            try
+            {
+              param->valid_and_set(val);
+            }
+            catch (ErrorValidator& e)
+            {//algo doesn't accept this value!
+              QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), e.errorMsg.c_str());
+              return;//stop here the validation: should correct the error!
+            }
+          }
         }
         else
         {
@@ -368,6 +392,25 @@ namespace charliesoft
 
   void ParamsConfigurator::matrixEditor()
   {
+    auto param = inputValue_.right.find(sender());
+    if (param == inputValue_.right.end())
+      return;//param src not found...
+    CvWindow* win = createWindow("test", _WINDOW_MATRIX_CREATION_MODE);
+    win->setParent(this, Qt::Tool);
+
+    if (!param->get_left()->getParamValue()->isDefaultValue())
+    {
+      Mat img = param->get_left()->getParamValue()->get<cv::Mat>();
+      if (!img.empty())
+        win->updateImage(img);
+    }
+
+    if (win->exec() == QDialog::Accepted)
+    {
+      //now try to get matrix:
+      _paramMatrix[param->get_left()] = win->getMatrix();
+    }
+    delete win;
   }
 
   ConditionConfigurator::ConditionConfigurator(VertexRepresentation* vertex) :
@@ -910,6 +953,7 @@ namespace charliesoft
     {
       ParamsConfigurator config(this, listOfInputChilds_, listOfOutputChilds_);
       int retour = config.exec();
+      cout << retour << endl;
     }
     else
     {
@@ -1147,8 +1191,9 @@ namespace charliesoft
         param->get<ParamValue*>()->getBlock() != link->first._from)
       {
         delete link->second;
-        auto tmpLink = link--;
+        auto tmpLink = link;
         _links.erase(tmpLink);
+        link = _links.begin();
       }
     }
 

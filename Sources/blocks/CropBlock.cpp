@@ -19,7 +19,7 @@ namespace charliesoft
   BEGIN_BLOCK_INPUT_PARAMS(BlockCrop);
   //Add parameters, with following parameters:
   //default visibility, type of parameter, name (key of internationalizor), helper...
-  ADD_PARAMETER(true, Mat, "BLOCK__CROP_IN_IMAGE", "BLOCK__CROP_IN_IMAGE_HELP");
+  ADD_PARAMETER(true, Matrix, "BLOCK__CROP_IN_IMAGE", "BLOCK__CROP_IN_IMAGE_HELP");
   ADD_PARAMETER(false, Int, "BLOCK__CROP_WIDTH", "BLOCK__CROP_WIDTH_HELP");
   ADD_PARAMETER(false, Int, "BLOCK__CROP_HEIGHT", "BLOCK__CROP_HEIGHT_HELP");
   ADD_PARAMETER(false, Int, "BLOCK__CROP_IN_X", "BLOCK__CROP_IN_X_HELP");
@@ -27,7 +27,7 @@ namespace charliesoft
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_OUTPUT_PARAMS(BlockCrop);
-  ADD_PARAMETER(true, Mat, "BLOCK__CROP_OUT_IMAGE", "BLOCK__CROP_OUT_IMAGE_HELP");
+  ADD_PARAMETER(true, Matrix, "BLOCK__CROP_OUT_IMAGE", "BLOCK__CROP_OUT_IMAGE_HELP");
   ADD_PARAMETER(false, Int, "BLOCK__CROP_WIDTH", "BLOCK__CROP_WIDTH_HELP");
   ADD_PARAMETER(false, Int, "BLOCK__CROP_HEIGHT", "BLOCK__CROP_HEIGHT_HELP");
 

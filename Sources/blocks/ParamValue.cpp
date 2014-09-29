@@ -60,7 +60,8 @@ namespace charliesoft
   }
 
   bool ParamValue::isDefaultValue() const{
-    return (value_.type() == typeid(Not_A_Value));
+    return (value_.type() == typeid(Not_A_Value)) || 
+      (value_.type() == typeid(cv::Mat) && get<cv::Mat>().empty());
   };
 
   void ParamValue::valid_and_set(const ParamValue& v){

@@ -43,16 +43,23 @@
 
 #include <window_QT.h>
 
+#ifdef _WIN32
+#pragma warning(disable:4503)
+#pragma warning(push)
+#pragma warning(disable:4996 4251 4275 4800)
+#endif
 #include <math.h>
 #include <QColorDialog>
 #include <boost/lexical_cast.hpp>
 #include <opencv2/highgui.hpp>
 #include <QString>
+#include <QDialogButtonBox>
 #include <Window.h>
 
 #ifdef _WIN32
 #pragma warning(disable:4503)
 #include <windows.h>
+#pragma warning(pop)
 #else
 #include <unistd.h>
 #endif
@@ -71,13 +78,6 @@ static const unsigned int threshold_zoom_img_region = 30;
 //that is also the number of pixel per grid
 
 //end static and global
-
-void imshow(cv::String name, cv::Mat im)
-{
-  if (!guiMainThread)
-    guiMainThread = new GuiReceiver;
-  guiMainThread->showImage(QString(name.c_str()), im);
-}
 
 static CvWindow* icvFindWindowByName(QString name)
 {
@@ -101,6 +101,30 @@ static CvWindow* icvFindWindowByName(QString name)
   }
 
   return window;
+}
+
+void imshow(cv::String name, cv::Mat im)
+{
+  if (!guiMainThread)
+    guiMainThread = new GuiReceiver;
+  guiMainThread->showImage(QString(name.c_str()), im);
+}
+
+CvWindow* createWindow(cv::String name, int params)
+{
+  if (!guiMainThread)
+    guiMainThread = new GuiReceiver;
+
+  if (icvFindWindowByName(name.c_str()) == NULL)
+  {
+    QMetaObject::invokeMethod(guiMainThread,
+      "createWindow",
+      Qt::AutoConnection,
+      Q_ARG(QString, QString(name.c_str())),
+      Q_ARG(int, params));
+  }
+
+  return icvFindWindowByName(name.c_str());
 }
 
 
@@ -216,12 +240,14 @@ void GuiReceiver::createWindow(QString name, int flags)
 
   // Check the name in the storage
   if (icvFindWindowByName(name.toLatin1().data()))
-  {
     return;
-  }
+
 
   nb_windows++;
-  new CvWindow(name, flags);
+  CvWindow* w = new CvWindow(name, flags);
+
+  w->updateImage(Mat::zeros(3,3,CV_8UC1));
+
 }
 
 
@@ -445,8 +471,8 @@ CvWindow::CvWindow(QString name, int arg2)
   param_flags = arg2 & 0x0000000F;
   param_gui_mode = arg2 & 0x000000F0;
   param_ratio_mode = arg2 & 0x00000F00;
+  param_creation_mode = arg2 & _WINDOW_MATRIX_CREATION_MODE;
 
-  setAttribute(Qt::WA_DeleteOnClose); //in other case, does not release memory
   setContentsMargins(0, 0, 0, 0);
   setWindowTitle(name);
   setObjectName(name);
@@ -474,6 +500,7 @@ CvWindow::CvWindow(QString name, int arg2)
   mode_display = CV_MODE_NORMAL;
   createView();
 
+  setAttribute(Qt::WA_DeleteOnClose, param_creation_mode==0); //in other case, does not release memory
 
   //4: shortcuts and actions
   //5: toolBar and statusbar
@@ -499,6 +526,13 @@ CvWindow::CvWindow(QString name, int arg2)
     foreach(QAction *a, vect_QActions)
       myToolBar->addAction(a);
 
+    if (param_creation_mode == 0)
+    {
+      //hide load and edit buttons:
+      vect_QActions[__ACT_IMGRAPH_LOAD]->setVisible(false);
+      vect_QActions[__ACT_IMGRAPH_PEN_EDIT]->setVisible(false);
+    }
+
     myToolBar->setStyleSheet("QPushButton#ColorPick { background: none; color: black; }");
   }
 
@@ -509,6 +543,14 @@ CvWindow::CvWindow(QString name, int arg2)
   myGlobalLayout->addWidget(myView->getWidget(), Qt::AlignCenter);
   
   myGlobalLayout->addLayout(myBarLayout, Qt::AlignCenter);
+
+  if (param_creation_mode != 0)
+  {
+    QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel); 
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
+    connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
+    myGlobalLayout->addWidget(buttonBox);
+  }
 
   if (myStatusBar)
     myGlobalLayout->addWidget(myStatusBar, Qt::AlignCenter);
@@ -525,9 +567,15 @@ CvWindow::~CvWindow()
     delete myTools;
     myTools = NULL;
   }
+  _cond_waitEnd.notify_all();
 }
 
 
+void CvWindow::waitEnd()
+{
+  boost::unique_lock<boost::mutex> lock(_mtx);
+  _cond_waitEnd.wait(lock);//wait for end...
+}
 
 void CvWindow::writeSettings()
 {
@@ -808,6 +856,21 @@ ToolsWindow* CvWindow::createParameterWindow()
 
   myTools = new ToolsWindow(name_paraWindow, guiMainThread);
   displayPropertiesWin();
+
+  if (color_choose != NULL)
+    delete color_choose;
+  if (pencilSize != NULL)
+    delete pencilSize;
+  pencilSize = new QLineEdit(lexical_cast<std::string>(myView->getPenSize()).c_str(), myTools);
+  connect(pencilSize, SIGNAL(editingFinished()), this, SLOT(changePenSize()));
+  color_choose = new QPushButton("Color", myTools);
+  color_choose->setObjectName("ColorPick");
+  QObject::connect(color_choose, SIGNAL(released()), this, SLOT(chooseColor()));
+
+  myTools->addWidget(color_choose);
+  myTools->addWidget(new QLabel("Pencil size:"));
+  myTools->addWidget(pencilSize);
+
   return myTools;
 }
 
@@ -839,24 +902,10 @@ void CvWindow::switchEditingImg()
   if (pencil_mode)
   {
     if (myTools == NULL)
-    {
       myTools = createParameterWindow();
-
-      if (color_choose != NULL)
-        delete color_choose;
-      if (pencilSize != NULL)
-        delete pencilSize;
-      pencilSize = new QLineEdit(lexical_cast<std::string>(myView->getPenSize()).c_str(), myTools);
-      connect(pencilSize, SIGNAL(editingFinished()), this, SLOT(changePenSize()));
-      color_choose = new QPushButton("Color", myTools);
-      color_choose->setObjectName("ColorPick");
-      QObject::connect(color_choose, SIGNAL(released()), this, SLOT(chooseColor()));
-
-      myTools->addWidget(color_choose);
-      myTools->addWidget(pencilSize);
-    }
-    myView->setCursor(Qt::CrossCursor);
+    myTools->setParent(this, Qt::Tool);
     myTools->show();
+    myView->setCursor(Qt::CrossCursor);
     vect_QActions[__ACT_IMGRAPH_PEN_EDIT]->setIcon(QIcon(":/no_edit-icon"));
   }
   else
@@ -905,6 +954,10 @@ void CvWindow::keyPressEvent(QKeyEvent *evnt)
   //QWidget::keyPressEvent(evnt);
 }
 
+cv::Mat CvWindow::getMatrix()
+{
+  return myView->getMatrix();
+}
 
 
 //////////////////////////////////////////////////////
@@ -1656,7 +1709,8 @@ void DefaultViewPort::drawImgRegion(QPainter *painter)
     QPoint point_in_image(static_cast<int>(pos_in_image.x() + 0.5f), static_cast<int>(pos_in_image.y() + 0.5f));// Add 0.5 for rounding
 
     QRgb rgbValue;
-    if (image2Draw_qt.valid(point_in_image))
+    bool pointValid = image2Draw_qt.valid(point_in_image);
+    if (pointValid)
       rgbValue = image2Draw_qt.pixel(point_in_image);
     else
       rgbValue = qRgb(0, 0, 0);
@@ -1664,9 +1718,15 @@ void DefaultViewPort::drawImgRegion(QPainter *painter)
     if (nbChannelOriginImage == 3)
     {
       QString val;
+      cv::Vec3b rgbMatVal;
+      if (pointValid )
+        rgbMatVal = image2Draw_mat.at<cv::Vec3b>(point_in_image.ry(), point_in_image.rx());
 
-      val = tr("%1").arg(qRed(rgbValue));
-      painter->setPen(QPen(Qt::red, 1));
+      val = tr("%1").arg(rgbMatVal[0]);
+      if (rgbMatVal[0] < 64)
+        painter->setPen(QPen(Qt::white, 1));
+      else
+        painter->setPen(QPen(Qt::red, 1));
       painter->drawText(QRect((int)pos_in_view.x(), (int)pos_in_view.y(), (int)pixel_width, (int)(pixel_height / 3)),
         Qt::AlignCenter, val);
       if (point_in_image == pixelEdit && imgEditPixel_R != NULL)
@@ -1676,8 +1736,12 @@ void DefaultViewPort::drawImgRegion(QPainter *painter)
           imgEditPixel_R->setText(val);
       }
 
-      val = tr("%1").arg(qGreen(rgbValue));
-      painter->setPen(QPen(Qt::green, 1));
+      val = tr("%1").arg(rgbMatVal[1]);
+      if (rgbMatVal[1] < 64)
+        painter->setPen(QPen(Qt::white, 1));
+      else
+        painter->setPen(QPen(Qt::green, 1));
+
       painter->drawText(QRect((int)pos_in_view.x(), (int)(pos_in_view.y() + pixel_height / 3), (int)pixel_width, (int)(pixel_height / 3)),
         Qt::AlignCenter, val);
       if (point_in_image == pixelEdit && imgEditPixel_G != NULL)
@@ -1687,8 +1751,12 @@ void DefaultViewPort::drawImgRegion(QPainter *painter)
           imgEditPixel_G->setText(val);
       }
 
-      val = tr("%1").arg(qBlue(rgbValue));
-      painter->setPen(QPen(Qt::blue, 1));
+      val = tr("%1").arg(rgbMatVal[2]);
+      if (rgbMatVal[2] < 64)
+        painter->setPen(QPen(Qt::white, 1));
+      else
+        painter->setPen(QPen(Qt::blue, 1));
+
       painter->drawText(QRect((int)pos_in_view.x(), (int)(pos_in_view.y() + 2 * pixel_height / 3), (int)pixel_width, (int)(pixel_height / 3)),
         Qt::AlignCenter, val);
       if (point_in_image == pixelEdit && imgEditPixel_B != NULL)
@@ -1702,6 +1770,11 @@ void DefaultViewPort::drawImgRegion(QPainter *painter)
     if (nbChannelOriginImage == 1)
     {
       QString val = tr("%1").arg(qRed(rgbValue));
+      if (qRed(rgbValue) < 64)
+        painter->setPen(QPen(Qt::white, 1));
+      else
+        painter->setPen(QPen(Qt::black, 1));
+
       painter->drawText(QRect((int)pos_in_view.x(), (int)pos_in_view.y(), (int)pixel_width, (int)pixel_height),
         Qt::AlignCenter, val);
 
@@ -1769,4 +1842,9 @@ void DefaultViewPort::drawInstructions(QPainter *painter)
 
 void DefaultViewPort::setSize(QSize /*size_*/)
 {
+}
+
+cv::Mat DefaultViewPort::getMatrix()
+{
+  return image2Draw_mat;
 }

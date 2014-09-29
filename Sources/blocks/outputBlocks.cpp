@@ -22,7 +22,7 @@ namespace charliesoft
   BEGIN_BLOCK_INPUT_PARAMS(BlockShow);
   //Add parameters, with following parameters:
   //default visibility, type of parameter, name (key of internationalizor), helper...
-  ADD_PARAMETER(true, Mat, "BLOCK__OUTPUT_IN_IMAGE", "BLOCK__OUTPUT_IN_IMAGE_HELP");
+  ADD_PARAMETER(true, Matrix, "BLOCK__OUTPUT_IN_IMAGE", "BLOCK__OUTPUT_IN_IMAGE_HELP");
   ADD_PARAMETER(false, String, "BLOCK__OUTPUT_IN_WIN_NAME", "BLOCK__OUTPUT_IN_WIN_NAME_HELP");
   ADD_PARAMETER(false, Boolean, "BLOCK__OUTPUT_IN_NORMALIZE", "BLOCK__OUTPUT_IN_NORMALIZE_HELP");
   END_BLOCK_PARAMS();

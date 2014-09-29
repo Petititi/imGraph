@@ -22,7 +22,7 @@ namespace charliesoft
 
   enum ParamType
   {
-    Boolean, Int, Float, Vector, Mat, String, FilePath, typeError
+    Boolean, Int, Float, Vector, Matrix, String, FilePath, typeError
   };
 
   struct Not_A_Value
