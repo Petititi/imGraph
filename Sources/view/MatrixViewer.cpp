@@ -42,6 +42,7 @@
 #include <memory>
 
 #include "MatrixViewer.h"
+#include "MatrixConvertor.h"
 
 #ifdef _WIN32
 #pragma warning(disable:4503)
@@ -66,6 +67,7 @@
 
 using boost::lexical_cast;
 using namespace cv;
+using namespace charliesoft;
 
 //Static and global first
 static GuiReceiver *guiMainThread = NULL;
@@ -857,16 +859,57 @@ ToolsWindow* MatrixViewer::createParameterWindow()
   myTools = new ToolsWindow(name_paraWindow, guiMainThread);
   displayPropertiesWin();
 
+  QFrame* mySeparator = new QFrame();
+  mySeparator->setFrameShape(QFrame::HLine);
+
   if (color_choose != NULL)
     delete color_choose;
   if (pencilSize != NULL)
     delete pencilSize;
+
+  QComboBox* matrixTypes = new QComboBox();
+  matrixTypes->insertItem(0, "CV_8U");
+  matrixTypes->insertItem(1, "CV_8S");
+  matrixTypes->insertItem(2, "CV_16U");
+  matrixTypes->insertItem(3, "CV_16S");
+  matrixTypes->insertItem(4, "CV_32S");
+  matrixTypes->insertItem(5, "CV_32F");
+  matrixTypes->insertItem(6, "CV_64F");
+
+  myTools->addWidget(new QLabel("Matrix data type:"));
+  myTools->addWidget(matrixTypes);
+
+  QWidget* labelsSize = new QWidget();
+  QHBoxLayout* sizeLayout=new QHBoxLayout();
+  labelsSize->setLayout(sizeLayout);
+
+  sizeLayout->addWidget(new QLineEdit("3"));
+  sizeLayout->addWidget(new QLineEdit("3"));
+  sizeLayout->addWidget(new QLineEdit("1"));
+
+  myTools->addWidget(new QLabel("Size (rows, cols, channels):"));
+  myTools->addWidget(labelsSize);
+
+  QComboBox* matrixInit = new QComboBox();
+  matrixInit->insertItem(0, "zeros");
+  matrixInit->insertItem(1, "constant");
+  matrixInit->insertItem(2, "eye");
+  matrixInit->insertItem(3, "circle");
+  matrixInit->insertItem(4, "box");
+  matrixInit->insertItem(5, "elipse");
+  myTools->addWidget(new QLabel("Initial values:"));
+  myTools->addWidget(matrixInit);
+
+  myTools->addWidget(new QPushButton("Update"));
+
   pencilSize = new QLineEdit(lexical_cast<std::string>(myView->getPenSize()).c_str(), myTools);
   connect(pencilSize, SIGNAL(editingFinished()), this, SLOT(changePenSize()));
   color_choose = new QPushButton("Color", myTools);
   color_choose->setObjectName("ColorPick");
   QObject::connect(color_choose, SIGNAL(released()), this, SLOT(chooseColor()));
 
+  myTools->addWidget(mySeparator);
+  myTools->addWidget(new QLabel("Color:"));
   myTools->addWidget(color_choose);
   myTools->addWidget(new QLabel("Pencil size:"));
   myTools->addWidget(pencilSize);
@@ -1067,12 +1110,11 @@ void DefaultViewPort::setRatio(int flags)
 void DefaultViewPort::updateImage(const cv::Mat arr)
 {
   CV_Assert(!arr.empty());
+  image_copy = arr.clone();
+  nbChannelOriginImage = image_copy.channels();
+  image2Draw_mat = MatrixConvertor::convert(image_copy, CV_8UC3);
 
-  nbChannelOriginImage = arr.channels();
-  if (nbChannelOriginImage==3)
-    cv::cvtColor(arr, image2Draw_mat, cv::COLOR_BGR2RGB);
-  if (nbChannelOriginImage == 1)
-    cv::cvtColor(arr, image2Draw_mat, cv::COLOR_GRAY2RGB);
+  cv::cvtColor(image2Draw_mat, image2Draw_mat, cv::COLOR_BGR2RGB);
 
   image2Draw_qt = QImage(image2Draw_mat.ptr<const uchar>(), image2Draw_mat.cols, image2Draw_mat.rows, image2Draw_mat.step, QImage::Format_RGB888);
 
@@ -1263,6 +1305,8 @@ void DefaultViewPort::resizeEvent(QResizeEvent* evnt)
 
 void DefaultViewPort::drawLineTo(const QPointF &endPoint)
 {
+  if (image_copy.depth() != CV_8U)
+    return;//can't draw on math matrix (only on images...)
   QPainter painter(&image2Draw_qt);
   QColor tmpColor = myPenColor;
   painter.setPen(QPen(tmpColor, myPenWidth, Qt::SolidLine, Qt::RoundCap,
@@ -1643,8 +1687,52 @@ void DefaultViewPort::updateImage()
   QLineEdit* focusedEdit = dynamic_cast<QLineEdit*>(sender());
   if (focusedEdit == NULL)
     return;
+  int nbChannel = 0;
+  if (focusedEdit == imgEditPixel_R)
+    nbChannel = 0;
+  if (focusedEdit == imgEditPixel_G)
+    nbChannel = 1;
+  if (focusedEdit == imgEditPixel_B)
+    nbChannel = 2;
+  if (focusedEdit == imgEditPixel_A)
+    nbChannel = 3;
+
+  int x = pixelEdit.rx(), y = pixelEdit.ry();
+  std::string valString = MatrixConvertor::printElem(image_copy, x, y, nbChannel);
+
   QRgb rgbValue = image2Draw_qt.pixel(pixelEdit);
-  int newVal = focusedEdit->text().toInt();
+
+  int newVal = 0;
+
+  switch (image_copy.depth())
+  {
+  case CV_8U:
+    newVal = image_copy.ptr<uchar>()[y*image_copy.step1() + x*image_copy.channels() + nbChannel] = focusedEdit->text().toUInt();
+    break;
+  case CV_8S:
+    newVal = image_copy.ptr<char>()[y*image_copy.step1() + x*image_copy.channels() + nbChannel] = focusedEdit->text().toInt();
+    break;
+  case CV_16U:
+    newVal = image_copy.ptr<ushort>()[y*image_copy.step1() + x*image_copy.channels() + nbChannel] = focusedEdit->text().toUShort();
+    break;
+  case CV_16S:
+    newVal = image_copy.ptr<short>()[y*image_copy.step1() + x*image_copy.channels() + nbChannel] = focusedEdit->text().toShort();
+    break;
+  case CV_32S:
+    newVal = image_copy.ptr<int>()[y*image_copy.step1() + x*image_copy.channels() + nbChannel] = focusedEdit->text().toInt();
+    break;
+  case CV_32F:
+    image_copy.ptr<float>()[y*image_copy.step1() + x*image_copy.channels() + nbChannel] = focusedEdit->text().toFloat();
+    newVal = (int)focusedEdit->text().toFloat();
+    break;
+  case CV_64F:
+    image_copy.ptr<double>()[y*image_copy.step1() + x*image_copy.channels() + nbChannel] = focusedEdit->text().toDouble();
+    newVal = (int)focusedEdit->text().toDouble();
+    break;
+  default:
+    break;
+  }
+
   if (newVal > 255)newVal = 255;
   if (newVal < 0)newVal = 0;
   if (focusedEdit == imgEditPixel_R)
@@ -1667,7 +1755,7 @@ void DefaultViewPort::updateImage()
 //accept only CV_8UC1 and CV_8UC8 image for now
 void DefaultViewPort::drawImgRegion(QPainter *painter)
 {
-  if (nbChannelOriginImage != 1 && nbChannelOriginImage != 3)
+  if (nbChannelOriginImage > 4)
     return;
 
   double pixel_width = param_matrixWorld.m11()*ratioX;
@@ -1695,6 +1783,8 @@ void DefaultViewPort::drawImgRegion(QPainter *painter)
   f.setPixelSize(static_cast<int>(10 + (pixel_height - threshold_zoom_img_region) / 5));
   painter->setFont(f);
 
+  int dataSize = image_copy.elemSize1()*nbChannelOriginImage;
+  uchar *dataPtr = image_copy.ptr<uchar>();
 
   for (int j = -1; j < height() / pixel_height; j++)//-1 because display the pixels top rows left columns
     for (int i = -1; i < width() / pixel_width; i++)//-1
@@ -1715,76 +1805,57 @@ void DefaultViewPort::drawImgRegion(QPainter *painter)
     else
       rgbValue = qRgb(0, 0, 0);
 
-    if (nbChannelOriginImage == 3)
+    for (int iChannel = 0; iChannel < nbChannelOriginImage; iChannel++)
     {
       QString val;
-      cv::Vec3b rgbMatVal;
-      if (pointValid )
-        rgbMatVal = image2Draw_mat.at<cv::Vec3b>(point_in_image.ry(), point_in_image.rx());
-
-      val = tr("%1").arg(rgbMatVal[0]);
-      if (rgbMatVal[0] < 64)
-        painter->setPen(QPen(Qt::white, 1));
-      else
-        painter->setPen(QPen(Qt::red, 1));
-      painter->drawText(QRect((int)pos_in_view.x(), (int)pos_in_view.y(), (int)pixel_width, (int)(pixel_height / 3)),
-        Qt::AlignCenter, val);
-      if (point_in_image == pixelEdit && imgEditPixel_R != NULL)
+      if (pointValid)
       {
-        imgEditPixel_R->setGeometry(QRect((int)pos_in_view.x(), (int)pos_in_view.y(), (int)pixel_width, (int)(pixel_height / 3)));
-        if (updateEdits)
-          imgEditPixel_R->setText(val);
-      }
+        int x = point_in_image.rx(), y = point_in_image.ry(), tmpChannel = iChannel;
+        if (nbChannelOriginImage == 3)
+          tmpChannel = nbChannelOriginImage - iChannel - 1;
+        std::string valString = MatrixConvertor::printElem(image_copy, x, y, iChannel);
+        val = valString.c_str();
 
-      val = tr("%1").arg(rgbMatVal[1]);
-      if (rgbMatVal[1] < 64)
-        painter->setPen(QPen(Qt::white, 1));
-      else
-        painter->setPen(QPen(Qt::green, 1));
+        QLineEdit * editTmp;
+        QColor penColor = Qt::white;
+        {
+          switch (iChannel)
+          {
+          case 0:
+            penColor = Qt::red;
+            editTmp = imgEditPixel_R;
+            break;
+          case 1:
+            penColor = Qt::green;
+            editTmp = imgEditPixel_G;
+            break;
+          case 2:
+            penColor = Qt::blue;
+            editTmp = imgEditPixel_B;
+            break;
+          default:
+            penColor = Qt::black;
+            editTmp = imgEditPixel_A;
+            break;
+          }
+        }
+        if (MatrixConvertor::getElem(image_copy, x, y, iChannel) < 64)
+          penColor = Qt::white;
+        painter->setPen(QPen(penColor, 1));
 
-      painter->drawText(QRect((int)pos_in_view.x(), (int)(pos_in_view.y() + pixel_height / 3), (int)pixel_width, (int)(pixel_height / 3)),
-        Qt::AlignCenter, val);
-      if (point_in_image == pixelEdit && imgEditPixel_G != NULL)
-      {
-        imgEditPixel_G->setGeometry(QRect((int)pos_in_view.x(), (int)(pos_in_view.y() + pixel_height / 3), (int)pixel_width, (int)(pixel_height / 3)));
-        if (updateEdits)
-          imgEditPixel_G->setText(val);
-      }
-
-      val = tr("%1").arg(rgbMatVal[2]);
-      if (rgbMatVal[2] < 64)
-        painter->setPen(QPen(Qt::white, 1));
-      else
-        painter->setPen(QPen(Qt::blue, 1));
-
-      painter->drawText(QRect((int)pos_in_view.x(), (int)(pos_in_view.y() + 2 * pixel_height / 3), (int)pixel_width, (int)(pixel_height / 3)),
-        Qt::AlignCenter, val);
-      if (point_in_image == pixelEdit && imgEditPixel_B != NULL)
-      {
-        imgEditPixel_B->setGeometry(QRect((int)pos_in_view.x(), (int)(pos_in_view.y() + 2 * pixel_height / 3), (int)pixel_width, (int)(pixel_height / 3)));
-        if (updateEdits)
-          imgEditPixel_B->setText(val);
-      }
-    }
-
-    if (nbChannelOriginImage == 1)
-    {
-      QString val = tr("%1").arg(qRed(rgbValue));
-      if (qRed(rgbValue) < 64)
-        painter->setPen(QPen(Qt::white, 1));
-      else
-        painter->setPen(QPen(Qt::black, 1));
-
-      painter->drawText(QRect((int)pos_in_view.x(), (int)pos_in_view.y(), (int)pixel_width, (int)pixel_height),
-        Qt::AlignCenter, val);
-
-      if (point_in_image == pixelEdit && imgEditPixel_R != NULL)
-      {
-        imgEditPixel_R->setGeometry(QRect((int)pos_in_view.x(), (int)pos_in_view.y(), (int)pixel_width, (int)pixel_height));
-        if (updateEdits)
-          imgEditPixel_R->setText(val);
+        painter->drawText(QRect((int)pos_in_view.x(), (int)(pos_in_view.y() + iChannel * pixel_height / nbChannelOriginImage),
+          (int)pixel_width, (int)(pixel_height / nbChannelOriginImage)),
+          Qt::AlignCenter, val);
+        if (point_in_image == pixelEdit && editTmp != NULL)
+        {
+          editTmp->setGeometry(QRect((int)pos_in_view.x(), (int)(pos_in_view.y() + iChannel * pixel_height / nbChannelOriginImage),
+            (int)pixel_width, (int)(pixel_height / nbChannelOriginImage)));
+          if (updateEdits)
+            editTmp->setText(val);
+        }
       }
     }
+
   }
 
   painter->setPen(QPen(Qt::black, 1));
@@ -1846,5 +1917,5 @@ void DefaultViewPort::setSize(QSize /*size_*/)
 
 cv::Mat DefaultViewPort::getMatrix()
 {
-  return image2Draw_mat;
+  return image_copy;
 }

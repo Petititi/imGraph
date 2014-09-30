@@ -214,6 +214,13 @@ namespace charliesoft
       QPushButton* matEditor = new QPushButton(_QT("MATRIX_EDITOR"));
       layout->addWidget(matEditor);
       inputValue_.insert(Val_map_type(p, matEditor));
+      if (!p->getParamValue()->isDefaultValue())
+      {
+        Mat img = p->getParamValue()->get<cv::Mat>();
+        if (!img.empty())
+          _paramMatrix[p] = img;
+      }
+      
       connect(matEditor, SIGNAL(clicked()), this, SLOT(matrixEditor()));
       break;
     }
@@ -398,12 +405,8 @@ namespace charliesoft
     MatrixViewer* win = createWindow("test", _WINDOW_MATRIX_CREATION_MODE);
     win->setParent(this, Qt::Tool);
 
-    if (!param->get_left()->getParamValue()->isDefaultValue())
-    {
-      Mat img = param->get_left()->getParamValue()->get<cv::Mat>();
-      if (!img.empty())
-        win->updateImage(img);
-    }
+    if (!_paramMatrix[param->get_left()].empty())
+        win->updateImage(_paramMatrix[param->get_left()]);
 
     if (win->exec() == QDialog::Accepted)
     {
@@ -1119,11 +1122,14 @@ namespace charliesoft
       auto paramFrom = fromVertex->getParamRep(link._fromParam, false);
       auto paramTo = toVertex->getParamRep(link._toParam, true);
       LinkPath* path = _links[link];
-      int test = path->elementCount();
-      QPoint tmp = paramFrom->getWorldAnchor();
-      path->setElementPositionAt(0, tmp.x(), tmp.y());
-      tmp = paramTo->getWorldAnchor();
-      path->setElementPositionAt(1, tmp.x(), tmp.y());
+      if (path!=NULL)
+      {
+        int test = path->elementCount();
+        QPoint tmp = paramFrom->getWorldAnchor();
+        path->setElementPositionAt(0, tmp.x(), tmp.y());
+        tmp = paramTo->getWorldAnchor();
+        path->setElementPositionAt(1, tmp.x(), tmp.y());
+      }
     }
   }
 

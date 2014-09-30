@@ -364,6 +364,7 @@ private:
   QTransform param_matrixWorld;
 
   cv::Mat image2Draw_mat;
+  cv::Mat image_copy;
   QImage image2Draw_qt;
   int nbChannelOriginImage;
 
