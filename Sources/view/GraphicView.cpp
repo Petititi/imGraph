@@ -49,7 +49,7 @@
 #include "Graph.h"
 
 
-#include "window_QT.h"
+#include "MatrixViewer.h"
 
 #include "ProcessManager.h"
 #include "blocks/ParamValidator.h"
@@ -395,7 +395,7 @@ namespace charliesoft
     auto param = inputValue_.right.find(sender());
     if (param == inputValue_.right.end())
       return;//param src not found...
-    CvWindow* win = createWindow("test", _WINDOW_MATRIX_CREATION_MODE);
+    MatrixViewer* win = createWindow("test", _WINDOW_MATRIX_CREATION_MODE);
     win->setParent(this, Qt::Tool);
 
     if (!param->get_left()->getParamValue()->isDefaultValue())

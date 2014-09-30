@@ -41,7 +41,7 @@
 
 #include <memory>
 
-#include "window_QT.h"
+#include "MatrixViewer.h"
 
 #ifdef _WIN32
 #pragma warning(disable:4503)
@@ -79,9 +79,9 @@ static const unsigned int threshold_zoom_img_region = 30;
 
 //end static and global
 
-static CvWindow* icvFindWindowByName(QString name)
+static MatrixViewer* icvFindWindowByName(QString name)
 {
-  CvWindow* window = 0;
+  MatrixViewer* window = 0;
 
   //This is not a very clean way to do the stuff. Indeed, QAction automatically generate toolTil (QLabel)
   //that can be grabbed here and crash the code at 'w->param_name==name'.
@@ -89,7 +89,7 @@ static CvWindow* icvFindWindowByName(QString name)
   {
     if (widget->isWindow() && !widget->parentWidget())//is a window without parent
     {
-      if (CvWindow* w = dynamic_cast<CvWindow*>(widget))
+      if (MatrixViewer* w = dynamic_cast<MatrixViewer*>(widget))
       {
         if (w->windowTitle() == name)
         {
@@ -110,7 +110,7 @@ void imshow(cv::String name, cv::Mat im)
   guiMainThread->showImage(QString(name.c_str()), im);
 }
 
-CvWindow* createWindow(cv::String name, int params)
+MatrixViewer* createWindow(cv::String name, int params)
 {
   if (!guiMainThread)
     guiMainThread = new GuiReceiver;
@@ -145,7 +145,7 @@ GuiReceiver::GuiReceiver() : bTimeOut(false), nb_windows(0)
 
 void GuiReceiver::saveWindowParameters(QString name)
 {
-  QPointer<CvWindow> w = icvFindWindowByName(name);
+  QPointer<MatrixViewer> w = icvFindWindowByName(name);
 
   if (w)
     w->writeSettings();
@@ -154,7 +154,7 @@ void GuiReceiver::saveWindowParameters(QString name)
 
 void GuiReceiver::loadWindowParameters(QString name)
 {
-  QPointer<CvWindow> w = icvFindWindowByName(name);
+  QPointer<MatrixViewer> w = icvFindWindowByName(name);
 
   if (w)
     w->readSettings();
@@ -163,7 +163,7 @@ void GuiReceiver::loadWindowParameters(QString name)
 
 double GuiReceiver::getRatioWindow(QString name)
 {
-  QPointer<CvWindow> w = icvFindWindowByName(name);
+  QPointer<MatrixViewer> w = icvFindWindowByName(name);
 
   if (!w)
     return -1;
@@ -174,7 +174,7 @@ double GuiReceiver::getRatioWindow(QString name)
 
 void GuiReceiver::setRatioWindow(QString name, double arg2)
 {
-  QPointer<CvWindow> w = icvFindWindowByName(name.toLatin1().data());
+  QPointer<MatrixViewer> w = icvFindWindowByName(name.toLatin1().data());
 
   if (!w)
     return;
@@ -187,7 +187,7 @@ void GuiReceiver::setRatioWindow(QString name, double arg2)
 
 double GuiReceiver::getPropWindow(QString name)
 {
-  QPointer<CvWindow> w = icvFindWindowByName(name);
+  QPointer<MatrixViewer> w = icvFindWindowByName(name);
 
   if (!w)
     return -1;
@@ -198,7 +198,7 @@ double GuiReceiver::getPropWindow(QString name)
 
 void GuiReceiver::setPropWindow(QString name, double arg2)
 {
-  QPointer<CvWindow> w = icvFindWindowByName(name);
+  QPointer<MatrixViewer> w = icvFindWindowByName(name);
 
   if (!w)
     return;
@@ -211,7 +211,7 @@ void GuiReceiver::setPropWindow(QString name, double arg2)
 
 double GuiReceiver::isFullScreen(QString name)
 {
-  QPointer<CvWindow> w = icvFindWindowByName(name);
+  QPointer<MatrixViewer> w = icvFindWindowByName(name);
 
   if (!w)
     return -1;
@@ -222,7 +222,7 @@ double GuiReceiver::isFullScreen(QString name)
 
 void GuiReceiver::toggleFullScreen(QString name, double arg2)
 {
-  QPointer<CvWindow> w = icvFindWindowByName(name);
+  QPointer<MatrixViewer> w = icvFindWindowByName(name);
 
   if (!w)
     return;
@@ -244,7 +244,7 @@ void GuiReceiver::createWindow(QString name, int flags)
 
 
   nb_windows++;
-  CvWindow* w = new CvWindow(name, flags);
+  MatrixViewer* w = new MatrixViewer(name, flags);
 
   w->updateImage(Mat::zeros(3,3,CV_8UC1));
 
@@ -259,7 +259,7 @@ void GuiReceiver::timeOut()
 
 void GuiReceiver::displayInfo(QString name, QString text, int delayms)
 {
-  QPointer<CvWindow> w = icvFindWindowByName(name);
+  QPointer<MatrixViewer> w = icvFindWindowByName(name);
 
   if (w)
     w->displayInfo(text, delayms);
@@ -267,7 +267,7 @@ void GuiReceiver::displayInfo(QString name, QString text, int delayms)
 
 void GuiReceiver::showImage(QString name, cv::Mat arr)
 {
-  QPointer<CvWindow> w = icvFindWindowByName(name);
+  QPointer<MatrixViewer> w = icvFindWindowByName(name);
 
   if (!w) //as observed in the previous implementation (W32, GTK or Carbon), create a new window is the pointer returned is null
   {
@@ -295,7 +295,7 @@ void GuiReceiver::showImage(QString name, cv::Mat arr)
 
 void GuiReceiver::destroyWindow(QString name)
 {
-  QPointer<CvWindow> w = icvFindWindowByName(name);
+  QPointer<MatrixViewer> w = icvFindWindowByName(name);
 
   if (w)
   {
@@ -346,7 +346,7 @@ void GuiReceiver::destroyAllWindow()
 
 void GuiReceiver::moveWindow(QString name, int x, int y)
 {
-  QPointer<CvWindow> w = icvFindWindowByName(name);
+  QPointer<MatrixViewer> w = icvFindWindowByName(name);
 
   if (w)
     w->move(x, y);
@@ -355,7 +355,7 @@ void GuiReceiver::moveWindow(QString name, int x, int y)
 
 void GuiReceiver::resizeWindow(QString name, int width, int height)
 {
-  QPointer<CvWindow> w = icvFindWindowByName(name);
+  QPointer<MatrixViewer> w = icvFindWindowByName(name);
 
   if (w)
   {
@@ -372,7 +372,7 @@ void GuiReceiver::enablePropertiesButtonEachWindow()
   {
     if (widget->isWindow() && !widget->parentWidget()) //is a window without parent
     {
-      if (CvWindow* w = dynamic_cast<CvWindow*>(widget))
+      if (MatrixViewer* w = dynamic_cast<MatrixViewer*>(widget))
       {
         //active window properties button
         w->enablePropertiesButton();
@@ -460,7 +460,7 @@ ToolsWindow::~ToolsWindow()
 // CvWindow
 
 
-CvWindow::CvWindow(QString name, int arg2)
+MatrixViewer::MatrixViewer(QString name, int arg2)
 {
   color_choose = NULL;
   myTools = NULL;
@@ -560,7 +560,7 @@ CvWindow::CvWindow(QString name, int arg2)
 }
 
 
-CvWindow::~CvWindow()
+MatrixViewer::~MatrixViewer()
 {
   if (myTools != NULL)
   {
@@ -571,13 +571,13 @@ CvWindow::~CvWindow()
 }
 
 
-void CvWindow::waitEnd()
+void MatrixViewer::waitEnd()
 {
   boost::unique_lock<boost::mutex> lock(_mtx);
   _cond_waitEnd.wait(lock);//wait for end...
 }
 
-void CvWindow::writeSettings()
+void MatrixViewer::writeSettings()
 {
   //organisation and application's name
   QSettings settings("OpenCV2", QFileInfo(QApplication::applicationFilePath()).fileName());
@@ -594,7 +594,7 @@ void CvWindow::writeSettings()
 
 
 //TODO: load CV_GUI flag (done) and act accordingly (create win property if needed and attach trackbars)
-void CvWindow::readSettings()
+void MatrixViewer::readSettings()
 {
   //organisation and application's name
   QSettings settings("OpenCV2", QFileInfo(QApplication::applicationFilePath()).fileName());
@@ -615,25 +615,25 @@ void CvWindow::readSettings()
 }
 
 
-double CvWindow::getRatio()
+double MatrixViewer::getRatio()
 {
   return myView->getRatio();
 }
 
 
-void CvWindow::setRatio(int flags)
+void MatrixViewer::setRatio(int flags)
 {
   myView->setRatio(flags);
 }
 
 
-int CvWindow::getPropWindow()
+int MatrixViewer::getPropWindow()
 {
   return param_flags;
 }
 
 
-void CvWindow::setPropWindow(int flags)
+void MatrixViewer::setPropWindow(int flags)
 {
   if (param_flags == flags) //nothing to do
     return;
@@ -658,7 +658,7 @@ void CvWindow::setPropWindow(int flags)
 }
 
 
-void CvWindow::toggleFullScreen(int flags)
+void MatrixViewer::toggleFullScreen(int flags)
 {
   if (isFullScreen() && flags == CV_WINDOW_NORMAL)
   {
@@ -676,40 +676,40 @@ void CvWindow::toggleFullScreen(int flags)
 }
 
 
-void CvWindow::updateImage(cv::Mat arr)
+void MatrixViewer::updateImage(cv::Mat arr)
 {
   myView->updateImage(arr);
 }
 
 
-void CvWindow::displayInfo(QString text, int delayms)
+void MatrixViewer::displayInfo(QString text, int delayms)
 {
   myView->startDisplayInfo(text, delayms);
 }
 
 
-void CvWindow::displayStatusBar(QString text, int delayms)
+void MatrixViewer::displayStatusBar(QString text, int delayms)
 {
   if (myStatusBar)
     myStatusBar->showMessage(text, delayms);
 }
 
 
-void CvWindow::enablePropertiesButton()
+void MatrixViewer::enablePropertiesButton()
 {
   if (!vect_QActions.empty())
     vect_QActions[9]->setDisabled(false);
 }
 
 
-void CvWindow::setViewportSize(QSize _size)
+void MatrixViewer::setViewportSize(QSize _size)
 {
   myView->getWidget()->resize(_size);
   myView->setSize(_size);
 }
 
 
-void CvWindow::createGlobalLayout()
+void MatrixViewer::createGlobalLayout()
 {
   myGlobalLayout = new QBoxLayout(QBoxLayout::TopToBottom);
   myGlobalLayout->setObjectName(QString::fromUtf8("boxLayout"));
@@ -725,13 +725,13 @@ void CvWindow::createGlobalLayout()
 }
 
 
-void CvWindow::createView()
+void MatrixViewer::createView()
 {
     myView = new DefaultViewPort(this, param_ratio_mode);
 }
 
 
-void CvWindow::createActions()
+void MatrixViewer::createActions()
 {
   vect_QActions.resize(10);
 
@@ -784,7 +784,7 @@ void CvWindow::createActions()
 }
 
 
-void CvWindow::createShortcuts()
+void MatrixViewer::createShortcuts()
 {
   vect_QShortcuts.resize(11);
 
@@ -825,7 +825,7 @@ void CvWindow::createShortcuts()
 }
 
 
-void CvWindow::hideTools()
+void MatrixViewer::hideTools()
 {
   if (myToolBar)
     myToolBar->hide();
@@ -838,7 +838,7 @@ void CvWindow::hideTools()
 }
 
 
-void CvWindow::showTools()
+void MatrixViewer::showTools()
 {
   if (myToolBar)
     myToolBar->show();
@@ -848,7 +848,7 @@ void CvWindow::showTools()
 }
 
 
-ToolsWindow* CvWindow::createParameterWindow()
+ToolsWindow* MatrixViewer::createParameterWindow()
 {
   if (myTools != NULL)
     return myTools;
@@ -875,7 +875,7 @@ ToolsWindow* CvWindow::createParameterWindow()
 }
 
 
-void CvWindow::displayPropertiesWin()
+void MatrixViewer::displayPropertiesWin()
 {
   if (myTools == NULL)
     return;
@@ -885,7 +885,7 @@ void CvWindow::displayPropertiesWin()
     myTools->hide();
 }
 
-void CvWindow::chooseColor()
+void MatrixViewer::chooseColor()
 {
   QColor tmpColor = QColorDialog::getColor(myView->getPenColor(), this);
   if (tmpColor.isValid())
@@ -896,7 +896,7 @@ void CvWindow::chooseColor()
   }
 }
 
-void CvWindow::switchEditingImg()
+void MatrixViewer::switchEditingImg()
 {
   pencil_mode = !pencil_mode;
   if (pencil_mode)
@@ -917,7 +917,7 @@ void CvWindow::switchEditingImg()
 }
 
 
-void CvWindow::changePenSize()
+void MatrixViewer::changePenSize()
 {
   QLineEdit* s = dynamic_cast<QLineEdit*>(sender());
   if (s != NULL)
@@ -925,7 +925,7 @@ void CvWindow::changePenSize()
 }
 
 //Need more test here !
-void CvWindow::keyPressEvent(QKeyEvent *evnt)
+void MatrixViewer::keyPressEvent(QKeyEvent *evnt)
 {
   //see http://doc.trolltech.com/4.6/qt.html#Key-enum
   int key = evnt->key();
@@ -954,7 +954,7 @@ void CvWindow::keyPressEvent(QKeyEvent *evnt)
   //QWidget::keyPressEvent(evnt);
 }
 
-cv::Mat CvWindow::getMatrix()
+cv::Mat MatrixViewer::getMatrix()
 {
   return myView->getMatrix();
 }
@@ -964,7 +964,7 @@ cv::Mat CvWindow::getMatrix()
 // DefaultViewPort
 
 
-DefaultViewPort::DefaultViewPort(CvWindow* arg, int arg2) : QGraphicsView(arg)
+DefaultViewPort::DefaultViewPort(MatrixViewer* arg, int arg2) : QGraphicsView(arg)
 {
   imgEditPixel_R = imgEditPixel_G = imgEditPixel_B = imgEditPixel_A = NULL;
   labelsShown = false;

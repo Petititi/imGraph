@@ -88,7 +88,7 @@
 #pragma warning(pop)
 #endif
 
-class CvWindow;
+class MatrixViewer;
 class DefaultViewPort;
 
 //start private enum
@@ -112,7 +112,7 @@ enum {
 //end enum
 #define _WINDOW_MATRIX_CREATION_MODE  0x00010000
 void imshow(cv::String name, cv::Mat im);
-CvWindow* createWindow(cv::String name, int params = 0);
+MatrixViewer* createWindow(cv::String name, int params = 0);
 
 
 class GuiReceiver : public QObject
@@ -177,15 +177,15 @@ protected:
 #define __ACT_IMGRAPH_ZOOM_OUT   __ACT_IMGRAPH_ZOOM_IN  +1
 #define __ACT_IMGRAPH_PEN_EDIT   __ACT_IMGRAPH_ZOOM_OUT +1
 
-class CvWindow : public QDialog
+class MatrixViewer : public QDialog
 {
   Q_OBJECT;
 
   boost::condition_variable _cond_waitEnd;  // wait end condition
   boost::mutex _mtx;    // explicit mutex declaration
 public:
-  CvWindow(QString arg2, int flag = CV_WINDOW_NORMAL);
-  ~CvWindow();
+  MatrixViewer(QString arg2, int flag = CV_WINDOW_NORMAL);
+  ~MatrixViewer();
 
   ///wait until window is closed!
   void waitEnd();
@@ -299,7 +299,7 @@ class DefaultViewPort : public QGraphicsView, public ViewPort
   Q_OBJECT
 
 public:
-  DefaultViewPort(CvWindow* centralWidget, int arg2);
+  DefaultViewPort(MatrixViewer* centralWidget, int arg2);
   ~DefaultViewPort();
 
   QWidget* getWidget();
@@ -379,7 +379,7 @@ private:
   bool isSameSize(IplImage* img1, IplImage* img2);
 
   QSize sizeHint() const;
-  QPointer<CvWindow> centralWidget;
+  QPointer<MatrixViewer> centralWidget;
   QPointer<QTimer> timerDisplay;
   bool drawInfo;
   QString infoText;

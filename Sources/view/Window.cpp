@@ -42,7 +42,7 @@
 #endif
 
 #include "Graph.h"
-#include "window_QT.h"
+#include "MatrixViewer.h"
 #include "GraphicView.h"
 #include "ProcessManager.h"
 
