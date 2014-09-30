@@ -1,4 +1,4 @@
-#include "GraphicView.h"
+#include "view/GraphicView.h"
 
 #ifdef _WIN32
 #pragma warning(disable:4503)

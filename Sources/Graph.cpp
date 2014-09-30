@@ -19,7 +19,7 @@
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
-#include "Window.h"
+#include "view/Window.h"
 
 #include "ProcessManager.h"
 #include "blocks/ParamValidator.h"

@@ -41,7 +41,7 @@
 
 #include <memory>
 
-#include <window_QT.h>
+#include "window_QT.h"
 
 #ifdef _WIN32
 #pragma warning(disable:4503)
@@ -54,7 +54,7 @@
 #include <opencv2/highgui.hpp>
 #include <QString>
 #include <QDialogButtonBox>
-#include <Window.h>
+#include <view/Window.h>
 
 #ifdef _WIN32
 #pragma warning(disable:4503)

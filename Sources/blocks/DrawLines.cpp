@@ -2,7 +2,7 @@
 #include <vector>
 
 #include "Block.h"
-#include "window_QT.h"
+#include "view/window_QT.h"
 #include "ParamValidator.h"
 using namespace lsis_org;
 using std::vector;
