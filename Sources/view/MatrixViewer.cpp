@@ -52,6 +52,7 @@
 #include <math.h>
 #include <QColorDialog>
 #include <boost/lexical_cast.hpp>
+#include <boost/thread/lock_guard.hpp>
 #include <opencv2/highgui.hpp>
 #include <QString>
 #include <QDialogButtonBox>
@@ -66,6 +67,7 @@
 #endif
 
 using boost::lexical_cast;
+using boost::lock_guard;
 using namespace cv;
 using namespace charliesoft;
 
@@ -388,9 +390,11 @@ void GuiReceiver::enablePropertiesButtonEachWindow()
 
 
 //here CvWinProperties class
-ToolsWindow::ToolsWindow(QString name_paraWindow, QObject* /*parent*/)
+ToolsWindow::ToolsWindow(QString name_paraWindow, MatrixViewer* parent)
 {
-  //setParent(parent);
+  _parent = parent;
+  cv::Mat img = parent->getMatrix();
+
   setWindowFlags(Qt::Tool);
   setContentsMargins(0, 0, 0, 0);
   setWindowTitle(name_paraWindow);
@@ -404,6 +408,72 @@ ToolsWindow::ToolsWindow(QString name_paraWindow, QObject* /*parent*/)
   myLayout->setMargin(0);
   myLayout->setSizeConstraint(QLayout::SetFixedSize);
   setLayout(myLayout);
+
+
+  QFrame* mySeparator = new QFrame();
+  mySeparator->setFrameShape(QFrame::HLine);
+
+  _matrixTypes = new QComboBox();
+  _matrixTypes->insertItem(0, "CV_8U", CV_8U);
+  _matrixTypes->insertItem(1, "CV_8S", CV_8S);
+  _matrixTypes->insertItem(2, "CV_16U", CV_16U);
+  _matrixTypes->insertItem(3, "CV_16S", CV_16S);
+  _matrixTypes->insertItem(4, "CV_32S", CV_32S);
+  _matrixTypes->insertItem(5, "CV_32F", CV_32F);
+  _matrixTypes->insertItem(6, "CV_64F", CV_64F);
+  if (img.depth() == CV_8S)_matrixTypes->setCurrentIndex(1);
+  if (img.depth() == CV_16U)_matrixTypes->setCurrentIndex(2);
+  if (img.depth() == CV_16S)_matrixTypes->setCurrentIndex(3);
+  if (img.depth() == CV_32S)_matrixTypes->setCurrentIndex(4);
+  if (img.depth() == CV_32F)_matrixTypes->setCurrentIndex(5);
+  if (img.depth() == CV_64F)_matrixTypes->setCurrentIndex(6);
+
+  addWidget(new QLabel(_QT("MATRIX_EDITOR_DATA_CHOICES")));
+  addWidget(_matrixTypes);
+
+  QWidget* labelsSize = new QWidget();
+  QHBoxLayout* sizeLayout = new QHBoxLayout();
+  labelsSize->setLayout(sizeLayout);
+
+  _rows = new QLineEdit(lexical_cast<std::string>(img.rows).c_str());
+  _cols = new QLineEdit(lexical_cast<std::string>(img.cols).c_str());
+  _channels = new QLineEdit(lexical_cast<std::string>(img.channels()).c_str());
+  _rows->setFixedWidth(40);
+  _cols->setFixedWidth(40);
+  _channels->setFixedWidth(40);
+  sizeLayout->addWidget(_rows);
+  sizeLayout->addWidget(_cols);
+  sizeLayout->addWidget(_channels);
+
+  addWidget(new QLabel(_QT("MATRIX_EDITOR_DATA_SIZE")));
+  addWidget(labelsSize);
+
+  _matrixVals = new QComboBox();
+  _matrixVals->insertItem(0, _QT("MATRIX_EDITOR_DATA_INITIAL_VAL_0"));
+  _matrixVals->insertItem(1, _QT("MATRIX_EDITOR_DATA_INITIAL_VAL_1"));
+  _matrixVals->insertItem(2, _QT("MATRIX_EDITOR_DATA_INITIAL_VAL_2"));
+  _matrixVals->insertItem(3, _QT("MATRIX_EDITOR_DATA_INITIAL_VAL_3"));
+  _matrixVals->insertItem(4, _QT("MATRIX_EDITOR_DATA_INITIAL_VAL_4"));
+  _matrixVals->insertItem(5, _QT("MATRIX_EDITOR_DATA_INITIAL_VAL_5"));
+
+  addWidget(new QLabel(_QT("MATRIX_EDITOR_DATA_INITIAL_VAL")));
+  addWidget(_matrixVals);
+
+  _updateMatrix = new QPushButton(_QT("BUTTON_UPDATE"));
+  addWidget(_updateMatrix);
+  connect(_updateMatrix, SIGNAL(released()), this, SLOT(updateMatrix()));
+
+  pencilSize = new QLineEdit(lexical_cast<std::string>(_parent->view()->getPenSize()).c_str(), this);
+  connect(pencilSize, SIGNAL(editingFinished()), _parent, SLOT(changePenSize()));
+  color_choose = new QPushButton(_QT("BUTTON_COLOR"), this);
+  color_choose->setObjectName("ColorPick");
+  connect(color_choose, SIGNAL(released()), _parent, SLOT(chooseColor()));
+
+  addWidget(mySeparator);
+  addWidget(new QLabel(_QT("MATRIX_EDITOR_SECTION_PEN_COLOR")));
+  addWidget(color_choose);
+  addWidget(new QLabel(_QT("MATRIX_EDITOR_SECTION_PEN_SIZE")));
+  addWidget(pencilSize);
 
   hide();
 }
@@ -448,6 +518,38 @@ void ToolsWindow::hideEvent(QHideEvent* evnt)
   evnt->accept();
 }
 
+void ToolsWindow::updateMatrix()
+{
+  int wantedType = CV_MAKETYPE(_matrixTypes->itemData(_matrixTypes->currentIndex()).toInt(),
+    _channels->text().toInt());
+  int wantedRow = _rows->text().toInt();
+  int wantedCol = _cols->text().toInt();
+
+  cv::Mat newMatrix;
+  switch (_matrixVals->currentIndex())
+  {
+  case 1:
+    newMatrix = cv::Mat::ones(wantedRow, wantedCol, wantedType) * 128;
+    break;
+  case 2:
+    newMatrix = cv::Mat::eye(wantedRow, wantedCol, wantedType);
+    break;
+  case 3:
+    newMatrix = getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(wantedRow, wantedCol));
+    break;
+  case 4:
+    newMatrix = getStructuringElement(cv::MORPH_RECT, cv::Size(wantedRow, wantedCol));
+    break;
+  case 5:
+    newMatrix = getStructuringElement(cv::MORPH_CROSS, cv::Size(wantedRow, wantedCol));
+    break;
+  default:
+    newMatrix = cv::Mat::zeros(wantedRow, wantedCol, wantedType);
+    break;
+  }
+  _parent->updateImage(newMatrix);
+}
+
 
 ToolsWindow::~ToolsWindow()
 {
@@ -464,9 +566,7 @@ ToolsWindow::~ToolsWindow()
 
 MatrixViewer::MatrixViewer(QString name, int arg2)
 {
-  color_choose = NULL;
   myTools = NULL;
-  pencilSize = NULL;
   pencil_mode = false;
   moveToThread(qApp->instance()->thread());
 
@@ -739,44 +839,45 @@ void MatrixViewer::createActions()
 
   QWidget* view = myView->getWidget();
 
+  
   //if the shortcuts are changed in window_QT.h, we need to update the tooltip manually
-  vect_QActions[__ACT_IMGRAPH_LEFT] = new QAction(QIcon(":/left-icon"), "Panning left (CTRL+arrowLEFT)", this);
+  vect_QActions[__ACT_IMGRAPH_LEFT] = new QAction(QIcon(":/left-icon"), _QT("MATRIX_EDITOR_HELP_LEFT"), this);
   vect_QActions[__ACT_IMGRAPH_LEFT]->setIconVisibleInMenu(true);
   QObject::connect(vect_QActions[__ACT_IMGRAPH_LEFT], SIGNAL(triggered()), view, SLOT(siftWindowOnLeft()));
 
-  vect_QActions[__ACT_IMGRAPH_RIGHT] = new QAction(QIcon(":/right-icon"), "Panning right (CTRL+arrowRIGHT)", this);
+  vect_QActions[__ACT_IMGRAPH_RIGHT] = new QAction(QIcon(":/right-icon"), _QT("MATRIX_EDITOR_HELP_RIGHT"), this);
   vect_QActions[__ACT_IMGRAPH_RIGHT]->setIconVisibleInMenu(true);
   QObject::connect(vect_QActions[__ACT_IMGRAPH_RIGHT], SIGNAL(triggered()), view, SLOT(siftWindowOnRight()));
 
-  vect_QActions[__ACT_IMGRAPH_UP] = new QAction(QIcon(":/up-icon"), "Panning up (CTRL+arrowUP)", this);
+  vect_QActions[__ACT_IMGRAPH_UP] = new QAction(QIcon(":/up-icon"), _QT("MATRIX_EDITOR_HELP_UP"), this);
   vect_QActions[__ACT_IMGRAPH_UP]->setIconVisibleInMenu(true);
   QObject::connect(vect_QActions[__ACT_IMGRAPH_UP], SIGNAL(triggered()), view, SLOT(siftWindowOnUp()));
 
-  vect_QActions[__ACT_IMGRAPH_DOWN] = new QAction(QIcon(":/down-icon"), "Panning down (CTRL+arrowDOWN)", this);
+  vect_QActions[__ACT_IMGRAPH_DOWN] = new QAction(QIcon(":/down-icon"), _QT("MATRIX_EDITOR_HELP_DOWN"), this);
   vect_QActions[__ACT_IMGRAPH_DOWN]->setIconVisibleInMenu(true);
   QObject::connect(vect_QActions[__ACT_IMGRAPH_DOWN], SIGNAL(triggered()), view, SLOT(siftWindowOnDown()));
 
-  vect_QActions[__ACT_IMGRAPH_ZOOM_X1] = new QAction(QIcon(":/zoom_x1-icon"), "Zoom x1 (CTRL+P)", this);
+  vect_QActions[__ACT_IMGRAPH_ZOOM_X1] = new QAction(QIcon(":/zoom_x1-icon"), _QT("MATRIX_EDITOR_HELP_ZOOM_X1"), this);
   vect_QActions[__ACT_IMGRAPH_ZOOM_X1]->setIconVisibleInMenu(true);
   QObject::connect(vect_QActions[__ACT_IMGRAPH_ZOOM_X1], SIGNAL(triggered()), view, SLOT(resetZoom()));
 
-  vect_QActions[__ACT_IMGRAPH_ZOOM_IN] = new QAction(QIcon(":/zoom_in-icon"), "Zoom in (CTRL++)", this);
+  vect_QActions[__ACT_IMGRAPH_ZOOM_IN] = new QAction(QIcon(":/zoom_in-icon"), _QT("MATRIX_EDITOR_HELP_ZOOM_IN"), this);
   vect_QActions[__ACT_IMGRAPH_ZOOM_IN]->setIconVisibleInMenu(true);
   QObject::connect(vect_QActions[__ACT_IMGRAPH_ZOOM_IN], SIGNAL(triggered()), view, SLOT(ZoomIn()));
 
-  vect_QActions[__ACT_IMGRAPH_ZOOM_OUT] = new QAction(QIcon(":/zoom_out-icon"), "Zoom out (CTRL+-)", this);
+  vect_QActions[__ACT_IMGRAPH_ZOOM_OUT] = new QAction(QIcon(":/zoom_out-icon"), _QT("MATRIX_EDITOR_HELP_ZOOM_OUT"), this);
   vect_QActions[__ACT_IMGRAPH_ZOOM_OUT]->setIconVisibleInMenu(true);
   QObject::connect(vect_QActions[__ACT_IMGRAPH_ZOOM_OUT], SIGNAL(triggered()), view, SLOT(ZoomOut()));
 
-  vect_QActions[__ACT_IMGRAPH_SAVE] = new QAction(QIcon(":/save-icon"), "Save current image (CTRL+S)", this);
+  vect_QActions[__ACT_IMGRAPH_SAVE] = new QAction(QIcon(":/save-icon"), _QT("MATRIX_EDITOR_HELP_SAVE"), this);
   vect_QActions[__ACT_IMGRAPH_SAVE]->setIconVisibleInMenu(true);
   QObject::connect(vect_QActions[__ACT_IMGRAPH_SAVE], SIGNAL(triggered()), view, SLOT(saveView()));
 
-  vect_QActions[__ACT_IMGRAPH_LOAD] = new QAction(QIcon(":/load-icon"), "Load new image (CTRL+O)", this);
+  vect_QActions[__ACT_IMGRAPH_LOAD] = new QAction(QIcon(":/load-icon"), _QT("MATRIX_EDITOR_HELP_LOAD"), this);
   vect_QActions[__ACT_IMGRAPH_LOAD]->setIconVisibleInMenu(true);
   QObject::connect(vect_QActions[__ACT_IMGRAPH_LOAD], SIGNAL(triggered()), view, SLOT(loadMatrix()));
 
-  vect_QActions[__ACT_IMGRAPH_PEN_EDIT] = new QAction(QIcon(":/edit_pen-icon"), "Edit image (CTRL+E)", this);
+  vect_QActions[__ACT_IMGRAPH_PEN_EDIT] = new QAction(QIcon(":/edit_pen-icon"), _QT("MATRIX_EDITOR_HELP_EDIT"), this);
   vect_QActions[__ACT_IMGRAPH_PEN_EDIT]->setIconVisibleInMenu(true);
   QObject::connect(vect_QActions[__ACT_IMGRAPH_PEN_EDIT], SIGNAL(triggered()), this, SLOT(switchEditingImg()));
   /*
@@ -854,65 +955,10 @@ ToolsWindow* MatrixViewer::createParameterWindow()
 {
   if (myTools != NULL)
     return myTools;
-  QString name_paraWindow = QFileInfo(QApplication::applicationFilePath()).fileName() + " settings";
+  QString name_paraWindow = _QT("MATRIX_EDITOR") + " " + _QT("MATRIX_EDITOR_TOOLS");
 
-  myTools = new ToolsWindow(name_paraWindow, guiMainThread);
+  myTools = new ToolsWindow(name_paraWindow, this);
   displayPropertiesWin();
-
-  QFrame* mySeparator = new QFrame();
-  mySeparator->setFrameShape(QFrame::HLine);
-
-  if (color_choose != NULL)
-    delete color_choose;
-  if (pencilSize != NULL)
-    delete pencilSize;
-
-  QComboBox* matrixTypes = new QComboBox();
-  matrixTypes->insertItem(0, "CV_8U");
-  matrixTypes->insertItem(1, "CV_8S");
-  matrixTypes->insertItem(2, "CV_16U");
-  matrixTypes->insertItem(3, "CV_16S");
-  matrixTypes->insertItem(4, "CV_32S");
-  matrixTypes->insertItem(5, "CV_32F");
-  matrixTypes->insertItem(6, "CV_64F");
-
-  myTools->addWidget(new QLabel("Matrix data type:"));
-  myTools->addWidget(matrixTypes);
-
-  QWidget* labelsSize = new QWidget();
-  QHBoxLayout* sizeLayout=new QHBoxLayout();
-  labelsSize->setLayout(sizeLayout);
-
-  sizeLayout->addWidget(new QLineEdit("3"));
-  sizeLayout->addWidget(new QLineEdit("3"));
-  sizeLayout->addWidget(new QLineEdit("1"));
-
-  myTools->addWidget(new QLabel("Size (rows, cols, channels):"));
-  myTools->addWidget(labelsSize);
-
-  QComboBox* matrixInit = new QComboBox();
-  matrixInit->insertItem(0, "zeros");
-  matrixInit->insertItem(1, "constant");
-  matrixInit->insertItem(2, "eye");
-  matrixInit->insertItem(3, "circle");
-  matrixInit->insertItem(4, "box");
-  matrixInit->insertItem(5, "elipse");
-  myTools->addWidget(new QLabel("Initial values:"));
-  myTools->addWidget(matrixInit);
-
-  myTools->addWidget(new QPushButton("Update"));
-
-  pencilSize = new QLineEdit(lexical_cast<std::string>(myView->getPenSize()).c_str(), myTools);
-  connect(pencilSize, SIGNAL(editingFinished()), this, SLOT(changePenSize()));
-  color_choose = new QPushButton("Color", myTools);
-  color_choose->setObjectName("ColorPick");
-  QObject::connect(color_choose, SIGNAL(released()), this, SLOT(chooseColor()));
-
-  myTools->addWidget(mySeparator);
-  myTools->addWidget(new QLabel("Color:"));
-  myTools->addWidget(color_choose);
-  myTools->addWidget(new QLabel("Pencil size:"));
-  myTools->addWidget(pencilSize);
 
   return myTools;
 }
@@ -1110,6 +1156,7 @@ void DefaultViewPort::setRatio(int flags)
 void DefaultViewPort::updateImage(const cv::Mat arr)
 {
   CV_Assert(!arr.empty());
+  lock_guard<boost::recursive_mutex> guard(_mtx);//For multithread problems
   image_copy = arr.clone();
   nbChannelOriginImage = image_copy.channels();
   image2Draw_mat = MatrixConvertor::convert(image_copy, CV_8UC3);
@@ -1219,9 +1266,12 @@ void DefaultViewPort::saveView()
   {
     QString extension = fileName.right(3);
 
-    // Create a new pixmap to render the viewport into
     QPixmap viewportPixmap(viewport()->size());
-    viewport()->render(&viewportPixmap);
+    {
+      lock_guard<boost::recursive_mutex> guard(_mtx);//For multithread problems
+      // Create a new pixmap to render the viewport into
+      viewport()->render(&viewportPixmap);
+    }
 
     // Save it..
     if (QString::compare(extension, "png", Qt::CaseInsensitive) == 0)
@@ -1307,6 +1357,7 @@ void DefaultViewPort::drawLineTo(const QPointF &endPoint)
 {
   if (image_copy.depth() != CV_8U)
     return;//can't draw on math matrix (only on images...)
+  lock_guard<boost::recursive_mutex> guard(_mtx);//For multithread problems
   QPainter painter(&image2Draw_qt);
   QColor tmpColor = myPenColor;
   painter.setPen(QPen(tmpColor, myPenWidth, Qt::SolidLine, Qt::RoundCap,
@@ -1396,12 +1447,15 @@ void DefaultViewPort::mouseReleaseEvent(QMouseEvent* evnt)
         imgEditPixel_G = new QLineEdit("0", this);
         connect(imgEditPixel_G, SIGNAL(editingFinished()), this, SLOT(updateImage()));
       }
+      imgEditPixel_G->setAlignment(Qt::AlignHCenter);
+    }
+    if (nbChannelOriginImage > 2)
+    {
       if (imgEditPixel_B == NULL)
       {
         imgEditPixel_B = new QLineEdit("0", this);
         connect(imgEditPixel_B, SIGNAL(editingFinished()), this, SLOT(updateImage()));
       }
-      imgEditPixel_G->setAlignment(Qt::AlignHCenter);
       imgEditPixel_B->setAlignment(Qt::AlignHCenter);
     }
     if (nbChannelOriginImage > 3)
@@ -1641,6 +1695,7 @@ QSize DefaultViewPort::sizeHint() const
 
 void DefaultViewPort::draw2D(QPainter *painter)
 {
+  lock_guard<boost::recursive_mutex> guard(_mtx);//For multithread problems
   image2Draw_qt = QImage(image2Draw_mat.ptr<uchar>(), image2Draw_mat.cols, image2Draw_mat.rows, image2Draw_mat.step, QImage::Format_RGB888);
   painter->drawImage(QRect(0, 0, viewport()->width(), viewport()->height()), image2Draw_qt, QRect(0, 0, image2Draw_qt.width(), image2Draw_qt.height()));
 }
@@ -1687,6 +1742,7 @@ void DefaultViewPort::updateImage()
   QLineEdit* focusedEdit = dynamic_cast<QLineEdit*>(sender());
   if (focusedEdit == NULL)
     return;
+  lock_guard<boost::recursive_mutex> guard(_mtx);//For multithread problems
   int nbChannel = 0;
   if (focusedEdit == imgEditPixel_R)
     nbChannel = 0;
@@ -1758,6 +1814,7 @@ void DefaultViewPort::drawImgRegion(QPainter *painter)
   if (nbChannelOriginImage > 4)
     return;
 
+  lock_guard<boost::recursive_mutex> guard(_mtx);//For multithread problems
   double pixel_width = param_matrixWorld.m11()*ratioX;
   double pixel_height = param_matrixWorld.m11()*ratioY;
 

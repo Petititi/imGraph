@@ -72,6 +72,8 @@ namespace charliesoft
     translations["BUTTON_CANCEL"] = "Cancel";
     translations["BUTTON_DELETE"] = "Delete";
     translations["BUTTON_BROWSE"] = "Browse...";
+    translations["BUTTON_UPDATE"] = "Update";
+    translations["BUTTON_COLOR"] = "Color";
 
     translations["MATRIX_EDITOR"] = "Matrix editor";
     translations["VECTOR_EDITOR"] = "Vector editor";
@@ -108,8 +110,29 @@ namespace charliesoft
     translations["MENU_FILE_QUIT"] = "Quit";
     translations["MENU_FILE_QUIT_TIP"] = "Quit application";
 
-    translations["MATRIX_EDITOR_TITLE"] = "Matrix editor";
-    translations["MATRIX_EDITOR_LOAD_MATRIX"] = "Load matrix";
+    translations["MATRIX_EDITOR_TOOLS"] = "Tools";
+    translations["MATRIX_EDITOR_DATA_CHOICES"] = "Matrix data type:";
+    translations["MATRIX_EDITOR_DATA_SIZE"] = "Size (rows, cols, channels):";
+    translations["MATRIX_EDITOR_DATA_INITIAL_VAL"] = "Initial values:";
+    translations["MATRIX_EDITOR_DATA_INITIAL_VAL_0"] = "zeros";
+    translations["MATRIX_EDITOR_DATA_INITIAL_VAL_1"] = "constant";
+    translations["MATRIX_EDITOR_DATA_INITIAL_VAL_2"] = "eye";
+    translations["MATRIX_EDITOR_DATA_INITIAL_VAL_3"] = "ellipse";
+    translations["MATRIX_EDITOR_DATA_INITIAL_VAL_4"] = "rect";
+    translations["MATRIX_EDITOR_DATA_INITIAL_VAL_5"] = "cross";
+    translations["MATRIX_EDITOR_SECTION_PEN_COLOR"] = "Color:";
+    translations["MATRIX_EDITOR_SECTION_PEN_SIZE"] = "Pencil size:";
+
+    translations["MATRIX_EDITOR_HELP_LEFT"] = "Panning left (CTRL+arrowLEFT)";
+    translations["MATRIX_EDITOR_HELP_RIGHT"] = "Panning right (CTRL+arrowRIGHT)";
+    translations["MATRIX_EDITOR_HELP_UP"] = "Panning up (CTRL+arrowUP)";
+    translations["MATRIX_EDITOR_HELP_DOWN"] = "Panning down (CTRL+arrowDOWN)";
+    translations["MATRIX_EDITOR_HELP_ZOOM_X1"] = "Zoom x1 (CTRL+P)";
+    translations["MATRIX_EDITOR_HELP_ZOOM_IN"] = "Zoom in (CTRL++)";
+    translations["MATRIX_EDITOR_HELP_ZOOM_OUT"] = "Zoom out (CTRL+-)";
+    translations["MATRIX_EDITOR_HELP_SAVE"] = "Save current matrix (CTRL+S)";
+    translations["MATRIX_EDITOR_HELP_LOAD"] = "Load new matrix (CTRL+O)";
+    translations["MATRIX_EDITOR_HELP_EDIT"] = "Edit matrix (CTRL+E)";
 
     translations["MENU_HELP_INFO"] = "Info";
     translations["MENU_HELP_HELP"] = "Help";

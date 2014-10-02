@@ -75,6 +75,12 @@ namespace charliesoft
     return getInstance()->mainLayout_;
   }
 
+  void Window::redraw()
+  {
+    mainWidget_->update();
+    mainWidget_->adjustSize();
+  }
+
   void Window::releaseInstance()
   {
     lock_guard<recursive_mutex> guard(_windowMutex);//for multi-thread access
@@ -137,16 +143,20 @@ namespace charliesoft
   void Window::show()
   {
     mainLayout_ = new GraphRepresentation();
-
+   
     mainWidget_ = new MainWidget(_model);
     mainWidget_->setLayout(mainLayout_);
-    setCentralWidget(mainWidget_);
-    
-    /*QScrollArea* scrollarea = new QScrollArea();
+
+    QScrollArea* scrollarea = new QScrollArea(this);
     scrollarea->setWidgetResizable(true);
+   
+
+    QVBoxLayout* tmpLayout = new QVBoxLayout(scrollarea);
+    scrollarea->setLayout(tmpLayout);
     scrollarea->setWidget(mainWidget_);
-    setCentralWidget(scrollarea);*/
-    
+
+    setCentralWidget(scrollarea);
+
     statusBar();
 
     tabWidget_ = new QTabWidget;

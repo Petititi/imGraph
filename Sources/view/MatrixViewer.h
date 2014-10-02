@@ -83,6 +83,7 @@
 #include <QDialog>
 
 #include <boost/thread/mutex.hpp>
+#include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
 #ifdef _WIN32
 #pragma warning(pop)
@@ -153,17 +154,33 @@ class ToolsWindow : public QWidget
 {
   Q_OBJECT
 public:
-  ToolsWindow(QString name, QObject* parent);
+  ToolsWindow(QString name, MatrixViewer* parent);
   ~ToolsWindow();
 
   void addWidget(QWidget* obj);
+  void linkWithMatrix(MatrixViewer* mView);
 
 protected:
   void closeEvent(QCloseEvent * e);
   void showEvent(QShowEvent * event);
   void hideEvent(QHideEvent * event);
 
+  MatrixViewer* _parent;
+
+  QPushButton* _updateMatrix;
+  QComboBox* _matrixTypes;
+  QComboBox* _matrixVals;
+  QLineEdit* _rows;
+  QLineEdit* _cols;
+  QLineEdit* _channels;
+
+  QPushButton* color_choose;
+  QLineEdit* pencilSize;
+
   QPointer<QBoxLayout> myLayout;
+
+  public slots:
+  void updateMatrix();
 };
 
 #define __ACT_IMGRAPH_LOAD       0
@@ -213,6 +230,8 @@ public:
 
   void setViewportSize(QSize size);
 
+  DefaultViewPort* view(){ return myView; };
+
   //parameters (will be save/load)
   int param_flags;
   int param_gui_mode;
@@ -224,9 +243,6 @@ public:
 
   QVector<QAction*> vect_QActions;
 
-  QPushButton* color_choose;
-  QLineEdit* pencilSize;
-
   QPointer<QStatusBar> myStatusBar;
   QPointer<QToolBar> myToolBar;
   QPointer<QLabel> myStatusBar_msg;
@@ -237,7 +253,6 @@ protected:
   virtual void keyPressEvent(QKeyEvent* event);
 
   ToolsWindow* myTools;
-
 private:
   bool pencil_mode;
   int mode_display; //opengl or native
@@ -298,6 +313,7 @@ class DefaultViewPort : public QGraphicsView, public ViewPort
 {
   Q_OBJECT
 
+    boost::recursive_mutex _mtx;    // explicit mutex declaration
 public:
   DefaultViewPort(MatrixViewer* centralWidget, int arg2);
   ~DefaultViewPort();

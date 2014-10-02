@@ -226,6 +226,8 @@ namespace charliesoft
 
     void setModel(charliesoft::GraphOfProcess * val) { _model = val; }
 
+    virtual QSize sizeHint() const;
+    virtual QSize minimumSizeHint() const;
 
     signals:
     void askSynchro(charliesoft::GraphOfProcess *model);

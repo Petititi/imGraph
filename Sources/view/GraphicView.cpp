@@ -220,6 +220,8 @@ namespace charliesoft
         if (!img.empty())
           _paramMatrix[p] = img;
       }
+      if (p->isVisible())
+        matEditor->setEnabled(false);
       
       connect(matEditor, SIGNAL(clicked()), this, SLOT(matrixEditor()));
       break;
@@ -402,17 +404,14 @@ namespace charliesoft
     auto param = inputValue_.right.find(sender());
     if (param == inputValue_.right.end())
       return;//param src not found...
-    MatrixViewer* win = createWindow("test", _WINDOW_MATRIX_CREATION_MODE);
+    MatrixViewer* win = createWindow(_STR("MATRIX_EDITOR"), _WINDOW_MATRIX_CREATION_MODE);
     win->setParent(this, Qt::Tool);
 
     if (!_paramMatrix[param->get_left()].empty())
         win->updateImage(_paramMatrix[param->get_left()]);
 
-    if (win->exec() == QDialog::Accepted)
-    {
-      //now try to get matrix:
+    if (win->exec() == QDialog::Accepted)//now try to get matrix:
       _paramMatrix[param->get_left()] = win->getMatrix();
-    }
     delete win;
   }
 
@@ -930,9 +929,9 @@ namespace charliesoft
     delta = pos() + delta;
     move(delta.x(), delta.y());
     _model->setPosition(delta.x(), delta.y());
-    Window::getInstance()->update();
     for (auto link : _links)
       Window::getGraphLayout()->updateLink(link.first);
+    Window::getInstance()->redraw();
   }
 
   void VertexRepresentation::mouseMoveEvent(QMouseEvent *mouseE)
@@ -956,7 +955,6 @@ namespace charliesoft
     {
       ParamsConfigurator config(this, listOfInputChilds_, listOfOutputChilds_);
       int retour = config.exec();
-      cout << retour << endl;
     }
     else
     {
@@ -1044,7 +1042,17 @@ namespace charliesoft
 
   QSize GraphRepresentation::sizeHint() const
   {
-    return QSize(128, 64);
+    QSize mySize(800,600);
+    //test if block still exist:
+    for (auto it = _items.begin(); it != _items.end(); it++)
+    {
+      const QRect& rect = it->second->widget()->geometry();
+      if (rect.x() + rect.width()>mySize.width())
+        mySize.setWidth(rect.x() + rect.width());
+      if (rect.y() + rect.height() > mySize.height())
+        mySize.setHeight(rect.y() + rect.height());
+    }
+    return mySize;
   }
 
   void GraphRepresentation::removeLinks(VertexRepresentation* vertex)
@@ -1222,7 +1230,7 @@ namespace charliesoft
         addLink(link);
       }
     }
-    Window::getInstance()->update();
+    Window::getInstance()->redraw();
   }
 
   MainWidget::MainWidget(charliesoft::GraphOfProcess *model)
@@ -1279,7 +1287,7 @@ namespace charliesoft
     if (creatingLink_)
     {
       endMouse_ = me->pos();
-      Window::getInstance()->update();
+      Window::getInstance()->redraw();
     }
     if (isSelecting_)
     {
@@ -1308,7 +1316,7 @@ namespace charliesoft
         else
           link.second->setSelected(false);
       }
-      Window::getInstance()->update();
+      Window::getInstance()->redraw();
     }
   };
 
@@ -1333,7 +1341,7 @@ namespace charliesoft
   void MainWidget::mouseReleaseEvent(QMouseEvent *)
   {
     creatingLink_ = isSelecting_ = false;
-    Window::getInstance()->update();
+    Window::getInstance()->redraw();
   }
 
   void MainWidget::endLinkCreation(QPoint end)
@@ -1341,7 +1349,7 @@ namespace charliesoft
     endMouse_ = end;
     creatingLink_ = false;
 
-    Window::getInstance()->update();//redraw window...
+    Window::getInstance()->redraw();//redraw window...
 
     //find an hypotetic param widget under mouse:
     ParamRepresentation* param = dynamic_cast<ParamRepresentation*>(childAt(endMouse_));
@@ -1412,6 +1420,18 @@ namespace charliesoft
     startMouse_ = endMouse_ = start;
     creatingLink_ = true;
     startParam_ = dynamic_cast<LinkConnexionRepresentation*>(sender());
+  }
+
+  QSize MainWidget::sizeHint() const
+  {
+    QLayout* myLayout = layout();
+    if (myLayout != NULL)
+      return myLayout->sizeHint();
+  }
+
+  QSize MainWidget::minimumSizeHint() const
+  {
+    return sizeHint();
   }
 
 }

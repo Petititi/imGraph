@@ -55,7 +55,13 @@ namespace charliesoft
     if (value_.type() == typeid(std::string))
       return boost::get<std::string>(value_);
     if (value_.type() == typeid(cv::Mat))
-      return lexical_cast<string>(boost::get<cv::Mat>(value_));
+    {
+      cv::FileStorage fs(".xml", cv::FileStorage::WRITE + cv::FileStorage::MEMORY + cv::FileStorage::FORMAT_YAML);
+      fs << "matrixValue" << boost::get<cv::Mat>(value_);
+      string buf = fs.releaseAndGetString();
+
+      return buf;
+    }
     return "";
   }
 
@@ -97,6 +103,13 @@ namespace charliesoft
         return ParamValue(lexical_cast<double>(value));
       if (type == String || type == FilePath)
         return ParamValue(value);
+      if (type == Matrix)
+      {
+        cv::FileStorage fs(value, cv::FileStorage::READ + cv::FileStorage::MEMORY + cv::FileStorage::FORMAT_YAML);
+        cv::Mat val;
+        fs["matrixValue"] >> val;
+        return ParamValue(val);
+      }
     }
     catch (...)//not the correct type, so create an empty value...
     {

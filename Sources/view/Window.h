@@ -63,6 +63,8 @@ namespace charliesoft
     MainWidget* getMainWidget() const { return mainWidget_; }
     std::string getKey(QWidget* w){ return keysName_[w]; };
 
+    void redraw();
+
     bool event(QEvent *event);
   private:
     Window();
