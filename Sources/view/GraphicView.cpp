@@ -1262,6 +1262,7 @@ namespace charliesoft
     QStyleOption o;
     o.initFrom(this);
     QPainter painter(this);
+
     style()->drawPrimitive(
       QStyle::PE_Widget, &o, &painter, this);
 
@@ -1427,6 +1428,7 @@ namespace charliesoft
     QLayout* myLayout = layout();
     if (myLayout != NULL)
       return myLayout->sizeHint();
+    return QSize(800, 600);
   }
 
   QSize MainWidget::minimumSizeHint() const

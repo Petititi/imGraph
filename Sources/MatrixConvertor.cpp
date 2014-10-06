@@ -20,7 +20,16 @@ namespace charliesoft
     cv::Mat convert(cv::Mat src, int outputType)
     {
       Mat output = adjustChannels(src, CV_MAT_CN(outputType));
-      output.convertTo(output, outputType);
+      if (output.depth() != CV_MAT_DEPTH(outputType))
+      {
+        if (outputType == CV_8UC3 && output.channels() == 3)
+        {
+          normalize(output, output, 0, 255, NORM_MINMAX);erreur ici...
+          cvtColor(output, output, COLOR_HSV2RGB);
+        }
+        else
+          output.convertTo(output, outputType);
+      }
       return output;
     }
 
@@ -68,7 +77,8 @@ namespace charliesoft
           tmp1[1] = tmp[1].clone();
           if (nbChannels == 3)
           {
-            double meanVal = (mean(src)[0] + mean(src)[1]) / 2.;
+            cv::Scalar tmpMean = mean(src);
+            double meanVal = (tmpMean[0] + tmpMean[1]) / 2.;
             newChannel = Mat::ones(tmp[1].size(), tmp[1].type())*meanVal;
           }
           else
@@ -82,11 +92,6 @@ namespace charliesoft
             tmp1[i] = newChannel.clone();
           cv::merge(tmp1, nbChannels, output);
           delete[] tmp1;
-          if (nbChannels == 3)
-          {
-            normalize(output, output, 0, 255, NORM_MINMAX, CV_8UC3);
-            cvtColor(output, output, COLOR_RGB2HSV);
-          }
         }
         delete[] tmp;
         break;

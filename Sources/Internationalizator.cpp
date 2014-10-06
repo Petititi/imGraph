@@ -200,6 +200,16 @@ namespace charliesoft
     translations["BLOCK__NORMALIZ_OUT_IMAGE"] = "image";
     translations["BLOCK__NORMALIZ_OUT_IMAGE_HELP"] = "Normalized image";
 
+    translations["BLOCK__OPTICFLOW_NAME"] = "Compute Optical flow";
+    translations["BLOCK__OPTICFLOW_IN_IMAGE1"] = "image1";
+    translations["BLOCK__OPTICFLOW_IN_IMAGE1_HELP"] = "First image";
+    translations["BLOCK__OPTICFLOW_IN_IMAGE2"] = "image2";
+    translations["BLOCK__OPTICFLOW_IN_IMAGE2_HELP"] = "Second image";
+    translations["BLOCK__OPTICFLOW_IN_METHOD"] = "method";
+    translations["BLOCK__OPTICFLOW_IN_METHOD_HELP"] = "Method (0:LK, 1:Farneback, 2:DualTVL1)";
+    translations["BLOCK__OPTICFLOW_OUT_IMAGE"] = "flow";
+    translations["BLOCK__OPTICFLOW_OUT_IMAGE_HELP"] = "Optical flow";
+
     translations["BLOCK__LINE_FINDER_NAME"] = "Find lines";
     translations["BLOCK__LINE_FINDER_IN_IMAGE"] = "image";
     translations["BLOCK__LINE_FINDER_IN_IMAGE_HELP"] = "Input image";
@@ -218,13 +228,21 @@ namespace charliesoft
     translations["BLOCK__DEINTERLACE_OUT_IMAGE"] = "image";
     translations["BLOCK__DEINTERLACE_OUT_IMAGE_HELP"] = "Deinterlaced image";
 
-    translations["BLOCK__SKIP_FRAME_NAME"] = "Skip frame";
+    translations["BLOCK__SKIP_FRAME_NAME"] = "Keep only 1 frame every N frame";
     translations["BLOCK__SKIP_FRAME_IN_IMAGE"] = "image";
     translations["BLOCK__SKIP_FRAME_IN_IMAGE_HELP"] = "Input image";
     translations["BLOCK__SKIP_FRAME_IN_TYPE"] = "nb skip";
     translations["BLOCK__SKIP_FRAME_IN_TYPE_HELP"] = "Number of frames to skip";
     translations["BLOCK__SKIP_FRAME_OUT_IMAGE"] = "image";
     translations["BLOCK__SKIP_FRAME_OUT_IMAGE_HELP"] = "Interlaced image";
+
+    translations["BLOCK__DELAY_VIDEO_NAME"] = "Delay the video of N frame";
+    translations["BLOCK__DELAY_VIDEO_IN_IMAGE"] = "image";
+    translations["BLOCK__DELAY_VIDEO_IN_IMAGE_HELP"] = "Input image";
+    translations["BLOCK__DELAY_VIDEO_IN_DELAY"] = "delay";
+    translations["BLOCK__DELAY_VIDEO_IN_DELAY_HELP"] = "Number of frames to delay";
+    translations["BLOCK__DELAY_VIDEO_OUT_IMAGE"] = "image";
+    translations["BLOCK__DELAY_VIDEO_OUT_IMAGE_HELP"] = "N-th old image";
 
     translations["BLOCK__MERGING_NAME"] = "Merge two images";
     translations["BLOCK__MERGING_IN_IMAGE1"] = "image1";
