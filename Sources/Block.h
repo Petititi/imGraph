@@ -124,6 +124,7 @@ namespace charliesoft
     friend charliesoft::ProcessManager;
 
   protected:
+    bool _renderingSkiped;
     unsigned int nbRendering;
     GraphOfProcess* _processes;///<list of process currently in use
     boost::condition_variable _cond_pause;  // pause condition
@@ -181,6 +182,7 @@ namespace charliesoft
     bool isStartingBlock();
     bool isAncestor(Block* other);
     bool validTimestampOrWait(Block* other);
+    bool validTimestampOrWait(Block* other, unsigned int timeGoal);
     void wakeUp();
     void waitUpdate(boost::unique_lock<boost::mutex>& lock);
     boost::mutex& getMutex(){

@@ -123,13 +123,16 @@ namespace charliesoft
       boost::get<ParamValue*>(value_)->distantListeners_.erase(this);
   }
   
+
   void ParamValue::notifyUpdate()
-  { 
-    _current_timestamp = GraphOfProcess::_current_timestamp;
-    for (auto listener : distantListeners_)
+  {
     {
-      listener->_current_timestamp = _current_timestamp;
+      boost::unique_lock<boost::mutex> lock(_mtx);
+      _current_timestamp = GraphOfProcess::_current_timestamp;
     }
+
+    for (auto listener : distantListeners_)
+      listener->notifyUpdate();
   }
   ParamValue& ParamValue::operator = (bool const &rhs) {
     notifyRemove();

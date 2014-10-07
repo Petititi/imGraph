@@ -7,6 +7,8 @@
 #endif
 #include <boost/variant.hpp>
 #include <opencv2/core/core.hpp>
+#include <boost/thread/recursive_mutex.hpp>
+#include <boost/thread/condition_variable.hpp>
 #include <set>
 #include <QString>
 #ifdef _WIN32
@@ -45,6 +47,8 @@ namespace charliesoft
 
   class ParamValue
   {
+    boost::mutex _mtx;    // explicit mutex declaration
+    boost::condition_variable _cond_sync;  // global sync condition
     unsigned int _current_timestamp;  // timestamp of last update
     std::vector<ParamValidator*> validators_;
     std::set<ParamValue*> distantListeners_;
@@ -148,7 +152,8 @@ namespace charliesoft
     std::string getName() const { return _name; };
 
     bool isDefaultValue() const;
-    unsigned int getTimestamp() const{
+    unsigned int getTimestamp(){
+      boost::unique_lock<boost::mutex> lock(_mtx);
       if (isLinked())
         return boost::get<ParamValue*>(value_)->getTimestamp();
       else

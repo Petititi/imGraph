@@ -36,7 +36,7 @@ namespace charliesoft
     int historySize = _myInputs["BLOCK__DELAY_VIDEO_IN_DELAY"].get<int>();
     imgs.push(src);
     Mat out = imgs.front();
-    if (imgs.size() > historySize)
+    if ((int)imgs.size() > historySize)
       imgs.pop();
     _myOutputs["BLOCK__DELAY_VIDEO_OUT_IMAGE"] = out;
     renderingDone();

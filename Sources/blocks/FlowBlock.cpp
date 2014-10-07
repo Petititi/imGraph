@@ -6,6 +6,7 @@
 #pragma warning(push)
 #pragma warning(disable:4996 4251 4275 4800)
 #endif
+#include <boost/lexical_cast.hpp>
 #include <Opencv2/imgproc.hpp>
 #include <opencv2/superres/optical_flow.hpp>
 #include <opencv2/ocl/ocl.hpp>
@@ -25,6 +26,9 @@ namespace charliesoft
 {
   BLOCK_BEGIN_INSTANTIATION(OpticFlowBlock);
   //You can add methods, re implement needed functions...
+  cv::Mat computeOpenCL(cv::Mat im1, cv::Mat im2, int method);
+  cv::Mat computeCUDA(cv::Mat im1, cv::Mat im2, int method);
+  cv::Mat computeCPU(cv::Mat im1, cv::Mat im2, int method);
   BLOCK_END_INSTANTIATION(OpticFlowBlock, AlgoType::videoProcess, BLOCK__OPTICFLOW_NAME);
 
   BEGIN_BLOCK_INPUT_PARAMS(OpticFlowBlock);
@@ -44,9 +48,69 @@ namespace charliesoft
     _myInputs["BLOCK__OPTICFLOW_IN_IMAGE2"].addValidator({ new ValNeeded(), new ValPositiv(true) });
     _myInputs["BLOCK__OPTICFLOW_IN_METHOD"].addValidator({ new ValRange(0,2) });
   };
-  
-  bool OpticFlowBlock::run(){
 
+  cv::Mat OpticFlowBlock::computeOpenCL(cv::Mat src, cv::Mat dest, int method)
+  {
+    Ptr<DenseOpticalFlowExt> optic;
+    switch (method)
+    {
+    case 1:
+      optic = createOptFlow_Farneback_OCL();
+      break;
+    case 2:
+      optic = createOptFlow_DualTVL1_OCL();
+      break;
+    default:
+      optic = createOptFlow_PyrLK_OCL();
+      break;
+    }
+    ocl::oclMat ocltmp1(src), ocltmp2(dest), flow1, flow2;
+
+    optic->calc(ocltmp1, ocltmp2, flow1, flow2);
+
+    Mat finalFlow, printFlow, splitedFlow[2];
+    splitedFlow[0] = flow1;
+    splitedFlow[1] = flow2;
+
+    optic.release();
+
+    merge(splitedFlow, 2, finalFlow);
+    return finalFlow;
+  }
+  cv::Mat OpticFlowBlock::computeCUDA(cv::Mat im1, cv::Mat im2, int method)
+  {
+    return im1;
+  }
+  cv::Mat OpticFlowBlock::computeCPU(cv::Mat src, cv::Mat dest, int method)
+  {
+    Ptr<DenseOpticalFlowExt> optic;
+    switch (method)
+    {
+    case 1:
+      optic = createOptFlow_Farneback();
+      break;
+    case 2:
+      optic = createOptFlow_DualTVL1();
+      break;
+    default:
+      optic = createOptFlow_Simple();
+      break;
+    }
+
+    cv::Mat flow1, flow2;
+    optic->calc(src, dest, flow1, flow2);
+
+    Mat finalFlow, printFlow, splitedFlow[2];
+    splitedFlow[0] = flow1;
+    splitedFlow[1] = flow2;
+
+    optic.release();
+
+    merge(splitedFlow, 2, finalFlow);
+    return finalFlow;
+  }
+
+  bool OpticFlowBlock::run(){
     cv::Mat src = _myInputs["BLOCK__OPTICFLOW_IN_IMAGE1"].get<cv::Mat>();
     cv::Mat dest = _myInputs["BLOCK__OPTICFLOW_IN_IMAGE2"].get<cv::Mat>();
     if (src.channels() != 1)
@@ -62,32 +126,30 @@ namespace charliesoft
     int method = 0;
     if (!_myInputs["BLOCK__OPTICFLOW_IN_METHOD"].isDefaultValue())
       method = _myInputs["BLOCK__OPTICFLOW_IN_METHOD"].get<int>();
-    Ptr<DenseOpticalFlowExt> optic;
-    switch (method)
+
+
+    //is Opencl OK?
+    cv::ocl::DevicesInfo devices;
+    cv::ocl::getOpenCLDevices(devices);
+    bool opencl = false;
+    for (size_t i = 0; i < devices.size(); i++)
     {
-    case 1:
-      optic = createOptFlow_Farneback_OCL();
-      break;
-    case 2:
-      optic = createOptFlow_DualTVL1_OCL();
-      break;
-    default:
-      optic = createOptFlow_Simple();
-      break;
+      if (devices[i]->deviceVersionMajor > 1)
+        opencl = true;
+      else
+        if (devices[i]->deviceVersionMajor == 1 && devices[i]->deviceVersionMinor >= 1)
+          opencl = true;
     }
-    ocl::oclMat ocltmp1(src), ocltmp2(dest), flow1, flow2;
-
-    optic->calc(ocltmp1, ocltmp2, flow1, flow2);
-
-    Mat finalFlow, printFlow, splitedFlow[2];
-    splitedFlow[0] = flow1;
-    splitedFlow[1] = flow2;
-
-    optic.release();
-
-    merge(splitedFlow, 2, finalFlow);
+    Mat finalFlow;
+    if (opencl)
+      finalFlow = computeOpenCL(src, dest, method);
+    else
+      finalFlow = computeCPU(src, dest, method);
     _myOutputs["BLOCK__OPTICFLOW_OUT_IMAGE"] = finalFlow;
     renderingDone();
+
+    std::string debug = _STR(getName()) + " (" + boost::lexical_cast<string>(_timestamp)+") rendering done\n";
+    std::cout << debug;
     return true;
   };
 };

@@ -244,32 +244,19 @@ namespace charliesoft
     {
       while (true)//this will stop when user stop the process...
       {
+        _renderingSkiped = false;
         while (GraphOfProcess::pauseProcess)
           _cond_pause.wait(lock);//wait for any parameter update...
 
         if (_timestamp < _processes->_current_timestamp)
         {
           //are parameters ok?
-          bool parametersOK = false;
-          while (!parametersOK)
+          for (auto it = _myInputs.begin(); it != _myInputs.end(); it++)
           {
-            parametersOK = true;
-            for (auto it = _myInputs.begin(); it != _myInputs.end(); it++)
-            {
-              while (it->second.isLinked() &&
-                it->second.getTimestamp() < _processes->_current_timestamp)
-              {
-                ParamValue* t = it->second.get<ParamValue*>();
-                parametersOK = false;
-
-                string debug = "   " + _STR(getName()) + " blocked (" + _STR(it->second.getName()) + ")\n";
-                //std::cout << debug;
-
-                //not OK! we must wait here until producer update value!
-                _cond_sync.wait(lock);//wait for any parameter update...
-              }
-            }
+            if (it->second.isLinked())
+              validTimestampOrWait(it->second.get<ParamValue*>()->getBlock(), _processes->_current_timestamp);
           }
+
           bool shouldRun = true;
           for (ConditionOfRendering& condition : _conditions)
           {
@@ -277,15 +264,18 @@ namespace charliesoft
               shouldRun= false;
           }
           //now we can run the process:
-          if (shouldRun)
+          if (shouldRun && !_renderingSkiped)
             run();
           else
             skipRendering();
+          //std::string debug = _STR(getName()) + " (" + lexical_cast<string>(_timestamp)+") rendering done\n";
+          //std::cout << debug;
+
           nbRendering++;
           _fullyRendered = true;
+
           _cond_sync.notify_all();//wake up waiting thread (if needed)
         }
-        _cond_sync.wait(lock);//wait for any parameter update...
       }
     }
     catch (boost::thread_interrupted const&)
@@ -363,16 +353,13 @@ namespace charliesoft
     _cond_sync.notify_all();//wake up waiting thread (if needed)
     _cond_pause.notify_all();
   }
-  void Block::waitUpdate(boost::unique_lock<boost::mutex>& lock)
-  {
-    _cond_sync.wait(lock);
-  }
 
   void Block::skipRendering()
   {
     {
       boost::unique_lock<boost::mutex> guard(_mtx_timestamp_inc);
       _timestamp = _processes->_current_timestamp;
+      _renderingSkiped = true;
     }
     //go through outputs and skip it:
     auto it = _myOutputs.begin();
@@ -419,11 +406,27 @@ namespace charliesoft
     boost::unique_lock<boost::mutex> guard(_mtx_timestamp_inc);
     while (!_fullyRendered || other->_timestamp > _timestamp)
     {
-      std::string debug = "  " + _STR(other->getName()) + " blocked at " + _STR(getName()) + " : " + lexical_cast<string>(_timestamp) + "\n";
+      //std::string debug = "  " + _STR(other->getName()) + " (" + lexical_cast<string>(other->_timestamp) + ") blocked at " + _STR(getName()) + " : " + lexical_cast<string>(_timestamp)+"\n";
       //std::cout << debug;
       waiting = true;
-      waitUpdate(guard);
-      debug = "   " + _STR(other->getName()) + " unblocked (" + _STR(getName()) + ")\n";
+      _cond_sync.wait(guard);
+      //debug = "   " + _STR(other->getName()) + " unblocked (" + _STR(getName()) + ")\n";
+      //std::cout << debug;
+    }
+    return !waiting;
+  }
+
+  bool Block::validTimestampOrWait(Block* other, unsigned int timeGoal)
+  {
+    bool waiting = false;
+    boost::unique_lock<boost::mutex> guard(other->_mtx_timestamp_inc);
+    while (other->_timestamp<timeGoal)
+    {
+      //std::string debug = "  - " + _STR(getName()) + " : " + lexical_cast<string>(_timestamp)+" wait for " + _STR(other->getName()) + " timestamp (" + lexical_cast<string>(timeGoal)+")\n";
+      //std::cout << debug;
+      waiting = true;
+      _cond_sync.wait(guard);
+      //debug = "  + " + _STR(getName()) + " unblocked\n";
       //std::cout << debug;
     }
     return !waiting;

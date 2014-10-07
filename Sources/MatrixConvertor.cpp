@@ -24,7 +24,8 @@ namespace charliesoft
       {
         if (outputType == CV_8UC3 && output.channels() == 3)
         {
-          normalize(output, output, 0, 255, NORM_MINMAX);erreur ici...
+          normalize(output, output, 0, 255, NORM_MINMAX);
+          output.convertTo(output, outputType);
           cvtColor(output, output, COLOR_HSV2RGB);
         }
         else
