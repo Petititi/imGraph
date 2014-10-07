@@ -54,6 +54,14 @@ namespace charliesoft
       return lexical_cast<string>(boost::get<double>(value_));
     if (value_.type() == typeid(std::string))
       return boost::get<std::string>(value_);
+    if (value_.type() == typeid(cv::Scalar))
+    {
+      cv::FileStorage fs(".xml", cv::FileStorage::WRITE + cv::FileStorage::MEMORY + cv::FileStorage::FORMAT_YAML);
+      fs << "colorValue" << boost::get<cv::Scalar>(value_);
+      string buf = fs.releaseAndGetString();
+
+      return buf;
+    }
     if (value_.type() == typeid(cv::Mat))
     {
       cv::FileStorage fs(".xml", cv::FileStorage::WRITE + cv::FileStorage::MEMORY + cv::FileStorage::FORMAT_YAML);
@@ -103,6 +111,13 @@ namespace charliesoft
         return ParamValue(lexical_cast<double>(value));
       if (type == String || type == FilePath)
         return ParamValue(value);
+      if (type == Color)
+      {
+        cv::FileStorage fs(value, cv::FileStorage::READ + cv::FileStorage::MEMORY + cv::FileStorage::FORMAT_YAML);
+        cv::Scalar val;
+        fs["colorValue"] >> val;
+        return ParamValue(val);
+      }
       if (type == Matrix)
       {
         cv::FileStorage fs(value, cv::FileStorage::READ + cv::FileStorage::MEMORY + cv::FileStorage::FORMAT_YAML);
@@ -153,6 +168,12 @@ namespace charliesoft
     return *this;
   };
   ParamValue& ParamValue::operator = (std::string const &rhs) {
+    notifyRemove();
+    value_ = rhs;
+    notifyUpdate();
+    return *this;
+  };
+  ParamValue& ParamValue::operator=(cv::Scalar const &rhs) {
     notifyRemove();
     value_ = rhs;
     notifyUpdate();
@@ -234,6 +255,13 @@ namespace charliesoft
         return val.compare(val1) == 0;
       }
 
+      if (value_.type() == typeid(cv::Scalar))
+      {
+        cv::Scalar val = boost::get<cv::Scalar>(value_);
+        cv::Scalar val1 = boost::get<cv::Scalar>(other.value_);
+        return val == val1;
+      }
+
       if (value_.type() == typeid(cv::Mat))
       {//compare data adresses
         cv::Mat val = boost::get<cv::Mat>(value_);
@@ -292,6 +320,23 @@ namespace charliesoft
         string val = boost::get<string>(value_);
         string val1 = boost::get<string>(other.value_);
         return val.compare(val1) < 0;
+      }
+
+      if (value_.type() == typeid(cv::Scalar))
+      {
+        cv::Scalar val = boost::get<cv::Scalar>(value_);
+        cv::Scalar val1 = boost::get<cv::Scalar>(other.value_);
+        if (val[0] < val1[0])
+          return true;
+        if (val[0] > val1[0])
+          return false;
+        if (val[1] < val1[1])
+          return true;
+        if (val[1] > val1[1])
+          return false;
+        if (val[2] < val1[2])
+          return true;
+        return false;
       }
 
       if (value_.type() == typeid(cv::Mat))

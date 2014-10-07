@@ -24,7 +24,7 @@ namespace charliesoft
 
   enum ParamType
   {
-    Boolean, Int, Float, Vector, Matrix, String, FilePath, typeError
+    Boolean, Int, Float, Color, Matrix, String, FilePath, typeError
   };
 
   struct Not_A_Value
@@ -41,6 +41,7 @@ namespace charliesoft
     int,
     double,
     std::string,
+    cv::Scalar,
     cv::Mat,
     ParamValue*,
     Not_A_Value > VariantClasses;
@@ -84,6 +85,10 @@ namespace charliesoft
       block_(NULL), _name(""), isOutput_(false), value_(v){
       _current_timestamp = 0;
     };
+    ParamValue(cv::Scalar v) :
+      block_(NULL), _name(""), isOutput_(false), value_(v){
+      _current_timestamp = 0;
+    };
     ParamValue(cv::Mat v) :
       block_(NULL), _name(""), isOutput_(false), value_(v){
       _current_timestamp = 0;
@@ -123,6 +128,7 @@ namespace charliesoft
     ParamValue& operator=(int const &rhs);
     ParamValue& operator=(double const &rhs);
     ParamValue& operator=(std::string const &rhs);
+    ParamValue& operator=(cv::Scalar const &rhs);
     ParamValue& operator=(cv::Mat const &rhs);
     ParamValue& operator=(Not_A_Value const &rhs);
     ParamValue& operator=(ParamValue const &rhs);

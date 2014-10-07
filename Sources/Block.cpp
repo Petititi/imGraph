@@ -34,8 +34,8 @@ namespace charliesoft
       return "Int";
     case Float:
       return "Float";
-    case Vector:
-      return "Vector";
+    case Color:
+      return "Color";
     case Matrix:
       return "Mat";
     case String:

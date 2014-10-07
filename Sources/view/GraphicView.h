@@ -133,6 +133,7 @@ namespace charliesoft
 
     std::map<QObject*, QLineEdit*> openFiles_;
     std::map<ParamRepresentation*, cv::Mat> _paramMatrix;
+    std::map<ParamRepresentation*, cv::Scalar> _paramColor;
 
     std::map<QGroupBox*, ParamRepresentation*> inputGroup_;
     std::map<QGroupBox*, ParamRepresentation*> outputGroup_;
@@ -166,6 +167,7 @@ namespace charliesoft
     void accept_button();
     void reject_button();
     void matrixEditor();
+    void colorEditor();
   };
 
   class GraphRepresentation :public QLayout

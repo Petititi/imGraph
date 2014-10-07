@@ -17,6 +17,7 @@
 #include <QAction>
 #include <QFileDialog>
 #include <QApplication>
+#include <QColorDialog>
 #include <QStatusBar>
 #include <QTimer>
 #include <QMessageBox>
@@ -206,9 +207,20 @@ namespace charliesoft
       layout->addWidget(lineEdit);
       break;
     }
-    case Vector:
-      layout->addWidget(new QPushButton(_QT("VECTOR_EDITOR")));
+    case Color:
+    {
+      QPushButton* colorEditor = new QPushButton(_QT("COLOR_EDITOR"));
+      layout->addWidget(colorEditor);
+      inputValue_.insert(Val_map_type(p, colorEditor));
+      if (!p->getParamValue()->isDefaultValue())
+      {
+        cv::Scalar tmpColor = p->getParamValue()->get<cv::Scalar>();
+        _paramColor[p] = tmpColor;
+      }
+
+      connect(colorEditor, SIGNAL(clicked()), this, SLOT(colorEditor()));
       break;
+    }
     case Matrix:
     {
       QPushButton* matEditor = new QPushButton(_QT("MATRIX_EDITOR"));
@@ -348,6 +360,19 @@ namespace charliesoft
             }
           }
 
+          if (param->getType() == Color)
+          {
+            ParamValue val = _paramColor[it->second];
+            try
+            {
+              param->valid_and_set(val);
+            }
+            catch (ErrorValidator& e)
+            {//algo doesn't accept this value!
+              QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), e.errorMsg.c_str());
+              return;//stop here the validation: should correct the error!
+            }
+          }
           if (param->getType() == Matrix)
           {
             ParamValue val = _paramMatrix[it->second];
@@ -397,6 +422,29 @@ namespace charliesoft
   void ParamsConfigurator::reject_button()
   {
     close();
+  }
+
+  void ParamsConfigurator::colorEditor()
+  {
+    auto param = inputValue_.right.find(sender());
+    if (param == inputValue_.right.end())
+      return;//param src not found...
+    QColor src;
+    cv::Scalar tmpScal = _paramColor[param->get_left()];
+    src.setRed((int)tmpScal[0]);
+    src.setGreen((int)tmpScal[1]);
+    src.setBlue((int)tmpScal[2]);
+    src.setAlpha((int)tmpScal[3]);
+    QColor tmpColor = QColorDialog::getColor(src, this);
+    if (tmpColor.isValid())
+    {
+      cv::Scalar color;
+      color[0] = tmpColor.red();
+      color[1] = tmpColor.green();
+      color[2] = tmpColor.blue();
+      color[3] = tmpColor.alpha();
+      _paramColor[param->get_left()] = color;
+    }
   }
 
   void ParamsConfigurator::matrixEditor()

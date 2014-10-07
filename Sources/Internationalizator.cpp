@@ -76,7 +76,7 @@ namespace charliesoft
     translations["BUTTON_COLOR"] = "Color";
 
     translations["MATRIX_EDITOR"] = "Matrix editor";
-    translations["VECTOR_EDITOR"] = "Vector editor";
+    translations["COLOR_EDITOR"] = "Color editor";
     translations["CONDITION_EDITOR"] = "Condition editor...";
     translations["CONDITION_EDITOR_HELP"] = "You can define here which conditions are needed for block rendering!";
     translations["NOT_INITIALIZED"] = "Not initialized...";
@@ -120,6 +120,7 @@ namespace charliesoft
     translations["MATRIX_EDITOR_DATA_INITIAL_VAL_3"] = "ellipse";
     translations["MATRIX_EDITOR_DATA_INITIAL_VAL_4"] = "rect";
     translations["MATRIX_EDITOR_DATA_INITIAL_VAL_5"] = "cross";
+    translations["MATRIX_EDITOR_DATA_INITIAL_VAL_6"] = "random";
     translations["MATRIX_EDITOR_SECTION_PEN_COLOR"] = "Color:";
     translations["MATRIX_EDITOR_SECTION_PEN_SIZE"] = "Pencil size:";
 
@@ -187,12 +188,28 @@ namespace charliesoft
     translations["BLOCK__LINEDRAWER_NAME"] = "Draw lines";
     translations["BLOCK__LINEDRAWER_IN_LINES"] = "lines list";
     translations["BLOCK__LINEDRAWER_IN_LINES_HELP"] = "Input of lines (4 values per row)";
-    translations["BLOCK__LINEDRAWER_IN_WIDTH"] = translations["BLOCK__INPUT_INOUT_WIDTH"];
-    translations["BLOCK__LINEDRAWER_IN_WIDTH_HELP"] = translations["BLOCK__INPUT_INOUT_WIDTH_HELP"];
-    translations["BLOCK__LINEDRAWER_IN_HEIGHT"] = translations["BLOCK__INPUT_INOUT_HEIGHT"];
-    translations["BLOCK__LINEDRAWER_IN_HEIGHT_HELP"] = translations["BLOCK__INPUT_INOUT_HEIGHT_HELP"];
+    translations["BLOCK__LINEDRAWER_IN_IMAGE"] = "image";
+    translations["BLOCK__LINEDRAWER_IN_IMAGE_HELP"] = "Input image to draw on";
+    translations["BLOCK__LINEDRAWER_IN_COLOR"] = "color";
+    translations["BLOCK__LINEDRAWER_IN_COLOR_HELP"] = "Color of lines";
+    translations["BLOCK__LINEDRAWER_IN_SIZE"] = "size";
+    translations["BLOCK__LINEDRAWER_IN_SIZE_HELP"] = "Size of lines";
     translations["BLOCK__LINEDRAWER_OUT_IMAGE"] = "image";
     translations["BLOCK__LINEDRAWER_OUT_IMAGE_HELP"] = "Binary output image";
+
+    translations["BLOCK__CREATEMATRIX_NAME"] = "Create new matrix";
+    translations["BLOCK__CREATEMATRIX_IN_TYPE"] = "type";
+    translations["BLOCK__CREATEMATRIX_IN_TYPE_HELP"] = "Wanted type (0:CV_8U, 1:CV_8S, 2:CV_16U, 3:CV_16S, 4:CV_32S, 5:CV_32F, 6:CV_64F)";
+    translations["BLOCK__CREATEMATRIX_IN_NBCHANNEL"] = "channels";
+    translations["BLOCK__CREATEMATRIX_IN_NBCHANNEL_HELP"] = "Numbers of channels";
+    translations["BLOCK__CREATEMATRIX_IN_WIDTH"] = translations["BLOCK__INPUT_INOUT_WIDTH"];
+    translations["BLOCK__CREATEMATRIX_IN_WIDTH_HELP"] = translations["BLOCK__INPUT_INOUT_WIDTH_HELP"];
+    translations["BLOCK__CREATEMATRIX_IN_HEIGHT"] = translations["BLOCK__INPUT_INOUT_HEIGHT"];
+    translations["BLOCK__CREATEMATRIX_IN_HEIGHT_HELP"] = translations["BLOCK__INPUT_INOUT_HEIGHT_HELP"];
+    translations["BLOCK__CREATEMATRIX_IN_INIT"] = "intialisation";
+    translations["BLOCK__CREATEMATRIX_IN_INIT_HELP"] = "Initial values of matrix (0: zeros, 1:ones, 2:eye, 3:ellipse, 4:rect, 5:cross, 6:random)";
+    translations["BLOCK__CREATEMATRIX_OUT_IMAGE"] = "image";
+    translations["BLOCK__CREATEMATRIX_OUT_IMAGE_HELP"] = "Binary output image";
 
     translations["BLOCK__NORMALIZ_NAME"] = "Normalize image";
     translations["BLOCK__NORMALIZ_IN_IMAGE"] = "image";

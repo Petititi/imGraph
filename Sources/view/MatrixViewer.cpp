@@ -455,6 +455,7 @@ ToolsWindow::ToolsWindow(QString name_paraWindow, MatrixViewer* parent)
   _matrixVals->insertItem(3, _QT("MATRIX_EDITOR_DATA_INITIAL_VAL_3"));
   _matrixVals->insertItem(4, _QT("MATRIX_EDITOR_DATA_INITIAL_VAL_4"));
   _matrixVals->insertItem(5, _QT("MATRIX_EDITOR_DATA_INITIAL_VAL_5"));
+  _matrixVals->insertItem(6, _QT("MATRIX_EDITOR_DATA_INITIAL_VAL_6"));
 
   addWidget(new QLabel(_QT("MATRIX_EDITOR_DATA_INITIAL_VAL")));
   addWidget(_matrixVals);
