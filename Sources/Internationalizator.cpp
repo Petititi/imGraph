@@ -242,8 +242,20 @@ namespace charliesoft
     translations["BLOCK__LINE_FINDER_NAME"] = "Find lines";
     translations["BLOCK__LINE_FINDER_IN_IMAGE"] = "image";
     translations["BLOCK__LINE_FINDER_IN_IMAGE_HELP"] = "Input image";
-    translations["BLOCK__LINE_FINDER_OUT_IMAGE"] = "lines list";
+    translations["BLOCK__LINE_FINDER_OUT_IMAGE"] = "lines";
     translations["BLOCK__LINE_FINDER_OUT_IMAGE_HELP"] = "List of detected lines";
+
+    translations["BLOCK__POINT_FINDER_NAME"] = "Find points";
+    translations["BLOCK__POINT_FINDER_IN_IMAGE"] = "image";
+    translations["BLOCK__POINT_FINDER_IN_IMAGE_HELP"] = "Input image";
+    translations["BLOCK__POINT_FINDER_IN_DETECTOR"] = "detector";
+    translations["BLOCK__POINT_FINDER_IN_DETECTOR_HELP"] = "Method used to detect points|BRIEF^BRISK^FAST^FREAK^GFTT^HARRIS^MSER^ORB^SIFT^STAR^SURF^SimpleBlob"; //^Grid^Dense
+    translations["BLOCK__POINT_FINDER_IN_EXTRACTOR"] = "extractor";
+    translations["BLOCK__POINT_FINDER_IN_EXTRACTOR_HELP"] = "Method used to compute descriptor|SIFT^SURF^ORB^BRIEF^BRISK^MSER";
+    translations["BLOCK__POINT_FINDER_OUT_DESC"] = "descriptors";
+    translations["BLOCK__POINT_FINDER_OUT_DESC_HELP"] = "List of corresponding descriptors";
+    translations["BLOCK__POINT_FINDER_OUT_POINTS"] = "points";
+    translations["BLOCK__POINT_FINDER_OUT_POINTS_HELP"] = "List of detected points";
 
     translations["BLOCK__DEINTERLACE_NAME"] = "Deinterlace";
     translations["BLOCK__DEINTERLACE_IN_IMAGE"] = "image";

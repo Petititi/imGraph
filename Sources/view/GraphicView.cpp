@@ -289,6 +289,7 @@ namespace charliesoft
     ParamRepresentation* p = inputModificator_.left.at(src);
     if (p == NULL) return;
     ParamValue* param = p->getParamValue();
+    param->isNeeded(newState == Qt::Checked);
     QWidget* inputWidget = dynamic_cast<QWidget*>(inputValue_.left.at(p));
     if (inputWidget == NULL)
       return;

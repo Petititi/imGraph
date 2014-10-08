@@ -459,12 +459,14 @@ namespace charliesoft
     while (it != inParam.end())
     {
       _myInputs[it->_name] = ParamValue(this, it->_name, false);
+      _myInputs[it->_name].isNeeded(it->_show);
       it++;
     }
     it = outParam.begin();
     while (it != outParam.end())
     {
       _myOutputs[it->_name] = ParamValue(this, it->_name, true);
+      _myOutputs[it->_name].isNeeded(it->_show);
       it++;
     }
   }

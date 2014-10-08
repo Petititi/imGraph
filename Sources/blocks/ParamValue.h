@@ -56,6 +56,7 @@ namespace charliesoft
     Block *block_;
     std::string _name;
     bool isOutput_;
+    bool _paramNeeded;
 
     void notifyUpdate();
     void notifyRemove();
@@ -63,49 +64,49 @@ namespace charliesoft
     VariantClasses value_;
     ParamValue(Block *algo, std::string name, bool isOutput) :
       block_(algo), _name(name), isOutput_(isOutput), value_(Not_A_Value()){
-      _current_timestamp = 0;
+      _current_timestamp = 0; _paramNeeded = true;
     };
     ParamValue() :
       block_(NULL), _name(""), isOutput_(false), value_(Not_A_Value()){
-      _current_timestamp = 0;
+      _current_timestamp = 0; _paramNeeded = true;
     };
     ParamValue(bool v) :
       block_(NULL), _name(""), isOutput_(false), value_(v){
-      _current_timestamp = 0;
+      _current_timestamp = 0; _paramNeeded = true;
     };
     ParamValue(int v) :
       block_(NULL), _name(""), isOutput_(false), value_(v){
-      _current_timestamp = 0;
+      _current_timestamp = 0; _paramNeeded = true;
     };
     ParamValue(double v) :
       block_(NULL), _name(""), isOutput_(false), value_(v){
-      _current_timestamp = 0;
+      _current_timestamp = 0; _paramNeeded = true;
     };
     ParamValue(std::string v) :
       block_(NULL), _name(""), isOutput_(false), value_(v){
-      _current_timestamp = 0;
+      _current_timestamp = 0; _paramNeeded = true;
     };
     ParamValue(cv::Scalar v) :
       block_(NULL), _name(""), isOutput_(false), value_(v){
-      _current_timestamp = 0;
+      _current_timestamp = 0; _paramNeeded = true;
     };
     ParamValue(cv::Mat v) :
       block_(NULL), _name(""), isOutput_(false), value_(v){
-      _current_timestamp = 0;
+      _current_timestamp = 0; _paramNeeded = true;
     };
     ParamValue(Not_A_Value v) :
       block_(NULL), _name(""), isOutput_(false), value_(Not_A_Value()){
-      _current_timestamp = 0;
+      _current_timestamp = 0; _paramNeeded = true;
     };
     ParamValue(ParamValue* v) :
       block_(NULL), _name(""), isOutput_(false), value_(v){
       if (v != NULL) v->distantListeners_.insert(this);
-      _current_timestamp = 0;
+      _current_timestamp = 0; _paramNeeded = true;
     };
     ParamValue(const ParamValue& va) :
       block_(va.block_), _name(va._name), isOutput_(va.isOutput_), value_(va.value_),
       validators_(va.validators_), distantListeners_(va.distantListeners_){
-      _current_timestamp = va._current_timestamp;
+      _current_timestamp = va._current_timestamp; _paramNeeded = true;
     };
 
     ~ParamValue()
@@ -148,6 +149,9 @@ namespace charliesoft
     {
       return !(this->operator==(b));
     }
+
+    bool isNeeded(){ return _paramNeeded; };
+    void isNeeded(bool paramNeeded){ _paramNeeded = paramNeeded; };
 
     std::string toString() const;
     BlockLink toBlockLink() const;
