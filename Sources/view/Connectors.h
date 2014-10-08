@@ -86,7 +86,8 @@ namespace charliesoft
     void setVisibility(bool visible);
     std::string getParamName() const { return param_._name; }
     ParamValue* getParamValue() const { return _model->getParam(param_._name, _isInput); }
-    std::string getParamHelper() const { return param_._helper; }
+    std::string getParamHelper() const;
+    std::vector<std::string> getParamListChoice() const;
     Block* getModel() const { return _model; }
 
   };

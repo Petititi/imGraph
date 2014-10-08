@@ -105,7 +105,7 @@ namespace charliesoft
     try{
       if (type == Boolean)
         return ParamValue(lexical_cast<bool>(value));
-      if (type == Int)
+      if (type == Int||type == ListBox)
         return ParamValue(lexical_cast<int>(value));
       if (type == Float)
         return ParamValue(lexical_cast<double>(value));

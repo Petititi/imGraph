@@ -36,7 +36,7 @@ namespace charliesoft
   //default visibility, type of parameter, name (key of internationalizor), helper...
   ADD_PARAMETER(true, Matrix, "BLOCK__OPTICFLOW_IN_IMAGE1", "BLOCK__OPTICFLOW_IN_IMAGE1_HELP");
   ADD_PARAMETER(true, Matrix, "BLOCK__OPTICFLOW_IN_IMAGE2", "BLOCK__OPTICFLOW_IN_IMAGE2_HELP");
-  ADD_PARAMETER(false, Int, "BLOCK__OPTICFLOW_IN_METHOD", "BLOCK__OPTICFLOW_IN_METHOD_HELP");
+  ADD_PARAMETER(false, ListBox, "BLOCK__OPTICFLOW_IN_METHOD", "BLOCK__OPTICFLOW_IN_METHOD_HELP");
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_OUTPUT_PARAMS(OpticFlowBlock);

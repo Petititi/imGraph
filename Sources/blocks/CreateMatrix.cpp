@@ -3,6 +3,7 @@
 
 #include "Block.h"
 #include "view/MatrixViewer.h"
+#include "MatrixConvertor.h"
 #include "ParamValidator.h"
 using namespace lsis_org;
 using std::vector;
@@ -20,9 +21,9 @@ namespace charliesoft
   //default visibility, type of parameter, name (key of internationalizor), helper...
   ADD_PARAMETER(true, Int, "BLOCK__CREATEMATRIX_IN_WIDTH", "BLOCK__INPUT_INOUT_WIDTH_HELP");
   ADD_PARAMETER(true, Int, "BLOCK__CREATEMATRIX_IN_HEIGHT", "BLOCK__INPUT_INOUT_HEIGHT_HELP");
-  ADD_PARAMETER(false, Int, "BLOCK__CREATEMATRIX_IN_TYPE", "BLOCK__CREATEMATRIX_IN_TYPE_HELP");
+  ADD_PARAMETER(false, ListBox, "BLOCK__CREATEMATRIX_IN_TYPE", "BLOCK__CREATEMATRIX_IN_TYPE_HELP");
   ADD_PARAMETER(false, Int, "BLOCK__CREATEMATRIX_IN_NBCHANNEL", "BLOCK__CREATEMATRIX_IN_NBCHANNEL_HELP");
-  ADD_PARAMETER(false, Int, "BLOCK__CREATEMATRIX_IN_INIT", "BLOCK__CREATEMATRIX_IN_INIT_HELP");
+  ADD_PARAMETER(false, ListBox, "BLOCK__CREATEMATRIX_IN_INIT", "BLOCK__CREATEMATRIX_IN_INIT_HELP");
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_OUTPUT_PARAMS(CreateMatrix);
@@ -54,13 +55,16 @@ namespace charliesoft
       newMatrix = cv::Mat::eye(wantedRow, wantedCol, wantedType);
       break;
     case 3:
-      newMatrix = getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(wantedRow, wantedCol));
+      newMatrix = getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(wantedCol, wantedRow));
+      newMatrix = charliesoft::MatrixConvertor::convert(newMatrix, wantedType);
       break;
     case 4:
-      newMatrix = getStructuringElement(cv::MORPH_RECT, cv::Size(wantedRow, wantedCol));
+      newMatrix = getStructuringElement(cv::MORPH_RECT, cv::Size(wantedCol, wantedRow));
+      newMatrix = charliesoft::MatrixConvertor::convert(newMatrix, wantedType);
       break;
     case 5:
-      newMatrix = getStructuringElement(cv::MORPH_CROSS, cv::Size(wantedRow, wantedCol));
+      newMatrix = getStructuringElement(cv::MORPH_CROSS, cv::Size(wantedCol, wantedRow));
+      newMatrix = charliesoft::MatrixConvertor::convert(newMatrix, wantedType);
       break;
     case 6:
       newMatrix = cv::Mat(wantedRow, wantedCol, wantedType);

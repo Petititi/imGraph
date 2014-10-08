@@ -197,9 +197,21 @@ namespace charliesoft
     translations["BLOCK__LINEDRAWER_OUT_IMAGE"] = "image";
     translations["BLOCK__LINEDRAWER_OUT_IMAGE_HELP"] = "Binary output image";
 
+    translations["BLOCK__POINTDRAWER_NAME"] = "Draw points";
+    translations["BLOCK__POINTDRAWER_IN_LINES"] = "point list";
+    translations["BLOCK__POINTDRAWER_IN_LINES_HELP"] = "Input of points (2 values per row)";
+    translations["BLOCK__POINTDRAWER_IN_IMAGE"] = "image";
+    translations["BLOCK__POINTDRAWER_IN_IMAGE_HELP"] = "Input image to draw on";
+    translations["BLOCK__POINTDRAWER_IN_COLOR"] = "color";
+    translations["BLOCK__POINTDRAWER_IN_COLOR_HELP"] = "Color of points";
+    translations["BLOCK__POINTDRAWER_IN_SIZE"] = "size";
+    translations["BLOCK__POINTDRAWER_IN_SIZE_HELP"] = "Size of points";
+    translations["BLOCK__POINTDRAWER_OUT_IMAGE"] = "image";
+    translations["BLOCK__POINTDRAWER_OUT_IMAGE_HELP"] = "Binary output image";
+
     translations["BLOCK__CREATEMATRIX_NAME"] = "Create new matrix";
     translations["BLOCK__CREATEMATRIX_IN_TYPE"] = "type";
-    translations["BLOCK__CREATEMATRIX_IN_TYPE_HELP"] = "Wanted type (0:CV_8U, 1:CV_8S, 2:CV_16U, 3:CV_16S, 4:CV_32S, 5:CV_32F, 6:CV_64F)";
+    translations["BLOCK__CREATEMATRIX_IN_TYPE_HELP"] = "Wanted type|CV_8U^CV_8S^CV_16U^CV_16S^CV_32S^CV_32F^CV_64F";
     translations["BLOCK__CREATEMATRIX_IN_NBCHANNEL"] = "channels";
     translations["BLOCK__CREATEMATRIX_IN_NBCHANNEL_HELP"] = "Numbers of channels";
     translations["BLOCK__CREATEMATRIX_IN_WIDTH"] = translations["BLOCK__INPUT_INOUT_WIDTH"];
@@ -207,7 +219,7 @@ namespace charliesoft
     translations["BLOCK__CREATEMATRIX_IN_HEIGHT"] = translations["BLOCK__INPUT_INOUT_HEIGHT"];
     translations["BLOCK__CREATEMATRIX_IN_HEIGHT_HELP"] = translations["BLOCK__INPUT_INOUT_HEIGHT_HELP"];
     translations["BLOCK__CREATEMATRIX_IN_INIT"] = "intialisation";
-    translations["BLOCK__CREATEMATRIX_IN_INIT_HELP"] = "Initial values of matrix (0: zeros, 1:ones, 2:eye, 3:ellipse, 4:rect, 5:cross, 6:random)";
+    translations["BLOCK__CREATEMATRIX_IN_INIT_HELP"] = "Initial values of matrix|zeros^ones^eye^ellipse^rect^cross^random";
     translations["BLOCK__CREATEMATRIX_OUT_IMAGE"] = "image";
     translations["BLOCK__CREATEMATRIX_OUT_IMAGE_HELP"] = "Binary output image";
 
@@ -223,7 +235,7 @@ namespace charliesoft
     translations["BLOCK__OPTICFLOW_IN_IMAGE2"] = "image2";
     translations["BLOCK__OPTICFLOW_IN_IMAGE2_HELP"] = "Second image";
     translations["BLOCK__OPTICFLOW_IN_METHOD"] = "method";
-    translations["BLOCK__OPTICFLOW_IN_METHOD_HELP"] = "Method (0:LK, 1:Farneback, 2:DualTVL1)";
+    translations["BLOCK__OPTICFLOW_IN_METHOD_HELP"] = "Method|LK^Farneback^DualTVL1";
     translations["BLOCK__OPTICFLOW_OUT_IMAGE"] = "flow";
     translations["BLOCK__OPTICFLOW_OUT_IMAGE_HELP"] = "Optical flow";
 
@@ -297,7 +309,7 @@ namespace charliesoft
     translations["BLOCK__MORPHOLOGIC_ELEMENT"] = "element";
     translations["BLOCK__MORPHOLOGIC_ELEMENT_HELP"] = "Structuring element.";
     translations["BLOCK__MORPHOLOGIC_OPERATOR"] = "op";
-    translations["BLOCK__MORPHOLOGIC_OPERATOR_HELP"] = "Operator (0:open, 1:close, 2:gradient, 3:tophat, 4:blackhat)";
+    translations["BLOCK__MORPHOLOGIC_OPERATOR_HELP"] = "Operator|open^close^gradient^tophat^blackhat";
     translations["BLOCK__MORPHOLOGIC_ITERATIONS"] = "iterations";
     translations["BLOCK__MORPHOLOGIC_ITERATIONS_HELP"] = "Number of times erosion and dilation are applied.";
     translations["BLOCK__MORPHOLOGIC_OUT_IMAGE"] = "image";

@@ -33,7 +33,7 @@ namespace charliesoft
     _myInputs["BLOCK__LINEDRAWER_IN_IMAGE"].addValidator({ new ValNeeded() });
     _myInputs["BLOCK__LINEDRAWER_IN_SIZE"].addValidator({ new ValPositiv(true) });
   };
-  
+
   bool LineDrawer::run(){
     cv::Mat out = _myInputs["BLOCK__LINEDRAWER_IN_IMAGE"].get<cv::Mat>().clone();
     int size = 1;
@@ -46,7 +46,7 @@ namespace charliesoft
 
     cv::Mat lines = _myInputs["BLOCK__LINEDRAWER_IN_LINES"].get<cv::Mat>();
     int nbChanels = lines.channels();
-    if (nbChanels!=1)
+    if (nbChanels != 1)
       lines = lines.reshape(1, lines.rows);
     for (int i = 0; i < lines.rows; i++)
     {
@@ -84,6 +84,83 @@ namespace charliesoft
     }
 
     _myOutputs["BLOCK__LINEDRAWER_OUT_IMAGE"] = out;
+    renderingDone();
+    return true;
+  };
+  BLOCK_BEGIN_INSTANTIATION(PointDrawer);
+  //You can add methods, re implement needed functions...
+  BLOCK_END_INSTANTIATION(PointDrawer, AlgoType::input, BLOCK__POINTDRAWER_NAME);
+
+  BEGIN_BLOCK_INPUT_PARAMS(PointDrawer);
+  //Add parameters, with following parameters:
+  //default visibility, type of parameter, name (key of internationalizor), helper...
+  ADD_PARAMETER(true, Matrix, "BLOCK__POINTDRAWER_IN_POINTS", "BLOCK__POINTDRAWER_IN_POINTS_HELP");
+  ADD_PARAMETER(true, Matrix, "BLOCK__POINTDRAWER_IN_IMAGE", "BLOCK__POINTDRAWER_IN_IMAGE_HELP");
+  ADD_PARAMETER(false, Color, "BLOCK__POINTDRAWER_IN_COLOR", "BLOCK__POINTDRAWER_IN_COLOR_HELP");
+  ADD_PARAMETER(false, Int, "BLOCK__POINTDRAWER_IN_SIZE", "BLOCK__POINTDRAWER_IN_SIZE_HELP");
+  END_BLOCK_PARAMS();
+
+  BEGIN_BLOCK_OUTPUT_PARAMS(PointDrawer);
+  ADD_PARAMETER(true, Matrix, "BLOCK__POINTDRAWER_OUT_IMAGE", "BLOCK__POINTDRAWER_OUT_IMAGE_HELP");
+  END_BLOCK_PARAMS();
+
+  PointDrawer::PointDrawer() :Block("BLOCK__POINTDRAWER_NAME"){
+    _myInputs["BLOCK__POINTDRAWER_IN_LINES"].addValidator({ new ValNeeded() });
+    _myInputs["BLOCK__POINTDRAWER_IN_IMAGE"].addValidator({ new ValNeeded() });
+  };
+
+  bool PointDrawer::run(){
+    cv::Mat out = _myInputs["BLOCK__POINTDRAWER_IN_IMAGE"].get<cv::Mat>().clone();
+    int size = 1;
+    cv::Scalar color = cv::Scalar(255, 255, 255);
+
+    if (!_myInputs["BLOCK__POINTDRAWER_IN_SIZE"].isDefaultValue())
+      size = _myInputs["BLOCK__POINTDRAWER_IN_SIZE"].get<int>();
+    if (!_myInputs["BLOCK__POINTDRAWER_IN_COLOR"].isDefaultValue())
+      color = _myInputs["BLOCK__POINTDRAWER_IN_COLOR"].get<cv::Scalar>();
+
+    cv::Mat lines = _myInputs["BLOCK__POINTDRAWER_IN_LINES"].get<cv::Mat>();
+    int nbChanels = lines.channels();
+    if (nbChanels != 1)
+      lines = lines.reshape(1, lines.rows);
+    for (int i = 0; i < lines.rows; i++)
+    {
+      switch (lines.type())
+      {
+      case CV_8UC1://char
+      {
+        uchar* l = lines.ptr<uchar>(i);
+        circle(out, cv::Point(l[0], l[1]), size, color, -1);
+      }
+      case CV_16UC1://char
+      {
+        ushort* l = lines.ptr<ushort>(i);
+        circle(out, cv::Point(l[0], l[1]), size, color, -1);
+      }
+      case CV_16SC1://char
+      {
+        short* l = lines.ptr<short>(i);
+        circle(out, cv::Point(l[0], l[1]), size, color, -1);
+      }
+      case CV_32SC1://int
+      {
+        int* l = lines.ptr<int>(i);
+        circle(out, cv::Point(l[0], l[1]), size, color, -1);
+      }
+      case CV_32FC1://float
+      {
+        float* l = lines.ptr<float>(i);
+        circle(out, cv::Point(l[0], l[1]), size, color, -1);
+      }
+      case CV_64FC1://double
+      {
+        double* l = lines.ptr<double>(i);
+        circle(out, cv::Point(l[0], l[1]), size, color, -1);
+      }
+      }
+    }
+
+    _myOutputs["BLOCK__POINTDRAWER_OUT_IMAGE"] = out;
     renderingDone();
     return true;
   };

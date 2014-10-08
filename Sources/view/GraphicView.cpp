@@ -197,6 +197,17 @@ namespace charliesoft
       layout->addWidget(lineEdit);
       break;
     }
+    case ListBox:
+    {
+      QComboBox* combo = new QComboBox();
+      std::vector<std::string>& paramsList = p->getParamListChoice();
+      for (std::string param : paramsList)
+        combo->addItem(param.c_str());
+      combo->setCurrentIndex(param->get<int>());
+      layout->addWidget(combo);
+      inputValue_.insert(Val_map_type(p, combo));
+      break;
+    }
     case Float:
     {
       QLineEdit* lineEdit = new QLineEdit(lexical_cast<string>(param->get<double>()).c_str());
@@ -360,6 +371,23 @@ namespace charliesoft
             }
           }
 
+          if (param->getType() == ListBox)
+          {
+            QComboBox* value = dynamic_cast<QComboBox*>(inputValue_.left.at(it->second));
+            if (value != NULL)
+            {
+              ParamValue val = value->currentIndex();
+              try
+              {
+                param->valid_and_set(val);
+              }
+              catch (ErrorValidator& e)
+              {//algo doesn't accept this value!
+                QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), e.errorMsg.c_str());
+                return;//stop here the validation: should correct the error!
+              }
+            }
+          }
           if (param->getType() == Color)
           {
             ParamValue val = _paramColor[it->second];

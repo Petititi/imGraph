@@ -1,6 +1,8 @@
 ﻿
 #include "Connectors.h"
 
+#include <boost/algorithm/string.hpp>
+
 #include "Window.h"
 #include "GraphicView.h"
 
@@ -45,6 +47,25 @@ namespace charliesoft
 
     connect(this, SIGNAL(askSynchro()), (VertexRepresentation*)father->parentWidget(), SLOT(reshape()));
   };
+
+  std::string ParamRepresentation::getParamHelper() const {
+    size_t pos = _STR(param_._helper).find_first_of('|');
+    if (pos == std::string::npos)
+      return param_._helper;
+    else
+      return _STR(param_._helper).substr(0, pos);
+  }
+
+  std::vector<std::string> ParamRepresentation::getParamListChoice() const
+  {
+    std::vector<std::string> out;
+    size_t pos = _STR(param_._helper).find_first_of('|');
+    if (pos == std::string::npos)
+      return out;
+    std::string params = _STR(param_._helper).substr(pos+1);
+    boost::split(out, params, boost::is_any_of("^"));
+    return out;
+  }
 
   void ParamRepresentation::setVisibility(bool visible)
   {
