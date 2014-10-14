@@ -70,6 +70,8 @@ namespace charliesoft
     ConditionLinkRepresentation(ConditionOfRendering* model, bool isLeftCond, QWidget *father);
     bool isLeftCond() const { return _isLeftCond; }
     ConditionOfRendering* getModel() const { return _model; }
+  signals:
+    void askSynchro();
   };
 
   class ParamRepresentation :public LinkConnexionRepresentation
@@ -88,8 +90,7 @@ namespace charliesoft
     ParamValue* getParamValue() const { return _model->getParam(param_._name, _isInput); }
     std::string getParamHelper() const;
     std::vector<std::string> getParamListChoice() const;
-    Block* getModel() const { return _model; }
-
+    Block* getModel() const { return _model; };
   };
 
 }

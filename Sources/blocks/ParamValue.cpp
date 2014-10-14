@@ -12,10 +12,36 @@ using boost::lexical_cast;
 
 namespace charliesoft
 {
+  // Boolean, Int, Float, Color, Matrix, String, FilePath, ListBox, typeError
   ParamType ParamValue::getType() const{
     if (block_ == NULL)
       return typeError;
-    return _PROCESS_MANAGER->getParamType(block_->getName(), _name, !isOutput_);
+    ParamType out = _PROCESS_MANAGER->getParamType(block_->getName(), _name, !isOutput_);
+    if (out == typeError)
+    {
+      //try to find value type:
+      if (value_.type() == typeid(ParamValue*))
+      {
+        ParamValue* val = boost::get<ParamValue*>(value_);
+        if (val == NULL)
+          return typeError;
+        else
+          return val->getType();
+      }
+      if (value_.type() == typeid(bool))
+        return Boolean;
+      if (value_.type() == typeid(int))
+        return Int;
+      if (value_.type() == typeid(double))
+        return Float;
+      if (value_.type() == typeid(std::string))
+        return String;
+      if (value_.type() == typeid(cv::Scalar))
+        return Color;
+      if (value_.type() == typeid(cv::Mat))
+        return Matrix;
+    }
+    return out;
   };
 
   void ParamValue::addValidator(std::initializer_list<ParamValidator*> list)

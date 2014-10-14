@@ -150,23 +150,36 @@ namespace charliesoft
     vbox->addWidget(tmp);
   }
 
-  void ParamsConfigurator::addParamIn(ParamRepresentation  *p)
+  void ParamsConfigurator::addParamIn(ParamRepresentation  *p, QGroupBox* group)
   {
-    QGroupBox* group = new QGroupBox(_QT(p->getParamName()), tabWidget_->widget(0));
-    QVBoxLayout *vbox = new QVBoxLayout();
-    group->setLayout(vbox);
-    group->setCheckable(true);
-    tabs_content_[0]->addWidget(group);
+    bool isSubParam = false;
+    QVBoxLayout *vbox;
+    if (group == NULL)
+    {
+      group = new QGroupBox(_QT(p->getParamName()), tabWidget_->widget(0));
+      vbox = new QVBoxLayout();
+      group->setLayout(vbox);
+      group->setCheckable(true);
+      tabs_content_[0]->addWidget(group);
+    }
+    else
+    {
+      isSubParam = true;
+      vbox = dynamic_cast<QVBoxLayout*>(group->layout());
+    }
 
     ParamValue* param = p->getParamValue();
-    inputGroup_[group] = p;
+    QWidget* tmp = new QWidget();
+    if (isSubParam)
+      subparamGroup_[group].push_back(tmp);
+    else
+      inputGroup_[group] = p;
 
-    if (param->getType() != Boolean)
+    if (param->getType() != Boolean && !isSubParam)
       vbox->addWidget(new QLabel(_QT(p->getParamHelper())));
     if (param->isDefaultValue())
       group->setChecked(false);
 
-    QWidget* tmp = new QWidget();
     vbox->addWidget(tmp);
     QHBoxLayout* layout = new QHBoxLayout();
     layout->setAlignment(Qt::AlignLeft);
@@ -177,6 +190,12 @@ namespace charliesoft
     if (!p->isVisible())
       checkGraph->setCheckState(Qt::Checked);
     inputModificator_.insert(Modif_map_type(checkGraph, p));
+
+    if (isSubParam && param->getType() != Boolean)
+    {
+      layout->addWidget(new QLabel(p->getParamHelper().c_str()));
+    }
+
     switch (param->getType())
     {
     case Boolean:
@@ -201,11 +220,14 @@ namespace charliesoft
     {
       QComboBox* combo = new QComboBox();
       std::vector<std::string>& paramsList = p->getParamListChoice();
-      for (std::string param : paramsList)
-        combo->addItem(param.c_str());
-      combo->setCurrentIndex(param->get<int>());
+      for (std::string paramVal : paramsList)
+        combo->addItem(paramVal.c_str());
+      combo->setCurrentIndex(-1);//that way, next setCurrentIndex will throw signal, even if it's index 0!
+      connect(combo, SIGNAL(currentIndexChanged(int)), this, SLOT(subParamChange(int)));
       layout->addWidget(combo);
       inputValue_.insert(Val_map_type(p, combo));
+
+      combo->setCurrentIndex(param->get<int>());
       break;
     }
     case Float:
@@ -280,6 +302,59 @@ namespace charliesoft
       break;
     }
   }
+
+  void ParamsConfigurator::subParamChange(int newVal)
+  {
+    if (newVal < 0)
+      return;
+    QComboBox* src = dynamic_cast<QComboBox*>(sender());
+    ParamRepresentation* value = dynamic_cast<ParamRepresentation*>(inputValue_.right.at(src));
+
+    //find GroupBox:
+    QGroupBox* groupParams = NULL;
+    auto it = inputGroup_.begin();
+    while ((it != inputGroup_.end()) && groupParams==NULL)
+    {
+      if (it->second == value)
+        groupParams = it->first;
+      it++;
+    }
+    if (groupParams != NULL)
+    {
+      //remove the subParams:
+      vector<QWidget*> & listParams = subparamGroup_[groupParams];
+      QVBoxLayout* vbox = dynamic_cast<QVBoxLayout*>(groupParams->layout());
+      auto it1 = listParams.begin();
+      while (it1 != listParams.end())
+      {
+        vbox->removeWidget(*it1);
+        delete *it1;
+        it1++;
+      }
+      subparamGroup_[groupParams].clear();
+    }
+    //reconstruct the subParams group:
+    
+    //now add also subparameters, if any:
+    Block* model = value->getModel();
+    string paramValName = src->currentText().toStdString();
+    vector<cv::String> subParams = model->getSubParams(value->getParamName(), newVal);
+    for (cv::String subParam : subParams)
+    {
+      ParamValue* param = model->getParam(paramValName + "." + subParam, true);
+      if (param != NULL)
+      {
+        ParamDefinition tmpDef(false, param->getType(), paramValName + "." + subParam, subParam);
+        ParamRepresentation *tmp = new ParamRepresentation(model, tmpDef, true, value);
+        tmp->setVisibility(false);
+        connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
+        connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
+        _vertex->addSubParam(tmp);
+        addParamIn(tmp, groupParams);
+      }
+    }
+  }
+
   void ParamsConfigurator::switchEnable(int newState)
   {
     QCheckBox* src = dynamic_cast<QCheckBox*>(sender());
@@ -460,17 +535,17 @@ namespace charliesoft
       return;//param src not found...
     QColor src;
     cv::Scalar tmpScal = _paramColor[param->get_left()];
-    src.setRed((int)tmpScal[0]);
+    src.setBlue((int)tmpScal[0]);
     src.setGreen((int)tmpScal[1]);
-    src.setBlue((int)tmpScal[2]);
+    src.setRed((int)tmpScal[2]);
     src.setAlpha((int)tmpScal[3]);
     QColor tmpColor = QColorDialog::getColor(src, this);
     if (tmpColor.isValid())
     {
       cv::Scalar color;
-      color[0] = tmpColor.red();
+      color[0] = tmpColor.blue();
       color[1] = tmpColor.green();
-      color[2] = tmpColor.blue();
+      color[2] = tmpColor.red();
       color[3] = tmpColor.alpha();
       _paramColor[param->get_left()] = color;
     }
@@ -730,6 +805,11 @@ namespace charliesoft
     if (l._to == _model)
       (*_model->getParam(l._toParam, true)) = Not_A_Value();
   };
+
+  void VertexRepresentation::addSubParam(ParamRepresentation * param)
+  {
+    listOfInputChilds_[param->getParamName()] = param;
+  }
 
   ConditionLinkRepresentation* VertexRepresentation::getCondition(ConditionOfRendering* cor, bool isLeft)
   {

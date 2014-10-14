@@ -150,7 +150,8 @@ namespace charliesoft
                 {
                   try
                   {
-                    tmpVal->valid_and_set(tmpVal->fromString(tmpVal->getType(), val));
+                    if (tmpVal != NULL)
+                      tmpVal->valid_and_set(tmpVal->fromString(tmpVal->getType(), val));
                   }
                   catch (...)
                   {

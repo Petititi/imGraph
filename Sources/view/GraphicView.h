@@ -59,6 +59,7 @@ namespace charliesoft
     std::vector< std::pair<ConditionOfRendering*, ConditionLinkRepresentation*> > linksConditions_;
     std::map<std::string, ParamRepresentation*> listOfInputChilds_;
     std::map<std::string, ParamRepresentation*> listOfOutputChilds_;
+    std::vector<ParamRepresentation*> listOfSubParams_;
   public:
     VertexRepresentation(Block* model);
     ~VertexRepresentation();
@@ -72,6 +73,8 @@ namespace charliesoft
       _links[l] = p;
     };
     void removeLink(BlockLink l);
+
+    void addSubParam(ParamRepresentation * param);
 
     void changeStyleProperty(const char* propertyName, QVariant val);
     void setSelected(bool isSelected);
@@ -136,6 +139,7 @@ namespace charliesoft
     std::map<ParamRepresentation*, cv::Scalar> _paramColor;
 
     std::map<QGroupBox*, ParamRepresentation*> inputGroup_;
+    std::map<QGroupBox*, std::vector<QWidget*>> subparamGroup_;
     std::map<QGroupBox*, ParamRepresentation*> outputGroup_;
 
     boost::bimap< QCheckBox*, ParamRepresentation* > inputModificator_; 
@@ -150,7 +154,7 @@ namespace charliesoft
     std::vector<QVBoxLayout *> tabs_content_;
 
     void addParamOut(ParamRepresentation  *p);
-    void addParamIn(ParamRepresentation  *p);
+    void addParamIn(ParamRepresentation  *p, QGroupBox* group = NULL);
   public:
     ParamsConfigurator(VertexRepresentation* vertex,
       std::map<std::string, ParamRepresentation*>& in_param,
@@ -168,6 +172,7 @@ namespace charliesoft
     void reject_button();
     void matrixEditor();
     void colorEditor();
+    void subParamChange(int);
   };
 
   class GraphRepresentation :public QLayout

@@ -105,7 +105,7 @@ namespace charliesoft
   END_BLOCK_PARAMS();
 
   PointDrawer::PointDrawer() :Block("BLOCK__POINTDRAWER_NAME"){
-    _myInputs["BLOCK__POINTDRAWER_IN_LINES"].addValidator({ new ValNeeded() });
+    _myInputs["BLOCK__POINTDRAWER_IN_POINTS"].addValidator({ new ValNeeded() });
     _myInputs["BLOCK__POINTDRAWER_IN_IMAGE"].addValidator({ new ValNeeded() });
   };
 
@@ -119,42 +119,42 @@ namespace charliesoft
     if (!_myInputs["BLOCK__POINTDRAWER_IN_COLOR"].isDefaultValue())
       color = _myInputs["BLOCK__POINTDRAWER_IN_COLOR"].get<cv::Scalar>();
 
-    cv::Mat lines = _myInputs["BLOCK__POINTDRAWER_IN_LINES"].get<cv::Mat>();
-    int nbChanels = lines.channels();
+    cv::Mat points = _myInputs["BLOCK__POINTDRAWER_IN_POINTS"].get<cv::Mat>();
+    int nbChanels = points.channels();
     if (nbChanels != 1)
-      lines = lines.reshape(1, lines.rows);
-    for (int i = 0; i < lines.rows; i++)
+      points = points.reshape(1, points.rows);
+    for (int i = 0; i < points.rows; i++)
     {
-      switch (lines.type())
+      switch (points.type())
       {
       case CV_8UC1://char
       {
-        uchar* l = lines.ptr<uchar>(i);
+        uchar* l = points.ptr<uchar>(i);
         circle(out, cv::Point(l[0], l[1]), size, color, -1);
       }
       case CV_16UC1://char
       {
-        ushort* l = lines.ptr<ushort>(i);
+        ushort* l = points.ptr<ushort>(i);
         circle(out, cv::Point(l[0], l[1]), size, color, -1);
       }
       case CV_16SC1://char
       {
-        short* l = lines.ptr<short>(i);
+        short* l = points.ptr<short>(i);
         circle(out, cv::Point(l[0], l[1]), size, color, -1);
       }
       case CV_32SC1://int
       {
-        int* l = lines.ptr<int>(i);
+        int* l = points.ptr<int>(i);
         circle(out, cv::Point(l[0], l[1]), size, color, -1);
       }
       case CV_32FC1://float
       {
-        float* l = lines.ptr<float>(i);
+        float* l = points.ptr<float>(i);
         circle(out, cv::Point(l[0], l[1]), size, color, -1);
       }
       case CV_64FC1://double
       {
-        double* l = lines.ptr<double>(i);
+        double* l = points.ptr<double>(i);
         circle(out, cv::Point(l[0], l[1]), size, color, -1);
       }
       }

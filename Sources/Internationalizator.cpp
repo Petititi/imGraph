@@ -198,8 +198,8 @@ namespace charliesoft
     translations["BLOCK__LINEDRAWER_OUT_IMAGE_HELP"] = "Binary output image";
 
     translations["BLOCK__POINTDRAWER_NAME"] = "Draw points";
-    translations["BLOCK__POINTDRAWER_IN_LINES"] = "point list";
-    translations["BLOCK__POINTDRAWER_IN_LINES_HELP"] = "Input of points (2 values per row)";
+    translations["BLOCK__POINTDRAWER_IN_POINTS"] = "point list";
+    translations["BLOCK__POINTDRAWER_IN_POINTS_HELP"] = "Input of points (2 values per row)";
     translations["BLOCK__POINTDRAWER_IN_IMAGE"] = "image";
     translations["BLOCK__POINTDRAWER_IN_IMAGE_HELP"] = "Input image to draw on";
     translations["BLOCK__POINTDRAWER_IN_COLOR"] = "color";
@@ -249,7 +249,9 @@ namespace charliesoft
     translations["BLOCK__POINT_FINDER_IN_IMAGE"] = "image";
     translations["BLOCK__POINT_FINDER_IN_IMAGE_HELP"] = "Input image";
     translations["BLOCK__POINT_FINDER_IN_DETECTOR"] = "detector";
-    translations["BLOCK__POINT_FINDER_IN_DETECTOR_HELP"] = "Method used to detect points|BRIEF^BRISK^FAST^FREAK^GFTT^HARRIS^MSER^ORB^SIFT^STAR^SURF^SimpleBlob"; //^Grid^Dense
+    translations["BLOCK__POINT_FINDER_IN_DETECTOR_HELP"] = "Method used to detect points|BRISK^FAST^GFTT^HARRIS^MSER^ORB^SIFT^STAR^SURF^SimpleBlob"; //^Grid^Dense
+    translations["BLOCK__POINT_FINDER_IN_MODIFICATOR"] = "modificator";
+    translations["BLOCK__POINT_FINDER_IN_MODIFICATOR_HELP"] = "Method used to improve detector|None^Grid^Dense";
     translations["BLOCK__POINT_FINDER_IN_EXTRACTOR"] = "extractor";
     translations["BLOCK__POINT_FINDER_IN_EXTRACTOR_HELP"] = "Method used to compute descriptor|SIFT^SURF^ORB^BRIEF^BRISK^MSER";
     translations["BLOCK__POINT_FINDER_OUT_DESC"] = "descriptors";

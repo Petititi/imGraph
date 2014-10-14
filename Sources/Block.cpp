@@ -476,8 +476,14 @@ namespace charliesoft
       _myInputs[nameParam_] = value;
   };
   ParamValue* Block::getParam(std::string nameParam_, bool input){
-    if (input && _myInputs.find(nameParam_) != _myInputs.end())
-      return &_myInputs[nameParam_];
+    if (input)
+    {
+      if (_myInputs.find(nameParam_) != _myInputs.end())
+        return &_myInputs[nameParam_];
+      //maybe a subparam?
+      if (_mySubParams.find(nameParam_) != _mySubParams.end())
+        return &_mySubParams[nameParam_];
+    }
     else
       if (!input && _myOutputs.find(nameParam_) != _myOutputs.end())
         return &_myOutputs[nameParam_];

@@ -54,6 +54,28 @@
 
 #define END_BLOCK_PARAMS() return output; }
 
+#define ADD_SUB_PARAMETER(nameSub, defaultVal) {_mySubParams[nameSub] = ParamValue(this, nameSub, false); _mySubParams[nameSub] = defaultVal;}
+
+#define ADD_SUBPARAM_FROM_OPENCV_ALGO(algo, paramName, name) { \
+  switch(algo->paramType(name)){\
+    case cv::Param::BOOLEAN: \
+      ADD_SUB_PARAMETER(paramName + "." + name, algo->get<bool>(name)); break;\
+    case cv::Param::UNSIGNED_INT: \
+    case cv::Param::UINT64: \
+    case cv::Param::UCHAR: \
+    case cv::Param::INT: \
+      ADD_SUB_PARAMETER(paramName + "." + name, algo->get<int>(name)); break;\
+    case cv::Param::REAL: \
+    case cv::Param::FLOAT: \
+      ADD_SUB_PARAMETER(paramName + "." + name, algo->get<double>(name)); break;\
+    case cv::Param::STRING: \
+      ADD_SUB_PARAMETER(paramName + "." + name, (string)algo->get<cv::String>(name)); break;\
+    case cv::Param::MAT: \
+      ADD_SUB_PARAMETER(paramName + "." + name, algo->get<cv::Mat>(name)); break;\
+    } \
+  }
+
+
 namespace charliesoft
 {
   class GraphOfProcess;
@@ -140,6 +162,7 @@ namespace charliesoft
 
     std::map<std::string, ParamValue> _myOutputs;
     std::map<std::string, ParamValue> _myInputs;
+    std::map<std::string, ParamValue> _mySubParams;
     std::vector<ConditionOfRendering> _conditions;
 
     void initParameters(const std::vector<ParamDefinition>& inParam, 
@@ -178,6 +201,8 @@ namespace charliesoft
 
     virtual void setParamLink(std::string nameParam_, ParamValue* value);
     virtual ParamValue* getParam(std::string nameParam_, bool input);
+
+    virtual std::vector<cv::String> getSubParams(std::string param, int val){ return std::vector<cv::String>(); };
 
     bool isStartingBlock();
     bool isAncestor(Block* other);

@@ -44,8 +44,8 @@ namespace charliesoft
     setObjectName("ParamRepresentation");
     if (!param._show) this->hide();
     setToolTip(_QT(param._helper));
-
-    connect(this, SIGNAL(askSynchro()), (VertexRepresentation*)father->parentWidget(), SLOT(reshape()));
+    VertexRepresentation* parent = (VertexRepresentation*)father->parentWidget();
+    //connect(this, SIGNAL(askSynchro()), parent, SLOT(reshape()));
   };
 
   std::string ParamRepresentation::getParamHelper() const {
