@@ -70,8 +70,9 @@ namespace charliesoft
 
   ParamsConfigurator::ParamsConfigurator(VertexRepresentation* vertex,
     std::map<std::string, ParamRepresentation*>& in_param,
+    std::map<std::string, ParamRepresentation*>& sub_param,
     std::map<std::string, ParamRepresentation*>& out_param) :
-    QDialog(vertex), _vertex(vertex), in_param_(in_param), out_param_(out_param)
+    QDialog(vertex), _vertex(vertex), in_param_(in_param), sub_param_(sub_param), out_param_(out_param)
   {
     setWindowFlags(Qt::Tool);
     tabWidget_ = new QTabWidget(this);
@@ -150,11 +151,12 @@ namespace charliesoft
     vbox->addWidget(tmp);
   }
 
-  void ParamsConfigurator::addParamIn(ParamRepresentation  *p, QGroupBox* group)
+  void ParamsConfigurator::addParamIn(ParamRepresentation  *p, QWidget* mainContent, ParamRepresentation* parent)
   {
     bool isSubParam = false;
     QVBoxLayout *vbox;
-    if (group == NULL)
+    QGroupBox* group = NULL;
+    if (parent == NULL)
     {
       group = new QGroupBox(_QT(p->getParamName()), tabWidget_->widget(0));
       vbox = new QVBoxLayout();
@@ -165,25 +167,29 @@ namespace charliesoft
     else
     {
       isSubParam = true;
-      vbox = dynamic_cast<QVBoxLayout*>(group->layout());
+      vbox = dynamic_cast<QVBoxLayout*>(mainContent->layout());
     }
 
+    QWidget* subContent = new QWidget();
+    vbox->addWidget(subContent);
     ParamValue* param = p->getParamValue();
-    QWidget* tmp = new QWidget();
     if (isSubParam)
-      subparamGroup_[group].push_back(tmp);
+    {
+      subWidget_[parent] = mainContent;
+      subparamGroup_[mainContent].push_back(p);
+    }
     else
+    {
       inputGroup_[group] = p;
 
-    if (param->getType() != Boolean && !isSubParam)
-      vbox->addWidget(new QLabel(_QT(p->getParamHelper())));
-    if (param->isDefaultValue())
-      group->setChecked(false);
-
-    vbox->addWidget(tmp);
+      if (param->getType() != Boolean)
+        vbox->addWidget(new QLabel(_QT(p->getParamHelper())));
+      if (param->isDefaultValue())
+        group->setChecked(false);
+    }
     QHBoxLayout* layout = new QHBoxLayout();
     layout->setAlignment(Qt::AlignLeft);
-    tmp->setLayout(layout);
+    subContent->setLayout(layout);
     QCheckBox* checkGraph = new QCheckBox();
     layout->addWidget(checkGraph);
     connect(checkGraph, SIGNAL(stateChanged(int)), this, SLOT(switchEnable(int)));
@@ -192,9 +198,7 @@ namespace charliesoft
     inputModificator_.insert(Modif_map_type(checkGraph, p));
 
     if (isSubParam && param->getType() != Boolean)
-    {
       layout->addWidget(new QLabel(p->getParamHelper().c_str()));
-    }
 
     switch (param->getType())
     {
@@ -322,35 +326,31 @@ namespace charliesoft
     if (groupParams != NULL)
     {
       //remove the subParams:
-      vector<QWidget*> & listParams = subparamGroup_[groupParams];
-      QVBoxLayout* vbox = dynamic_cast<QVBoxLayout*>(groupParams->layout());
-      auto it1 = listParams.begin();
-      while (it1 != listParams.end())
-      {
-        vbox->removeWidget(*it1);
-        delete *it1;
-        it1++;
-      }
+      QVBoxLayout *vbox = dynamic_cast<QVBoxLayout*>(groupParams->layout());
+      vbox->removeWidget(subWidget_[value]);
+      delete subWidget_[value];
+      subWidget_.erase(value);
+
       subparamGroup_[groupParams].clear();
-    }
-    //reconstruct the subParams group:
-    
-    //now add also subparameters, if any:
-    Block* model = value->getModel();
-    string paramValName = src->currentText().toStdString();
-    vector<cv::String> subParams = model->getSubParams(value->getParamName(), newVal);
-    for (cv::String subParam : subParams)
-    {
-      ParamValue* param = model->getParam(paramValName + "." + subParam, true);
-      if (param != NULL)
+
+      //reconstruct the subParams group:
+      QWidget* subContent = new QWidget();
+      vbox->addWidget(subContent);
+      subContent->setLayout(new QVBoxLayout());
+
+      //now add also subparameters, if any:
+      Block* model = value->getModel();
+      string paramValName = src->currentText().toStdString();
+      vector<cv::String> subParams = model->getSubParams(value->getParamName(), newVal);
+      for (cv::String subParam : subParams)
       {
-        ParamDefinition tmpDef(false, param->getType(), paramValName + "." + subParam, subParam);
-        ParamRepresentation *tmp = new ParamRepresentation(model, tmpDef, true, value);
-        tmp->setVisibility(false);
-        connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
-        connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
-        _vertex->addSubParam(tmp);
-        addParamIn(tmp, groupParams);
+        ParamValue* param = model->getParam(paramValName + "." + subParam, true);
+        if (param != NULL)
+        {
+          ParamRepresentation *tmp = sub_param_[param->getName()];
+
+          addParamIn(tmp, subContent, value);
+        }
       }
     }
   }
@@ -400,6 +400,91 @@ namespace charliesoft
     if (!fileName.isEmpty())
       openFiles_[sender()]->setText(fileName);
   }
+
+  void ParamsConfigurator::updateParamModel(ParamRepresentation* paramRep)
+  {
+    ParamValue* param = paramRep->getParamValue();
+    if (param->getType() == Boolean)
+    {
+      QLabel* value = dynamic_cast<QLabel*>(inputValue_.left.at(paramRep));
+      if (value != NULL)
+      {
+        try
+        {
+          param->valid_and_set(true);
+        }
+        catch (ErrorValidator& e)
+        {//algo doesn't accept this value!
+          QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), e.errorMsg.c_str());
+          return;//stop here the validation: should correct the error!
+        }
+      }
+    }
+
+    if (param->getType() == Int || param->getType() == Float ||
+      param->getType() == String || param->getType() == FilePath)
+    {
+      QLineEdit* value = dynamic_cast<QLineEdit*>(inputValue_.left.at(paramRep));
+      if (value != NULL)
+      {
+        ParamValue& val = ParamValue::fromString(param->getType(), value->text().toStdString());
+        try
+        {
+          param->valid_and_set(val);
+        }
+        catch (ErrorValidator& e)
+        {//algo doesn't accept this value!
+          QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), e.errorMsg.c_str());
+          return;//stop here the validation: should correct the error!
+        }
+      }
+    }
+
+    if (param->getType() == ListBox)
+    {
+      QComboBox* value = dynamic_cast<QComboBox*>(inputValue_.left.at(paramRep));
+      if (value != NULL)
+      {
+        ParamValue val = value->currentIndex();
+        try
+        {
+          param->valid_and_set(val);
+        }
+        catch (ErrorValidator& e)
+        {//algo doesn't accept this value!
+          QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), e.errorMsg.c_str());
+          return;//stop here the validation: should correct the error!
+        }
+      }
+    }
+    if (param->getType() == Color)
+    {
+      ParamValue val = _paramColor[paramRep];
+      try
+      {
+        param->valid_and_set(val);
+      }
+      catch (ErrorValidator& e)
+      {//algo doesn't accept this value!
+        QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), e.errorMsg.c_str());
+        return;//stop here the validation: should correct the error!
+      }
+    }
+    if (param->getType() == Matrix)
+    {
+      ParamValue val = _paramMatrix[paramRep];
+      try
+      {
+        param->valid_and_set(val);
+      }
+      catch (ErrorValidator& e)
+      {//algo doesn't accept this value!
+        QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), e.errorMsg.c_str());
+        return;//stop here the validation: should correct the error!
+      }
+    }
+  }
+
   void ParamsConfigurator::accept_button()
   {
     auto it = inputGroup_.begin();
@@ -411,85 +496,22 @@ namespace charliesoft
         if (inputModificator_.right.at(it->second)->isChecked())
         {
           it->second->setVisibility(false);
-          if (param->getType() == Boolean)
+          updateParamModel(it->second);
+
+          std::vector<ParamRepresentation*> valsWidgets = subparamGroup_[it->first];
+          for (ParamRepresentation* p : valsWidgets)
           {
-            QLabel* value = dynamic_cast<QLabel*>(inputValue_.left.at(it->second));
-            if (value != NULL)
+            if (inputModificator_.right.at(p)->isChecked())
             {
-              try
-              {
-                param->valid_and_set(true);
-              }
-              catch (ErrorValidator& e)
-              {//algo doesn't accept this value!
-                QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), e.errorMsg.c_str());
-                return;//stop here the validation: should correct the error!
-              }
+              updateParamModel(p);
+            }
+            else
+            {
+              p->setVisibility(true);
+              p->show();
             }
           }
 
-          if (param->getType() == Int || param->getType() == Float ||
-            param->getType() == String || param->getType() == FilePath)
-          {
-            QLineEdit* value = dynamic_cast<QLineEdit*>(inputValue_.left.at(it->second));
-            if (value != NULL)
-            {
-              ParamValue& val = ParamValue::fromString(param->getType(), value->text().toStdString());
-              try
-              {
-                param->valid_and_set(val);
-              }
-              catch (ErrorValidator& e)
-              {//algo doesn't accept this value!
-                QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), e.errorMsg.c_str());
-                return;//stop here the validation: should correct the error!
-              }
-            }
-          }
-
-          if (param->getType() == ListBox)
-          {
-            QComboBox* value = dynamic_cast<QComboBox*>(inputValue_.left.at(it->second));
-            if (value != NULL)
-            {
-              ParamValue val = value->currentIndex();
-              try
-              {
-                param->valid_and_set(val);
-              }
-              catch (ErrorValidator& e)
-              {//algo doesn't accept this value!
-                QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), e.errorMsg.c_str());
-                return;//stop here the validation: should correct the error!
-              }
-            }
-          }
-          if (param->getType() == Color)
-          {
-            ParamValue val = _paramColor[it->second];
-            try
-            {
-              param->valid_and_set(val);
-            }
-            catch (ErrorValidator& e)
-            {//algo doesn't accept this value!
-              QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), e.errorMsg.c_str());
-              return;//stop here the validation: should correct the error!
-            }
-          }
-          if (param->getType() == Matrix)
-          {
-            ParamValue val = _paramMatrix[it->second];
-            try
-            {
-              param->valid_and_set(val);
-            }
-            catch (ErrorValidator& e)
-            {//algo doesn't accept this value!
-              QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), e.errorMsg.c_str());
-              return;//stop here the validation: should correct the error!
-            }
-          }
         }
         else
         {
@@ -770,6 +792,29 @@ namespace charliesoft
       connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
       connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
       listOfInputChilds_[inputParams[i]._name] = tmp;
+      if (inputParams[i]._type==ListBox)
+      {
+        std::vector<string> paramChoices = tmp->getParamListChoice();
+        string paramValName = _STR(tmp->getParamName());
+        for (size_t idSubParam = 0; idSubParam < paramChoices.size(); idSubParam++)
+        {
+          vector<cv::String> subParams = model->getSubParams(tmp->getParamName(), idSubParam);
+          for (cv::String subParam : subParams)
+          {
+            string fullSubName = paramChoices[idSubParam] + "." + subParam;
+            ParamValue* param = model->getParam(fullSubName, true);
+            if (param != NULL)
+            {
+              ParamDefinition tmpDef(false, param->getType(), fullSubName, subParam);
+              ParamRepresentation *tmp = new ParamRepresentation(model, tmpDef, true, _blockRepresentation);
+              tmp->setVisibility(false);
+              connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
+              connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
+              listOfInputSubParams_[tmpDef._name] = tmp;
+            }
+          }
+        }
+      }
     }
 
     vector<ParamDefinition> outputParams = _PROCESS_MANAGER->getAlgo_OutParams(model->getName());
@@ -805,11 +850,6 @@ namespace charliesoft
     if (l._to == _model)
       (*_model->getParam(l._toParam, true)) = Not_A_Value();
   };
-
-  void VertexRepresentation::addSubParam(ParamRepresentation * param)
-  {
-    listOfInputChilds_[param->getParamName()] = param;
-  }
 
   ConditionLinkRepresentation* VertexRepresentation::getCondition(ConditionOfRendering* cor, bool isLeft)
   {
@@ -868,6 +908,22 @@ namespace charliesoft
       }
     }
 
+    for (auto subPara : listOfInputSubParams_)
+    {
+      ParamRepresentation  *tmp = subPara.second;
+      tmp->setMinimumWidth(5);
+      tmp->move(-2, inputHeight);//move the name at the top of vertex...
+      tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
+      tmp->setVisible(tmp->shouldShow());
+      if (tmp->shouldShow())
+      {
+        showIn++;
+        inputHeight += tmpSize.height() + 10;
+        if (maxInputWidth < tmpSize.width())
+          maxInputWidth = tmpSize.width();
+      }
+    }
+
     vector<ParamDefinition> tmpParamsOut = _PROCESS_MANAGER->getAlgo_OutParams(_model->getName());
     it = tmpParamsOut.begin();
     for (; it != tmpParamsOut.end(); it++)
@@ -909,6 +965,16 @@ namespace charliesoft
       if (tmp->shouldShow())
         inputHeight += tmpSize.height() + 10;
     }
+    for (auto subPara : listOfInputSubParams_)
+    {
+      ParamRepresentation  *tmp = subPara.second;
+      QRect tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
+      tmp->resize(maxInputWidth, tmpSize.height() + 5);
+      tmp->move(-2, inputHeight);//move the name at the top of vertex...
+      if (tmp->shouldShow())
+        inputHeight += tmpSize.height() + 10;
+    }
+
     it = tmpParamsOut.begin();
     for (; it != tmpParamsOut.end(); it++)
     {
@@ -1110,7 +1176,7 @@ namespace charliesoft
     QPoint mouseP = mouseE->pos();
     if (mouseP.y() > heightOfConditions + 5)
     {
-      ParamsConfigurator config(this, listOfInputChilds_, listOfOutputChilds_);
+      ParamsConfigurator config(this, listOfInputChilds_, listOfInputSubParams_, listOfOutputChilds_);
       int retour = config.exec();
     }
     else

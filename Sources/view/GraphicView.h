@@ -58,6 +58,7 @@ namespace charliesoft
     std::map<BlockLink, LinkPath*> _links;
     std::vector< std::pair<ConditionOfRendering*, ConditionLinkRepresentation*> > linksConditions_;
     std::map<std::string, ParamRepresentation*> listOfInputChilds_;
+    std::map<std::string, ParamRepresentation*> listOfInputSubParams_;
     std::map<std::string, ParamRepresentation*> listOfOutputChilds_;
     std::vector<ParamRepresentation*> listOfSubParams_;
   public:
@@ -73,8 +74,6 @@ namespace charliesoft
       _links[l] = p;
     };
     void removeLink(BlockLink l);
-
-    void addSubParam(ParamRepresentation * param);
 
     void changeStyleProperty(const char* propertyName, QVariant val);
     void setSelected(bool isSelected);
@@ -139,13 +138,17 @@ namespace charliesoft
     std::map<ParamRepresentation*, cv::Scalar> _paramColor;
 
     std::map<QGroupBox*, ParamRepresentation*> inputGroup_;
-    std::map<QGroupBox*, std::vector<QWidget*>> subparamGroup_;
+    std::map<QWidget*, std::vector<ParamRepresentation*>> subparamGroup_;
     std::map<QGroupBox*, ParamRepresentation*> outputGroup_;
 
     boost::bimap< QCheckBox*, ParamRepresentation* > inputModificator_; 
     boost::bimap<ParamRepresentation*, QObject* > inputValue_;
     std::map<std::string, ParamRepresentation*>& in_param_;
+    std::map<std::string, ParamRepresentation*>& sub_param_;
     std::map<std::string, ParamRepresentation*>& out_param_;
+
+    std::map<ParamRepresentation*, QWidget*> subWidget_;
+
     VertexRepresentation* _vertex;
 
     QPushButton* _OKbutton;
@@ -154,10 +157,12 @@ namespace charliesoft
     std::vector<QVBoxLayout *> tabs_content_;
 
     void addParamOut(ParamRepresentation  *p);
-    void addParamIn(ParamRepresentation  *p, QGroupBox* group = NULL);
+    void addParamIn(ParamRepresentation  *p, QWidget* group = NULL, ParamRepresentation* parent = NULL);
+    void updateParamModel(ParamRepresentation* param);
   public:
     ParamsConfigurator(VertexRepresentation* vertex,
       std::map<std::string, ParamRepresentation*>& in_param,
+      std::map<std::string, ParamRepresentation*>& sub_param,
       std::map<std::string, ParamRepresentation*>& out_param);
 
   signals:

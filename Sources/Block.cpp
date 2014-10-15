@@ -543,7 +543,12 @@ namespace charliesoft
 
   void Block::createLink(std::string paramName, Block* dest, std::string paramNameDest)
   {
-    ParamValue& valIn = dest->_myInputs[paramNameDest];
+    ParamValue& valIn = ParamValue();
+    if (dest->_myInputs.find(paramNameDest) == dest->_myInputs.end())
+      valIn = dest->_mySubParams[paramNameDest];
+    else
+      valIn = dest->_myInputs[paramNameDest];
+
     ParamValue& valOut = _myOutputs[paramName];
     //first test type of input:
     if (valIn.getType() != valOut.getType())
@@ -565,5 +570,4 @@ namespace charliesoft
   {
     _conditions.pop_back();
   }
-
 }

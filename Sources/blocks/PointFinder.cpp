@@ -27,6 +27,8 @@ namespace charliesoft
   std::vector<std::string> detectorList;
   std::vector<std::string> modificatorList;
   std::vector<std::string> extractorList;
+
+  void setParamOpencv(cv::Algorithm* algo, string paramName, string subParamName);
 public:
   virtual vector<cv::String> getSubParams(std::string param, int val);
   BLOCK_END_INSTANTIATION(PointFinderBlock, AlgoType::imgProcess, BLOCK__POINT_FINDER_NAME);
@@ -97,15 +99,15 @@ public:
     //now create all subparameters:
     for (string param : modificatorList)
     {
-      vector<cv::String> out;
-      cv::Ptr<FeatureDetector> detect = FeatureDetector::create(param);
-      if (!detect.empty())
+      if (param == "Grid")
       {
-        detect->getParams(out);
-        for (cv::String subParam : out)
+        vector<cv::String> out;
+        cv::Ptr<FeatureDetector> detect = FeatureDetector::create(param);
+        if (!detect.empty())
         {
-          detect->paramType(subParam);
-          ADD_SUBPARAM_FROM_OPENCV_ALGO(detect, param, subParam);
+          detect->getParams(out);
+          for (cv::String subParam : out)
+            ADD_SUBPARAM_FROM_OPENCV_ALGO(detect, param, subParam);
         }
       }
     }
@@ -123,6 +125,8 @@ public:
     }
     if (param.compare("BLOCK__POINT_FINDER_IN_MODIFICATOR") == 0)
     {
+      if (val > 0)
+        return out;
       cv::Ptr<FeatureDetector> detect = FeatureDetector::create(modificatorList[val]);
       if (!detect.empty())
         detect->getParams(out);
@@ -136,6 +140,32 @@ public:
     return out;
   }
   
+  void PointFinderBlock::setParamOpencv(cv::Algorithm* algo, string paramName, string subParamName)
+  {
+
+    switch (algo->paramType(subParamName)){
+    case cv::Param::BOOLEAN:
+      algo->set(subParamName, _mySubParams[paramName + "." + subParamName].get<bool>());
+      break;
+    case cv::Param::UNSIGNED_INT: 
+    case cv::Param::UINT64: 
+    case cv::Param::UCHAR: 
+    case cv::Param::INT:
+      algo->set(subParamName, _mySubParams[paramName + "." + subParamName].get<int>());
+      break;
+    case cv::Param::REAL: 
+    case cv::Param::FLOAT:
+      algo->set(subParamName, _mySubParams[paramName + "." + subParamName].get<double>());
+      break;
+    case cv::Param::STRING:
+      algo->set(subParamName, _mySubParams[paramName + "." + subParamName].get<std::string>());
+      break;
+    case cv::Param::MAT:
+      algo->set(subParamName, _mySubParams[paramName + "." + subParamName].get<cv::Mat>());
+      break;
+    } 
+  }
+
   bool PointFinderBlock::run(){
     cv::Mat mat = _myInputs["BLOCK__POINT_FINDER_IN_IMAGE"].get<cv::Mat>(),
       desc;
@@ -143,12 +173,32 @@ public:
     std::vector<cv::KeyPoint> points;
     int methodDetect = _myInputs["BLOCK__POINT_FINDER_IN_DETECTOR"].get<int>();
 
+    cv::Ptr<FeatureDetector> detect = FeatureDetector::create(detectorList[methodDetect]);
+
+    //set sub params values:
+    vector<cv::String> subValuesDetector;
+    detect->getParams(subValuesDetector);
+    for (cv::String subParam : subValuesDetector)
+      setParamOpencv(detect, detectorList[methodDetect], subParam);
+
     string modificator = "";
     if (!_myInputs["BLOCK__POINT_FINDER_IN_MODIFICATOR"].isDefaultValue())
+    {
       modificator = modificatorList[_myInputs["BLOCK__POINT_FINDER_IN_MODIFICATOR"].get<int>()];
+      if (modificator.compare("Grid"))
+      {
+        cv::Ptr<FeatureDetector> subdetect = FeatureDetector::create(modificator);
+        subdetect->set("detector", detect);
+        //set sub params values:
+        vector<cv::String> out;
+        detect->getParams(out);
+        for (cv::String subParam : out)
+          setParamOpencv(subdetect, modificator, subParam);
 
-    cv::Ptr<FeatureDetector> detect = FeatureDetector::create(modificator + detectorList[methodDetect]);
-    
+        detect = subdetect;//detector are now chained, take the parent
+      }
+    }
+
     if (!detect.empty())
       detect->detect(mat, points);
 
@@ -156,7 +206,13 @@ public:
     if (_myOutputs["BLOCK__POINT_FINDER_OUT_DESC"].isNeeded())
     {
       int methodExtract = _myInputs["BLOCK__POINT_FINDER_IN_EXTRACTOR"].get<int>();
-      cv::Ptr<DescriptorExtractor> extract = DescriptorExtractor::create(detectorList[methodDetect]);
+      cv::Ptr<DescriptorExtractor> extract = DescriptorExtractor::create(extractorList[methodExtract]);
+
+      //set sub params values:
+      vector<cv::String> subValuesExtractor;
+      detect->getParams(subValuesExtractor);
+      for (cv::String subParam : subValuesExtractor)
+        setParamOpencv(extract, extractorList[methodExtract], subParam);
 
       if (!extract.empty())
         extract->compute(mat, points, desc);
