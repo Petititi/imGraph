@@ -498,17 +498,20 @@ namespace charliesoft
           it->second->setVisibility(false);
           updateParamModel(it->second);
 
-          std::vector<ParamRepresentation*> valsWidgets = subparamGroup_[it->first];
-          for (ParamRepresentation* p : valsWidgets)
+          if (subWidget_.find(it->second) != subWidget_.end())
           {
-            if (inputModificator_.right.at(p)->isChecked())
+            std::vector<ParamRepresentation*> valsWidgets = subparamGroup_[subWidget_[it->second]];
+            for (ParamRepresentation* p : valsWidgets)
             {
-              updateParamModel(p);
-            }
-            else
-            {
-              p->setVisibility(true);
-              p->show();
+              if (inputModificator_.right.at(p)->isChecked())
+              {
+                updateParamModel(p);
+              }
+              else
+              {
+                p->setVisibility(true);
+                p->show();
+              }
             }
           }
 
