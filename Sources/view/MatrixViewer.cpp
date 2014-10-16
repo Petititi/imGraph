@@ -576,6 +576,7 @@ MatrixViewer::MatrixViewer(QString name, int arg2)
   param_ratio_mode = arg2 & 0x00000F00;
   param_creation_mode = arg2 & _WINDOW_MATRIX_CREATION_MODE;
 
+  setWindowFlags(Qt::WindowMinMaxButtonsHint);
   setContentsMargins(0, 0, 0, 0);
   setWindowTitle(name);
   setObjectName(name);

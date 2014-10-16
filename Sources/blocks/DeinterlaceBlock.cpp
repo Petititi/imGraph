@@ -30,7 +30,7 @@ namespace charliesoft
   //Add parameters, with following parameters:
   //default visibility, type of parameter, name (key of internationalizor), helper...
   ADD_PARAMETER(true, Matrix, "BLOCK__DEINTERLACE_IN_IMAGE", "BLOCK__DEINTERLACE_IN_IMAGE_HELP");
-  ADD_PARAMETER(false, Int, "BLOCK__DEINTERLACE_IN_TYPE", "BLOCK__DEINTERLACE_IN_TYPE_HELP");
+  ADD_PARAMETER_FULL(false, ListBox, "BLOCK__DEINTERLACE_IN_TYPE", "BLOCK__DEINTERLACE_IN_TYPE_HELP", 0);
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_OUTPUT_PARAMS(DeinterlaceBlock);
@@ -78,7 +78,7 @@ namespace charliesoft
   //Add parameters, with following parameters:
   //default visibility, type of parameter, name (key of internationalizor), helper...
   ADD_PARAMETER(true, Matrix, "BLOCK__SKIP_FRAME_IN_IMAGE", "BLOCK__SKIP_FRAME_IN_IMAGE_HELP");
-  ADD_PARAMETER(false, Int, "BLOCK__SKIP_FRAME_IN_TYPE", "BLOCK__SKIP_FRAME_IN_TYPE_HELP");
+  ADD_PARAMETER_FULL(false, Int, "BLOCK__SKIP_FRAME_IN_TYPE", "BLOCK__SKIP_FRAME_IN_TYPE_HELP", 1);
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_OUTPUT_PARAMS(InterlaceBlock);

@@ -36,7 +36,7 @@ namespace charliesoft
   //default visibility, type of parameter, name (key of internationalizor), helper...
   ADD_PARAMETER(true, Matrix, "BLOCK__OPTICFLOW_IN_IMAGE1", "BLOCK__OPTICFLOW_IN_IMAGE1_HELP");
   ADD_PARAMETER(true, Matrix, "BLOCK__OPTICFLOW_IN_IMAGE2", "BLOCK__OPTICFLOW_IN_IMAGE2_HELP");
-  ADD_PARAMETER(false, ListBox, "BLOCK__OPTICFLOW_IN_METHOD", "BLOCK__OPTICFLOW_IN_METHOD_HELP");
+  ADD_PARAMETER_FULL(false, ListBox, "BLOCK__OPTICFLOW_IN_METHOD", "BLOCK__OPTICFLOW_IN_METHOD_HELP", 0);
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_OUTPUT_PARAMS(OpticFlowBlock);
@@ -46,7 +46,7 @@ namespace charliesoft
   OpticFlowBlock::OpticFlowBlock() :Block("BLOCK__OPTICFLOW_NAME"){
     _myInputs["BLOCK__OPTICFLOW_IN_IMAGE1"].addValidator({ new ValNeeded() });
     _myInputs["BLOCK__OPTICFLOW_IN_IMAGE2"].addValidator({ new ValNeeded(), new ValPositiv(true) });
-    _myInputs["BLOCK__OPTICFLOW_IN_METHOD"].addValidator({ new ValRange(0,2) });
+    _myInputs["BLOCK__OPTICFLOW_IN_METHOD"].addValidator({ new ValNeeded(), new ValRange(0, 2) });
   };
 
   cv::Mat OpticFlowBlock::computeOpenCL(cv::Mat src, cv::Mat dest, int method)

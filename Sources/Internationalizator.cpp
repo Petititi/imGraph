@@ -262,12 +262,8 @@ namespace charliesoft
     translations["BLOCK__DEINTERLACE_NAME"] = "Deinterlace";
     translations["BLOCK__DEINTERLACE_IN_IMAGE"] = "image";
     translations["BLOCK__DEINTERLACE_IN_IMAGE_HELP"] = "Input image";
-    translations["BLOCK__DEINTERLACE_IN_TYPE"] = "output type";
-    translations["BLOCK__DEINTERLACE_IN_TYPE_HELP"] = "Deinterlacing type wanted";
-    translations["BLOCK__DEINTERLACE_IN_TYPE1"] = "Blend";
-    translations["BLOCK__DEINTERLACE_IN_TYPE2"] = "Bob";
-    translations["BLOCK__DEINTERLACE_IN_TYPE3"] = "Discard";
-    translations["BLOCK__DEINTERLACE_IN_TYPE4"] = "Unfold";
+    translations["BLOCK__DEINTERLACE_IN_TYPE"] = "Deinterlacing";
+    translations["BLOCK__DEINTERLACE_IN_TYPE_HELP"] = "Deinterlacing type wanted|Blend^Bob^Discard^Unfold";
     translations["BLOCK__DEINTERLACE_OUT_IMAGE"] = "image";
     translations["BLOCK__DEINTERLACE_OUT_IMAGE_HELP"] = "Deinterlaced image";
 

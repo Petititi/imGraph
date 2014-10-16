@@ -49,6 +49,9 @@
   std::vector<ParamDefinition> className##::getListOutputs(){ \
   std::vector<ParamDefinition> output;
 
+#define ADD_PARAMETER_FULL(show, type, name, helper, initialValue) output.push_back(ParamDefinition( \
+  show, type, name, helper, initialValue));
+
 #define ADD_PARAMETER(show, type, name, helper) output.push_back(ParamDefinition( \
   show, type, name, helper));
 
@@ -137,8 +140,11 @@ namespace charliesoft
     ParamType _type;
     std::string _name;
     std::string _helper;
+    ParamValue _initVal;
     ParamDefinition(bool show, ParamType type, std::string name, std::string helper) :
-      _show(show), _type(type), _name(name), _helper(helper){};
+      _show(show), _type(type), _name(name), _helper(helper), _initVal(Not_A_Value()){};
+    ParamDefinition(bool show, ParamType type, std::string name, std::string helper, ParamValue initVal) :
+      _show(show), _type(type), _name(name), _helper(helper), _initVal(initVal){};
   };
 
   class Block{

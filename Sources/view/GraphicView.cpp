@@ -170,8 +170,6 @@ namespace charliesoft
       vbox = dynamic_cast<QVBoxLayout*>(mainContent->layout());
     }
 
-    QWidget* subContent = new QWidget();
-    vbox->addWidget(subContent);
     ParamValue* param = p->getParamValue();
     if (isSubParam)
     {
@@ -187,6 +185,8 @@ namespace charliesoft
       if (param->isDefaultValue())
         group->setChecked(false);
     }
+    QWidget* subContent = new QWidget();
+    vbox->addWidget(subContent);
     QHBoxLayout* layout = new QHBoxLayout();
     layout->setAlignment(Qt::AlignLeft);
     subContent->setLayout(layout);
