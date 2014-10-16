@@ -182,7 +182,7 @@ namespace charliesoft
 
       if (param->getType() != Boolean)
         vbox->addWidget(new QLabel(_QT(p->getParamHelper())));
-      if (param->isDefaultValue())
+      if (param->isDefaultValue() && !p->isVisible())
         group->setChecked(false);
     }
     QWidget* subContent = new QWidget();
