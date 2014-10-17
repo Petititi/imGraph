@@ -30,7 +30,7 @@ namespace charliesoft
 
   void setParamOpencv(cv::Algorithm* algo, string paramName, string subParamName);
 public:
-  virtual vector<cv::String> getSubParams(std::string param, int val);
+  virtual vector<cv::String> getSubParams(std::string paramVal);
   BLOCK_END_INSTANTIATION(PointFinderBlock, AlgoType::imgProcess, BLOCK__POINT_FINDER_NAME);
 
   BEGIN_BLOCK_INPUT_PARAMS(PointFinderBlock);
@@ -40,12 +40,75 @@ public:
   ADD_PARAMETER_FULL(false, ListBox, "BLOCK__POINT_FINDER_IN_DETECTOR", "BLOCK__POINT_FINDER_IN_DETECTOR_HELP", 0);
   ADD_PARAMETER(false, ListBox, "BLOCK__POINT_FINDER_IN_MODIFICATOR", "BLOCK__POINT_FINDER_IN_MODIFICATOR_HELP"); 
   ADD_PARAMETER_FULL(false, ListBox, "BLOCK__POINT_FINDER_IN_EXTRACTOR", "BLOCK__POINT_FINDER_IN_EXTRACTOR_HELP", 0);
-
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_OUTPUT_PARAMS(PointFinderBlock);
   ADD_PARAMETER(true, Matrix, "BLOCK__POINT_FINDER_OUT_POINTS", "BLOCK__POINT_FINDER_OUT_POINTS_HELP");
   ADD_PARAMETER(false, Matrix, "BLOCK__POINT_FINDER_OUT_DESC", "BLOCK__POINT_FINDER_OUT_DESC_HELP");
+  END_BLOCK_PARAMS();
+
+  BEGIN_BLOCK_SUBPARAMS_DEF(PointFinderBlock);
+  size_t pos = _STR("BLOCK__POINT_FINDER_IN_DETECTOR_HELP").find_first_of('|');
+  if (pos != std::string::npos)
+  {
+    std::string params = _STR("BLOCK__POINT_FINDER_IN_DETECTOR_HELP").substr(pos + 1);
+    std::vector<std::string> detectorList;
+    boost::split(detectorList, params, boost::is_any_of("^"));
+    //now create all subparameters:
+    for (string param : detectorList)
+    {
+      vector<cv::String> out;
+      cv::Ptr<FeatureDetector> detect = FeatureDetector::create(param);
+      if (!detect.empty())
+      {
+        detect->getParams(out);
+        for (cv::String subParam : out)
+          ADD_SUBPARAM_FROM_OPENCV_ALGO(detect, "BLOCK__POINT_FINDER_IN_DETECTOR", param, subParam);
+      }
+    }
+  };
+  pos = _STR("BLOCK__POINT_FINDER_IN_EXTRACTOR_HELP").find_first_of('|');
+  if (pos != std::string::npos)
+  {
+    std::string params = _STR("BLOCK__POINT_FINDER_IN_EXTRACTOR_HELP").substr(pos + 1);
+    std::vector<std::string> extractorList;
+    boost::split(extractorList, params, boost::is_any_of("^"));
+
+    //now create all subparameters:
+    for (string param : extractorList)
+    {
+      vector<cv::String> out;
+      cv::Ptr<DescriptorExtractor> detect = DescriptorExtractor::create(param);
+      if (!detect.empty())
+      {
+        detect->getParams(out);
+        for (cv::String subParam : out)
+          ADD_SUBPARAM_FROM_OPENCV_ALGO(detect, "BLOCK__POINT_FINDER_IN_EXTRACTOR", param, subParam);
+      }
+    }
+  }
+  pos = _STR("BLOCK__POINT_FINDER_IN_MODIFICATOR_HELP").find_first_of('|');
+  if (pos != std::string::npos)
+  {
+    std::string params = _STR("BLOCK__POINT_FINDER_IN_MODIFICATOR_HELP").substr(pos + 1);
+    std::vector<std::string> modificatorList;
+    boost::split(modificatorList, params, boost::is_any_of("^"));
+    //now create all subparameters:
+    for (string param : modificatorList)
+    {
+      if (param == "Grid")
+      {
+        vector<cv::String> out;
+        cv::Ptr<FeatureDetector> detect = FeatureDetector::create(param);
+        if (!detect.empty())
+        {
+          detect->getParams(out);
+          for (cv::String subParam : out)
+            ADD_SUBPARAM_FROM_OPENCV_ALGO(detect, "BLOCK__POINT_FINDER_IN_MODIFICATOR", param, subParam);
+        }
+      }
+    }
+  }
   END_BLOCK_PARAMS();
 
   PointFinderBlock::PointFinderBlock() :Block("BLOCK__POINT_FINDER_NAME"){
@@ -71,71 +134,18 @@ public:
       std::string params = _STR("BLOCK__POINT_FINDER_IN_MODIFICATOR_HELP").substr(pos + 1);
       boost::split(modificatorList, params, boost::is_any_of("^"));
     }
-
-    //now create all subparameters:
-    for (string param : detectorList)
-    {
-      vector<cv::String> out;
-      cv::Ptr<FeatureDetector> detect = FeatureDetector::create(param);
-      if (!detect.empty())
-      {
-        detect->getParams(out);
-        for (cv::String subParam : out)
-          ADD_SUBPARAM_FROM_OPENCV_ALGO(detect, param, subParam);
-      }
-    }
-    //now create all subparameters:
-    for (string param : extractorList)
-    {
-      vector<cv::String> out;
-      cv::Ptr<DescriptorExtractor> detect = DescriptorExtractor::create(param);
-      if (!detect.empty())
-      {
-        detect->getParams(out);
-        for (cv::String subParam : out)
-          ADD_SUBPARAM_FROM_OPENCV_ALGO(detect, param, subParam);
-      }
-    }
-    //now create all subparameters:
-    for (string param : modificatorList)
-    {
-      if (param == "Grid")
-      {
-        vector<cv::String> out;
-        cv::Ptr<FeatureDetector> detect = FeatureDetector::create(param);
-        if (!detect.empty())
-        {
-          detect->getParams(out);
-          for (cv::String subParam : out)
-            ADD_SUBPARAM_FROM_OPENCV_ALGO(detect, param, subParam);
-        }
-      }
-    }
   };
 
-  vector<cv::String> PointFinderBlock::getSubParams(std::string param, int val)
+  vector<cv::String> PointFinderBlock::getSubParams(std::string paramName)
   {
     vector<cv::String> out;
+    const std::vector<ParamDefinition>& subParams = _PROCESS_MANAGER->getAlgo_SubParams(_name);
     //test if param is an algo:
-    if (param.compare("BLOCK__POINT_FINDER_IN_DETECTOR") == 0)
+    for (auto val : subParams)
     {
-      cv::Ptr<FeatureDetector> detect = FeatureDetector::create(detectorList[val]);
-      if (!detect.empty())
-        detect->getParams(out);
-    }
-    if (param.compare("BLOCK__POINT_FINDER_IN_MODIFICATOR") == 0)
-    {
-      if (val > 0)
-        return out;
-      cv::Ptr<FeatureDetector> detect = FeatureDetector::create(modificatorList[val]);
-      if (!detect.empty())
-        detect->getParams(out);
-    }
-    if (param.compare("BLOCK__POINT_FINDER_IN_EXTRACTOR") == 0)
-    {
-      cv::Ptr<DescriptorExtractor> detect = DescriptorExtractor::create(extractorList[val]);
-      if (!detect.empty())
-        detect->getParams(out);
+      auto pos = val._name.find(paramName);
+      if (pos != string::npos && paramName.length()>pos+1)
+        out.push_back(val._helper);
     }
     return out;
   }

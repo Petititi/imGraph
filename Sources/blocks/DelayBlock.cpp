@@ -26,6 +26,9 @@ namespace charliesoft
   ADD_PARAMETER(true, Matrix, "BLOCK__DELAY_VIDEO_OUT_IMAGE", "BLOCK__DELAY_VIDEO_OUT_IMAGE_HELP");
   END_BLOCK_PARAMS();
 
+  BEGIN_BLOCK_SUBPARAMS_DEF(DelayBlock);
+  END_BLOCK_PARAMS();
+
   DelayBlock::DelayBlock() :Block("BLOCK__DELAY_VIDEO_NAME"){
     _myInputs["BLOCK__DELAY_VIDEO_IN_IMAGE"].addValidator({ new ValNeeded() });
     _myInputs["BLOCK__DELAY_VIDEO_IN_DELAY"].addValidator({ new ValNeeded(), new ValPositiv(true) });

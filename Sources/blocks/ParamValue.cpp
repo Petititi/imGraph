@@ -228,10 +228,13 @@ namespace charliesoft
     if (this != &rhs) {
       notifyRemove();
       value_ = rhs.value_;
-      block_ = rhs.block_;
-      _name = rhs._name;
-      isOutput_ = rhs.isOutput_;
-      _current_timestamp = rhs._current_timestamp;
+      if (rhs.block_ != NULL)
+      {
+        block_ = rhs.block_;
+        _name = rhs._name;
+        isOutput_ = rhs.isOutput_;
+        _current_timestamp = rhs._current_timestamp;
+      }
       if (value_.type() != typeid(Not_A_Value))
         notifyUpdate();
     }

@@ -26,6 +26,9 @@ namespace charliesoft
   ADD_PARAMETER(true, Matrix, "BLOCK__LINE_FINDER_OUT_IMAGE", "BLOCK__LINE_FINDER_OUT_IMAGE_HELP");
   END_BLOCK_PARAMS();
 
+  BEGIN_BLOCK_SUBPARAMS_DEF(LineFinerBlock);
+  END_BLOCK_PARAMS();
+
   LineFinerBlock::LineFinerBlock() :Block("BLOCK__LINE_FINDER_NAME"){
     _myInputs["BLOCK__LINE_FINDER_IN_IMAGE"].addValidator({ new ValNeeded() });
   };

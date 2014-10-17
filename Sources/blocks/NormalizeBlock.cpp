@@ -26,6 +26,9 @@ namespace charliesoft
   ADD_PARAMETER(true, Matrix, "BLOCK__NORMALIZ_OUT_IMAGE", "BLOCK__NORMALIZ_OUT_IMAGE_HELP");
   END_BLOCK_PARAMS();
 
+  BEGIN_BLOCK_SUBPARAMS_DEF(BlockNormalize);
+  END_BLOCK_PARAMS();
+
   BlockNormalize::BlockNormalize() :Block("BLOCK__NORMALIZ_NAME"){
     _myInputs["BLOCK__NORMALIZ_IN_IMAGE"].addValidator({ new ValNeeded() });
   };

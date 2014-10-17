@@ -37,6 +37,9 @@ namespace charliesoft
   ADD_PARAMETER(true, Matrix, "BLOCK__DEINTERLACE_OUT_IMAGE", "BLOCK__DEINTERLACE_OUT_IMAGE_HELP");
   END_BLOCK_PARAMS();
 
+  BEGIN_BLOCK_SUBPARAMS_DEF(DeinterlaceBlock);
+  END_BLOCK_PARAMS();
+
   DeinterlaceBlock::DeinterlaceBlock() :Block("BLOCK__DEINTERLACE_NAME"){
     _myInputs["BLOCK__DEINTERLACE_IN_IMAGE"].addValidator({ new ValNeeded() });
   };
@@ -83,6 +86,9 @@ namespace charliesoft
 
   BEGIN_BLOCK_OUTPUT_PARAMS(InterlaceBlock);
   ADD_PARAMETER(true, Matrix, "BLOCK__SKIP_FRAME_OUT_IMAGE", "BLOCK__SKIP_FRAME_OUT_IMAGE_HELP");
+  END_BLOCK_PARAMS();
+
+  BEGIN_BLOCK_SUBPARAMS_DEF(InterlaceBlock);
   END_BLOCK_PARAMS();
 
   InterlaceBlock::InterlaceBlock() :Block("BLOCK__SKIP_FRAME_NAME"){

@@ -34,6 +34,9 @@ namespace charliesoft
   ADD_PARAMETER(true, Matrix, "BLOCK__MERGING_OUT_IMAGE", "BLOCK__MERGING_OUT_IMAGE");
   END_BLOCK_PARAMS();
 
+  BEGIN_BLOCK_SUBPARAMS_DEF(MergingBlock);
+  END_BLOCK_PARAMS();
+
   MergingBlock::MergingBlock() :Block("BLOCK__MERGING_NAME"){
     _myInputs["BLOCK__MERGING_IN_IMAGE1"].addValidator({ new ValNeeded() });
     _myInputs["BLOCK__MERGING_IN_IMAGE2"].addValidator({ new ValNeeded() });

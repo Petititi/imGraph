@@ -31,6 +31,7 @@
       friend charliesoft::ProcessManager; \
       static std::vector<ParamDefinition> getListParams(); \
       static std::vector<ParamDefinition> getListOutputs(); \
+      static std::vector<ParamDefinition> getListSubParams(); \
       static bool addedToList; \
   protected: \
     virtual bool run(); \
@@ -49,6 +50,10 @@
   std::vector<ParamDefinition> className##::getListOutputs(){ \
   std::vector<ParamDefinition> output;
 
+#define BEGIN_BLOCK_SUBPARAMS_DEF(className) \
+  std::vector<ParamDefinition> className##::getListSubParams(){ \
+  std::vector<ParamDefinition> output;
+
 #define ADD_PARAMETER_FULL(show, type, name, helper, initialValue) output.push_back(ParamDefinition( \
   show, type, name, helper, initialValue));
 
@@ -57,24 +62,22 @@
 
 #define END_BLOCK_PARAMS() return output; }
 
-#define ADD_SUB_PARAMETER(nameSub, defaultVal) {_mySubParams[nameSub] = ParamValue(this, nameSub, false); _mySubParams[nameSub] = defaultVal;}
-
-#define ADD_SUBPARAM_FROM_OPENCV_ALGO(algo, paramName, name) { \
+#define ADD_SUBPARAM_FROM_OPENCV_ALGO(algo, paramName, paramValName, name) { \
   switch(algo->paramType(name)){\
     case cv::Param::BOOLEAN: \
-      ADD_SUB_PARAMETER(paramName + "." + name, algo->get<bool>(name)); break;\
+      ADD_PARAMETER_FULL(false, Boolean, ((std::string)paramName) + "." + paramValName + "." + name, name, algo->get<bool>(name)); break;\
     case cv::Param::UNSIGNED_INT: \
     case cv::Param::UINT64: \
     case cv::Param::UCHAR: \
     case cv::Param::INT: \
-      ADD_SUB_PARAMETER(paramName + "." + name, algo->get<int>(name)); break;\
+      ADD_PARAMETER_FULL(false, Int, ((std::string)paramName) + "." + paramValName + "." + name, name, algo->get<int>(name)); break;\
     case cv::Param::REAL: \
     case cv::Param::FLOAT: \
-      ADD_SUB_PARAMETER(paramName + "." + name, algo->get<double>(name)); break;\
+      ADD_PARAMETER_FULL(false, Float, ((std::string)paramName) + "." + paramValName + "." + name, name, algo->get<double>(name)); break;\
     case cv::Param::STRING: \
-      ADD_SUB_PARAMETER(paramName + "." + name, (string)algo->get<cv::String>(name)); break;\
+      ADD_PARAMETER_FULL(false, String, ((std::string)paramName) + "." + paramValName + "." + name, name, (string)algo->get<cv::String>(name)); break;\
     case cv::Param::MAT: \
-      ADD_SUB_PARAMETER(paramName + "." + name, algo->get<cv::Mat>(name)); break;\
+      ADD_PARAMETER_FULL(false, Matrix, ((std::string)paramName) + "." + paramValName + "." + name, name, algo->get<cv::Mat>(name)); break;\
     } \
   }
 
@@ -208,7 +211,9 @@ namespace charliesoft
     virtual void setParamLink(std::string nameParam_, ParamValue* value);
     virtual ParamValue* getParam(std::string nameParam_, bool input);
 
-    virtual std::vector<cv::String> getSubParams(std::string param, int val){ return std::vector<cv::String>(); };
+    virtual std::vector<cv::String> getSubParams(std::string paramVal){
+      return std::vector<cv::String>();
+    };
 
     bool isStartingBlock();
     bool isAncestor(Block* other);

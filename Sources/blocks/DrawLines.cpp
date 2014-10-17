@@ -28,6 +28,9 @@ namespace charliesoft
   ADD_PARAMETER(true, Matrix, "BLOCK__LINEDRAWER_OUT_IMAGE", "BLOCK__LINEDRAWER_OUT_IMAGE_HELP");
   END_BLOCK_PARAMS();
 
+  BEGIN_BLOCK_SUBPARAMS_DEF(LineDrawer);
+  END_BLOCK_PARAMS();
+
   LineDrawer::LineDrawer() :Block("BLOCK__LINEDRAWER_NAME"){
     _myInputs["BLOCK__LINEDRAWER_IN_LINES"].addValidator({ new ValNeeded() });
     _myInputs["BLOCK__LINEDRAWER_IN_IMAGE"].addValidator({ new ValNeeded() });
@@ -102,6 +105,9 @@ namespace charliesoft
 
   BEGIN_BLOCK_OUTPUT_PARAMS(PointDrawer);
   ADD_PARAMETER(true, Matrix, "BLOCK__POINTDRAWER_OUT_IMAGE", "BLOCK__POINTDRAWER_OUT_IMAGE_HELP");
+  END_BLOCK_PARAMS();
+
+  BEGIN_BLOCK_SUBPARAMS_DEF(PointDrawer);
   END_BLOCK_PARAMS();
 
   PointDrawer::PointDrawer() :Block("BLOCK__POINTDRAWER_NAME"){

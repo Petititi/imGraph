@@ -43,6 +43,9 @@ namespace charliesoft
   ADD_PARAMETER(true, Matrix, "BLOCK__OPTICFLOW_OUT_IMAGE", "BLOCK__OPTICFLOW_OUT_IMAGE_HELP");
   END_BLOCK_PARAMS();
 
+  BEGIN_BLOCK_SUBPARAMS_DEF(OpticFlowBlock);
+  END_BLOCK_PARAMS();
+
   OpticFlowBlock::OpticFlowBlock() :Block("BLOCK__OPTICFLOW_NAME"){
     _myInputs["BLOCK__OPTICFLOW_IN_IMAGE1"].addValidator({ new ValNeeded() });
     _myInputs["BLOCK__OPTICFLOW_IN_IMAGE2"].addValidator({ new ValNeeded(), new ValPositiv(true) });

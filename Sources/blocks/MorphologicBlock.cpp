@@ -35,6 +35,9 @@ namespace charliesoft
   ADD_PARAMETER(true, Matrix, "BLOCK__MORPHOLOGIC_OUT_IMAGE", "BLOCK__MORPHOLOGIC_OUT_IMAGE_HELP");
   END_BLOCK_PARAMS();
 
+  BEGIN_BLOCK_SUBPARAMS_DEF(MorphoBlock);
+  END_BLOCK_PARAMS();
+
   MorphoBlock::MorphoBlock() :Block("BLOCK__MORPHOLOGIC_NAME"){
     _myInputs["BLOCK__MORPHOLOGIC_IN_IMAGE"].addValidator({ new ValNeeded() });
     _myInputs["BLOCK__MORPHOLOGIC_ELEMENT"].addValidator({ new ValNeeded() });

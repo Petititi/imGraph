@@ -43,6 +43,9 @@ protected:
   ADD_PARAMETER(false, Int,   "BLOCK__INPUT_OUT_FORMAT",      "BLOCK__INPUT_OUT_FORMAT_HELP");
   END_BLOCK_PARAMS();
 
+  BEGIN_BLOCK_SUBPARAMS_DEF(BlockLoader);
+  END_BLOCK_PARAMS();
+
   BlockLoader::BlockLoader() :Block("BLOCK__INPUT_NAME"){
     _myInputs["BLOCK__INPUT_IN_FILE"].addValidator({ new ValNeeded(), new ValFileExist() });
     _myInputs["BLOCK__INPUT_INOUT_WIDTH"].addValidator({ new ValPositiv(true) });

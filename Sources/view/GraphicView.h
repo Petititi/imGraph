@@ -130,9 +130,6 @@ namespace charliesoft
   {
     Q_OBJECT;
 
-    typedef boost::bimap<QCheckBox*, ParamRepresentation* >::value_type Modif_map_type;
-    typedef boost::bimap<ParamRepresentation*, QObject* >::value_type Val_map_type;
-
     std::map<QObject*, QLineEdit*> openFiles_;
     std::map<ParamRepresentation*, cv::Mat> _paramMatrix;
     std::map<ParamRepresentation*, cv::Scalar> _paramColor;
@@ -141,8 +138,11 @@ namespace charliesoft
     std::map<QWidget*, std::vector<ParamRepresentation*>> subparamGroup_;
     std::map<QGroupBox*, ParamRepresentation*> outputGroup_;
 
-    boost::bimap< QCheckBox*, ParamRepresentation* > inputModificator_; 
-    boost::bimap<ParamRepresentation*, QObject* > inputValue_;
+    std::map< QCheckBox*, ParamRepresentation* > _inputModificator12;
+    std::map< ParamRepresentation*, QCheckBox*> _inputModificator21;
+    std::map<ParamRepresentation*, QObject* > _inputValue12;
+    std::map<QObject*, ParamRepresentation*> _inputValue21;
+
     std::map<std::string, ParamRepresentation*>& in_param_;
     std::map<std::string, ParamRepresentation*>& sub_param_;
     std::map<std::string, ParamRepresentation*>& out_param_;
@@ -157,7 +157,7 @@ namespace charliesoft
     std::vector<QVBoxLayout *> tabs_content_;
 
     void addParamOut(ParamRepresentation  *p);
-    void addParamIn(ParamRepresentation  *p, QWidget* group = NULL, ParamRepresentation* parent = NULL);
+    void addParamIn(ParamRepresentation  *p, ParamRepresentation* parent = NULL);
     void updateParamModel(ParamRepresentation* param);
   public:
     ParamsConfigurator(VertexRepresentation* vertex,

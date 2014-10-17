@@ -30,6 +30,9 @@ namespace charliesoft
   ADD_PARAMETER(true, Matrix, "BLOCK__CREATEMATRIX_OUT_IMAGE", "BLOCK__CREATEMATRIX_OUT_IMAGE_HELP");
   END_BLOCK_PARAMS();
 
+  BEGIN_BLOCK_SUBPARAMS_DEF(CreateMatrix);
+  END_BLOCK_PARAMS();
+
   CreateMatrix::CreateMatrix() :Block("BLOCK__CREATEMATRIX_NAME"){
     _myInputs["BLOCK__CREATEMATRIX_IN_TYPE"].addValidator({ new ValNeeded(), new ValRange(0, 6) });
     _myInputs["BLOCK__CREATEMATRIX_IN_WIDTH"].addValidator({ new ValNeeded(), new ValPositiv(true) });

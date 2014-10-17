@@ -68,6 +68,14 @@ namespace charliesoft
     else
       return emptyVector;
   }
+
+  const std::vector<ParamDefinition>& ProcessManager::getAlgo_SubParams(std::string name) const
+  {
+    if (algorithmSubParams_.find(name) != algorithmSubParams_.end())
+      return algorithmSubParams_.at(name);
+    else
+      return emptyVector;
+  }
   const std::vector<ParamDefinition>& ProcessManager::getAlgo_OutParams(std::string name) const
   {
     if (algorithmOutParams_.find(name) != algorithmOutParams_.end())

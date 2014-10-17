@@ -26,6 +26,9 @@ namespace charliesoft
   ADD_PARAMETER(true, Matrix, "BLOCK__ACCUMULATOR_OUT_IMAGE", "BLOCK__ACCUMULATOR_OUT_IMAGE_HELP");
   END_BLOCK_PARAMS();
 
+  BEGIN_BLOCK_SUBPARAMS_DEF(AccuBlock);
+  END_BLOCK_PARAMS();
+
   AccuBlock::AccuBlock() :Block("BLOCK__ACCUMULATOR_NAME"), filter(15){
     _myInputs["BLOCK__ACCUMULATOR_IN_IMAGE"].addValidator({ new ValNeeded() });
     _myInputs["BLOCK__ACCUMULATOR_IN_NB_HISTORY"].addValidator({ new ValNeeded(), new ValPositiv(true) });

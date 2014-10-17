@@ -37,6 +37,7 @@ namespace charliesoft
     std::vector<ParamDefinition> emptyVector;
     std::map< AlgoType, std::vector<std::string> > listOfAlgorithms_;
     std::map< std::string, std::vector<ParamDefinition> > algorithmInParams_;
+    std::map< std::string, std::vector<ParamDefinition> > algorithmSubParams_;
     std::map< std::string, std::vector<ParamDefinition> > algorithmOutParams_;
     std::map< std::string, Algo_factory > algo_factory_;
     static ProcessManager* _ptr;
@@ -50,6 +51,7 @@ namespace charliesoft
 
     std::vector<std::string> getAlgos(AlgoType type) const;
     const std::vector<ParamDefinition>& getAlgo_InParams(std::string name) const;
+    const std::vector<ParamDefinition>& getAlgo_SubParams(std::string name) const;
     const std::vector<ParamDefinition>& getAlgo_OutParams(std::string name) const;
 
     template<typename T>
@@ -60,6 +62,7 @@ namespace charliesoft
       listOfAlgorithms_[type].push_back(name);
       algorithmInParams_[name] = T::getListParams();
       algorithmOutParams_[name] = T::getListOutputs();
+      algorithmSubParams_[name] = T::getListSubParams();
       return true;
     }
 
