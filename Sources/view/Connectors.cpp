@@ -89,7 +89,7 @@ namespace charliesoft
   LinkConnexionRepresentation::LinkConnexionRepresentation(std::string text, bool isInput, QWidget *father) :
     QLabel(text.c_str(), father), _isInput(isInput)
   {
-
+    _vertex = NULL;
   };
   QPoint LinkConnexionRepresentation::getWorldAnchor()
   {
@@ -104,16 +104,18 @@ namespace charliesoft
   {
     QWidget* parent = parentWidget();
     if (parent == NULL) return;//Nothing to do...
-    if (VertexRepresentation* vertex = dynamic_cast<VertexRepresentation*>(parent->parentWidget()))
-      vertex->setParamActiv(this);
+    if (_vertex = dynamic_cast<VertexRepresentation*>(parent->parentWidget()))
+      _vertex->setParamActiv(this);
     //get the position of widget inside main widget and send signal of a new link creation:
     emit creationLink(getWorldAnchor());
     e->ignore();
   }
   void LinkConnexionRepresentation::mouseReleaseEvent(QMouseEvent *e)
   {
-    if (VertexRepresentation* vertex = dynamic_cast<VertexRepresentation*>(parentWidget()))
-      vertex->setParamActiv(NULL);
+    if (_vertex!=NULL)
+      _vertex->setParamActiv(NULL);
+
+    _vertex = NULL;
 
     emit releaseLink(Window::getInstance()->getMainWidget()->mapFromGlobal(e->globalPos()));
   };

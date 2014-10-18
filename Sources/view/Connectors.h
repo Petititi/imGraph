@@ -17,6 +17,8 @@
 
 namespace charliesoft
 {
+  class VertexRepresentation;
+
   class LinkPath : public QPainterPath
   {
     bool _selected;
@@ -43,6 +45,7 @@ namespace charliesoft
     Q_OBJECT;
   protected:
     bool _isInput;
+    VertexRepresentation* _vertex;
   public:
     LinkConnexionRepresentation(std::string text, bool isInput, QWidget *father);
 
