@@ -524,13 +524,14 @@ namespace charliesoft
           it->second->setVisibility(false);
           updateParamModel(it->second);
 
-          if (subWidget_.find(it->second) != subWidget_.end())
+          try
           {
-            std::vector<ParamRepresentation*> valsWidgets = subparamGroup_[subWidget_[it->second]];
+            std::vector<ParamRepresentation*> valsWidgets = subparamGroup_.at(subWidget_.at(it->second));
             for (ParamRepresentation* p : valsWidgets)
             {
               if (_inputModificator21.at(p)->isChecked())
               {
+                p->setVisibility(false);
                 updateParamModel(p);
               }
               else
@@ -540,7 +541,9 @@ namespace charliesoft
               }
             }
           }
-
+          catch (std::out_of_range&)
+          {
+          }
         }
         else
         {
@@ -837,6 +840,7 @@ namespace charliesoft
               ParamDefinition tmpDef(false, param->getType(), fullSubName, subParam);
               ParamRepresentation *tmp = new ParamRepresentation(model, tmpDef, true, _blockRepresentation);
               tmp->setVisibility(false);
+              tmp->isSubParam(true);
               connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
               connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
               listOfInputSubParams_[tmpDef._name] = tmp;

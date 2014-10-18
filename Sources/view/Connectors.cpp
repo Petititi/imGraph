@@ -40,7 +40,8 @@ namespace charliesoft
   }
 
   ParamRepresentation::ParamRepresentation(Block* model, ParamDefinition param, bool isInput, QWidget *father) :
-    LinkConnexionRepresentation(_STR(param._name), isInput, father), _model(model), param_(param){
+    LinkConnexionRepresentation(_STR(param._name), isInput, father), _model(model), _param(param){
+    _isSubParam = false;
     setObjectName("ParamRepresentation");
     if (!param._show) this->hide();
     setToolTip(_QT(param._helper));
@@ -49,31 +50,40 @@ namespace charliesoft
   };
 
   std::string ParamRepresentation::getParamHelper() const {
-    size_t pos = _STR(param_._helper).find_first_of('|');
+    size_t pos = _STR(_param._helper).find_first_of('|');
     if (pos == std::string::npos)
-      return param_._helper;
+      return _param._helper;
     else
-      return _STR(param_._helper).substr(0, pos);
+      return _STR(_param._helper).substr(0, pos);
   }
 
   std::vector<std::string> ParamRepresentation::getParamListChoice() const
   {
     std::vector<std::string> out;
-    size_t pos = _STR(param_._helper).find_first_of('|');
+    size_t pos = _STR(_param._helper).find_first_of('|');
     if (pos == std::string::npos)
       return out;
-    std::string params = _STR(param_._helper).substr(pos+1);
+    std::string params = _STR(_param._helper).substr(pos+1);
     boost::split(out, params, boost::is_any_of("^"));
     return out;
   }
 
   void ParamRepresentation::setVisibility(bool visible)
   {
-    if (param_._show == visible)
+    if (_param._show == visible)
       return;//Nothing to do...
 
-    param_._show = visible;
+    _param._show = visible;
     emit askSynchro();
+  }
+
+  void ParamRepresentation::isSubParam(bool param1)
+  {
+    _isSubParam = param1;
+    if (_isSubParam)
+      setText(_param._helper.c_str());
+    else
+      setText(_param._helper.c_str());
   }
 
   LinkConnexionRepresentation::LinkConnexionRepresentation(std::string text, bool isInput, QWidget *father) :

@@ -189,7 +189,7 @@ public:
     vector<cv::String> subValuesDetector;
     detect->getParams(subValuesDetector);
     for (cv::String subParam : subValuesDetector)
-      setParamOpencv(detect, detectorList[methodDetect], subParam);
+      setParamOpencv(detect, "BLOCK__POINT_FINDER_IN_DETECTOR." + detectorList[methodDetect], subParam);
 
     string modificator = "";
     if (!_myInputs["BLOCK__POINT_FINDER_IN_MODIFICATOR"].isDefaultValue())
@@ -203,7 +203,7 @@ public:
         vector<cv::String> out;
         detect->getParams(out);
         for (cv::String subParam : out)
-          setParamOpencv(subdetect, modificator, subParam);
+          setParamOpencv(subdetect, "BLOCK__POINT_FINDER_IN_MODIFICATOR." + modificator, subParam);
 
         detect = subdetect;//detector are now chained, take the parent
       }
@@ -222,7 +222,7 @@ public:
       vector<cv::String> subValuesExtractor;
       detect->getParams(subValuesExtractor);
       for (cv::String subParam : subValuesExtractor)
-        setParamOpencv(extract, extractorList[methodExtract], subParam);
+        setParamOpencv(extract, "BLOCK__POINT_FINDER_IN_EXTRACTOR." + extractorList[methodExtract], subParam);
 
       if (!extract.empty())
         extract->compute(mat, points, desc);
