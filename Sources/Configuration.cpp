@@ -69,8 +69,10 @@ namespace charliesoft
     charliesoft::GraphOfProcess* graph = Window::getInstance()->getModel();
     graph->saveGraph(localElement);
 
+    if (lastProject_.empty())
+      lastProject_ = "config.xml";
     boost::property_tree::xml_writer_settings<char> settings(' ', 2);
-    write_xml("config.xml", localElement, std::locale(), settings);
+    write_xml(lastProject_, localElement, std::locale(), settings);
   }
 
   void GlobalConfig::loadConfig()

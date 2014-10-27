@@ -574,7 +574,7 @@ namespace charliesoft
     }
 
     emit askSynchro();
-    Window::getGraphLayout()->synchronize(Window::getInstance()->getModel());
+    Window::getGraphLayout()->synchronize();
     close();
   }
   void ParamsConfigurator::reject_button()
@@ -1088,9 +1088,6 @@ namespace charliesoft
     _blockRepresentation->raise();
 
     resize(newWidth + 10, projectedHeight - 10);
-
-    for (auto link : _links)
-      Window::getGraphLayout()->updateLink(link.first);
   }
   
   void VertexRepresentation::setParamActiv(LinkConnexionRepresentation* param)
@@ -1185,8 +1182,6 @@ namespace charliesoft
     delta = pos() + delta;
     move(delta.x(), delta.y());
     _model->setPosition(delta.x(), delta.y());
-    for (auto link : _links)
-      Window::getGraphLayout()->updateLink(link.first);
     Window::getInstance()->redraw();
   }
 
@@ -1366,34 +1361,10 @@ namespace charliesoft
       auto paramTo = toVertex->getParamRep(link._toParam, true);
       paramFrom->setVisibility(true);
       paramTo->setVisibility(true);
-      LinkPath* path = new LinkPath();
-      path->setFillRule(Qt::WindingFill);
+      LinkPath* path = new LinkPath(paramFrom, paramTo);
       _links[link] = path;
       fromVertex->addLink(link, path);
       toVertex->addLink(link, path);
-      path->moveTo(paramFrom->getWorldAnchor());
-      path->lineTo(paramTo->getWorldAnchor());
-    }
-  }
-
-  void GraphRepresentation::updateLink(const BlockLink& link)
-  {
-    VertexRepresentation* fromVertex, *toVertex;
-    fromVertex = dynamic_cast<VertexRepresentation*>(_items[link._from]->widget());
-    toVertex = dynamic_cast<VertexRepresentation*>(_items[link._to]->widget());
-    if (fromVertex != NULL && toVertex != NULL)
-    {
-      auto paramFrom = fromVertex->getParamRep(link._fromParam, false);
-      auto paramTo = toVertex->getParamRep(link._toParam, true);
-      LinkPath* path = _links[link];
-      if (path!=NULL)
-      {
-        int test = path->elementCount();
-        QPoint tmp = paramFrom->getWorldAnchor();
-        path->setElementPositionAt(0, tmp.x(), tmp.y());
-        tmp = paramTo->getWorldAnchor();
-        path->setElementPositionAt(1, tmp.x(), tmp.y());
-      }
     }
   }
 
@@ -1414,7 +1385,7 @@ namespace charliesoft
   void GraphRepresentation::drawEdges(QPainter& p)
   {
     for (auto iter : _links)
-      iter.second->draw(p);
+      iter.second->draw(&p, NULL, NULL);
   }
 
   VertexRepresentation* GraphRepresentation::getVertexRepresentation(Block* b)
@@ -1424,17 +1395,18 @@ namespace charliesoft
     return dynamic_cast<VertexRepresentation*>(_items[b]->widget());
   }
 
-  void GraphRepresentation::synchronize(charliesoft::GraphOfProcess *model)
+  void GraphRepresentation::synchronize()
   {
     //for each vertex, we look for the corresponding representation:
-    std::vector<Block*> blocks = model->getVertices();
+    std::vector<Block*> blocks = Window::getInstance()->getModel()->getVertices();
     for (auto it = blocks.begin(); it != blocks.end(); it++)
     {
       if (_items.find(*it) == _items.end())//add this vertex to view:
         addWidget(new VertexRepresentation(*it));
     }
     //test if block still exist:
-    for (auto it_ = _items.begin(); it_ != _items.end(); it_++)
+    auto it_ = _items.begin();
+    while (it_ != _items.end())
     {
       bool found = false;
       for (auto it = blocks.begin(); it != blocks.end() && !found; it++)
@@ -1446,15 +1418,18 @@ namespace charliesoft
       if (!found)//remove this block from view:
       {
         int pos = indexOf(it_->first);
-        auto representation = takeAt(pos);
+        auto representation = takeAt(pos);//remove widget from representation
         delete representation->widget();
         delete representation;
         it_ = _items.begin();//restart iteration (we can't presume for iterator position)
       }
+      if (it_ != _items.end())
+        it_++;
     }
 
     //test if link still exist:
-    for (auto link = _links.begin(); link != _links.end(); link++)
+    auto link = _links.begin();
+    while (link != _links.end())
     {
       ParamValue* param = link->first._to->getParam(link->first._toParam, true);
       if (param == NULL || !param->isLinked() ||
@@ -1465,6 +1440,8 @@ namespace charliesoft
         _links.erase(tmpLink);
         link = _links.begin();
       }
+      if (link != _links.end())
+        link++;
     }
 
     //test if blocks are ok:
@@ -1489,12 +1466,11 @@ namespace charliesoft
     Window::getInstance()->redraw();
   }
 
-  MainWidget::MainWidget(charliesoft::GraphOfProcess *model)
+  MainWidget::MainWidget()
   {
     setObjectName("MainWidget");
     isSelecting_ = creatingLink_ = false;
     startParam_ = NULL;
-    _model = model;
     setAcceptDrops(true);
   }
 
@@ -1508,9 +1484,9 @@ namespace charliesoft
   {
     Block* block = ProcessManager::getInstance()->createAlgoInstance(
       event->mimeData()->text().toStdString());
-    _model->addNewProcess(block);
+    Window::getInstance()->getModel()->addNewProcess(block);
     block->updatePosition((float)event->pos().x(), (float)event->pos().y());
-    emit askSynchro(_model);//as we updated the model, we ask the layout to redraw itself...
+    emit askSynchro();//as we updated the model, we ask the layout to redraw itself...
   }
   
   void MainWidget::paintEvent(QPaintEvent *pe)
@@ -1645,7 +1621,7 @@ namespace charliesoft
         return;
       }
 
-      emit askSynchro(_model);
+      emit askSynchro();
     }
 
     //if one is ConditionLinkRepresentation, other is ParamRepresentation:
@@ -1667,7 +1643,7 @@ namespace charliesoft
       }
       ConditionOfRendering* model = condParam->getModel();
       model->setValue(condParam->isLeftCond(), param->getParamValue());
-      emit askSynchro(_model);
+      emit askSynchro();
     }
 
   }

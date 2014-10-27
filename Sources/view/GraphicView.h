@@ -192,7 +192,6 @@ namespace charliesoft
     void removeLinks(VertexRepresentation* vertex);
     void removeSelectedLinks();
     void addLink(const BlockLink& link);
-    void updateLink(const BlockLink& link);
 
     void clearLayout(QLayout* layout = NULL);
     std::map<Block*, QLayoutItem*> getItems() const { return _items; }
@@ -210,7 +209,7 @@ namespace charliesoft
     VertexRepresentation* getVertexRepresentation(Block* b);
 
     public slots:
-    void synchronize(charliesoft::GraphOfProcess *model);
+    void synchronize();
   };
 
   class MainWidget :public QWidget
@@ -231,18 +230,14 @@ namespace charliesoft
 
     virtual void dragEnterEvent(QDragEnterEvent *);
     virtual void dropEvent(QDropEvent *);
-
-    charliesoft::GraphOfProcess *_model;
   public:
-    MainWidget(charliesoft::GraphOfProcess *model);
-
-    void setModel(charliesoft::GraphOfProcess * val) { _model = val; }
+    MainWidget();
 
     virtual QSize sizeHint() const;
     virtual QSize minimumSizeHint() const;
 
     signals:
-    void askSynchro(charliesoft::GraphOfProcess *model);
+    void askSynchro();
 
     public slots:
     void initLinkCreation(QPoint start);

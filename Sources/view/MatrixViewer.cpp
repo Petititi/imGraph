@@ -666,19 +666,12 @@ MatrixViewer::MatrixViewer(QString name, int arg2)
 
 MatrixViewer::~MatrixViewer()
 {
+  lock_guard<boost::recursive_mutex> guard(myView->_mtx);//For multithread problems
   if (myTools != NULL)
   {
     delete myTools;
     myTools = NULL;
   }
-  _cond_waitEnd.notify_all();
-}
-
-
-void MatrixViewer::waitEnd()
-{
-  boost::unique_lock<boost::mutex> lock(_mtx);
-  _cond_waitEnd.wait(lock);//wait for end...
 }
 
 void MatrixViewer::writeSettings()
@@ -1707,6 +1700,8 @@ void DefaultViewPort::drawStatusBar()
 {
   if (nbChannelOriginImage != 1 && nbChannelOriginImage != 3)
     return;
+
+  lock_guard<boost::recursive_mutex> guard(_mtx);//For multithread problems
 
   if (mouseCoordinate.x() >= 0 &&
     mouseCoordinate.y() >= 0 &&

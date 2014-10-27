@@ -13,6 +13,7 @@ namespace charliesoft
   public:
     static bool pauseProcess;
     GraphOfProcess();
+    ~GraphOfProcess();
 
     void saveGraph(boost::property_tree::ptree& tree) const;
     void fromGraph(boost::property_tree::ptree& tree);

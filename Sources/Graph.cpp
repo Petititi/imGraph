@@ -40,6 +40,13 @@ namespace charliesoft
   GraphOfProcess::GraphOfProcess(){
   };
 
+  GraphOfProcess::~GraphOfProcess()
+  {
+    for (Block* b : _vertices)
+      delete b;
+    _vertices.clear();
+  }
+
   void GraphOfProcess::addNewProcess(Block* block){
     _vertices.push_back(block);
     block->setGraph(this);

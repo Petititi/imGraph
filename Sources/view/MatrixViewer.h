@@ -198,14 +198,9 @@ class MatrixViewer : public QDialog
 {
   Q_OBJECT;
 
-  boost::condition_variable _cond_waitEnd;  // wait end condition
-  boost::mutex _mtx;    // explicit mutex declaration
 public:
   MatrixViewer(QString arg2, int flag = CV_WINDOW_NORMAL);
   ~MatrixViewer();
-
-  ///wait until window is closed!
-  void waitEnd();
 
   void writeSettings();
   void readSettings();
@@ -313,8 +308,9 @@ class DefaultViewPort : public QGraphicsView, public ViewPort
 {
   Q_OBJECT
 
-    boost::recursive_mutex _mtx;    // explicit mutex declaration
 public:
+  boost::recursive_mutex _mtx;    // explicit mutex declaration
+
   DefaultViewPort(MatrixViewer* centralWidget, int arg2);
   ~DefaultViewPort();
 

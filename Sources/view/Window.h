@@ -86,11 +86,13 @@ namespace charliesoft
     void closeEvent(QCloseEvent *event);
 
   signals:
-    void askSynchro(charliesoft::GraphOfProcess *model);
+    void askSynchro();
 
     private slots:
     void openFile();
     void newProject();
+    void saveProject();
+    void saveAsProject();
     bool quitProg();
     void printHelp();
   };

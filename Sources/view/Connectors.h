@@ -6,7 +6,7 @@
 #pragma warning(push)
 #pragma warning(disable:4996 4251 4275 4800 4503)
 #endif
-#include <QPainterPath>
+#include <QGraphicsLineItem>
 #include <QLabel>
 #include <QPainter>
 #ifdef _WIN32
@@ -18,23 +18,24 @@
 namespace charliesoft
 {
   class VertexRepresentation;
+  class LinkConnexionRepresentation;
 
-  class LinkPath : public QPainterPath
+  class LinkPath : public QGraphicsLineItem
   {
     bool _selected;
+    QPolygonF _arrowHead;
+    LinkConnexionRepresentation* _src;
+    LinkConnexionRepresentation* _dst;
   public:
-    LinkPath() :QPainterPath(){ _selected = false; };
+    LinkPath(LinkConnexionRepresentation* src,
+      LinkConnexionRepresentation* dst,
+      QGraphicsItem *parent=0, QGraphicsScene *scene=0);
 
     bool intersect(const QRect& pos) const;
+    QPainterPath shape() const;
 
-    void draw(QPainter& p)
-    {
-      if (_selected)
-        p.setPen(QPen(QColor(255, 0, 0), 2));
-      else
-        p.setPen(QPen(Qt::black, 2));
-      p.drawPath(*this);
-    }
+    void draw(QPainter *painter, const QStyleOptionGraphicsItem *,
+      QWidget *);
 
     bool isSelected() const { return _selected; }
     void setSelected(bool val) { _selected = val; }

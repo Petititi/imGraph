@@ -216,7 +216,7 @@ public:
     if (_myOutputs["BLOCK__POINT_FINDER_OUT_DESC"].isNeeded())
     {
       int methodExtract = _myInputs["BLOCK__POINT_FINDER_IN_EXTRACTOR"].get<int>();
-      cv::Ptr<DescriptorExtractor> extract = DescriptorExtractor::create(extractorList[methodExtract]);
+      cv::Ptr<DescriptorExtractor> extract = DescriptorExtractor::create(extractorList[methodExtract].c_str());
 
       //set sub params values:
       vector<cv::String> subValuesExtractor;

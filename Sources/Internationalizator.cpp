@@ -107,6 +107,10 @@ namespace charliesoft
     translations["MENU_FILE_OPEN_TIP"] = "Open a previous project";
     translations["MENU_FILE_CREATE"] = "New";
     translations["MENU_FILE_CREATE_TIP"] = "Create a new project";
+    translations["MENU_FILE_SAVE"] = "Save";
+    translations["MENU_FILE_SAVE_TIP"] = "Save current project";
+    translations["MENU_FILE_SAVEAS"] = "Save as...";
+    translations["MENU_FILE_SAVEAS_TIP"] = "Choose file where to save current project";
     translations["MENU_FILE_QUIT"] = "Quit";
     translations["MENU_FILE_QUIT_TIP"] = "Quit application";
 

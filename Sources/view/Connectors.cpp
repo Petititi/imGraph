@@ -8,6 +8,8 @@
 
 namespace charliesoft
 {
+  const qreal Pi = 3.1415926;
+
   bool lineIntersect(QLineF& line1, double x1, double y1, double x2, double y2)
   {
     QLineF line;
@@ -17,18 +19,79 @@ namespace charliesoft
     return line.intersect(line1, &intersection) == QLineF::BoundedIntersection;
   }
 
+  LinkPath::LinkPath(LinkConnexionRepresentation* src,
+    LinkConnexionRepresentation* dst,
+    QGraphicsItem *parent, QGraphicsScene *scene) :
+    QGraphicsLineItem(parent, scene){
+    _src = src; _dst = dst; _selected = false;
+    setFlag(QGraphicsItem::ItemIsSelectable, true);
+    setPen(QPen(Qt::black, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    setLine(QLineF(_dst->getWorldAnchor(), _src->getWorldAnchor()));
+  };
+
+  QPainterPath LinkPath::shape() const
+  {
+    QPainterPath path = QGraphicsLineItem::shape();
+    path.addPolygon(_arrowHead);
+    return path;
+  }
+
   bool LinkPath::intersect(const QRect& rect) const
   {
     QLineF line;
-    const QPainterPath::Element &p1 = elementAt(0);
-    const QPainterPath::Element &p2 = elementAt(1);
-    if (rect.contains((int)p1.x, (int)p1.y) || rect.contains((int)p2.x, (int)p2.y))
+    QPoint p1 = _src->getWorldAnchor();
+    QPoint p2 = _dst->getWorldAnchor();
+    if (rect.contains(p1.x(), p1.y()) || rect.contains(p2.x(), p2.y()))
       return true;
-    line.setP1(QPointF(p1.x, p1.y));
-    line.setP2(QPointF(p2.x, p2.y));
+    line.setP1(QPointF(p1.x(), p1.y()));
+    line.setP2(QPointF(p2.x(), p2.y()));
     return lineIntersect(line, rect.x(), rect.y(), rect.x() + rect.width(), rect.y()) ||
       lineIntersect(line, rect.x(), rect.y(), rect.x(), rect.y() + rect.height()) ||
       lineIntersect(line, rect.x(), rect.y() + rect.height(), rect.x() + rect.width(), rect.y() + rect.height());
+  }
+
+  void LinkPath::draw(QPainter *painter, const QStyleOptionGraphicsItem *,
+    QWidget *)
+  {
+    QPen myPen = pen();
+    QColor myColor;
+    if (_selected)
+      myColor = QColor(255, 0, 0);
+    else
+      myColor = Qt::black;
+    myPen.setColor(myColor);
+    qreal arrowSize = 10;
+    painter->setPen(myPen);
+    painter->setBrush(myColor);
+
+    QLineF centerLine(_src->pos(), _dst->pos());
+
+    setLine(QLineF(_dst->getWorldAnchor(), _src->getWorldAnchor()));
+
+    double angle = ::acos(line().dx() / line().length());
+    if (line().dy() >= 0)
+      angle = (Pi * 2) - angle;
+
+    QPointF arrowP1 = line().p1() + QPointF(sin(angle + Pi / 2.5) * arrowSize,
+      cos(angle + Pi / 2.5) * arrowSize);
+    QPointF arrowP2 = line().p1() + QPointF(sin(angle + Pi - Pi / 2.5) * arrowSize,
+      cos(angle + Pi - Pi / 2.5) * arrowSize);
+
+    _arrowHead.clear();
+    _arrowHead << line().p1() << arrowP1 << arrowP2;
+
+    painter->drawLine(line());
+    painter->drawPolygon(_arrowHead);
+    
+    if (_selected) {
+      painter->setPen(QPen(myColor, 1, Qt::DashLine));
+      QLineF myLine = line();
+      myLine.translate(0, 4.0);
+      painter->drawLine(myLine);
+      myLine.translate(0, -8.0);
+      painter->drawLine(myLine);
+    }
+    
   }
 
   ConditionLinkRepresentation::ConditionLinkRepresentation(ConditionOfRendering* model, bool isLeftCond, QWidget *father) :

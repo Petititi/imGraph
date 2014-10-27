@@ -115,6 +115,16 @@ namespace charliesoft
     createAct->setStatusTip(_QT("MENU_FILE_CREATE_TIP"));
     connect(createAct, SIGNAL(triggered()), this, SLOT(newProject()));
     menuFichier->addAction(createAct);
+    QAction* saveAct = new QAction(_QT("MENU_FILE_SAVE"), this);
+    saveAct->setShortcuts(QKeySequence::Save);
+    saveAct->setStatusTip(_QT("MENU_FILE_SAVE_TIP"));
+    connect(saveAct, SIGNAL(triggered()), this, SLOT(saveProject()));
+    menuFichier->addAction(saveAct);
+    QAction* saveAsAct = new QAction(_QT("MENU_FILE_SAVEAS"), this);
+    saveAsAct->setShortcuts(QKeySequence::SaveAs);
+    saveAsAct->setStatusTip(_QT("MENU_FILE_SAVEAS_TIP"));
+    connect(saveAsAct, SIGNAL(triggered()), this, SLOT(saveAsProject()));
+    menuFichier->addAction(saveAsAct);
     QAction* actionQuitter = new QAction(_QT("MENU_FILE_QUIT"), this);
     actionQuitter->setShortcuts(QKeySequence::Close);
     actionQuitter->setStatusTip(_QT("MENU_FILE_QUIT_TIP"));
@@ -144,7 +154,7 @@ namespace charliesoft
   {
     mainLayout_ = new GraphRepresentation();
    
-    mainWidget_ = new MainWidget(_model);
+    mainWidget_ = new MainWidget();
     mainWidget_->setLayout(mainLayout_);
 
     QScrollArea* scrollarea = new QScrollArea(this);
@@ -205,14 +215,14 @@ namespace charliesoft
       QMainWindow::show();
     }
 
-    connect(mainWidget_, SIGNAL(askSynchro(charliesoft::GraphOfProcess *)),
-      mainLayout_, SLOT(synchronize(charliesoft::GraphOfProcess *)));
-    connect(this, SIGNAL(askSynchro(charliesoft::GraphOfProcess *)),
-      mainLayout_, SLOT(synchronize(charliesoft::GraphOfProcess *)));
+    connect(mainWidget_, SIGNAL(askSynchro()),
+      mainLayout_, SLOT(synchronize()));
+    connect(this, SIGNAL(askSynchro()),
+      mainLayout_, SLOT(synchronize()));
 
     setStyleSheet(GlobalConfig::getInstance()->styleSheet_.c_str());
 
-    mainLayout_->synchronize(_model);
+    mainLayout_->synchronize();
   }
 
   void Window::mousePressEvent(QMouseEvent *event)
@@ -261,7 +271,7 @@ namespace charliesoft
           for (auto rep : VertexRepresentation::getSelection())
             _model->deleteProcess(rep->getModel());
           VertexRepresentation::resetSelection();
-          mainLayout_->synchronize(_model);
+          mainLayout_->synchronize();
           break;
         default:
           return QMainWindow::event(event);
@@ -288,29 +298,70 @@ namespace charliesoft
     {
       GlobalConfig::getInstance()->lastProject_ = file.toStdString();
       //load project...
+      mainLayout_->clearLayout();
+      if (_model != NULL)
+        delete _model;
+      _model = new GraphOfProcess();
+
+      ptree xmlTree;
+      //try to read the file:
+      ifstream ifs(file.toStdString());
+      if (ifs.is_open())
+      {
+        string str((istreambuf_iterator<char>(ifs)), istreambuf_iterator<char>());
+        stringstream contentStreamed;
+        contentStreamed << str;
+        try
+        {
+          read_xml(contentStreamed, xmlTree);
+        }
+        catch (boost::property_tree::ptree_bad_path&)
+        {//nothing to do...
+        }
+      }
+      if (!xmlTree.empty())
+        _model->fromGraph(xmlTree);
     }
+
+  }
+
+  void Window::newProject()
+  {
+    GlobalConfig::getInstance()->lastProject_ = "";
 
     mainLayout_->clearLayout();
     if (_model != NULL)
       delete _model;
     _model = new GraphOfProcess();
+    mainLayout_->synchronize();
   }
 
-  void Window::newProject()
+  void Window::saveProject()
+  {
+    if (GlobalConfig::getInstance()->lastProject_.empty() || _model==NULL)
+      GlobalConfig::getInstance()->saveConfig();
+    else
+    {
+      ptree localElement;
+      _model->saveGraph(localElement);
+      boost::property_tree::xml_writer_settings<char> settings(' ', 2);
+      write_xml(GlobalConfig::getInstance()->lastProject_, localElement, std::locale(), settings);
+    }
+  };
+
+  void Window::saveAsProject()
   {
     string lastDirectory = GlobalConfig::getInstance()->lastProject_;
-    if (!lastDirectory.empty() && lastDirectory.find_last_of('/')!=string::npos)
+    if (!lastDirectory.empty() && lastDirectory.find_last_of('/') != string::npos)
       lastDirectory = lastDirectory.substr(0, lastDirectory.find_last_of('/'));
 
     QString file = QFileDialog::getSaveFileName(this, _QT("PROJ_CREATE_FILE"),
       lastDirectory.c_str(), _QT("CONF_FILE_TYPE"));
-    GlobalConfig::getInstance()->lastProject_ = file.toStdString();
+    if (!file.isEmpty())
+      GlobalConfig::getInstance()->lastProject_ = file.toStdString();
 
-    mainLayout_->clearLayout();
-    if (_model != NULL)
-      delete _model; 
-    _model = new GraphOfProcess();
-  }
+    saveProject();
+  };
 
   bool Window::quitProg()
   {
