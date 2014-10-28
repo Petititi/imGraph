@@ -1499,13 +1499,12 @@ namespace charliesoft
       QStyle::PE_Widget, &o, &painter, this);
 
     painter.setRenderHint(QPainter::Antialiasing, true);
-    painter.setPen(QPen(Qt::black, 2));
 
-    //now ask each vertex to draw the links:
-    Window::getGraphLayout()->drawEdges(painter);
+    painter.setPen(QPen(Qt::black, 2));
 
     if (creatingLink_)
       painter.drawLine(startMouse_, endMouse_);
+
     if (isSelecting_)
     {
       painter.fillRect((int)selectBox_.x(), (int)selectBox_.y(), (int)selectBox_.width(), (int)selectBox_.height(),
@@ -1513,6 +1512,10 @@ namespace charliesoft
       painter.setPen(QColor(0, 0, 200, 255));
       painter.drawRect(selectBox_);
     }
+
+    //now ask each vertex to draw the links:
+    Window::getGraphLayout()->drawEdges(painter);
+
   }
 
   void MainWidget::mouseMoveEvent(QMouseEvent *me)

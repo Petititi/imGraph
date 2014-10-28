@@ -84,7 +84,10 @@ namespace charliesoft
   void GraphOfProcess::stop()
   {
     for (size_t i = 0; i < _runningThread.size(); i++)
+    {
       _runningThread[i].interrupt();
+      _runningThread[i].join();//wait for the end...
+    }
     _runningThread.clear();
   }
 
@@ -101,7 +104,7 @@ namespace charliesoft
   }
   void GraphOfProcess::switchPause()
   {
-    GraphOfProcess::pauseProcess = !GraphOfProcess::pauseProcess;
+    pauseProcess = !pauseProcess;
     if (!pauseProcess)
     {
       //wake up threads:

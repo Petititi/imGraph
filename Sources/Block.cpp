@@ -275,6 +275,7 @@ namespace charliesoft
           _fullyRendered = true;
 
           _cond_sync.notify_all();//wake up waiting thread (if needed)
+          boost::this_thread::sleep(boost::posix_time::milliseconds(10.));
         }
       }
     }
