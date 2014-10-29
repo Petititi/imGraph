@@ -878,10 +878,7 @@ namespace charliesoft
   void VertexRepresentation::removeLink(BlockLink l){
     _links.erase(l);
 
-    if (l._from == _model)
-      (*_model->getParam(l._fromParam, false)) = Not_A_Value();
-    if (l._to == _model)
-      (*_model->getParam(l._toParam, true)) = Not_A_Value();
+    Window::getInstance()->getModel()->removeLink(l);
   };
 
   ConditionLinkRepresentation* VertexRepresentation::getCondition(ConditionOfRendering* cor, bool isLeft)
@@ -1590,7 +1587,7 @@ namespace charliesoft
     //find an hypotetic param widget under mouse:
     ParamRepresentation* param = dynamic_cast<ParamRepresentation*>(childAt(endMouse_));
     ParamRepresentation* startParam = dynamic_cast<ParamRepresentation*>(startParam_);
-    if (param != NULL &&startParam != NULL)
+    if (param != NULL && startParam != NULL)
     {
       //we have a candidate!
       //we should link input on output(or vice versa)
@@ -1613,9 +1610,9 @@ namespace charliesoft
       //everything seems correct, create the link!!!
       try{
         if (param->isInput())
-          startParam->getModel()->createLink(startParam->getParamName(), param->getModel(), param->getParamName());
+          Window::getInstance()->getModel()->createLink(startParam->getModel(), startParam->getParamName(), param->getModel(), param->getParamName());
         else
-          param->getModel()->createLink(param->getParamName(), startParam->getModel(), startParam->getParamName());
+          Window::getInstance()->getModel()->createLink(param->getModel(), param->getParamName(), startParam->getModel(), startParam->getParamName());
       }
       catch (ErrorValidator& e)
       {

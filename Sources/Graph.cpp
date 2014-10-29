@@ -65,6 +65,16 @@ namespace charliesoft
     }
   };
 
+  void GraphOfProcess::removeLink(const BlockLink& l)
+  {
+    *(l._to->getParam(l._toParam, true)) = Not_A_Value();
+  }
+
+  void GraphOfProcess::createLink(Block* src, std::string paramName, Block* dest, std::string paramNameDest)
+  {
+    src->linkParam(paramName, dest, paramNameDest);
+  }
+
   void GraphOfProcess::synchronizeTimestamp(Block* processToSynchronize)
   {
     for (auto it : _vertices)
@@ -205,7 +215,7 @@ namespace charliesoft
       {
         try
         {
-          toBlock->createLink(secondVal->getName(), fromBlock, valToUpdate.first->getName());
+          createLink(toBlock, secondVal->getName(), fromBlock, valToUpdate.first->getName());
         }
         catch (ErrorValidator& e)
         {//algo doesn't accept this value!
@@ -229,4 +239,5 @@ namespace charliesoft
       }
     }
   }
+
 }

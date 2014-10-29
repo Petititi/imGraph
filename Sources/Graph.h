@@ -23,6 +23,8 @@ namespace charliesoft
     void addNewProcess(Block* filter);
     void deleteProcess(Block* process);
 
+    void createLink(Block* src, std::string paramName, Block* dest, std::string paramNameDest);
+
     void synchronizeTimestamp(Block* processToSynchronize);
 
     bool run();
@@ -30,6 +32,7 @@ namespace charliesoft
     void switchPause();
 
     std::vector<Block*>& getVertices();
+    void removeLink(const BlockLink& l);
   };
 }
 

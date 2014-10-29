@@ -28,7 +28,7 @@
   \
   class className## :public Block \
         { \
-      friend charliesoft::ProcessManager; \
+      friend class charliesoft::ProcessManager; \
       static std::vector<ParamDefinition> getListParams(); \
       static std::vector<ParamDefinition> getListOutputs(); \
       static std::vector<ParamDefinition> getListSubParams(); \
@@ -152,7 +152,7 @@ namespace charliesoft
 
   class Block{
     friend class GraphOfProcess;
-    friend charliesoft::ProcessManager;
+    friend class charliesoft::ProcessManager;
 
   protected:
     bool _renderingSkiped;
@@ -208,7 +208,7 @@ namespace charliesoft
       return _conditions;
     };
 
-    virtual void setParamLink(std::string nameParam_, ParamValue* value);
+    virtual void setParamValue(std::string nameParam_, ParamValue* value);
     virtual ParamValue* getParam(std::string nameParam_, bool input);
 
     virtual std::vector<cv::String> getSubParams(std::string paramVal){
@@ -231,7 +231,7 @@ namespace charliesoft
 
     const cv::Point2f& getPosition() const { return _position; }
     void updatePosition(float x, float y) { _position.x = x; _position.y = y; };
-    void createLink(std::string paramName, Block* dest, std::string paramNameDest);
+    void linkParam(std::string paramName, Block* dest, std::string paramNameDest);
 
     boost::property_tree::ptree getXML() const;
     void setPosition(int x, int y);

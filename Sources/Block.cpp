@@ -482,7 +482,7 @@ namespace charliesoft
     }
   }
 
-  void Block::setParamLink(std::string nameParam_, ParamValue* value){
+  void Block::setParamValue(std::string nameParam_, ParamValue* value){
     if (_myInputs.find(nameParam_) != _myInputs.end())
       _myInputs[nameParam_] = value;
   };
@@ -552,7 +552,7 @@ namespace charliesoft
     return tree;
   };
 
-  void Block::createLink(std::string paramName, Block* dest, std::string paramNameDest)
+  void Block::linkParam(std::string paramName, Block* dest, std::string paramNameDest)
   {
     ParamValue& valIn = ParamValue();
     if (dest->_myInputs.find(paramNameDest) == dest->_myInputs.end())
@@ -568,7 +568,7 @@ namespace charliesoft
         _STR(getName()) % _STR(valOut.getName()) % typeName(valOut.getType()) %
         _STR(dest->getName()) % _STR(valIn.getName()) % typeName(valIn.getType())).str()));
     }
-    dest->setParamLink(paramNameDest, &_myOutputs[paramName]);
+    dest->setParamValue(paramNameDest, &_myOutputs[paramName]);
   }
 
   void Block::setPosition(int x, int y)
