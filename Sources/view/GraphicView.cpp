@@ -1312,8 +1312,8 @@ namespace charliesoft
       if (_links.find(link.first) != _links.end())
       {
         _links.erase(link.first);//delete map association...
-        if (_items.find(link.first._from)!=_items.end())
-          dynamic_cast<VertexRepresentation*>(_items[link.first._from]->widget())->removeLink(link.first);
+        //if (_items.find(link.first._from)!=_items.end())
+        //  dynamic_cast<VertexRepresentation*>(_items[link.first._from]->widget())->removeLink(link.first);
         if (_items.find(link.first._to) != _items.end())
           dynamic_cast<VertexRepresentation*>(_items[link.first._to]->widget())->removeLink(link.first);
 
@@ -1329,8 +1329,6 @@ namespace charliesoft
     {
       if (it->second->isSelected())
       {
-        if (_items.find(it->first._from) != _items.end())
-          dynamic_cast<VertexRepresentation*>(_items[it->first._from]->widget())->removeLink(it->first);
         if (_items.find(it->first._to) != _items.end())
           dynamic_cast<VertexRepresentation*>(_items[it->first._to]->widget())->removeLink(it->first);
 
