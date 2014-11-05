@@ -115,6 +115,7 @@ namespace charliesoft
     translations["MENU_FILE_QUIT_TIP"] = "Quit application";
 
     translations["MATRIX_EDITOR_TOOLS"] = "Tools";
+    translations["MATRIX_EDITOR_BLOCKS"] = "Blocks";
     translations["MATRIX_EDITOR_DATA_CHOICES"] = "Matrix data type:";
     translations["MATRIX_EDITOR_DATA_SIZE"] = "Size (rows, cols, channels):";
     translations["MATRIX_EDITOR_DATA_INITIAL_VAL"] = "Initial values:";

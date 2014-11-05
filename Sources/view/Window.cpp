@@ -139,13 +139,13 @@ namespace charliesoft
   void Window::fillDock(int idDock)
   {
     std::vector<std::string> list = ProcessManager::getInstance()->getAlgos(AlgoType(idDock));
-    DraggableWidget* tmpLabel;
     auto it = list.begin();
     while (it != list.end())
     {
-      tmpLabel = new DraggableWidget(_QT(*it), this);
-      keysName_[tmpLabel] = *it;
-      docks_content_[idDock]->addWidget(tmpLabel);
+      QTreeWidgetItem* tmp = new QTreeWidgetItem();
+      tmp->setText(0, _QT(*it));
+      keysName_[tmp] = *it;
+      dock_categories[idDock]->addChild(tmp);
       it++;
     }
   }
@@ -169,9 +169,11 @@ namespace charliesoft
 
     statusBar();
 
-    tabWidget_ = new QTabWidget;
+    _dock_content = new DraggableContainer();
+    _dock_content->setColumnCount(1);
+    _dock_content->setHeaderLabel(_QT("MATRIX_EDITOR_BLOCKS"));
     dock_ = new QDockWidget(_QT("DOCK_TITLE"), this);
-    dock_->setWidget(tabWidget_);
+    dock_->setWidget(_dock_content);
     addDockWidget(Qt::LeftDockWidgetArea, dock_);
     dock_->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     dock_->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
@@ -179,30 +181,26 @@ namespace charliesoft
     //create the 5 docks:
     for (int i = 0; i < 5; i++)
     {
-      docks_content_.push_back(new QVBoxLayout());
-      DraggableContainer *tmpWidget = new DraggableContainer(this);
-      tmpWidget->setMaximumWidth(200);
-      tmpWidget->setLayout(docks_content_[i]);
-      docks_content_[i]->setAlignment(Qt::AlignTop);
-
+      QTreeWidgetItem *tmp = new QTreeWidgetItem(_dock_content);
+      dock_categories.push_back(tmp);
       switch (i)
       {
       case 0:
-        tabWidget_->addTab(tmpWidget, _QT("BLOCK_TITLE_INPUT"));
+        tmp->setText(0, _QT("BLOCK_TITLE_INPUT"));
         break;
       case 1:
-        tabWidget_->addTab(tmpWidget, _QT("BLOCK_TITLE_IMG_PROCESS"));
+        tmp->setText(0, _QT("BLOCK_TITLE_IMG_PROCESS"));
         break;
       case 2:
-        tabWidget_->addTab(tmpWidget, _QT("BLOCK_TITLE_SIGNAL"));
+        tmp->setText(0, _QT("BLOCK_TITLE_SIGNAL"));
         break;
       case 3:
-        tabWidget_->addTab(tmpWidget, _QT("BLOCK_TITLE_MATH"));
+        tmp->setText(0, _QT("BLOCK_TITLE_MATH"));
         break;
       default:
-        tabWidget_->addTab(tmpWidget, _QT("BLOCK_TITLE_OUTPUT"));
+        tmp->setText(0, _QT("BLOCK_TITLE_OUTPUT"));
       }
-
+      _dock_content->addTopLevelItem(tmp);
       fillDock(i);
     }
 
@@ -380,25 +378,21 @@ namespace charliesoft
 
   void DraggableContainer::mousePressEvent(QMouseEvent *mouse)
   {
+    QTreeWidget::mousePressEvent(mouse);
     if (mouse->button() == Qt::LeftButton)
     {
       //find widget below mouse:
-      if (QWidget* widget = dynamic_cast<QWidget*>(childAt(mouse->pos())))
+      string objName = Window::getInstance()->getKey(itemAt(mouse->pos()));
+      if (!objName.empty())
       {
         QDrag *drag = new QDrag(this);
         QMimeData *mimeData = new QMimeData;
 
-        mimeData->setText(Window::getInstance()->getKey(widget).c_str());
+        mimeData->setText(objName.c_str());
         drag->setMimeData(mimeData);
 
         Qt::DropAction dropAction = drag->exec();
       }
     }
   }
-
-  DraggableWidget::DraggableWidget(QString text, QWidget* p) :QLabel(_QT(text.toStdString()),p)
-  {
-    setObjectName("DraggableWidget");
-    setAlignment(Qt::AlignCenter);
-  };
 }

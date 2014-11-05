@@ -18,6 +18,7 @@
 #include <QComboBox>
 #include <QDial>
 #include <QPainterPath>
+#include <QTreeWidget>
 
 #ifdef _WIN32
 #pragma warning(pop)
@@ -33,16 +34,11 @@ namespace charliesoft
   class MainWidget;
   class GlobalConfig;
 
-  class DraggableWidget : public QLabel
-  {
-  public:
-    DraggableWidget(QString text, QWidget* p);
-  };
 
-  class DraggableContainer : public QWidget
+  class DraggableContainer : public QTreeWidget
   {
   public:
-    DraggableContainer(QWidget* p) :QWidget(p){};
+    DraggableContainer() :QTreeWidget(){};
   protected:
     virtual void mousePressEvent(QMouseEvent *);
   };
@@ -61,7 +57,10 @@ namespace charliesoft
     static GraphRepresentation* getGraphLayout();
     void show();
     MainWidget* getMainWidget() const { return mainWidget_; }
-    std::string getKey(QWidget* w){ return keysName_[w]; };
+    std::string getKey(QTreeWidgetItem* w) {
+      try{ return keysName_.at(w); }
+      catch (std::out_of_range){ return ""; };
+    };
 
     void redraw();
 
@@ -75,10 +74,10 @@ namespace charliesoft
     QMenu *menuAide;
     MainWidget* mainWidget_;//input, imgProcess, videoProcess, mathOperator, output
 
-    QTabWidget* tabWidget_;
     QDockWidget * dock_;
-    std::vector<QVBoxLayout *> docks_content_;
-    std::map<QWidget*, std::string> keysName_;
+    DraggableContainer * _dock_content;
+    std::vector<QTreeWidgetItem *> dock_categories;
+    std::map<QTreeWidgetItem*, std::string> keysName_;
 
     void fillDock(int idDock);
 
