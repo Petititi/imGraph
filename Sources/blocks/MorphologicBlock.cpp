@@ -48,10 +48,10 @@ namespace charliesoft
   bool MorphoBlock::run(){
     if (_myInputs["BLOCK__MORPHOLOGIC_IN_IMAGE"].isDefaultValue())
       return false;
-    cv::Mat mat = _myInputs["BLOCK__MORPHOLOGIC_IN_IMAGE"].get<cv::Mat>();
-    cv::Mat element = _myInputs["BLOCK__MORPHOLOGIC_ELEMENT"].get<cv::Mat>();
-    int operation = _myInputs["BLOCK__MORPHOLOGIC_OPERATOR"].get<int>();
-    int iter = _myInputs["BLOCK__MORPHOLOGIC_ITERATIONS"].get<int>();
+    cv::Mat mat = _myInputs["BLOCK__MORPHOLOGIC_IN_IMAGE"].get<cv::Mat>(true);
+    cv::Mat element = _myInputs["BLOCK__MORPHOLOGIC_ELEMENT"].get<cv::Mat>(true);
+    int operation = _myInputs["BLOCK__MORPHOLOGIC_OPERATOR"].get<int>(true);
+    int iter = _myInputs["BLOCK__MORPHOLOGIC_ITERATIONS"].get<int>(true);
     if (iter <= 0)
       iter = 1;
     cv::Mat tmp;
@@ -60,7 +60,6 @@ namespace charliesoft
       cv::morphologyEx(mat, tmp, operation, element, cv::Point(-1, -1), iter);
       _myOutputs["BLOCK__MORPHOLOGIC_OUT_IMAGE"] = tmp;
     }
-    renderingDone();
     return true;
   };
 };

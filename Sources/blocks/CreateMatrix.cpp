@@ -43,13 +43,13 @@ namespace charliesoft
   
   bool CreateMatrix::run(){
     //todo: verify that type index correspond to constant!
-    int wantedType = CV_MAKETYPE(_myInputs["BLOCK__CREATEMATRIX_IN_TYPE"].get<int>(),
-      _myInputs["BLOCK__CREATEMATRIX_IN_NBCHANNEL"].get<int>());
-    int wantedRow = _myInputs["BLOCK__CREATEMATRIX_IN_HEIGHT"].get<int>();
-    int wantedCol = _myInputs["BLOCK__CREATEMATRIX_IN_WIDTH"].get<int>();
+    int wantedType = CV_MAKETYPE(_myInputs["BLOCK__CREATEMATRIX_IN_TYPE"].get<int>(true),
+      _myInputs["BLOCK__CREATEMATRIX_IN_NBCHANNEL"].get<int>(true));
+    int wantedRow = _myInputs["BLOCK__CREATEMATRIX_IN_HEIGHT"].get<int>(true);
+    int wantedCol = _myInputs["BLOCK__CREATEMATRIX_IN_WIDTH"].get<int>(true);
 
     cv::Mat newMatrix;
-    switch (_myInputs["BLOCK__CREATEMATRIX_IN_INIT"].get<int>())
+    switch (_myInputs["BLOCK__CREATEMATRIX_IN_INIT"].get<int>(true))
     {
     case 1:
       newMatrix = cv::Mat::ones(wantedRow, wantedCol, wantedType) * 128;
@@ -78,7 +78,6 @@ namespace charliesoft
       break;
     }
     _myOutputs["BLOCK__CREATEMATRIX_OUT_IMAGE"] = newMatrix;
-    renderingDone();
     return true;
   };
 };

@@ -35,14 +35,13 @@ namespace charliesoft
   };
   
   bool DelayBlock::run(){
-    cv::Mat src = _myInputs["BLOCK__DELAY_VIDEO_IN_IMAGE"].get<cv::Mat>();
-    int historySize = _myInputs["BLOCK__DELAY_VIDEO_IN_DELAY"].get<int>();
+    cv::Mat src = _myInputs["BLOCK__DELAY_VIDEO_IN_IMAGE"].get<cv::Mat>(true);
+    int historySize = _myInputs["BLOCK__DELAY_VIDEO_IN_DELAY"].get<int>(true);
     imgs.push(src);
     Mat out = imgs.front();
     if ((int)imgs.size() > historySize)
       imgs.pop();
     _myOutputs["BLOCK__DELAY_VIDEO_OUT_IMAGE"] = out;
-    renderingDone();
     return true;
   };
 };

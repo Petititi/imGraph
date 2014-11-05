@@ -7,9 +7,14 @@ namespace charliesoft
 {
   class GraphOfProcess
   {
+    std::map< Block*, std::set<Block*> > _waitingForRendering;
     std::vector< boost::thread > _runningThread;
     std::vector<Block*> _vertices;
+    boost::mutex _mtx;
     //edges are stored into Block (_myInputs[]->isLinked())
+
+
+    void waitForFullRendering(Block* main_process, Block* process);
   public:
     static bool pauseProcess;
     GraphOfProcess();
@@ -24,12 +29,24 @@ namespace charliesoft
     void deleteProcess(Block* process);
 
     void createLink(Block* src, std::string paramName, Block* dest, std::string paramNameDest);
-
-    void synchronizeTimestamp(Block* processToSynchronize);
-
+    
     bool run();
     void stop();
     void switchPause();
+
+    /**
+    * Will wake up waiting childs if needed... 
+    */
+    void blockProduced(Block* process, bool fullyRendered = true);
+
+    /**
+    * Will wait for rendering block ancestor
+    */
+    void shouldWaitChild(Block* process);
+    /**
+    * Will wait for childs to process the data we just produce
+    */
+    void shouldWaitConsumers(Block* process);
 
     std::vector<Block*>& getVertices();
     void removeLink(const BlockLink& l);

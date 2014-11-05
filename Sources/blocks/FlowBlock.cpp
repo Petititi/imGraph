@@ -114,8 +114,8 @@ namespace charliesoft
   }
 
   bool OpticFlowBlock::run(){
-    cv::Mat src = _myInputs["BLOCK__OPTICFLOW_IN_IMAGE1"].get<cv::Mat>();
-    cv::Mat dest = _myInputs["BLOCK__OPTICFLOW_IN_IMAGE2"].get<cv::Mat>();
+    cv::Mat src = _myInputs["BLOCK__OPTICFLOW_IN_IMAGE1"].get<cv::Mat>(true);
+    cv::Mat dest = _myInputs["BLOCK__OPTICFLOW_IN_IMAGE2"].get<cv::Mat>(true);
     if (src.channels() != 1)
       cvtColor(src, src, COLOR_RGB2GRAY);
     else
@@ -128,7 +128,7 @@ namespace charliesoft
 
     int method = 0;
     if (!_myInputs["BLOCK__OPTICFLOW_IN_METHOD"].isDefaultValue())
-      method = _myInputs["BLOCK__OPTICFLOW_IN_METHOD"].get<int>();
+      method = _myInputs["BLOCK__OPTICFLOW_IN_METHOD"].get<int>(true);
 
 
     //is Opencl OK?
@@ -149,10 +149,6 @@ namespace charliesoft
     else
       finalFlow = computeCPU(src, dest, method);
     _myOutputs["BLOCK__OPTICFLOW_OUT_IMAGE"] = finalFlow;
-    renderingDone();
-
-    std::string debug = _STR(getName()) + " (" + boost::lexical_cast<string>(_timestamp)+") rendering done\n";
-    std::cout << debug;
     return true;
   };
 };

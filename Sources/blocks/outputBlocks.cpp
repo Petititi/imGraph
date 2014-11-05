@@ -40,15 +40,14 @@ namespace charliesoft
   bool BlockShow::run(){
     if (_myInputs["BLOCK__OUTPUT_IN_IMAGE"].isDefaultValue())
       return false;
-    cv::Mat mat = _myInputs["BLOCK__OUTPUT_IN_IMAGE"].get<cv::Mat>();
+    cv::Mat mat = _myInputs["BLOCK__OUTPUT_IN_IMAGE"].get<cv::Mat>(true);
     if (!mat.empty())
     {
-      if (_myInputs["BLOCK__OUTPUT_IN_NORMALIZE"].get<bool>())
+      if (_myInputs["BLOCK__OUTPUT_IN_NORMALIZE"].get<bool>(true))
         mat = filter.process(mat);
 
-      imshow(_myInputs["BLOCK__OUTPUT_IN_WIN_NAME"].get<string>(), mat);
+      imshow(_myInputs["BLOCK__OUTPUT_IN_WIN_NAME"].get<string>(true), mat);
     }
-    renderingDone();
     return true;
   };
 };

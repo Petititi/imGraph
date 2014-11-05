@@ -37,13 +37,12 @@ namespace charliesoft
   bool AccuBlock::run(){
     if (_myInputs["BLOCK__ACCUMULATOR_IN_IMAGE"].isDefaultValue())
       return false;
-    cv::Mat mat = _myInputs["BLOCK__ACCUMULATOR_IN_IMAGE"].get<cv::Mat>();
-    int nbAccu = _myInputs["BLOCK__ACCUMULATOR_IN_NB_HISTORY"].get<int>();
+    cv::Mat mat = _myInputs["BLOCK__ACCUMULATOR_IN_IMAGE"].get<cv::Mat>(true);
+    int nbAccu = _myInputs["BLOCK__ACCUMULATOR_IN_NB_HISTORY"].get<int>(true);
     if (nbAccu>0)
       filter.set("nbBufferMax", nbAccu);
     if (!mat.empty())
       _myOutputs["BLOCK__ACCUMULATOR_OUT_IMAGE"] = filter.process(mat);
-    renderingDone();
     return true;
   };
 };

@@ -211,7 +211,7 @@ namespace charliesoft
     }
     case Int:
     {
-      QLineEdit* lineEdit = new QLineEdit(lexical_cast<string>(param->get<int>()).c_str());
+      QLineEdit* lineEdit = new QLineEdit(lexical_cast<string>(param->get<int>(false)).c_str());
       if (p->isVisible())
         lineEdit->setEnabled(false);
       _inputValue12[p] = lineEdit;
@@ -232,12 +232,12 @@ namespace charliesoft
       _inputValue12[p] = combo;
       _inputValue21[combo] = p;
 
-      combo->setCurrentIndex(param->get<int>());
+      combo->setCurrentIndex(param->get<int>(false));
       break;
     }
     case Float:
     {
-      QLineEdit* lineEdit = new QLineEdit(lexical_cast<string>(param->get<double>()).c_str());
+      QLineEdit* lineEdit = new QLineEdit(lexical_cast<string>(param->get<double>(false)).c_str());
       if (p->isVisible())
         lineEdit->setEnabled(false);
       _inputValue12[p] = lineEdit;
@@ -254,7 +254,7 @@ namespace charliesoft
       _inputValue21[colorEditor] = p;
       if (!p->getParamValue()->isDefaultValue())
       {
-        cv::Scalar tmpColor = p->getParamValue()->get<cv::Scalar>();
+        cv::Scalar tmpColor = p->getParamValue()->get<cv::Scalar>(false);
         _paramColor[p] = tmpColor;
       }
 
@@ -269,7 +269,7 @@ namespace charliesoft
       _inputValue21[matEditor] = p;
       if (!p->getParamValue()->isDefaultValue())
       {
-        Mat img = p->getParamValue()->get<cv::Mat>();
+        Mat img = p->getParamValue()->get<cv::Mat>(false);
         if (!img.empty())
           _paramMatrix[p] = img;
       }
@@ -692,9 +692,9 @@ namespace charliesoft
       _condition_right->setCurrentIndex(c.getCategory_right());
       _condition_type->setCurrentIndex(c.getCondition());
       if (c.getCategory_left() > 1)
-        _value_left->setText(lexical_cast<string>(c.getOpt_value_left().get<double>()).c_str());
+        _value_left->setText(lexical_cast<string>(c.getOpt_value_left().get<double>(false)).c_str());
       if (c.getCategory_right() > 1)
-        _value_right->setText(lexical_cast<string>(c.getOpt_value_right().get<double>()).c_str());
+        _value_right->setText(lexical_cast<string>(c.getOpt_value_right().get<double>(false)).c_str());
     }
 
     connect(this, SIGNAL(askSynchro()), vertex, SLOT(reshape()));
@@ -1428,7 +1428,7 @@ namespace charliesoft
     {
       ParamValue* param = link->first._to->getParam(link->first._toParam, true);
       if (param == NULL || !param->isLinked() ||
-        param->get<ParamValue*>()->getBlock() != link->first._from)
+        param->get<ParamValue*>(false)->getBlock() != link->first._from)
       {
         delete link->second;
         auto tmpLink = link;

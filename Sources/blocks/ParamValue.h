@@ -48,9 +48,9 @@ namespace charliesoft
 
   class ParamValue
   {
-    boost::mutex _mtx;    // explicit mutex declaration
-    boost::condition_variable _cond_sync;  // global sync condition
-    unsigned int _current_timestamp;  // timestamp of last update
+    mutable boost::recursive_mutex _mtx;    //< explicit mutex declaration
+    boost::condition_variable _cond_sync;  //< global sync condition
+    mutable bool _newValue;  //< is this value not yet processed?
     std::vector<ParamValidator*> validators_;
     std::set<ParamValue*> distantListeners_;
     Block *block_;
@@ -58,55 +58,55 @@ namespace charliesoft
     bool isOutput_;
     bool _paramNeeded;
 
-    void notifyUpdate();
+    void notifyUpdate(bool isNew);
     void notifyRemove();
   public:
     VariantClasses value_;
     ParamValue(Block *algo, std::string name, bool isOutput) :
       block_(algo), _name(name), isOutput_(isOutput), value_(Not_A_Value()){
-      _current_timestamp = 0; _paramNeeded = true;
+      _newValue = false; _paramNeeded = true;
     };
     ParamValue() :
       block_(NULL), _name(""), isOutput_(false), value_(Not_A_Value()){
-      _current_timestamp = 0; _paramNeeded = true;
+      _newValue = false; _paramNeeded = true;
     };
     ParamValue(bool v) :
       block_(NULL), _name(""), isOutput_(false), value_(v){
-      _current_timestamp = 0; _paramNeeded = true;
+      _newValue = false; _paramNeeded = true;
     };
     ParamValue(int v) :
       block_(NULL), _name(""), isOutput_(false), value_(v){
-      _current_timestamp = 0; _paramNeeded = true;
+      _newValue = false; _paramNeeded = true;
     };
     ParamValue(double v) :
       block_(NULL), _name(""), isOutput_(false), value_(v){
-      _current_timestamp = 0; _paramNeeded = true;
+      _newValue = false; _paramNeeded = true;
     };
     ParamValue(std::string v) :
       block_(NULL), _name(""), isOutput_(false), value_(v){
-      _current_timestamp = 0; _paramNeeded = true;
+      _newValue = false; _paramNeeded = true;
     };
     ParamValue(cv::Scalar v) :
       block_(NULL), _name(""), isOutput_(false), value_(v){
-      _current_timestamp = 0; _paramNeeded = true;
+      _newValue = false; _paramNeeded = true;
     };
     ParamValue(cv::Mat v) :
       block_(NULL), _name(""), isOutput_(false), value_(v){
-      _current_timestamp = 0; _paramNeeded = true;
+      _newValue = false; _paramNeeded = true;
     };
     ParamValue(Not_A_Value v) :
       block_(NULL), _name(""), isOutput_(false), value_(Not_A_Value()){
-      _current_timestamp = 0; _paramNeeded = true;
+      _newValue = false; _paramNeeded = true;
     };
     ParamValue(ParamValue* v) :
       block_(NULL), _name(""), isOutput_(false), value_(v){
       if (v != NULL) v->distantListeners_.insert(this);
-      _current_timestamp = 0; _paramNeeded = true;
+      _newValue = false; _paramNeeded = true;
     };
     ParamValue(const ParamValue& va) :
       block_(va.block_), _name(va._name), isOutput_(va.isOutput_), value_(va.value_),
       validators_(va.validators_), distantListeners_(va.distantListeners_){
-      _current_timestamp = va._current_timestamp; _paramNeeded = true;
+      _newValue = false; _paramNeeded = true;
     };
 
     ~ParamValue()
@@ -161,15 +161,13 @@ namespace charliesoft
 
     std::string getName() const { return _name; };
 
-    bool isDefaultValue() const;
-    unsigned int getTimestamp(){
-      boost::unique_lock<boost::mutex> lock(_mtx);
-      if (isLinked())
-        return boost::get<ParamValue*>(value_)->getTimestamp();
-      else
-        return _current_timestamp;
+    bool isNew() const
+    {
+      return _newValue && !isDefaultValue();
     }
+    bool isDefaultValue() const;
     bool isLinked() const {
+      boost::unique_lock<boost::recursive_mutex> lock(_mtx);
       return (value_.type() == typeid(ParamValue*)) &&
         boost::get<ParamValue*>(value_) != NULL;
     };
@@ -178,14 +176,19 @@ namespace charliesoft
     Block * getBlock() const { return block_; };
     void setBlock(Block *b) { block_=b; };
 
+    ///Param useData, when thrue indicate that algorithm will process this data, so it can
+    ///be marked as _isNew=false...
     template<typename T>
-    T get() const
+    T get(bool useData) const
     {
+      boost::unique_lock<boost::recursive_mutex> lock(_mtx);
+      if (useData)
+        _newValue = false;
       if (isLinked())
       {
         if (typeid(T) == typeid(ParamValue*))
           return boost::get<T>(value_);
-        return boost::get<ParamValue*>(value_)->get<T>();
+        return boost::get<ParamValue*>(value_)->get<T>(false);
       }
       if (value_.type() == typeid(Not_A_Value))
       {

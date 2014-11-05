@@ -40,30 +40,30 @@ namespace charliesoft
   BEGIN_BLOCK_SUBPARAMS_DEF(DeinterlaceBlock);
   END_BLOCK_PARAMS();
 
-  DeinterlaceBlock::DeinterlaceBlock() :Block("BLOCK__DEINTERLACE_NAME"){
+  DeinterlaceBlock::DeinterlaceBlock() :Block("BLOCK__DEINTERLACE_NAME", producer){
     _myInputs["BLOCK__DEINTERLACE_IN_IMAGE"].addValidator({ new ValNeeded() });
   };
   
   bool DeinterlaceBlock::run(){
     if (_myInputs["BLOCK__DEINTERLACE_IN_IMAGE"].isDefaultValue())
       return false;
-    cv::Mat mat = _myInputs["BLOCK__DEINTERLACE_IN_IMAGE"].get<cv::Mat>();
+    cv::Mat mat = _myInputs["BLOCK__DEINTERLACE_IN_IMAGE"].get<cv::Mat>(true);
 
-    int type = _myInputs["BLOCK__DEINTERLACE_IN_TYPE"].get<int>();
+    int type = _myInputs["BLOCK__DEINTERLACE_IN_TYPE"].get<int>(true);
 
     filter.set("type", 1);
 
     if (!mat.empty())
     {
       _myOutputs["BLOCK__DEINTERLACE_OUT_IMAGE"] = filter.process(mat);
-      renderingDone(false);
+      newProducedData();
 
       mat = filter.getProducedFrame();//get an other img?
       
       while (!mat.empty())
       {
         _myOutputs["BLOCK__DEINTERLACE_OUT_IMAGE"] = mat;
-        renderingDone(false);
+        newProducedData();
         mat = filter.getProducedFrame();
       }
     }
@@ -100,16 +100,15 @@ namespace charliesoft
     if (_myInputs["BLOCK__SKIP_FRAME_IN_IMAGE"].isDefaultValue())
       return false;
 
-    int nbSkip = _myInputs["BLOCK__SKIP_FRAME_IN_TYPE"].get<int>();
+    int nbSkip = _myInputs["BLOCK__SKIP_FRAME_IN_TYPE"].get<int>(true);
     nbFrame++;
     if (nbFrame >= nbSkip)
     {
       nbFrame = 0;
-      cv::Mat mat = _myInputs["BLOCK__SKIP_FRAME_IN_IMAGE"].get<cv::Mat>();
+      cv::Mat mat = _myInputs["BLOCK__SKIP_FRAME_IN_IMAGE"].get<cv::Mat>(true);
       if (!mat.empty())
       {
         _myOutputs["BLOCK__SKIP_FRAME_OUT_IMAGE"] = mat;
-        renderingDone();
       }
     }
     else

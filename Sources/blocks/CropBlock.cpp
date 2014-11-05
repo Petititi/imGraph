@@ -44,27 +44,26 @@ namespace charliesoft
   bool BlockCrop::run(){
     if (_myInputs["BLOCK__CROP_IN_IMAGE"].isDefaultValue())
       return false;
-    cv::Mat mat = _myInputs["BLOCK__CROP_IN_IMAGE"].get<cv::Mat>();
+    cv::Mat mat = _myInputs["BLOCK__CROP_IN_IMAGE"].get<cv::Mat>(true);
     if (!mat.empty())
     {
       if (!_myInputs["BLOCK__CROP_IN_X"].isDefaultValue())
         filter.set("x",
-        _myInputs["BLOCK__CROP_IN_X"].get<int>());
+        _myInputs["BLOCK__CROP_IN_X"].get<int>(true));
       if (!_myInputs["BLOCK__CROP_IN_Y"].isDefaultValue())
         filter.set("y",
-        _myInputs["BLOCK__CROP_IN_Y"].get<int>());
+        _myInputs["BLOCK__CROP_IN_Y"].get<int>(true));
       if (!_myInputs["BLOCK__CROP_WIDTH"].isDefaultValue())
         filter.set("width",
-        _myInputs["BLOCK__CROP_WIDTH"].get<int>());
+        _myInputs["BLOCK__CROP_WIDTH"].get<int>(true));
       if (!_myInputs["BLOCK__CROP_HEIGHT"].isDefaultValue())
         filter.set("height",
-        _myInputs["BLOCK__CROP_HEIGHT"].get<int>());
+        _myInputs["BLOCK__CROP_HEIGHT"].get<int>(true));
       cv::Mat imgTmp = filter.process(mat);
       _myOutputs["BLOCK__CROP_OUT_IMAGE"] = imgTmp;
       _myOutputs["BLOCK__CROP_WIDTH"] = imgTmp.cols;
       _myOutputs["BLOCK__CROP_HEIGHT"] = imgTmp.rows;
     }
-    renderingDone();
     return true;
   };
 };

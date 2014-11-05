@@ -47,8 +47,8 @@ namespace charliesoft
       return false;
     if (_myInputs["BLOCK__MERGING_IN_IMAGE2"].isDefaultValue())
       return false;
-    cv::Mat mat1 = _myInputs["BLOCK__MERGING_IN_IMAGE1"].get<cv::Mat>() / 2.;
-    cv::Mat mat2 = _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<cv::Mat>() / 2.;
+    cv::Mat mat1 = _myInputs["BLOCK__MERGING_IN_IMAGE1"].get<cv::Mat>(true) / 2.;
+    cv::Mat mat2 = _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<cv::Mat>(true) / 2.;
 
     if (!mat1.empty() && !mat2.empty())
     {
@@ -63,7 +63,6 @@ namespace charliesoft
       }
       _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = mat1 + mat2;
     }
-    renderingDone();
     return true;
   };
 };

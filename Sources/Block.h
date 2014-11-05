@@ -155,15 +155,29 @@ namespace charliesoft
     friend class charliesoft::ProcessManager;
 
   protected:
+    /**
+    * Three types of blocks:
+    * Classic one-shot block. Called "consumer" they just take some input and create some output. Ex: line finder.
+    * The "producers" : they create new data continuously, but wait for data to be fully processed (one frame at the time).
+    * The "asynchrones" : they produce data cotinuously without waiting anything.
+    */
+    enum BlockType
+    {
+      oneShot = 0,
+      producer,
+      asynchrone
+    };
+    BlockType _exec_type;
+
     bool _renderingSkiped;
     unsigned int nbRendering;
     GraphOfProcess* _processes;///<list of process currently in use
     boost::condition_variable _cond_pause;  // pause condition
     boost::mutex _mtx;    // explicit mutex declaration
     boost::condition_variable _cond_sync;  // global sync condition
+    boost::condition_variable _param_sync;  // parameter update sync condition
     boost::mutex _mtx_timestamp_inc;    // Timestamps update
     unsigned int _timestamp;///<timestamp of produced values
-    bool _fullyRendered;
 
     std::string _error_msg;
     std::string _name;
@@ -177,15 +191,18 @@ namespace charliesoft
     void initParameters(const std::vector<ParamDefinition>& inParam, 
       const std::vector<ParamDefinition>& outParam);
 
-    void renderingDone(bool fullyRendered = true);
-
     virtual bool run() = 0;
   public:
-    Block(std::string name);
+    Block(std::string name, BlockType typeExec = oneShot);
     std::string getName(){
       return _name;
     };
+    BlockType getTypeExec(){
+      return _exec_type;
+    };
     void operator()();
+
+    void newProducedData();
 
     void setGraph(GraphOfProcess* processes){
       _processes = processes;
@@ -195,7 +212,8 @@ namespace charliesoft
     unsigned int getTimestamp(){ return _timestamp; };
     std::string getErrorInfo(){ return _error_msg; };
     bool validateParams(std::string param, const ParamValue val);
-    bool isReadyToRun();
+    ///if realCheck is true, we look for links being ready to consume
+    bool isReadyToRun(bool realCheck=false);
     void skipRendering();
 
     void addCondition(ConditionOfRendering& c){
@@ -217,12 +235,15 @@ namespace charliesoft
 
     bool isStartingBlock();
     bool isAncestor(Block* other);
-    bool validTimestampOrWait(Block* other);
-    bool validTimestampOrWait(Block* other, unsigned int timeGoal);
+    bool hasNewParameters();//true if at least one parameter has timestamp>block timestamp
     void wakeUp();
-    void waitUpdate(boost::unique_lock<boost::mutex>& lock);
+    void wakeUpOutputListeners();
+    void waitUpdateTimestamp(boost::unique_lock<boost::mutex>& lock);
     boost::mutex& getMutex(){
       return _mtx;
+    };
+    boost::mutex& getMutexTimestamp(){
+      return _mtx_timestamp_inc;
     };
 
     std::vector<BlockLink> getInEdges();

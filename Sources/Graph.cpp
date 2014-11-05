@@ -75,20 +75,99 @@ namespace charliesoft
     src->linkParam(paramName, dest, paramNameDest);
   }
 
-  void GraphOfProcess::synchronizeTimestamp(Block* processToSynchronize)
-  {
-    for (auto it : _vertices)
-    {
-      //each block should have the same timestamp:
-      if (it != processToSynchronize && it->isAncestor(processToSynchronize))
-      {
-        while (!it->validTimestampOrWait(processToSynchronize));
-      }
-    }
-  }
   std::vector<Block*>& GraphOfProcess::getVertices()
   {
     return _vertices;
+  }
+
+  void GraphOfProcess::waitForFullRendering(Block* father_process, Block* process)
+  {
+    _waitingForRendering[father_process].insert(process);
+    for (auto it = process->_myOutputs.begin(); it != process->_myOutputs.end(); it++)
+    {
+      //wait the thread to process it!
+      std::set<ParamValue*>& listeners = it->second.getListeners();
+      for (auto listener : listeners)
+      {
+        if (listener->isLinked())
+          waitForFullRendering(father_process, listener->getBlock());
+      }
+    }
+  }
+
+  void GraphOfProcess::shouldWaitChild(Block* process)
+  {
+    boost::unique_lock<boost::mutex> lock(_mtx);
+    //should we wait for a process? (depending on the block type)
+    if (process->getTypeExec() == Block::asynchrone)
+      return;//no need to wait
+    if (process->getTypeExec() == Block::oneShot || process->getTypeExec() == Block::producer)
+    {
+      //wait for every direct linked ancestors (using timestamp verification):
+      //Is there old parameters? -> if yes, we wait for update, else we process the block right now:
+      for (auto it = process->_myInputs.begin(); it != process->_myInputs.end(); it++)
+      {
+        if (it->second.isLinked())
+        {
+          while (!it->second.isNew())
+          {
+            //std::cout << "---  " << _STR(process->getName()) << " (" << process->_timestamp << ") Wait " << _STR(it->second.getName()) << endl;
+            process->waitUpdateTimestamp(lock);//wait for parameter update!
+          }
+        }
+      }
+
+      return;//ok, every ancestor have produced a value!
+    }
+  }
+
+  void GraphOfProcess::shouldWaitConsumers(Block* process)
+  {
+    boost::unique_lock<boost::mutex> lock(_mtx);
+    //should we wait for a process? (depending on the block type)
+    if (process->getTypeExec() == Block::producer)
+    {
+      //wait for every childs. They have to be fully rendered before we rerun this block!
+      for (auto it = process->_myOutputs.begin(); it != process->_myOutputs.end(); it++)
+      {
+        //wake up the threads, if any!
+        std::set<ParamValue*>& listeners = it->second.getListeners();
+        for (auto listener : listeners)
+        {
+          if (listener->isLinked())
+            waitForFullRendering(process, listener->getBlock());
+        }
+      }
+      if (!_waitingForRendering[process].empty())
+        process->waitUpdateTimestamp(lock);//wait for parameter update!
+      _current_timestamp++;
+      return;//ok, every child have processed our value!
+    }
+  }
+
+  ///TODO:
+  /// Verify that parameter update set timestamp, even if not linked!
+  /// But don't change timestamp is value set is the same as previous stored value.
+  void GraphOfProcess::blockProduced(Block* process, bool fullyRendered)
+  {
+    boost::unique_lock<boost::mutex> lock(_mtx);
+    std::cout << "   " << _STR(process->getName()) << " (" << _current_timestamp << ") Produced!" << endl;
+    if (fullyRendered)
+    {
+      //remove this block for every waiting thread:
+      for (auto& waitThread : _waitingForRendering)
+      {
+        waitThread.second.erase(process);
+        if (waitThread.second.empty())
+          waitThread.first->wakeUp();
+      }
+      //set timestamp of block to current timestamp:
+      process->_timestamp = _current_timestamp;
+      //wake up any waiting thread (some thread can wait specifically our rendering):
+      process->wakeUp();
+    }
+    //wake up linked output blocks
+    process->wakeUpOutputListeners();
   }
 
   void GraphOfProcess::stop()
@@ -104,7 +183,6 @@ namespace charliesoft
   bool GraphOfProcess::run()
   {
     stop();//just in case...
-    _current_timestamp++;
     bool res = true;
     for (auto it = _vertices.begin();
       it != _vertices.end(); it++)
@@ -112,6 +190,7 @@ namespace charliesoft
 
     return res;
   }
+
   void GraphOfProcess::switchPause()
   {
     pauseProcess = !pauseProcess;
@@ -229,12 +308,12 @@ namespace charliesoft
     {
       if (cond->getCategory_left() == 1)//output of block:
       {
-        unsigned int addr = static_cast<unsigned int>(cond->getOpt_value_left().get<double>() + 0.5);
+        unsigned int addr = static_cast<unsigned int>(cond->getOpt_value_left().get<double>(false) + 0.5);
         cond->setValue(true, addressesMap[addr]);
       }
       if (cond->getCategory_right() == 1)//output of block:
       {
-        unsigned int addr = static_cast<unsigned int>(cond->getOpt_value_right().get<double>() + 0.5);
+        unsigned int addr = static_cast<unsigned int>(cond->getOpt_value_right().get<double>(false) + 0.5);
         cond->setValue(false, addressesMap[addr]);
       }
     }

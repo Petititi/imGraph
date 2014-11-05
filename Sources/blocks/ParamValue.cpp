@@ -100,8 +100,9 @@ namespace charliesoft
   }
 
   bool ParamValue::isDefaultValue() const{
+    boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     return (value_.type() == typeid(Not_A_Value)) || 
-      (value_.type() == typeid(cv::Mat) && get<cv::Mat>().empty());
+      (isLinked() && boost::get<ParamValue*>(value_)->isDefaultValue());
   };
 
   void ParamValue::valid_and_set(const ParamValue& v){
@@ -112,16 +113,20 @@ namespace charliesoft
         boost::get<ParamValue*>(value_)->distantListeners_.erase(this);
       ParamValue* vDist = boost::get<ParamValue*>(v.value_);
       if (vDist != NULL) vDist->distantListeners_.insert(this);
+      if (vDist->value_.type() != typeid(Not_A_Value))
+        _newValue = true;
     }
+    else
+      if (*this != v && v.value_.type() != typeid(Not_A_Value))
+        _newValue = true;
     value_ = v.value_;
-    _current_timestamp = GraphOfProcess::_current_timestamp;
-    notifyUpdate();//wake up waiting thread (if any)
+    notifyUpdate(_newValue);//wake up waiting thread (if any)
   };
 
 
   BlockLink ParamValue::toBlockLink() const
   {
-    ParamValue* other = get<ParamValue*>();
+    ParamValue* other = get<ParamValue*>(false);
     return BlockLink(other->block_, block_, other->_name, _name);
   }
 
@@ -165,84 +170,101 @@ namespace charliesoft
   }
   
 
-  void ParamValue::notifyUpdate()
+  void ParamValue::notifyUpdate(bool isNew)
   {
-    {
-      boost::unique_lock<boost::mutex> lock(_mtx);
-      _current_timestamp = GraphOfProcess::_current_timestamp;
-    }
-
+    _newValue = isNew;
     for (auto listener : distantListeners_)
-      listener->notifyUpdate();
+      listener->notifyUpdate(isNew);
   }
   ParamValue& ParamValue::operator = (bool const &rhs) {
     notifyRemove();
+    if (*this != rhs)
+      _newValue = true;
+    boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     value_ = rhs;
-    notifyUpdate();
+    notifyUpdate(_newValue);
     return *this;
   };
   ParamValue& ParamValue::operator = (int const &rhs) {
     notifyRemove();
+    if (*this != rhs)
+      _newValue = true;
+    boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     value_ = rhs;
-    notifyUpdate();
+    notifyUpdate(_newValue);
     return *this;
   };
   ParamValue& ParamValue::operator = (double const &rhs) {
     notifyRemove();
+    if (*this != rhs)
+      _newValue = true;
+    boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     value_ = rhs;
-    notifyUpdate();
+    notifyUpdate(_newValue);
     return *this;
   };
   ParamValue& ParamValue::operator = (std::string const &rhs) {
     notifyRemove();
+    if (*this != rhs)
+      _newValue = true;
+    boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     value_ = rhs;
-    notifyUpdate();
+    notifyUpdate(_newValue);
     return *this;
   };
-  ParamValue& ParamValue::operator=(cv::Scalar const &rhs) {
+  ParamValue& ParamValue::operator = (cv::Scalar const &rhs) {
     notifyRemove();
+    if (*this != rhs)
+      _newValue = true;
+    boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     value_ = rhs;
-    notifyUpdate();
+    notifyUpdate(_newValue);
     return *this;
   };
   ParamValue& ParamValue::operator = (cv::Mat const &rhs) {
+    boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     notifyRemove();
+    _newValue = true;//it's difficult to say if it's the same matrix, so we conclude it's always new...
     value_ = rhs;
-    notifyUpdate();
+    notifyUpdate(_newValue);
     return *this;
   };
   ParamValue& ParamValue::operator = (Not_A_Value const &rhs) {
+    boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     notifyRemove();
     value_ = rhs;
-    _current_timestamp = GraphOfProcess::_current_timestamp;
     return *this;
   };
   ParamValue& ParamValue::operator = (ParamValue *vDist) {
+    boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     notifyRemove();
     if (vDist != NULL) vDist->distantListeners_.insert(this);
+    _newValue = vDist->_newValue;
     value_ = vDist;
-    notifyUpdate();
+    notifyUpdate(_newValue);
     return *this;
   };
   ParamValue& ParamValue::operator = (ParamValue const &rhs) {
     if (this != &rhs) {
+      boost::unique_lock<boost::recursive_mutex> lock(_mtx);
       notifyRemove();
+      _newValue = true;
       value_ = rhs.value_;
       if (rhs.block_ != NULL)
       {
         block_ = rhs.block_;
         _name = rhs._name;
         isOutput_ = rhs.isOutput_;
-        _current_timestamp = rhs._current_timestamp;
       }
       if (value_.type() != typeid(Not_A_Value))
-        notifyUpdate();
+        notifyUpdate(_newValue);
     }
     return *this;
   };
 
   bool ParamValue::operator== (const ParamValue &other) const
   {
+    boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     try
     {
       if (value_.type() == typeid(Not_A_Value) ||
@@ -306,6 +328,7 @@ namespace charliesoft
 
   bool ParamValue::operator<(const ParamValue &other) const
   {
+    boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     try
     {
       if (value_.type() == typeid(Not_A_Value) ||
@@ -383,6 +406,7 @@ namespace charliesoft
 
   bool ParamValue::operator> (const ParamValue &other) const
   {
+    boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     if (value_.type() == typeid(Not_A_Value) ||
       other.value_.type() == typeid(Not_A_Value))
       return false;//always different!

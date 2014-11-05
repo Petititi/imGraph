@@ -75,11 +75,11 @@ namespace charliesoft
     if (!opt_value_left.isLinked())
       tree.put("Value_left", opt_value_left.toString());
     else
-      tree.put("Value_left", (unsigned int)opt_value_left.get<ParamValue*>());
+      tree.put("Value_left", (unsigned int)opt_value_left.get<ParamValue*>(false));
     if (!opt_value_right.isLinked())
       tree.put("Value_right", opt_value_right.toString());
     else
-      tree.put("Value_right", (unsigned int)opt_value_right.get<ParamValue*>());
+      tree.put("Value_right", (unsigned int)opt_value_right.get<ParamValue*>(false));
     return tree;
   }
 
@@ -143,7 +143,7 @@ namespace charliesoft
     {
     case 1://Output of block
     {
-      ParamValue* tmp = opt_value_left.get<ParamValue*>();
+      ParamValue* tmp = opt_value_left.get<ParamValue*>(false);
       if (tmp != NULL)
         left = *tmp;
       break;
@@ -161,7 +161,7 @@ namespace charliesoft
     {
     case 1://Output of block
     {
-      ParamValue* tmp = opt_value_right.get<ParamValue*>();
+      ParamValue* tmp = opt_value_right.get<ParamValue*>(false);
       if (tmp != NULL)
         right = *tmp;
       break;
@@ -229,10 +229,10 @@ namespace charliesoft
     }
   }
 
-  Block::Block(std::string name){
+  Block::Block(std::string name, BlockType typeExec){
+    _exec_type = typeExec;
     _name = name;
     _timestamp = 0;
-    _fullyRendered = true;
     nbRendering = 0;
   };
 
@@ -248,35 +248,27 @@ namespace charliesoft
         while (GraphOfProcess::pauseProcess)
           _cond_pause.wait(lock);//wait for any parameter update...
 
-        if (_timestamp < _processes->_current_timestamp)
+        _processes->shouldWaitChild(this);//ask to scheduler if we have to wait...
+        bool shouldRun = true;
+        for (ConditionOfRendering& condition : _conditions)
         {
-          //are parameters ok?
-          for (auto it = _myInputs.begin(); it != _myInputs.end(); it++)
-          {
-            if (it->second.isLinked())
-              validTimestampOrWait(it->second.get<ParamValue*>()->getBlock(), _processes->_current_timestamp);
-          }
-
-          bool shouldRun = true;
-          for (ConditionOfRendering& condition : _conditions)
-          {
-            if (!condition.canRender(this))
-              shouldRun= false;
-          }
-          //now we can run the process:
-          if (shouldRun && !_renderingSkiped)
-            run();
-          else
-            skipRendering();
-          //std::string debug = _STR(getName()) + " (" + lexical_cast<string>(_timestamp)+") rendering done\n";
-          //std::cout << debug;
-
-          nbRendering++;
-          _fullyRendered = true;
-
-          _cond_sync.notify_all();//wake up waiting thread (if needed)
-          boost::this_thread::sleep(boost::posix_time::milliseconds(10.));
+          if (!condition.canRender(this))
+            shouldRun= false;
         }
+        //now we can run the process:
+        if (shouldRun && !_renderingSkiped)
+        {
+          run();
+          _processes->blockProduced(this);//tell to scheduler we produced some datas...
+        }
+        else
+          skipRendering();
+
+        nbRendering++;
+
+        _cond_sync.notify_all();//wake up waiting thread (if needed)
+        boost::this_thread::sleep(boost::posix_time::milliseconds(10.));
+
       }
     }
     catch (boost::thread_interrupted const&)
@@ -285,6 +277,13 @@ namespace charliesoft
     }
   }
 
+  void Block::newProducedData()
+  {
+    _processes->blockProduced(this, false);//tell to scheduler we produced some datas...
+    if (_exec_type == asynchrone)return;//no need to wait
+    //we have to wait entire chain of rendering to process our data:
+    _processes->shouldWaitConsumers(this);//ask to scheduler if we have to wait...
+  }
 
   bool Block::isAncestor(Block* other)
   {
@@ -294,7 +293,7 @@ namespace charliesoft
     {
       if (it->second.isLinked())
       {
-        ParamValue* otherParam = it->second.get<ParamValue*>();
+        ParamValue* otherParam = it->second.get<ParamValue*>(false);
         if (otherParam->getBlock() == other)
           return true;
         if (otherParam->getBlock()->isAncestor(other))
@@ -319,39 +318,24 @@ namespace charliesoft
     return true;
   }
 
-  void Block::renderingDone(bool fullyRendered)
+  void Block::wakeUpOutputListeners()
   {
-    _fullyRendered = fullyRendered;
+    //for each output, test if a new value was set
+    for (auto it = _myOutputs.begin(); it != _myOutputs.end(); it++)
     {
-      boost::unique_lock<boost::mutex> guard(_mtx_timestamp_inc);
-      _timestamp = _processes->_current_timestamp;
-
-      //wake other blocks:
-      for (auto output_val = _myOutputs.begin();
-        output_val != _myOutputs.end(); output_val++)//should use iterator to not create temp ParamValue
+      //wake up the threads, if any!
+      std::set<ParamValue*>& listeners = it->second.getListeners();
+      for (auto listener : listeners)
       {
-        std::set<ParamValue*>& listeners = output_val->second.getListeners();
-        for (auto listener : listeners)
-        {
-          if (listener != NULL)
-            listener->getBlock()->wakeUp();
-        }
+        if (listener->isLinked())
+          listener->getBlock()->wakeUp();
       }
-
-      while (GraphOfProcess::pauseProcess)
-        _cond_pause.wait(guard);//wait for any parameter update...
-    }
-    //test if we need to wait!
-    _processes->synchronizeTimestamp(this);
-    if (!fullyRendered)
-    {
-      _processes->_current_timestamp++;//next frame
     }
   }
-
   void Block::wakeUp()
   {
     _cond_sync.notify_all();//wake up waiting thread (if needed)
+    _param_sync.notify_all();
     _cond_pause.notify_all();
   }
 
@@ -377,7 +361,7 @@ namespace charliesoft
     _cond_sync.notify_all();//wake up waiting thread (if needed)
   }
 
-  bool Block::isReadyToRun()
+  bool Block::isReadyToRun(bool realCheck)
   {
     _error_msg = "";
     for (auto it = _myInputs.begin(); it != _myInputs.end(); it++)
@@ -386,9 +370,16 @@ namespace charliesoft
       {
         if (it->second.isLinked())
         {
-          ParamValue* other = it->second.get<ParamValue*>();
-          if (!other->getBlock()->isReadyToRun())
-            throw ErrorValidator(other->getBlock()->_error_msg);
+          ParamValue* other = it->second.get<ParamValue*>(false);
+          if (realCheck)
+          {
+            it->second.validate(*other);
+          }
+          else
+          {
+            if (!other->getBlock()->isReadyToRun())
+              throw ErrorValidator(other->getBlock()->_error_msg);
+          }
         }
         else
           it->second.validate(it->second);
@@ -401,36 +392,19 @@ namespace charliesoft
     return _error_msg.empty();
   }
 
-  bool Block::validTimestampOrWait(Block* other)
+  bool Block::hasNewParameters()
   {
-    bool waiting = false;
-    boost::unique_lock<boost::mutex> guard(_mtx_timestamp_inc);
-    while (!_fullyRendered || other->_timestamp > _timestamp)
+    for (auto it = _myInputs.begin(); it != _myInputs.end(); it++)
     {
-      //std::string debug = "  " + _STR(other->getName()) + " (" + lexical_cast<string>(other->_timestamp) + ") blocked at " + _STR(getName()) + " : " + lexical_cast<string>(_timestamp)+"\n";
-      //std::cout << debug;
-      waiting = true;
-      _cond_sync.wait(guard);
-      //debug = "   " + _STR(other->getName()) + " unblocked (" + _STR(getName()) + ")\n";
-      //std::cout << debug;
+      if (it->second.isNew())
+        return true;
     }
-    return !waiting;
+    return false;
   }
 
-  bool Block::validTimestampOrWait(Block* other, unsigned int timeGoal)
+  void Block::waitUpdateTimestamp(boost::unique_lock<boost::mutex>& lock)
   {
-    bool waiting = false;
-    boost::unique_lock<boost::mutex> guard(other->_mtx_timestamp_inc);
-    while (other->_timestamp<timeGoal)
-    {
-      //std::string debug = "  - " + _STR(getName()) + " : " + lexical_cast<string>(_timestamp)+" wait for " + _STR(other->getName()) + " timestamp (" + lexical_cast<string>(timeGoal)+")\n";
-      //std::cout << debug;
-      waiting = true;
-      _cond_sync.wait(guard);
-      //debug = "  + " + _STR(getName()) + " unblocked\n";
-      //std::cout << debug;
-    }
-    return !waiting;
+    _param_sync.wait(lock);
   }
 
   bool Block::validateParams(std::string param, const ParamValue val){
@@ -530,7 +504,7 @@ namespace charliesoft
       if (!it->second.isLinked())
         paramTree.put("Value", it->second.toString());
       else
-        paramTree.put("Value", (unsigned int)it->second.get<ParamValue*>());
+        paramTree.put("Value", (unsigned int)it->second.get<ParamValue*>(false));
 
       tree.add_child("Input", paramTree);
     }
