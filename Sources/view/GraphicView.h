@@ -183,6 +183,7 @@ namespace charliesoft
   class GraphRepresentation :public QLayout
   {
     Q_OBJECT;
+    boost::mutex _mtx;    // explicit mutex declaration
 
     std::map<Block*, QLayoutItem*> _items;
     std::map<BlockLink, LinkPath*> _links;
@@ -214,7 +215,9 @@ namespace charliesoft
 
   class MainWidget :public QWidget
   {
-    Q_OBJECT
+    Q_OBJECT;
+
+    charliesoft::GraphOfProcess *_model;
 
     LinkConnexionRepresentation* startParam_;
     QPoint startMouse_;
@@ -231,13 +234,12 @@ namespace charliesoft
     virtual void dragEnterEvent(QDragEnterEvent *);
     virtual void dropEvent(QDropEvent *);
   public:
-    MainWidget();
+    MainWidget(charliesoft::GraphOfProcess *model);
 
     virtual QSize sizeHint() const;
     virtual QSize minimumSizeHint() const;
 
-    signals:
-    void askSynchro();
+    charliesoft::GraphOfProcess *getModel() const {return _model;};
 
     public slots:
     void initLinkCreation(QPoint start);

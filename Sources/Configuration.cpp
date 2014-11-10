@@ -20,6 +20,7 @@
 #pragma warning(pop)
 #endif
 #include "view/Window.h"
+#include "view/GraphicView.h"
 
 #include "Graph.h"
 #include "ProcessManager.h"
@@ -66,7 +67,7 @@ namespace charliesoft
     localElement.put("GlobConfig.lastPosition.height", lastPosition.height());
     localElement.put("GlobConfig.processSync", processSync_);
 
-    charliesoft::GraphOfProcess* graph = Window::getInstance()->getModel();
+    charliesoft::GraphOfProcess* graph = Window::getInstance()->getMainWidget()->getModel();
     graph->saveGraph(localElement);
 
     if (lastProject_.empty())
@@ -109,7 +110,7 @@ namespace charliesoft
       lastPosition.setWidth(xmlTree.get("GlobConfig.lastPosition.width", 1024));
       lastPosition.setHeight(xmlTree.get("GlobConfig.lastPosition.height", 768));
 
-      charliesoft::GraphOfProcess* graph = Window::getInstance()->getModel();
+      charliesoft::GraphOfProcess* graph = Window::getInstance()->getMainWidget()->getModel();
       graph->fromGraph(xmlTree);
     }
     else

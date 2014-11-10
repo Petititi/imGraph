@@ -573,8 +573,7 @@ namespace charliesoft
       it++;
     }
 
-    emit askSynchro();
-    Window::getGraphLayout()->synchronize();
+    Window::synchroMainGraph();
     close();
   }
   void ParamsConfigurator::reject_button()
@@ -773,7 +772,9 @@ namespace charliesoft
 
   VertexRepresentation::~VertexRepresentation()
   {
-    Window::getGraphLayout()->removeLinks(this);
+    GraphRepresentation* representation = dynamic_cast<GraphRepresentation*>(layout());
+    if (representation!=NULL)
+      representation->removeLinks(this);
 
     for (auto it = listOfInputChilds_.begin(); it != listOfInputChilds_.end(); it++)
       delete it->second;
@@ -878,7 +879,10 @@ namespace charliesoft
   void VertexRepresentation::removeLink(BlockLink l){
     _links.erase(l);
 
-    Window::getInstance()->getModel()->removeLink(l);
+    MainWidget* parent = dynamic_cast<MainWidget*>(parentWidget());
+    if (parent == NULL)
+      return;
+    parent->getModel()->removeLink(l);
   };
 
   ConditionLinkRepresentation* VertexRepresentation::getCondition(ConditionOfRendering* cor, bool isLeft)
@@ -1249,6 +1253,7 @@ namespace charliesoft
 
   QLayoutItem * GraphRepresentation::takeAt(int index)
   {
+    boost::unique_lock<boost::mutex> lock(_mtx);
     if (index >= (int)_items.size())
       return NULL;
     QLayoutItem *output = _items[orderedBlocks_[index]];
@@ -1305,6 +1310,7 @@ namespace charliesoft
 
   void GraphRepresentation::removeLinks(VertexRepresentation* vertex)
   {
+    boost::unique_lock<boost::mutex> lock(_mtx);
     //remove every links connected to vertex (in and out):
     map<BlockLink, LinkPath*> links = vertex->getLinks();
     for (auto link : links)
@@ -1324,6 +1330,7 @@ namespace charliesoft
 
   void GraphRepresentation::removeSelectedLinks()
   {
+    boost::unique_lock<boost::mutex> lock(_mtx);
     auto it = _links.begin();
     while (it != _links.end())
     {
@@ -1347,6 +1354,7 @@ namespace charliesoft
     if (_links.find(link) != _links.end())
       return;//nothing to do...
 
+    boost::unique_lock<boost::mutex> lock(_mtx);
     VertexRepresentation* fromVertex, *toVertex;
     fromVertex = dynamic_cast<VertexRepresentation*>(_items[link._from]->widget());
     toVertex = dynamic_cast<VertexRepresentation*>(_items[link._to]->widget());
@@ -1379,12 +1387,14 @@ namespace charliesoft
 
   void GraphRepresentation::drawEdges(QPainter& p)
   {
+    boost::unique_lock<boost::mutex> lock(_mtx);
     for (auto iter : _links)
       iter.second->draw(&p, NULL, NULL);
   }
 
   VertexRepresentation* GraphRepresentation::getVertexRepresentation(Block* b)
   {
+    boost::unique_lock<boost::mutex> lock(_mtx);
     if (_items.find(b) == _items.end())
       return NULL;
     return dynamic_cast<VertexRepresentation*>(_items[b]->widget());
@@ -1392,8 +1402,11 @@ namespace charliesoft
 
   void GraphRepresentation::synchronize()
   {
+    MainWidget* parent = dynamic_cast<MainWidget*>(parentWidget());
+    if (parent == NULL)
+      return;
     //for each vertex, we look for the corresponding representation:
-    std::vector<Block*> blocks = Window::getInstance()->getModel()->getVertices();
+    std::vector<Block*> blocks = parent->getModel()->getVertices();
     for (auto it = blocks.begin(); it != blocks.end(); it++)
     {
       if (_items.find(*it) == _items.end())//add this vertex to view:
@@ -1413,12 +1426,30 @@ namespace charliesoft
       if (!found)//remove this block from view:
       {
         int pos = indexOf(it_->first);
-        auto representation = takeAt(pos);//remove widget from representation
+        //delete edges if needed:
+        auto link = _links.begin();
+        while (link != _links.end())
+        {
+          if ((it_->first == link->first._from) ||
+            (it_->first == link->first._to))
+          {
+            delete link->second;
+            auto tmpLink = link;
+            _links.erase(tmpLink);
+            link = _links.begin();//restart iteration (we can't presume for iterator position)
+          }
+          else
+            link++;
+        }
+        
+        //remove widget from representation
+        auto representation = takeAt(pos);
         delete representation->widget();
         delete representation;
+
         it_ = _items.begin();//restart iteration (we can't presume for iterator position)
       }
-      if (it_ != _items.end())
+      else
         it_++;
     }
 
@@ -1461,8 +1492,9 @@ namespace charliesoft
     Window::getInstance()->redraw();
   }
 
-  MainWidget::MainWidget()
+  MainWidget::MainWidget(charliesoft::GraphOfProcess *model)
   {
+    _model = model;
     setObjectName("MainWidget");
     isSelecting_ = creatingLink_ = false;
     startParam_ = NULL;
@@ -1479,9 +1511,9 @@ namespace charliesoft
   {
     Block* block = ProcessManager::getInstance()->createAlgoInstance(
       event->mimeData()->text().toStdString());
-    Window::getInstance()->getModel()->addNewProcess(block);
+    _model->addNewProcess(block);
     block->updatePosition((float)event->pos().x(), (float)event->pos().y());
-    emit askSynchro();//as we updated the model, we ask the layout to redraw itself...
+    Window::synchroMainGraph();//as we updated the model, we ask the layout to redraw itself...
   }
   
   void MainWidget::paintEvent(QPaintEvent *pe)
@@ -1509,8 +1541,7 @@ namespace charliesoft
     }
 
     //now ask each vertex to draw the links:
-    Window::getGraphLayout()->drawEdges(painter);
-
+    dynamic_cast<GraphRepresentation*>(layout())->drawEdges(painter);
   }
 
   void MainWidget::mouseMoveEvent(QMouseEvent *me)
@@ -1525,27 +1556,30 @@ namespace charliesoft
       selectBox_.setCoords(startMouse_.x(), startMouse_.y(),
         me->x() + 1, me->y() + 1);
       //test intersection between vertex representation and selection rect:
-      GraphRepresentation* representation = Window::getGraphLayout();
-      std::map<Block*, QLayoutItem*>& items = representation->getItems();
-
-      for (auto item : items)
+      GraphRepresentation* representation = dynamic_cast<GraphRepresentation*>(layout());
+      if (representation != NULL)
       {
-        if (VertexRepresentation* vertex = dynamic_cast<VertexRepresentation*>(item.second->widget()))
+        std::map<Block*, QLayoutItem*>& items = representation->getItems();
+
+        for (auto item : items)
         {
-          if (vertex->geometry().intersects(selectBox_.toRect()))
-            vertex->setSelected(true);
-          else
-            vertex->setSelected(false);
+          if (VertexRepresentation* vertex = dynamic_cast<VertexRepresentation*>(item.second->widget()))
+          {
+            if (vertex->geometry().intersects(selectBox_.toRect()))
+              vertex->setSelected(true);
+            else
+              vertex->setSelected(false);
+          }
         }
-      }
 
-      std::map<BlockLink, LinkPath*>& links = representation->getLinks();
-      for (auto link : links)
-      {
-        if (link.second->intersect(selectBox_.toRect()))
-          link.second->setSelected(true);
-        else
-          link.second->setSelected(false);
+        std::map<BlockLink, LinkPath*>& links = representation->getLinks();
+        for (auto link : links)
+        {
+          if (link.second->intersect(selectBox_.toRect()))
+            link.second->setSelected(true);
+          else
+            link.second->setSelected(false);
+        }
       }
       Window::getInstance()->redraw();
     }
@@ -1561,7 +1595,8 @@ namespace charliesoft
         startMouse_.x() + 3, startMouse_.y() + 3);
 
       VertexRepresentation::resetSelection();
-      std::map<BlockLink, LinkPath*>& links = Window::getGraphLayout()->getLinks();
+      GraphRepresentation* representation = dynamic_cast<GraphRepresentation*>(layout());
+      std::map<BlockLink, LinkPath*>& links = representation->getLinks();
       for (auto link : links)
         link.second->setSelected(link.second->intersect(selectBox_.toRect()));
 
@@ -1608,9 +1643,9 @@ namespace charliesoft
       //everything seems correct, create the link!!!
       try{
         if (param->isInput())
-          Window::getInstance()->getModel()->createLink(startParam->getModel(), startParam->getParamName(), param->getModel(), param->getParamName());
+          _model->createLink(startParam->getModel(), startParam->getParamName(), param->getModel(), param->getParamName());
         else
-          Window::getInstance()->getModel()->createLink(param->getModel(), param->getParamName(), startParam->getModel(), startParam->getParamName());
+          _model->createLink(param->getModel(), param->getParamName(), startParam->getModel(), startParam->getParamName());
       }
       catch (ErrorValidator& e)
       {
@@ -1618,8 +1653,7 @@ namespace charliesoft
         messageBox.critical(0, _STR("ERROR_GENERIC_TITLE").c_str(), e.errorMsg.c_str());
         return;
       }
-
-      emit askSynchro();
+      Window::synchroMainGraph();
     }
 
     //if one is ConditionLinkRepresentation, other is ParamRepresentation:
@@ -1641,7 +1675,8 @@ namespace charliesoft
       }
       ConditionOfRendering* model = condParam->getModel();
       model->setValue(condParam->isLeftCond(), param->getParamValue());
-      emit askSynchro();
+      
+      Window::synchroMainGraph();
     }
 
   }

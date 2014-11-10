@@ -47,16 +47,13 @@ namespace charliesoft
   {
     Q_OBJECT;
 
-    static Window* ptr;
-
-    charliesoft::GraphOfProcess *_model;
   public:
     static Window* getInstance();
     static void releaseInstance();
-    charliesoft::GraphOfProcess * getModel() const { return _model; }
-    static GraphRepresentation* getGraphLayout();
+    static void synchroMainGraph();
+
     void show();
-    MainWidget* getMainWidget() const { return mainWidget_; }
+    charliesoft::MainWidget* getMainWidget() const;
     std::string getKey(QTreeWidgetItem* w) {
       try{ return keysName_.at(w); }
       catch (std::out_of_range){ return ""; };
@@ -66,13 +63,15 @@ namespace charliesoft
 
     bool event(QEvent *event);
   private:
+    void addTab(MainWidget* tmp, QString tabName);
+    static Window* ptr;
+
     Window();
     ~Window();
 
-    GraphRepresentation* mainLayout_;
     QMenu *menuFichier;
     QMenu *menuAide;
-    MainWidget* mainWidget_;//input, imgProcess, videoProcess, mathOperator, output
+    QTabWidget* _tabWidget;
 
     QDockWidget * dock_;
     DraggableContainer * _dock_content;
@@ -84,9 +83,6 @@ namespace charliesoft
     void mousePressEvent(QMouseEvent *event);
     void closeEvent(QCloseEvent *event);
 
-  signals:
-    void askSynchro();
-
     private slots:
     void openFile();
     void newProject();
@@ -94,6 +90,14 @@ namespace charliesoft
     void saveAsProject();
     bool quitProg();
     void printHelp();
+
+    void closeTab_(int index)
+    {
+      // Delete the page widget, which automatically removes
+      // the tab as well.
+      delete _tabWidget->widget(index);
+    }
+
   };
 }
 

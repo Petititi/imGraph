@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GraphOfProcess>
+  <Block>
+    <name>BLOCK__INPUT_NAME</name>
+    <position>[41, 184]</position>
+    <Input>
+      <Name>BLOCK__INPUT_INOUT_HEIGHT</Name>
+      <Link>false</Link>
+      <Value>Not initialized...</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__INPUT_INOUT_POS_FRAMES</Name>
+      <Link>false</Link>
+      <Value>Not initialized...</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__INPUT_INOUT_POS_RATIO</Name>
+      <Link>false</Link>
+      <Value>Not initialized...</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__INPUT_INOUT_WIDTH</Name>
+      <Link>false</Link>
+      <Value>Not initialized...</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__INPUT_IN_COLOR</Name>
+      <Link>false</Link>
+      <Value>Not initialized...</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__INPUT_IN_FILE</Name>
+      <Link>false</Link>
+      <Value>D:/Travail/Douane/data/sequence/video_compress.avi</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__INPUT_IN_GREY</Name>
+      <Link>false</Link>
+      <Value>Not initialized...</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__INPUT_OUT_FRAMERATE</Name>
+      <Link>false</Link>
+      <Value>Not initialized...</Value>
+    </Input>
+    <Output>
+      <Name>BLOCK__INPUT_INOUT_HEIGHT</Name>
+      <ID>39160648</ID>
+    </Output>
+    <Output>
+      <Name>BLOCK__INPUT_INOUT_POS_FRAMES</Name>
+      <ID>39161576</ID>
+    </Output>
+    <Output>
+      <Name>BLOCK__INPUT_INOUT_POS_RATIO</Name>
+      <ID>39162504</ID>
+    </Output>
+    <Output>
+      <Name>BLOCK__INPUT_INOUT_WIDTH</Name>
+      <ID>39159720</ID>
+    </Output>
+    <Output>
+      <Name>BLOCK__INPUT_OUT_FORMAT</Name>
+      <ID>39163432</ID>
+    </Output>
+    <Output>
+      <Name>BLOCK__INPUT_OUT_FRAMERATE</Name>
+      <ID>39158792</ID>
+    </Output>
+    <Output>
+      <Name>BLOCK__INPUT_OUT_IMAGE</Name>
+      <ID>39157864</ID>
+    </Output>
+  </Block>
+  <Block>
+    <name>BLOCK__OUTPUT_NAME</name>
+    <position>[957, 118]</position>
+    <Input>
+      <Name>BLOCK__OUTPUT_IN_IMAGE</Name>
+      <Link>true</Link>
+      <Value>40036736</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__OUTPUT_IN_NORMALIZE</Name>
+      <Link>false</Link>
+      <Value>Not initialized...</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__OUTPUT_IN_WIN_NAME</Name>
+      <Link>false</Link>
+      <Value>points1</Value>
+    </Input>
+  </Block>
+  <Block>
+    <name>BLOCK__POINTDRAWER_NAME</name>
+    <position>[742, 118]</position>
+    <Input>
+      <Name>BLOCK__POINTDRAWER_IN_COLOR</Name>
+      <Link>false</Link>
+      <Value>%YAML:1.0
+colorValue: [ 4., 0., 239., 255. ]
+</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__POINTDRAWER_IN_IMAGE</Name>
+      <Link>true</Link>
+      <Value>39157864</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__POINTDRAWER_IN_POINTS</Name>
+      <Link>true</Link>
+      <Value>40046648</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__POINTDRAWER_IN_SIZE</Name>
+      <Link>false</Link>
+      <Value>10</Value>
+    </Input>
+    <Output>
+      <Name>BLOCK__POINTDRAWER_OUT_IMAGE</Name>
+      <ID>40036736</ID>
+    </Output>
+  </Block>
+  <Block>
+    <name>BLOCK__POINT_FINDER_NAME</name>
+    <position>[412, 61]</position>
+    <Input>
+      <Name>BLOCK__POINT_FINDER_IN_DETECTOR</Name>
+      <Link>false</Link>
+      <Value>2</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__POINT_FINDER_IN_EXTRACTOR</Name>
+      <Link>false</Link>
+      <Value>0</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__POINT_FINDER_IN_IMAGE</Name>
+      <Link>true</Link>
+      <Value>39157864</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__POINT_FINDER_IN_MODIFICATOR</Name>
+      <Link>false</Link>
+      <Value>Not initialized...</Value>
+    </Input>
+    <Output>
+      <Name>BLOCK__POINT_FINDER_OUT_DESC</Name>
+      <ID>40047576</ID>
+    </Output>
+    <Output>
+      <Name>BLOCK__POINT_FINDER_OUT_POINTS</Name>
+      <ID>40046648</ID>
+    </Output>
+  </Block>
+</GraphOfProcess>

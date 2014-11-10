@@ -70,15 +70,32 @@ namespace charliesoft
       ptr = new Window();
     return ptr;
   }
-  GraphRepresentation* Window::getGraphLayout()
+
+  MainWidget* Window::getMainWidget() const {
+    QScrollArea* tmp = dynamic_cast<QScrollArea*>(_tabWidget->currentWidget());
+    if (tmp == NULL)
+      return NULL;
+    return dynamic_cast<MainWidget*>(tmp->widget());
+  };
+
+  void Window::synchroMainGraph()
   {
-    return getInstance()->mainLayout_;
+    MainWidget* mainWidget = getInstance()->getMainWidget();
+    if (mainWidget != NULL)
+    {
+      GraphRepresentation* graphRep = dynamic_cast<GraphRepresentation*>(mainWidget->layout());
+      if (graphRep != NULL)
+      {
+        graphRep->synchronize();
+      }
+    }
   }
 
   void Window::redraw()
   {
-    mainWidget_->update();
-    mainWidget_->adjustSize();
+    MainWidget* tmp = getMainWidget();
+    tmp->update();
+    tmp->adjustSize();
   }
 
   void Window::releaseInstance()
@@ -96,12 +113,13 @@ namespace charliesoft
   Window::Window()
   {
     ptr = this;
-    _model = new GraphOfProcess();
+    _tabWidget = new QTabWidget(); 
+    _tabWidget->setTabsClosable(true);
+
+    connect(_tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab_(int)));
+
     //create opencv main thread:
     new GuiReceiver();
-
-    //first load config file:
-    GlobalConfig::getInstance()->loadConfig();
 
     menuFichier = menuBar()->addMenu(_QT("MENU_FILE"));
 
@@ -134,38 +152,11 @@ namespace charliesoft
     menuAide = menuBar()->addMenu("?");
     menuAide->addAction(_QT("MENU_HELP_INFO"));
     menuAide->addAction(_QT("MENU_HELP_HELP"));
-  }
 
-  void Window::fillDock(int idDock)
-  {
-    std::vector<std::string> list = ProcessManager::getInstance()->getAlgos(AlgoType(idDock));
-    auto it = list.begin();
-    while (it != list.end())
-    {
-      QTreeWidgetItem* tmp = new QTreeWidgetItem();
-      tmp->setText(0, _QT(*it));
-      keysName_[tmp] = *it;
-      dock_categories[idDock]->addChild(tmp);
-      it++;
-    }
-  }
+    MainWidget* tmp = new MainWidget(new GraphOfProcess());
+    addTab(tmp, "MainTab");
 
-  void Window::show()
-  {
-    mainLayout_ = new GraphRepresentation();
-   
-    mainWidget_ = new MainWidget();
-    mainWidget_->setLayout(mainLayout_);
-
-    QScrollArea* scrollarea = new QScrollArea(this);
-    scrollarea->setWidgetResizable(true);
-   
-
-    QVBoxLayout* tmpLayout = new QVBoxLayout(scrollarea);
-    scrollarea->setLayout(tmpLayout);
-    scrollarea->setWidget(mainWidget_);
-
-    setCentralWidget(scrollarea);
+    setCentralWidget(_tabWidget);
 
     statusBar();
 
@@ -203,24 +194,57 @@ namespace charliesoft
       _dock_content->addTopLevelItem(tmp);
       fillDock(i);
     }
+  }
+
+  void Window::fillDock(int idDock)
+  {
+    std::vector<std::string> list = ProcessManager::getInstance()->getAlgos(AlgoType(idDock));
+    auto it = list.begin();
+    while (it != list.end())
+    {
+      QTreeWidgetItem* tmp = new QTreeWidgetItem();
+      tmp->setText(0, _QT(*it));
+      keysName_[tmp] = *it;
+      dock_categories[idDock]->addChild(tmp);
+      it++;
+    }
+  }
+
+  void Window::addTab(MainWidget* tmp, QString tabName)
+  {
+    GraphRepresentation* layout = new GraphRepresentation();
+    tmp->setLayout(layout);
+
+    QScrollArea* scrollarea = new QScrollArea(this);
+    scrollarea->setWidgetResizable(true);
+
+
+    QVBoxLayout* tmpLayout = new QVBoxLayout(scrollarea);
+    scrollarea->setLayout(tmpLayout);
+    scrollarea->setWidget(tmp);
+
+    _tabWidget->addTab(scrollarea, tabName);
+    _tabWidget->setCurrentWidget(scrollarea);
+  }
+
+  void Window::show()
+  {
+    //first load config file:
+    GlobalConfig::getInstance()->loadConfig();
 
     
     if (GlobalConfig::getInstance()->isMaximized)
       showMaximized();
     else
     {
-      resize(GlobalConfig::getInstance()->lastPosition.size()); move(GlobalConfig::getInstance()->lastPosition.topLeft());
+      resize(GlobalConfig::getInstance()->lastPosition.size());
+      move(GlobalConfig::getInstance()->lastPosition.topLeft());
       QMainWindow::show();
     }
-
-    connect(mainWidget_, SIGNAL(askSynchro()),
-      mainLayout_, SLOT(synchronize()));
-    connect(this, SIGNAL(askSynchro()),
-      mainLayout_, SLOT(synchronize()));
-
+    
     setStyleSheet(GlobalConfig::getInstance()->styleSheet_.c_str());
 
-    mainLayout_->synchronize();
+    synchroMainGraph();
   }
 
   void Window::mousePressEvent(QMouseEvent *event)
@@ -248,28 +272,28 @@ namespace charliesoft
           //Enter or return was pressed
           startRun = false;
           GraphOfProcess::pauseProcess = false;
-          _model->run();
+          getMainWidget()->getModel()->run();
           break;
         case Qt::Key_End:
           startRun = true;
           GraphOfProcess::pauseProcess = false;
-          _model->stop();
+          getMainWidget()->getModel()->stop();
           break;
         case Qt::Key_Space:
           if (startRun)
           {
             startRun = false;
-            _model->run();
+            getMainWidget()->getModel()->run();
           }
           else
-            _model->switchPause();
+            getMainWidget()->getModel()->switchPause();
           break;
         case Qt::Key_Delete:
-          mainLayout_->removeSelectedLinks();
+          dynamic_cast<GraphRepresentation*>(getMainWidget()->layout())->removeSelectedLinks();
           for (auto rep : VertexRepresentation::getSelection())
-            _model->deleteProcess(rep->getModel());
+            getMainWidget()->getModel()->deleteProcess(rep->getModel());
           VertexRepresentation::resetSelection();
-          mainLayout_->synchronize();
+          synchroMainGraph();
           break;
         default:
           return QMainWindow::event(event);
@@ -295,17 +319,20 @@ namespace charliesoft
     if (!file.isEmpty())
     {
       GlobalConfig::getInstance()->lastProject_ = file.toStdString();
-      //load project...
-      mainLayout_->clearLayout();
-      if (_model != NULL)
-        delete _model;
-      _model = new GraphOfProcess();
 
+      //load project...
       ptree xmlTree;
       //try to read the file:
       ifstream ifs(file.toStdString());
       if (ifs.is_open())
       {
+        boost::filesystem::path fileName(file.toStdString());
+        string test = fileName.filename().string();
+        test = test.substr(0, test.length()-4);
+
+        GraphOfProcess* tmp = new GraphOfProcess();
+        addTab(new MainWidget(tmp), test.c_str());
+
         string str((istreambuf_iterator<char>(ifs)), istreambuf_iterator<char>());
         stringstream contentStreamed;
         contentStreamed << str;
@@ -316,9 +343,10 @@ namespace charliesoft
         catch (boost::property_tree::ptree_bad_path&)
         {//nothing to do...
         }
+        if (!xmlTree.empty())
+          tmp->fromGraph(xmlTree);
       }
-      if (!xmlTree.empty())
-        _model->fromGraph(xmlTree);
+      synchroMainGraph();
     }
 
   }
@@ -327,21 +355,19 @@ namespace charliesoft
   {
     GlobalConfig::getInstance()->lastProject_ = "";
 
-    mainLayout_->clearLayout();
-    if (_model != NULL)
-      delete _model;
-    _model = new GraphOfProcess();
-    mainLayout_->synchronize();
+    GraphOfProcess* tmp = new GraphOfProcess();
+    addTab(new MainWidget(tmp), "newTab");
+    synchroMainGraph();
   }
 
   void Window::saveProject()
   {
-    if (GlobalConfig::getInstance()->lastProject_.empty() || _model==NULL)
+    if (GlobalConfig::getInstance()->lastProject_.empty() || getMainWidget()->getModel() == NULL)
       GlobalConfig::getInstance()->saveConfig();
     else
     {
       ptree localElement;
-      _model->saveGraph(localElement);
+      getMainWidget()->getModel()->saveGraph(localElement);
       boost::property_tree::xml_writer_settings<char> settings(' ', 2);
       write_xml(GlobalConfig::getInstance()->lastProject_, localElement, std::locale(), settings);
     }
