@@ -101,6 +101,7 @@ namespace charliesoft
     translations["ERROR_PARAM_ONLY_NEGATIF"] = "Param \"%1$s\":<br/>only negative value are authorized!";
     translations["ERROR_PARAM_ONLY_NEGATIF_STRICT"] = "Param \"%1$s\":<br/>only strict negative value are authorized!";
     translations["ERROR_PARAM_VALUE_BETWEEN"] = "Param \"%1$s\" (%2$f):<br/>should be between %3$f and %4$f";
+    translations["ERROR_PARAM_FOUND"] = "Error! Could not find property of \"%1$s\"";
 
     translations["MENU_FILE"] = "File";
     translations["MENU_FILE_OPEN"] = "Open";
@@ -139,6 +140,7 @@ namespace charliesoft
     translations["MATRIX_EDITOR_HELP_SAVE"] = "Save current matrix (CTRL+S)";
     translations["MATRIX_EDITOR_HELP_LOAD"] = "Load new matrix (CTRL+O)";
     translations["MATRIX_EDITOR_HELP_EDIT"] = "Edit matrix (CTRL+E)";
+    translations["MATRIX_EDITOR_HELP_ONTOP"] = "Always on top (CTRL+T)";
 
     translations["MENU_HELP_INFO"] = "Info";
     translations["MENU_HELP_HELP"] = "Help";
@@ -149,7 +151,8 @@ namespace charliesoft
     translations["PROJ_CREATE_FILE"] = "Create project file";
 
     translations["DOCK_TITLE"] = "Toolbox";
-
+    translations["DOCK_PROPERTY_TITLE"] = "Properties";
+    
 
     translations["BLOCK_TITLE_INPUT"] = "Input";
     translations["BLOCK_TITLE_IMG_PROCESS"] = "2D processing";

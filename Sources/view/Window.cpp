@@ -45,6 +45,7 @@
 #include "MatrixViewer.h"
 #include "GraphicView.h"
 #include "ProcessManager.h"
+#include "ParameterDock.h"
 
 using namespace std;
 using namespace charliesoft;
@@ -159,6 +160,13 @@ namespace charliesoft
     setCentralWidget(_tabWidget);
 
     statusBar();
+
+    //create dock for block properties:
+    property_dock_ = new QDockWidget(_QT("DOCK_PROPERTY_TITLE"), this);
+    property_dock_->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    property_dock_->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+
+    addDockWidget(Qt::RightDockWidgetArea, property_dock_);
 
     _dock_content = new DraggableContainer();
     _dock_content->setColumnCount(1);
@@ -400,6 +408,14 @@ namespace charliesoft
   void Window::printHelp()
   {
 
+  }
+
+  void Window::updatePropertyDock(VertexRepresentation* vertex)
+  {
+    QWidget *prevWidget = property_dock_->widget();
+    property_dock_->setWidget(new ParamsConfigurator(vertex));
+    if (prevWidget != NULL)
+      delete prevWidget;
   }
 
   void DraggableContainer::mousePressEvent(QMouseEvent *mouse)

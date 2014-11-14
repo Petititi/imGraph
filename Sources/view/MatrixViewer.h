@@ -107,7 +107,8 @@ enum {
   shortcut_panning_left = Qt::CTRL + Qt::Key_Left,
   shortcut_panning_right = Qt::CTRL + Qt::Key_Right,
   shortcut_panning_up = Qt::CTRL + Qt::Key_Up,
-  shortcut_panning_down = Qt::CTRL + Qt::Key_Down
+  shortcut_panning_down = Qt::CTRL + Qt::Key_Down,
+  shortcut_always_top = Qt::CTRL + Qt::Key_T
 };
 
 //end enum
@@ -193,6 +194,7 @@ protected:
 #define __ACT_IMGRAPH_ZOOM_IN    __ACT_IMGRAPH_ZOOM_X1  +1
 #define __ACT_IMGRAPH_ZOOM_OUT   __ACT_IMGRAPH_ZOOM_IN  +1
 #define __ACT_IMGRAPH_PEN_EDIT   __ACT_IMGRAPH_ZOOM_OUT +1
+#define __ACT_IMGRAPH_ONTOP      __ACT_IMGRAPH_PEN_EDIT +1
 
 class MatrixViewer : public QDialog
 {
@@ -249,6 +251,7 @@ protected:
 
   ToolsWindow* myTools;
 private:
+  bool isOnTop;
   bool pencil_mode;
   int mode_display; //opengl or native
   DefaultViewPort* myView;
@@ -269,6 +272,7 @@ private:
   void displayPropertiesWin();
   void switchEditingImg();
   void chooseColor();
+  void switchOnTop();
 };
 
 

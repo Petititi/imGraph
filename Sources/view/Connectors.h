@@ -85,11 +85,14 @@ namespace charliesoft
     Block* _model;
     ParamDefinition _param;
     bool _isSubParam;
+    bool _defaultValue;
   public:
     ParamRepresentation(Block* model, ParamDefinition param, bool isInput, QWidget *father);
 
     bool shouldShow() const { return _param._show; }
+    bool isDefaultVal() const { return _defaultValue; }
     void setVisibility(bool visible);
+    void useDefault(bool defaultVal){ _defaultValue = defaultVal; };
     std::string getParamName() const { return _param._name; }
     ParamValue* getParamValue() const { return _model->getParam(_param._name, _isInput); }
     std::string getParamHelper() const;

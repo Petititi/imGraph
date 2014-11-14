@@ -82,6 +82,9 @@ namespace charliesoft
       return selectedBlock_;
     };
     ParamRepresentation* getParamRep(std::string paramName, bool input);
+    std::map<std::string, ParamRepresentation*>& getListOfInputChilds() { return listOfInputChilds_; }
+    std::map<std::string, ParamRepresentation*>& getListOfSubParams() { return listOfInputSubParams_; }
+    std::map<std::string, ParamRepresentation*>& getListOfOutputChilds() { return listOfOutputChilds_; }
   protected:
     ConditionLinkRepresentation* getCondition(ConditionOfRendering*, bool isLeft);
     static std::vector<VertexRepresentation*> selectedBlock_;
@@ -95,89 +98,9 @@ namespace charliesoft
 
     public slots:
     void reshape();
-  };
-
-  class ConditionConfigurator :public QDialog
-  {
-    Q_OBJECT;
-    VertexRepresentation* _vertex;
-
-    QPushButton* _OKbutton;
-    QPushButton* _Cancelbutton;
-    QPushButton* _Deletebutton;
-    QComboBox* _condition_left;
-    QComboBox* _condition_type;
-    QComboBox* _condition_right;
-
-    QLineEdit* _value_left;
-    QLineEdit* _value_right;
-
-    QGridLayout* _comboBoxLayout;
-  public:
-    ConditionConfigurator(VertexRepresentation* vertex);
-    public slots:
-    void accept_button();
-    void reject_button();
-    void delete_button();
-    void updateLeft(int);
-    void updateRight(int);
 
   signals:
-    void askSynchro();
-  };
-
-  class ParamsConfigurator :public QDialog
-  {
-    Q_OBJECT;
-
-    std::map<QObject*, QLineEdit*> openFiles_;
-    std::map<ParamRepresentation*, cv::Mat> _paramMatrix;
-    std::map<ParamRepresentation*, cv::Scalar> _paramColor;
-
-    std::map<QGroupBox*, ParamRepresentation*> inputGroup_;
-    std::map<QWidget*, std::vector<ParamRepresentation*>> subparamGroup_;
-    std::map<QGroupBox*, ParamRepresentation*> outputGroup_;
-
-    std::map< QCheckBox*, ParamRepresentation* > _inputModificator12;
-    std::map< ParamRepresentation*, QCheckBox*> _inputModificator21;
-    std::map<ParamRepresentation*, QObject* > _inputValue12;
-    std::map<QObject*, ParamRepresentation*> _inputValue21;
-
-    std::map<std::string, ParamRepresentation*>& in_param_;
-    std::map<std::string, ParamRepresentation*>& sub_param_;
-    std::map<std::string, ParamRepresentation*>& out_param_;
-
-    std::map<ParamRepresentation*, QWidget*> subWidget_;
-
-    VertexRepresentation* _vertex;
-
-    QPushButton* _OKbutton;
-    QPushButton* _Cancelbutton;
-    QTabWidget* tabWidget_;
-    std::vector<QVBoxLayout *> tabs_content_;
-
-    void addParamOut(ParamRepresentation  *p);
-    void addParamIn(ParamRepresentation  *p, ParamRepresentation* parent = NULL);
-    void updateParamModel(ParamRepresentation* param);
-  public:
-    ParamsConfigurator(VertexRepresentation* vertex,
-      std::map<std::string, ParamRepresentation*>& in_param,
-      std::map<std::string, ParamRepresentation*>& sub_param,
-      std::map<std::string, ParamRepresentation*>& out_param);
-
-  signals:
-    void changeVisibility(bool isVisible);
-    void askSynchro();
-
-    public slots:
-    void switchEnable(int);
-    void openFile();
-    void configCondition();
-    void accept_button();
-    void reject_button();
-    void matrixEditor();
-    void colorEditor();
-    void subParamChange(int);
+    void updateProp(VertexRepresentation*);
   };
 
   class GraphRepresentation :public QLayout

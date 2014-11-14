@@ -567,6 +567,7 @@ ToolsWindow::~ToolsWindow()
 
 MatrixViewer::MatrixViewer(QString name, int arg2)
 {
+  isOnTop = false;
   myTools = NULL;
   pencil_mode = false;
   moveToThread(qApp->instance()->thread());
@@ -687,8 +688,6 @@ void MatrixViewer::writeSettings()
   myView->writeSettings(settings);
 
 }
-
-
 
 //TODO: load CV_GUI flag (done) and act accordingly (create win property if needed and attach trackbars)
 void MatrixViewer::readSettings()
@@ -830,7 +829,7 @@ void MatrixViewer::createView()
 
 void MatrixViewer::createActions()
 {
-  vect_QActions.resize(10);
+  vect_QActions.resize(11);
 
   QWidget* view = myView->getWidget();
 
@@ -875,16 +874,16 @@ void MatrixViewer::createActions()
   vect_QActions[__ACT_IMGRAPH_PEN_EDIT] = new QAction(QIcon(":/edit_pen-icon"), _QT("MATRIX_EDITOR_HELP_EDIT"), this);
   vect_QActions[__ACT_IMGRAPH_PEN_EDIT]->setIconVisibleInMenu(true);
   QObject::connect(vect_QActions[__ACT_IMGRAPH_PEN_EDIT], SIGNAL(triggered()), this, SLOT(switchEditingImg()));
-  /*
-  vect_QActions[__ACT_IMGRAPH_PEN_COLOR] = new QAction("Color", this);
-  vect_QActions[__ACT_IMGRAPH_PEN_COLOR]->setIconVisibleInMenu(false);
-  QObject::connect(vect_QActions[__ACT_IMGRAPH_PEN_COLOR], SIGNAL(triggered()), this, SLOT(chooseColor()));*/
+  
+  vect_QActions[__ACT_IMGRAPH_ONTOP] = new QAction(QIcon(":/notOnTop-icon"), _QT("MATRIX_EDITOR_HELP_ONTOP"), this);
+  vect_QActions[__ACT_IMGRAPH_ONTOP]->setIconVisibleInMenu(true);
+  QObject::connect(vect_QActions[__ACT_IMGRAPH_ONTOP], SIGNAL(triggered()), this, SLOT(switchOnTop()));
 }
 
 
 void MatrixViewer::createShortcuts()
 {
-  vect_QShortcuts.resize(11);
+  vect_QShortcuts.resize(12);
 
   QWidget* view = myView->getWidget();
 
@@ -920,8 +919,26 @@ void MatrixViewer::createShortcuts()
 
   vect_QShortcuts[10] = new QShortcut(shortcut_edit_pen_img, this);
   QObject::connect(vect_QShortcuts[10], SIGNAL(activated()), this, SLOT(switchEditingImg()));
+
+  vect_QShortcuts[11] = new QShortcut(shortcut_always_top, this);
+  QObject::connect(vect_QShortcuts[11], SIGNAL(activated()), this, SLOT(switchOnTop()));
 }
 
+void MatrixViewer::switchOnTop()
+{
+  isOnTop = !isOnTop;
+
+  if (isOnTop)
+  {//add WindowStaysOnTopHint:
+    setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint);
+    vect_QActions[__ACT_IMGRAPH_ONTOP]->setIcon(QIcon(":/onTop-icon"));
+  }
+  else
+  {//remove WindowStaysOnTopHint:
+    setWindowFlags(windowFlags() & (~Qt::WindowStaysOnTopHint));
+    vect_QActions[__ACT_IMGRAPH_ONTOP]->setIcon(QIcon(":/notOnTop-icon"));
+  }
+}
 
 void MatrixViewer::hideTools()
 {

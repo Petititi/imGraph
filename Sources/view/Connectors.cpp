@@ -104,12 +104,12 @@ namespace charliesoft
 
   ParamRepresentation::ParamRepresentation(Block* model, ParamDefinition param, bool isInput, QWidget *father) :
     LinkConnexionRepresentation(_STR(param._name), isInput, father), _model(model), _param(param){
-    _isSubParam = false;
+    _defaultValue = _isSubParam = false;
     setObjectName("ParamRepresentation");
     if (!param._show) this->hide();
     setToolTip(_QT(param._helper));
     VertexRepresentation* parent = (VertexRepresentation*)father->parentWidget();
-    //connect(this, SIGNAL(askSynchro()), parent, SLOT(reshape()));
+    connect(this, SIGNAL(askSynchro()), parent, SLOT(reshape()));
   };
 
   std::string ParamRepresentation::getParamHelper() const {

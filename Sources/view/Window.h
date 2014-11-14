@@ -33,6 +33,7 @@ namespace charliesoft
   class GraphRepresentation;
   class MainWidget;
   class GlobalConfig;
+  class VertexRepresentation;
 
 
   class DraggableContainer : public QTreeWidget
@@ -74,6 +75,7 @@ namespace charliesoft
     QTabWidget* _tabWidget;
 
     QDockWidget * dock_;
+    QDockWidget * property_dock_;
     DraggableContainer * _dock_content;
     std::vector<QTreeWidgetItem *> dock_categories;
     std::map<QTreeWidgetItem*, std::string> keysName_;
@@ -90,6 +92,8 @@ namespace charliesoft
     void saveAsProject();
     bool quitProg();
     void printHelp();
+
+    void updatePropertyDock(VertexRepresentation*);
 
     void closeTab_(int index)
     {
