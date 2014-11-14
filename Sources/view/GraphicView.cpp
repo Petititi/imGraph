@@ -453,6 +453,7 @@ namespace charliesoft
     QPoint mouseP = mouseE->pos();
     if (_paramActiv == NULL && mouseE->button() == Qt::LeftButton)
     {
+      _isMoving = false;
       if (mouseP.y()>heightOfConditions + 5)
       {
         bool prevProperty = _blockRepresentation->property("selected").toBool();
@@ -461,7 +462,6 @@ namespace charliesoft
         setSelected(true);
         _isDragging = true;
         startClick_ = mouseE->globalPos();
-        emit updateProp(this);
       }
       if (mouseP.y()<heightOfConditions + 5)
       {
@@ -474,9 +474,12 @@ namespace charliesoft
     raise();
   }
 
-  void VertexRepresentation::mouseReleaseEvent(QMouseEvent *)
+  void VertexRepresentation::mouseReleaseEvent(QMouseEvent *mouseE)
   {
     _isDragging = false;
+
+    if (!_isMoving && mouseE->button() == Qt::LeftButton)
+      emit updateProp(this);
   }
 
   void VertexRepresentation::moveDelta(QPoint delta)
@@ -494,6 +497,7 @@ namespace charliesoft
       QPoint p = mouseE->globalPos();
       QPoint deltaClick_ = p - startClick_;
       startClick_ = p;
+      _isMoving = true;
       for (VertexRepresentation* vRep:selectedBlock_)
         vRep->moveDelta(deltaClick_);
     }

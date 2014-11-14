@@ -51,6 +51,7 @@ namespace charliesoft
     QLabel* _conditionsValues;
     Block* _model;
     bool _isDragging;
+    bool _isMoving;
     QPoint startClick_;
     LinkConnexionRepresentation* _paramActiv;
     int heightOfConditions;

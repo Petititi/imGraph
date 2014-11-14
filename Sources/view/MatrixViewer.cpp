@@ -952,7 +952,6 @@ void MatrixViewer::hideTools()
     myTools->hide();
 }
 
-
 void MatrixViewer::showTools()
 {
   if (myToolBar)
@@ -961,7 +960,6 @@ void MatrixViewer::showTools()
   if (myStatusBar)
     myStatusBar->show();
 }
-
 
 ToolsWindow* MatrixViewer::createParameterWindow()
 {
@@ -974,7 +972,6 @@ ToolsWindow* MatrixViewer::createParameterWindow()
 
   return myTools;
 }
-
 
 void MatrixViewer::displayPropertiesWin()
 {
