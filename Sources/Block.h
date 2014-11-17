@@ -34,7 +34,7 @@
       static std::vector<ParamDefinition> getListSubParams(); \
       static bool addedToList; \
   protected: \
-    virtual bool run(); \
+    virtual bool run(bool oneShot=false); \
   public: \
     className##();
 
@@ -191,7 +191,9 @@ namespace charliesoft
     void initParameters(const std::vector<ParamDefinition>& inParam, 
       const std::vector<ParamDefinition>& outParam);
 
-    virtual bool run() = 0;
+    void newProducedData();
+
+    virtual bool run(bool oneShot = false) = 0;
   public:
     Block(std::string name, BlockType typeExec = oneShot);
     std::string getName(){
@@ -201,8 +203,6 @@ namespace charliesoft
       return _exec_type;
     };
     void operator()();
-
-    void newProducedData();
 
     void setGraph(GraphOfProcess* processes){
       _processes = processes;

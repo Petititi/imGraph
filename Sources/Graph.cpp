@@ -212,6 +212,35 @@ namespace charliesoft
     }
   }
 
+  void GraphOfProcess::initChildDatas(Block* block, std::set<Block*>& listOfRenderedBlocks)
+  {
+    listOfRenderedBlocks.insert(block);
+    //take one shot of block to init output:
+    block->run(true);
+    //now render every childs.
+    set<Block*> renderBlocks;
+    for (auto it = block->_myOutputs.begin(); it != block->_myOutputs.end(); it++)
+    {
+      //wake up the threads, if any!
+      std::set<ParamValue*>& listeners = it->second.getListeners();
+      for (auto listener : listeners)
+      {
+        if (listener->isLinked())
+        {
+          Block* consumer = listener->getBlock();
+          if (consumer != NULL && consumer->isReadyToRun(true))
+            renderBlocks.insert(consumer);
+        }
+      }
+
+    }
+    for (Block* consumer : renderBlocks)
+    {
+      if (listOfRenderedBlocks.find(consumer) == listOfRenderedBlocks.end())
+        initChildDatas(consumer, listOfRenderedBlocks);
+    }
+  }
+
   void GraphOfProcess::fromGraph(boost::property_tree::ptree& tree)
   {
     boost::optional<ptree&> vertices = tree.get_child_optional("GraphOfProcess");
@@ -316,6 +345,15 @@ namespace charliesoft
         unsigned int addr = static_cast<unsigned int>(cond->getOpt_value_right().get<double>(false) + 0.5);
         cond->setValue(false, addressesMap[addr]);
       }
+    }
+
+    //first look for edges who are ready to run:
+    set<Block*> renderedBlocks;
+    for (auto it = _vertices.begin();
+      it != _vertices.end(); it++)
+    {
+      if ((*it)->isReadyToRun(true))
+        initChildDatas(*it, renderedBlocks);//and init him and output childs
     }
   }
 

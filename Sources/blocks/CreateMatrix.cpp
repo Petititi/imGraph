@@ -41,7 +41,7 @@ namespace charliesoft
     _myInputs["BLOCK__CREATEMATRIX_IN_INIT"].addValidator({ new ValNeeded(), new ValRange(0, 6) });
   };
   
-  bool CreateMatrix::run(){
+  bool CreateMatrix::run(bool oneShot){
     //todo: verify that type index correspond to constant!
     int wantedType = CV_MAKETYPE(_myInputs["BLOCK__CREATEMATRIX_IN_TYPE"].get<int>(true),
       _myInputs["BLOCK__CREATEMATRIX_IN_NBCHANNEL"].get<int>(true));

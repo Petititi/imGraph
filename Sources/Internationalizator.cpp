@@ -267,6 +267,18 @@ namespace charliesoft
     translations["BLOCK__POINT_FINDER_OUT_POINTS"] = "points";
     translations["BLOCK__POINT_FINDER_OUT_POINTS_HELP"] = "List of detected points";
 
+    translations["BLOCK__POINT_MATCHER_NAME"] = "Match points";
+    translations["BLOCK__POINT_MATCHER_IN_PT_DESC1"] = "desc1";
+    translations["BLOCK__POINT_MATCHER_IN_PT_DESC1_HELP"] = "List of first points descriptors";
+    translations["BLOCK__POINT_MATCHER_IN_PT_DESC2"] = "desc2";
+    translations["BLOCK__POINT_MATCHER_IN_PT_DESC2_HELP"] = "List of second points descriptors";
+    translations["BLOCK__POINT_MATCHER_IN_ALGO"] = "method";
+    translations["BLOCK__POINT_MATCHER_IN_ALGO_HELP"] = "Method used to match feature vector|Brute force^FLANN";
+    translations["BLOCK__POINT_MATCHER_OUT_MATCHES"] = "matches";
+    translations["BLOCK__POINT_MATCHER_OUT_MATCHES_HELP"] = "List of matched points";
+    translations["BLOCK__POINT_MATCHER_OUT_MATCHES_MASK"] = "mask";
+    translations["BLOCK__POINT_MATCHER_OUT_MATCHES_MASK_HELP"] = "List of correct matched points";
+
     translations["BLOCK__DEINTERLACE_NAME"] = "Deinterlace";
     translations["BLOCK__DEINTERLACE_IN_IMAGE"] = "image";
     translations["BLOCK__DEINTERLACE_IN_IMAGE_HELP"] = "Input image";
@@ -297,7 +309,7 @@ namespace charliesoft
     translations["BLOCK__MERGING_IN_IMAGE2"] = "image2";
     translations["BLOCK__MERGING_IN_IMAGE2_HELP"] = "Second input image";
     translations["BLOCK__MERGING_OUT_IMAGE"] = "image";
-    translations["BLOCK__MERGING_OUT_IMAGE_HELP"] = "Croped image";
+    translations["BLOCK__MERGING_OUT_IMAGE_HELP"] = "Cropped image";
 
     translations["BLOCK__CROP_NAME"] = "Crop image";
     translations["BLOCK__CROP_IN_IMAGE"] = "image";

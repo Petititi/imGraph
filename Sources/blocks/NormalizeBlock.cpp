@@ -33,7 +33,7 @@ namespace charliesoft
     _myInputs["BLOCK__NORMALIZ_IN_IMAGE"].addValidator({ new ValNeeded() });
   };
   
-  bool BlockNormalize::run(){
+  bool BlockNormalize::run(bool oneShot){
     if (_myInputs["BLOCK__NORMALIZ_IN_IMAGE"].isDefaultValue())
       return false;
     cv::Mat mat = _myInputs["BLOCK__NORMALIZ_IN_IMAGE"].get<cv::Mat>(true);

@@ -42,7 +42,7 @@ namespace charliesoft
     _myInputs["BLOCK__MERGING_IN_IMAGE2"].addValidator({ new ValNeeded() });
   };
   
-  bool MergingBlock::run(){
+  bool MergingBlock::run(bool oneShot){
     if (_myInputs["BLOCK__MERGING_IN_IMAGE1"].isDefaultValue())
       return false;
     if (_myInputs["BLOCK__MERGING_IN_IMAGE2"].isDefaultValue())

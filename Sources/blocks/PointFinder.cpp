@@ -176,7 +176,7 @@ public:
     } 
   }
 
-  bool PointFinderBlock::run(){
+  bool PointFinderBlock::run(bool oneShot){
     cv::Mat mat = _myInputs["BLOCK__POINT_FINDER_IN_IMAGE"].get<cv::Mat>(true),
       desc;
 

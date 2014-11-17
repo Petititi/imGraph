@@ -113,7 +113,7 @@ namespace charliesoft
     return finalFlow;
   }
 
-  bool OpticFlowBlock::run(){
+  bool OpticFlowBlock::run(bool oneShot){
     cv::Mat src = _myInputs["BLOCK__OPTICFLOW_IN_IMAGE1"].get<cv::Mat>(true);
     cv::Mat dest = _myInputs["BLOCK__OPTICFLOW_IN_IMAGE2"].get<cv::Mat>(true);
     if (src.channels() != 1)

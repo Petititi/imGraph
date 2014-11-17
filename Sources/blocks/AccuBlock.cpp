@@ -34,7 +34,7 @@ namespace charliesoft
     _myInputs["BLOCK__ACCUMULATOR_IN_NB_HISTORY"].addValidator({ new ValNeeded(), new ValPositiv(true) });
   };
   
-  bool AccuBlock::run(){
+  bool AccuBlock::run(bool oneShot){
     if (_myInputs["BLOCK__ACCUMULATOR_IN_IMAGE"].isDefaultValue())
       return false;
     cv::Mat mat = _myInputs["BLOCK__ACCUMULATOR_IN_IMAGE"].get<cv::Mat>(true);

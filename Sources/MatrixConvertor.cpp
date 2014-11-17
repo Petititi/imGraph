@@ -107,17 +107,19 @@ namespace charliesoft
       }
       default:
       {
-        Mat *tmp = new Mat[3];
+        Mat *tmp = new Mat[nbChannelsSrc];
         split(src, tmp);
 
-        if (duplicate)
-          newChannel = tmp[2];
-        else
-          newChannel = Mat::zeros(tmp[2].size(), tmp[2].type());
-
         Mat *tmp1 = new Mat[nbChannels];
-        for (int i = 0; i < nbChannelsSrc; i++)
+        for (int i = 0; i < nbChannelsSrc && i<nbChannels; i++)
           tmp1[i] = tmp[i].clone();
+
+        if (duplicate)
+          newChannel = tmp[nbChannelsSrc-1];
+        else
+          newChannel = Mat::zeros(tmp[0].size(), tmp[0].type());
+
+
         for (int i = nbChannelsSrc; i < nbChannels; i++)
           tmp1[i] = newChannel.clone();
         cv::merge(tmp1, nbChannels, output);

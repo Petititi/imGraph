@@ -34,7 +34,7 @@ namespace charliesoft
     _myInputs["BLOCK__DELAY_VIDEO_IN_DELAY"].addValidator({ new ValNeeded(), new ValPositiv(true) });
   };
   
-  bool DelayBlock::run(){
+  bool DelayBlock::run(bool oneShot){
     cv::Mat src = _myInputs["BLOCK__DELAY_VIDEO_IN_IMAGE"].get<cv::Mat>(true);
     int historySize = _myInputs["BLOCK__DELAY_VIDEO_IN_DELAY"].get<int>(true);
     imgs.push(src);

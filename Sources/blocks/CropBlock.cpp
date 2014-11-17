@@ -41,7 +41,7 @@ namespace charliesoft
     _myInputs["BLOCK__CROP_HEIGHT"].addValidator({ new ValPositiv(true) });
   };
 
-  bool BlockCrop::run(){
+  bool BlockCrop::run(bool oneShot){
     if (_myInputs["BLOCK__CROP_IN_IMAGE"].isDefaultValue())
       return false;
     cv::Mat mat = _myInputs["BLOCK__CROP_IN_IMAGE"].get<cv::Mat>(true);

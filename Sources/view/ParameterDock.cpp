@@ -136,13 +136,27 @@ namespace charliesoft
     ParamValue* param = p->getParamValue();
     outputGroup_[group] = p;
     vbox->addWidget(new QLabel(_QT(p->getParamHelper())));
-    QLineEdit* tmp = new QLineEdit();
-    tmp->setEnabled(false);
-    if (param->getType()!=ParamType::Matrix)
+    if (param->getType() != ParamType::Matrix)
+    {
+      QLineEdit* tmp = new QLineEdit();
+      tmp->setEnabled(false);
       tmp->setText(param->toString().c_str());
+      vbox->addWidget(tmp);
+    }
     else
-      tmp->setText("Matrix...");
-    vbox->addWidget(tmp);
+    {
+      QPushButton* matEditor = new QPushButton(_QT("MATRIX_EDITOR"));
+      vbox->addWidget(matEditor);
+      _inputValue12[p] = matEditor;
+      _inputValue21[matEditor] = p;
+      if (p->getParamValue()->isDefaultValue())
+        matEditor->setEnabled(false);
+      else
+      {
+        _paramMatrix[p] = p->getParamValue()->get<cv::Mat>(false);
+        connect(matEditor, SIGNAL(clicked()), this, SLOT(matrixEditor()));
+      }
+    }
 
     connect(group, SIGNAL(toggled(bool)), this, SLOT(switchParamUse(bool)));
   }

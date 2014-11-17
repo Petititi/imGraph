@@ -44,7 +44,7 @@ namespace charliesoft
     _myInputs["BLOCK__DEINTERLACE_IN_IMAGE"].addValidator({ new ValNeeded() });
   };
   
-  bool DeinterlaceBlock::run(){
+  bool DeinterlaceBlock::run(bool oneShot){
     if (_myInputs["BLOCK__DEINTERLACE_IN_IMAGE"].isDefaultValue())
       return false;
     cv::Mat mat = _myInputs["BLOCK__DEINTERLACE_IN_IMAGE"].get<cv::Mat>(true);
@@ -56,6 +56,10 @@ namespace charliesoft
     if (!mat.empty())
     {
       _myOutputs["BLOCK__DEINTERLACE_OUT_IMAGE"] = filter.process(mat);
+
+      if (oneShot)
+        return true;
+
       newProducedData();
 
       mat = filter.getProducedFrame();//get an other img?
@@ -96,7 +100,7 @@ namespace charliesoft
     nbFrame = 0;
   };
 
-  bool InterlaceBlock::run(){
+  bool InterlaceBlock::run(bool oneShot){
     if (_myInputs["BLOCK__SKIP_FRAME_IN_IMAGE"].isDefaultValue())
       return false;
 

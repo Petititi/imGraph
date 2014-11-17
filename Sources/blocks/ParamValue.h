@@ -176,7 +176,7 @@ namespace charliesoft
     Block * getBlock() const { return block_; };
     void setBlock(Block *b) { block_=b; };
 
-    ///Param useData, when thrue indicate that algorithm will process this data, so it can
+    ///Param useData, when true indicate that algorithm will process this data, so it can
     ///be marked as _isNew=false...
     template<typename T>
     T get(bool useData) const

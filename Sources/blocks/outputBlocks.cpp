@@ -37,7 +37,7 @@ namespace charliesoft
     _myInputs["BLOCK__OUTPUT_IN_IMAGE"].addValidator({ new ValNeeded() });
   };
   
-  bool BlockShow::run(){
+  bool BlockShow::run(bool oneShot){
     if (_myInputs["BLOCK__OUTPUT_IN_IMAGE"].isDefaultValue())
       return false;
     cv::Mat mat = _myInputs["BLOCK__OUTPUT_IN_IMAGE"].get<cv::Mat>(true);

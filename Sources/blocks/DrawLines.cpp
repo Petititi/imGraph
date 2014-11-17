@@ -37,7 +37,7 @@ namespace charliesoft
     _myInputs["BLOCK__LINEDRAWER_IN_SIZE"].addValidator({ new ValPositiv(true) });
   };
 
-  bool LineDrawer::run(){
+  bool LineDrawer::run(bool oneShot){
     cv::Mat out = _myInputs["BLOCK__LINEDRAWER_IN_IMAGE"].get<cv::Mat>(true).clone();
     int size = 1;
     cv::Scalar color = cv::Scalar(255, 255, 255);
@@ -114,7 +114,7 @@ namespace charliesoft
     _myInputs["BLOCK__POINTDRAWER_IN_IMAGE"].addValidator({ new ValNeeded() });
   };
 
-  bool PointDrawer::run(){
+  bool PointDrawer::run(bool oneShot){
     cv::Mat out = _myInputs["BLOCK__POINTDRAWER_IN_IMAGE"].get<cv::Mat>(true).clone();
     int size = 1;
     cv::Scalar color = cv::Scalar(255, 255, 255);

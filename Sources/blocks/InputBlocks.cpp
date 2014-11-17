@@ -57,7 +57,7 @@ protected:
     _myInputs["BLOCK__INPUT_OUT_FRAMERATE"].addValidator({ new ValPositiv(true) });
   };
 
-  bool BlockLoader::run(){
+  bool BlockLoader::run(bool oneShot){
     if (!_myInputs["BLOCK__INPUT_IN_FILE"].isDefaultValue())
     {
       string fileName = _myInputs["BLOCK__INPUT_IN_FILE"].get<string>(true);
@@ -105,6 +105,10 @@ protected:
       _myOutputs["BLOCK__INPUT_INOUT_POS_FRAMES"] = processor_.getProperty(cv::CAP_PROP_POS_FRAMES);
       _myOutputs["BLOCK__INPUT_INOUT_POS_RATIO"] = processor_.getProperty(cv::CAP_PROP_POS_AVI_RATIO);
       _myOutputs["BLOCK__INPUT_OUT_FORMAT"] = frame.type();
+
+
+      if (oneShot)
+        return true;
 
       //wait corresponding ms in order to keep fps:
       if (fps>0)

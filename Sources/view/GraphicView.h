@@ -66,6 +66,8 @@ namespace charliesoft
     VertexRepresentation(Block* model);
     ~VertexRepresentation();
 
+    void createListParamsFromModel();
+
     Block* getModel() const { return _model; }
     void setParamActiv(LinkConnexionRepresentation*);
 

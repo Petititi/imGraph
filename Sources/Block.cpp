@@ -268,7 +268,6 @@ namespace charliesoft
 
         _cond_sync.notify_all();//wake up waiting thread (if needed)
         boost::this_thread::sleep(boost::posix_time::milliseconds(10.));
-
       }
     }
     catch (boost::thread_interrupted const&)

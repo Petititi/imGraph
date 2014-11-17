@@ -45,7 +45,7 @@ namespace charliesoft
     _myInputs["BLOCK__MORPHOLOGIC_ITERATIONS"].addValidator({ new ValPositiv(true) });
   };
   
-  bool MorphoBlock::run(){
+  bool MorphoBlock::run(bool oneShot){
     if (_myInputs["BLOCK__MORPHOLOGIC_IN_IMAGE"].isDefaultValue())
       return false;
     cv::Mat mat = _myInputs["BLOCK__MORPHOLOGIC_IN_IMAGE"].get<cv::Mat>(true);

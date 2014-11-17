@@ -275,9 +275,10 @@ void GuiReceiver::showImage(QString name, cv::Mat arr)
 
   if (!w) //as observed in the previous implementation (W32, GTK or Carbon), create a new window is the pointer returned is null
   {
-      QMetaObject::invokeMethod(guiMainThread,
+    QMetaObject::invokeMethod(guiMainThread,
       "createWindow",
-      Qt::BlockingQueuedConnection,
+      //Qt::BlockingQueuedConnection,
+      Qt::AutoConnection,
       Q_ARG(QString, QString(name)),
       Q_ARG(int, 0));
     w = icvFindWindowByName(name);
@@ -875,9 +876,12 @@ void MatrixViewer::createActions()
   vect_QActions[__ACT_IMGRAPH_PEN_EDIT]->setIconVisibleInMenu(true);
   QObject::connect(vect_QActions[__ACT_IMGRAPH_PEN_EDIT], SIGNAL(triggered()), this, SLOT(switchEditingImg()));
   
-  vect_QActions[__ACT_IMGRAPH_ONTOP] = new QAction(QIcon(":/notOnTop-icon"), _QT("MATRIX_EDITOR_HELP_ONTOP"), this);
-  vect_QActions[__ACT_IMGRAPH_ONTOP]->setIconVisibleInMenu(true);
-  QObject::connect(vect_QActions[__ACT_IMGRAPH_ONTOP], SIGNAL(triggered()), this, SLOT(switchOnTop()));
+  if (!param_creation_mode)
+  {
+    vect_QActions[__ACT_IMGRAPH_ONTOP] = new QAction(QIcon(":/notOnTop-icon"), _QT("MATRIX_EDITOR_HELP_ONTOP"), this);
+    vect_QActions[__ACT_IMGRAPH_ONTOP]->setIconVisibleInMenu(true);
+    QObject::connect(vect_QActions[__ACT_IMGRAPH_ONTOP], SIGNAL(triggered()), this, SLOT(switchOnTop()));
+  }
 }
 
 
@@ -920,8 +924,11 @@ void MatrixViewer::createShortcuts()
   vect_QShortcuts[10] = new QShortcut(shortcut_edit_pen_img, this);
   QObject::connect(vect_QShortcuts[10], SIGNAL(activated()), this, SLOT(switchEditingImg()));
 
-  vect_QShortcuts[11] = new QShortcut(shortcut_always_top, this);
-  QObject::connect(vect_QShortcuts[11], SIGNAL(activated()), this, SLOT(switchOnTop()));
+  if (!param_creation_mode)
+  {
+    vect_QShortcuts[11] = new QShortcut(shortcut_always_top, this);
+    QObject::connect(vect_QShortcuts[11], SIGNAL(activated()), this, SLOT(switchOnTop()));
+  }
 }
 
 void MatrixViewer::switchOnTop()
@@ -938,6 +945,7 @@ void MatrixViewer::switchOnTop()
     setWindowFlags(windowFlags() & (~Qt::WindowStaysOnTopHint));
     vect_QActions[__ACT_IMGRAPH_ONTOP]->setIcon(QIcon(":/notOnTop-icon"));
   }
+  show();
 }
 
 void MatrixViewer::hideTools()

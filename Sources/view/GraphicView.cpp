@@ -95,8 +95,6 @@ namespace charliesoft
     _paramActiv = NULL;
     _isDragging = false;
 
-    //QHBoxLayout* condLayout = new QHBoxLayout(_conditionsRepresentation);
-
     _model = model;
     _vertexTitle = new QLabel(_QT(model->getName()), _blockRepresentation);
     _vertexTitle->setObjectName("VertexTitle");
@@ -108,56 +106,7 @@ namespace charliesoft
     _conditionsValues = new QLabel("No conditions...", _conditionsRepresentation);
     _conditionsValues->setAlignment(Qt::AlignCenter);
     _conditionsValues->setWordWrap(true);
-
-    //condLayout->addWidget(_conditionTitle);
-
-
-    //for each input and output create buttons:
-    vector<ParamDefinition> inputParams = _PROCESS_MANAGER->getAlgo_InParams(model->getName());
-    vector<ParamRepresentation*> tmpButtonsIn;
-    QRect tmpSize;
-    int showIn = 0, showOut = 0;
-    for (size_t i = 0; i < inputParams.size() ; i++)
-    {
-      ParamRepresentation  *tmp = new ParamRepresentation(model, inputParams[i], true, _blockRepresentation);
-      connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
-      connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
-      listOfInputChilds_[inputParams[i]._name] = tmp;
-      if (inputParams[i]._type==ListBox)
-      {
-        std::vector<string> paramChoices = tmp->getParamListChoice();
-        string paramValName = _STR(tmp->getParamName());
-        for (size_t idSubParam = 0; idSubParam < paramChoices.size(); idSubParam++)
-        {
-          vector<cv::String> subParams = model->getSubParams(inputParams[i]._name + "." + paramChoices[idSubParam]);
-          for (cv::String subParam : subParams)
-          {
-            string fullSubName = inputParams[i]._name + "." + paramChoices[idSubParam] + "." + subParam;
-            ParamValue* param = model->getParam(fullSubName, true);
-            if (param != NULL)
-            {
-              ParamDefinition tmpDef(false, param->getType(), fullSubName, subParam);
-              ParamRepresentation *tmp = new ParamRepresentation(model, tmpDef, true, _blockRepresentation);
-              tmp->setVisibility(false);
-              tmp->isSubParam(true);
-              connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
-              connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
-              listOfInputSubParams_[tmpDef._name] = tmp;
-            }
-          }
-        }
-      }
-    }
-
-    vector<ParamDefinition> outputParams = _PROCESS_MANAGER->getAlgo_OutParams(model->getName());
-    vector<ParamRepresentation*> tmpButtonsOut;
-    for (size_t i = 0; i < outputParams.size(); i++)
-    {
-      ParamRepresentation  *tmp = new ParamRepresentation(model, outputParams[i], false, _blockRepresentation);
-      connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
-      connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
-      listOfOutputChilds_[outputParams[i]._name] = tmp;
-    }
+    createListParamsFromModel();
 
     _lineTitle = new QFrame(_blockRepresentation);//add a line...
     _lineTitle->setFrameShape(QFrame::HLine);
@@ -174,6 +123,56 @@ namespace charliesoft
     _blockRepresentation->move(0, 5);
 
     connect(this, SIGNAL(updateProp(VertexRepresentation*)), Window::getInstance(), SLOT(updatePropertyDock(VertexRepresentation*)));
+  }
+
+  void VertexRepresentation::createListParamsFromModel()
+  {
+    //for each input and output create buttons:
+    const vector<ParamDefinition>& inputParams = _PROCESS_MANAGER->getAlgo_InParams(_model->getName());
+    vector<ParamRepresentation*> tmpButtonsIn;
+    QRect tmpSize;
+    int showIn = 0, showOut = 0;
+    for (size_t i = 0; i < inputParams.size(); i++)
+    {
+      ParamRepresentation  *tmp = new ParamRepresentation(_model, inputParams[i], true, _blockRepresentation);
+      connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
+      connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
+      listOfInputChilds_[inputParams[i]._name] = tmp;
+      if (inputParams[i]._type == ListBox)
+      {
+        std::vector<string> paramChoices = tmp->getParamListChoice();
+        string paramValName = _STR(tmp->getParamName());
+        for (size_t idSubParam = 0; idSubParam < paramChoices.size(); idSubParam++)
+        {
+          vector<cv::String> subParams = _model->getSubParams(inputParams[i]._name + "." + paramChoices[idSubParam]);
+          for (cv::String subParam : subParams)
+          {
+            string fullSubName = inputParams[i]._name + "." + paramChoices[idSubParam] + "." + subParam;
+            ParamValue* param = _model->getParam(fullSubName, true);
+            if (param != NULL)
+            {
+              ParamDefinition tmpDef(false, param->getType(), fullSubName, subParam);
+              ParamRepresentation *tmp = new ParamRepresentation(_model, tmpDef, true, _blockRepresentation);
+              tmp->setVisibility(false);
+              tmp->isSubParam(true);
+              connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
+              connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
+              listOfInputSubParams_[tmpDef._name] = tmp;
+            }
+          }
+        }
+      }
+    }
+
+    const vector<ParamDefinition>& outputParams = _PROCESS_MANAGER->getAlgo_OutParams(_model->getName());
+    vector<ParamRepresentation*> tmpButtonsOut;
+    for (size_t i = 0; i < outputParams.size(); i++)
+    {
+      ParamRepresentation  *tmp = new ParamRepresentation(_model, outputParams[i], false, _blockRepresentation);
+      connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
+      connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
+      listOfOutputChilds_[outputParams[i]._name] = tmp;
+    }
   }
 
   void VertexRepresentation::removeLink(BlockLink l){

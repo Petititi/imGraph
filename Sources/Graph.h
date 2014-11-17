@@ -13,6 +13,7 @@ namespace charliesoft
     boost::mutex _mtx;
     //edges are stored into Block (_myInputs[]->isLinked())
 
+    void initChildDatas(Block*, std::set<Block*>& listOfRenderedBlocks);
 
     void waitForFullRendering(Block* main_process, Block* process);
   public:
