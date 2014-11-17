@@ -207,6 +207,7 @@ namespace charliesoft
     void setGraph(GraphOfProcess* processes){
       _processes = processes;
     };
+    GraphOfProcess* getGraph(){ return _processes; };
 
     unsigned int getNbRendering() const { return nbRendering; }
     unsigned int getTimestamp(){ return _timestamp; };

@@ -527,6 +527,7 @@ namespace charliesoft
       {
         paramRep->setVisibility(true);
         paramRep->show();
+        paramRep->getModel()->getGraph()->initChildDatas(paramRep->getModel(), std::set<Block*>());
         return true;//nothing left to do as we will set value using graph
       }
       else
@@ -615,6 +616,8 @@ namespace charliesoft
         return false;//stop here the validation: should correct the error!
       }
     }
+
+    paramRep->getModel()->getGraph()->initChildDatas(paramRep->getModel(), std::set<Block*>());
     return true;
   }
 

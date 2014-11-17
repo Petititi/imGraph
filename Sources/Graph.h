@@ -13,8 +13,6 @@ namespace charliesoft
     boost::mutex _mtx;
     //edges are stored into Block (_myInputs[]->isLinked())
 
-    void initChildDatas(Block*, std::set<Block*>& listOfRenderedBlocks);
-
     void waitForFullRendering(Block* main_process, Block* process);
   public:
     static bool pauseProcess;
@@ -25,6 +23,8 @@ namespace charliesoft
     void fromGraph(boost::property_tree::ptree& tree);
 
     static unsigned int _current_timestamp;
+    void initChildDatas(Block*, std::set<Block*>& listOfRenderedBlocks);
+
 
     void addNewProcess(Block* filter);
     void deleteProcess(Block* process);
