@@ -54,6 +54,7 @@
 
 #include "ProcessManager.h"
 #include "blocks/ParamValidator.h"
+#include "SubBlock.h"
 
 using namespace std;
 using namespace charliesoft;
@@ -95,6 +96,7 @@ namespace charliesoft
     _paramActiv = NULL;
     _isDragging = false;
 
+    _hasDynamicParams = dynamic_cast<SubBlock*>(model) != NULL;
     _model = model;
     _vertexTitle = new QLabel(_QT(model->getName()), _blockRepresentation);
     _vertexTitle->setObjectName("VertexTitle");
@@ -125,54 +127,60 @@ namespace charliesoft
     connect(this, SIGNAL(updateProp(VertexRepresentation*)), Window::getInstance(), SLOT(updatePropertyDock(VertexRepresentation*)));
   }
 
-  void VertexRepresentation::createListParamsFromModel()
+  ParamRepresentation* VertexRepresentation::addNewInputParam(ParamDefinition def)
   {
-    //for each input and output create buttons:
-    const vector<ParamDefinition>& inputParams = _PROCESS_MANAGER->getAlgo_InParams(_model->getName());
-    vector<ParamRepresentation*> tmpButtonsIn;
-    QRect tmpSize;
-    int showIn = 0, showOut = 0;
-    for (size_t i = 0; i < inputParams.size(); i++)
+    ParamRepresentation  *tmp = new ParamRepresentation(_model, def, true, _blockRepresentation);
+    connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
+    connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
+    listOfInputChilds_[def._name] = tmp;
+    if (def._type == ListBox)
     {
-      ParamRepresentation  *tmp = new ParamRepresentation(_model, inputParams[i], true, _blockRepresentation);
-      connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
-      connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
-      listOfInputChilds_[inputParams[i]._name] = tmp;
-      if (inputParams[i]._type == ListBox)
+      std::vector<string> paramChoices = tmp->getParamListChoice();
+      string paramValName = _STR(tmp->getParamName());
+      for (size_t idSubParam = 0; idSubParam < paramChoices.size(); idSubParam++)
       {
-        std::vector<string> paramChoices = tmp->getParamListChoice();
-        string paramValName = _STR(tmp->getParamName());
-        for (size_t idSubParam = 0; idSubParam < paramChoices.size(); idSubParam++)
+        vector<cv::String> subParams = _model->getSubParams(def._name + "." + paramChoices[idSubParam]);
+        for (cv::String subParam : subParams)
         {
-          vector<cv::String> subParams = _model->getSubParams(inputParams[i]._name + "." + paramChoices[idSubParam]);
-          for (cv::String subParam : subParams)
+          string fullSubName = def._name + "." + paramChoices[idSubParam] + "." + subParam;
+          ParamValue* param = _model->getParam(fullSubName, true);
+          if (param != NULL)
           {
-            string fullSubName = inputParams[i]._name + "." + paramChoices[idSubParam] + "." + subParam;
-            ParamValue* param = _model->getParam(fullSubName, true);
-            if (param != NULL)
-            {
-              ParamDefinition tmpDef(false, param->getType(), fullSubName, subParam);
-              ParamRepresentation *tmp = new ParamRepresentation(_model, tmpDef, true, _blockRepresentation);
-              tmp->setVisibility(false);
-              tmp->isSubParam(true);
-              connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
-              connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
-              listOfInputSubParams_[tmpDef._name] = tmp;
-            }
+            ParamDefinition tmpDef(false, param->getType(), fullSubName, subParam);
+            ParamRepresentation *tmp = new ParamRepresentation(_model, tmpDef, true, _blockRepresentation);
+            tmp->setVisibility(false);
+            tmp->isSubParam(true);
+            connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
+            connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
+            listOfInputSubParams_[tmpDef._name] = tmp;
           }
         }
       }
     }
+    return tmp;
+  }
+
+  ParamRepresentation* VertexRepresentation::addNewOutputParam(ParamDefinition def)
+  {
+    ParamRepresentation  *tmp = new ParamRepresentation(_model, def, false, _blockRepresentation);
+    connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
+    connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
+    listOfOutputChilds_[def._name] = tmp;
+    return tmp;
+  }
+
+  void VertexRepresentation::createListParamsFromModel()
+  {
+    //for each input and output create buttons:
+    const vector<ParamDefinition>& inputParams = _PROCESS_MANAGER->getAlgo_InParams(_model->getName());
+    QRect tmpSize;
+    int showIn = 0, showOut = 0;
+    for (size_t i = 0; i < inputParams.size(); i++)
+      addNewInputParam(inputParams[i]);
 
     const vector<ParamDefinition>& outputParams = _PROCESS_MANAGER->getAlgo_OutParams(_model->getName());
-    vector<ParamRepresentation*> tmpButtonsOut;
     for (size_t i = 0; i < outputParams.size(); i++)
-    {
-      ParamRepresentation  *tmp = new ParamRepresentation(_model, outputParams[i], false, _blockRepresentation);
-      connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
-      connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
-      listOfOutputChilds_[outputParams[i]._name] = tmp;
-    }
+      addNewOutputParam(outputParams[i]);
   }
 
   void VertexRepresentation::removeLink(BlockLink l){
@@ -221,7 +229,7 @@ namespace charliesoft
     maxInputWidth = maxOutputWidth = 0;
 
     //for each input and output create buttons:
-    vector<ParamDefinition> tmpParamsIn = _PROCESS_MANAGER->getAlgo_InParams(_model->getName());
+    vector<ParamDefinition> tmpParamsIn = _model->getInParams();
     auto it = tmpParamsIn.begin();
     QRect tmpSize;
     int showIn = 0, showOut = 0;
@@ -257,7 +265,7 @@ namespace charliesoft
       }
     }
 
-    vector<ParamDefinition> tmpParamsOut = _PROCESS_MANAGER->getAlgo_OutParams(_model->getName());
+    vector<ParamDefinition> tmpParamsOut = _model->getOutParams();
     it = tmpParamsOut.begin();
     for (; it != tmpParamsOut.end(); it++)
     {

@@ -255,9 +255,17 @@ namespace charliesoft
     void updatePosition(float x, float y) { _position.x = x; _position.y = y; };
     void linkParam(std::string paramName, Block* dest, std::string paramNameDest);
 
-    boost::property_tree::ptree getXML() const;
+    virtual boost::property_tree::ptree getXML() const;
+    virtual void initFromXML(boost::property_tree::ptree* tree,
+      std::vector < std::pair<ParamValue*, unsigned int> >& toUpdate,
+      std::map<unsigned int, ParamValue*>& addressesMap,
+      std::vector<ConditionOfRendering*>& condToUpdate);
+
     void setPosition(int x, int y);
     void removeCondition();
+
+    virtual std::vector<ParamDefinition> getInParams() const;
+    virtual std::vector<ParamDefinition> getOutParams() const;
   };
 
   struct BlockLink

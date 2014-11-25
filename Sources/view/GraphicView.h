@@ -52,6 +52,7 @@ namespace charliesoft
     Block* _model;
     bool _isDragging;
     bool _isMoving;
+    bool _hasDynamicParams;
     QPoint startClick_;
     LinkConnexionRepresentation* _paramActiv;
     int heightOfConditions;
@@ -67,6 +68,10 @@ namespace charliesoft
     ~VertexRepresentation();
 
     void createListParamsFromModel();
+    bool hasDynamicParams() const { return _hasDynamicParams; };
+
+    ParamRepresentation* addNewInputParam(ParamDefinition def);
+    ParamRepresentation* addNewOutputParam(ParamDefinition def);
 
     Block* getModel() const { return _model; }
     void setParamActiv(LinkConnexionRepresentation*);

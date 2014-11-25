@@ -14,6 +14,7 @@
 #endif
 #include "Graph.h"
 #include "blocks/ParamValidator.h"
+#include "ProcessManager.h"
 
 using namespace lsis_org;
 using std::string;
@@ -488,6 +489,62 @@ namespace charliesoft
     return out;
   }
 
+  void Block::initFromXML(boost::property_tree::ptree* block,
+    std::vector < std::pair<ParamValue*, unsigned int> >& toUpdate,
+    std::map<unsigned int, ParamValue*>& addressesMap,
+    std::vector<ConditionOfRendering*>& condToUpdate)
+  {
+    string pos = block->get("position", "[0,0]");
+    int posSepare = pos.find_first_of(',') + 1;
+    string xPos = pos.substr(1, posSepare - 2);
+    string yPos = pos.substr(posSepare + 1, pos.size() - posSepare - 2);
+
+    setPosition(lexical_cast<float>(xPos), lexical_cast<float>(yPos));
+    for (ptree::iterator it1 = block->begin(); it1 != block->end(); it1++)
+    {
+      if (it1->first.compare("Input") == 0)
+      {
+        string nameIn = it1->second.get("Name", "Error");
+        bool link = it1->second.get("Link", false);
+        string val = it1->second.get("Value", "Not initialized...");
+        ParamValue* tmpVal = getParam(nameIn, true);
+        if (!link)
+        {
+          try
+          {
+            if (tmpVal != NULL)
+              tmpVal->valid_and_set(tmpVal->fromString(tmpVal->getType(), val));
+          }
+          catch (...)
+          {
+          }
+        }
+        else
+          toUpdate.push_back(std::pair<ParamValue*, unsigned int>(tmpVal, lexical_cast<unsigned int>(val)));
+      }
+      if (it1->first.compare("Output") == 0)
+      {
+        string nameOut = it1->second.get("Name", "Error");
+        string val = it1->second.get("ID", "0");
+        ParamValue* tmpVal = getParam(nameOut, false);
+        addressesMap[lexical_cast<unsigned int>(val)] = tmpVal;
+      }
+      if (it1->first.compare("Condition") == 0)
+      {
+        int cLeft = it1->second.get("category_left", 0);
+        int cRight = it1->second.get("category_right", 0);
+        int cOperator = it1->second.get("boolean_operator", 0);
+
+        double valLeft = it1->second.get("Value_left", 0.);
+        double valRight = it1->second.get("Value_right", 0.);
+        addCondition(ConditionOfRendering(cLeft, valLeft, cRight, valRight, cOperator,
+          this));
+        if (cLeft == 1 || cRight == 1)//output of block...
+          condToUpdate.push_back(&_conditions.back());
+      }
+    }
+  }
+
   boost::property_tree::ptree Block::getXML() const
   {
     ptree tree;
@@ -505,7 +562,8 @@ namespace charliesoft
       else
         paramTree.put("Value", (unsigned int)it->second.get<ParamValue*>(false));
 
-      tree.add_child("Input", paramTree);
+      if (!it->second.isDefaultValue() || it->second.isLinked())
+        tree.add_child("Input", paramTree);
     }
 
     for (auto it = _myOutputs.begin();
@@ -554,4 +612,13 @@ namespace charliesoft
   {
     _conditions.pop_back();
   }
+
+  vector<ParamDefinition> Block::getInParams() const
+  {
+    return ProcessManager::getInstance()->getAlgo_InParams(_name);
+  };
+  vector<ParamDefinition> Block::getOutParams() const
+  {
+    return ProcessManager::getInstance()->getAlgo_OutParams(_name);
+  };
 }

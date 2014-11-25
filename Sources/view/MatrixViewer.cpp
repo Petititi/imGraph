@@ -973,7 +973,7 @@ ToolsWindow* MatrixViewer::createParameterWindow()
 {
   if (myTools != NULL)
     return myTools;
-  QString name_paraWindow = _QT("MATRIX_EDITOR") + " " + _QT("MATRIX_EDITOR_TOOLS");
+  QString name_paraWindow = _QT("BUTTON_MATRIX") + " " + _QT("MATRIX_EDITOR_TOOLS");
 
   myTools = new ToolsWindow(name_paraWindow, this);
   displayPropertiesWin();

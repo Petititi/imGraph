@@ -99,6 +99,8 @@ namespace charliesoft
     void addParamOut(ParamRepresentation  *p);
     void addParamIn(ParamRepresentation  *p, ParamRepresentation* parent = NULL);
     bool updateParamModel(ParamRepresentation* param);
+
+    void addParam(ParamDefinition& param, bool input);
   public:
     ParamsConfigurator(VertexRepresentation* vertex);
 
@@ -115,6 +117,9 @@ namespace charliesoft
     void matrixEditor();
     void colorEditor();
     void subParamChange(int);
+
+    void addNewParamIn();
+    void addNewParamOut();
   };
 
 }

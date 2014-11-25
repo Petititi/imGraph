@@ -1,5 +1,4 @@
-﻿
-#include "ParameterDock.h"
+﻿#include "ParameterDock.h"
 #include "Internationalizator.h"
 
 #ifdef _WIN32
@@ -55,6 +54,8 @@
 #include "ProcessManager.h"
 #include "GraphicView.h"
 #include "blocks/ParamValidator.h"
+#include "SmallDialogs.h"
+#include "SubBlock.h"
 
 using namespace std;
 using namespace charliesoft;
@@ -67,13 +68,55 @@ using cv::Mat;
 
 namespace charliesoft
 {
+  void ParamsConfigurator::addParam(ParamDefinition& def, bool input)
+  {
+    SubBlock* model = dynamic_cast<SubBlock*>(_vertex->getModel());
+    if (model == NULL)
+      return;
+
+    ParamRepresentation* param;
+    if (input)
+    {
+      model->addNewInput(def);
+      param = _vertex->addNewInputParam(def);
+      in_param_[def._name] = param;
+      addParamIn(param);
+    }
+    else
+    {
+      model->addNewOutput(def);
+      param = _vertex->addNewOutputParam(def);
+      out_param_[def._name] = param;
+      addParamOut(param);
+    }
+  }
+
+  void ParamsConfigurator::addNewParamIn()
+  {
+    CreateParamWindow test;
+    if (test.exec() == QDialog::Accepted)
+    {
+      ParamDefinition def = test.getParamDef();
+      addParam(def, true);
+    }
+  };
+
+  void ParamsConfigurator::addNewParamOut()
+  {
+    CreateParamWindow test;
+    if (test.exec() == QDialog::Accepted)
+    {
+      ParamDefinition def = test.getParamDef();
+      addParam(def, false);
+    }
+  };
+
   ParamsConfigurator::ParamsConfigurator(VertexRepresentation* vertex) :
     QDialog(vertex), _vertex(vertex), 
     in_param_(vertex->getListOfInputChilds()),
     sub_param_(vertex->getListOfSubParams()),
     out_param_(vertex->getListOfOutputChilds())
   {
-    setWindowFlags(Qt::Tool);
     tabWidget_ = new QTabWidget(this);
     
     QPushButton* button = new QPushButton(_QT("CONDITION_EDITOR"));
@@ -99,19 +142,31 @@ namespace charliesoft
 
     Block* model = vertex->getModel();
     //fill input parameters:
-    const vector<ParamDefinition>& paramsIn = ProcessManager::getInstance()->getAlgo_InParams(model->getName());
+    const vector<ParamDefinition>& paramsIn = model->getInParams();
     auto it = paramsIn.begin();
     while (it != paramsIn.end())
     {
       addParamIn(in_param_[it->_name]);
       it++;
     }
-    const vector<ParamDefinition>& paramsOut = ProcessManager::getInstance()->getAlgo_OutParams(model->getName());
+
+    const vector<ParamDefinition>& paramsOut = model->getOutParams();
     it = paramsOut.begin();
     while (it != paramsOut.end())
     {
       addParamOut(out_param_[it->_name]);
       it++;
+    }
+
+    if (vertex->hasDynamicParams())
+    {
+      QPushButton* addInput = new QPushButton(_QT("BUTTON_ADD_INPUT"));
+      tabs_content_[0]->addWidget(addInput);
+      QPushButton* addOutput = new QPushButton(_QT("BUTTON_ADD_OUTPUT"));
+      tabs_content_[1]->addWidget(addOutput);
+
+      connect(addInput, SIGNAL(clicked()), this, SLOT(addNewParamIn()));
+      connect(addOutput, SIGNAL(clicked()), this, SLOT(addNewParamOut()));
     }
 
     QWidget* empty = new QWidget();
@@ -123,7 +178,7 @@ namespace charliesoft
 
     connect(this, SIGNAL(askSynchro()), vertex, SLOT(reshape()));
   };
-  
+
   void ParamsConfigurator::addParamOut(ParamRepresentation  *p)
   {
     QGroupBox* group = new QGroupBox(_QT(p->getParamName()), tabWidget_->widget(1));
@@ -145,7 +200,7 @@ namespace charliesoft
     }
     else
     {
-      QPushButton* matEditor = new QPushButton(_QT("MATRIX_EDITOR"));
+      QPushButton* matEditor = new QPushButton(_QT("BUTTON_MATRIX"));
       vbox->addWidget(matEditor);
       _inputValue12[p] = matEditor;
       _inputValue21[matEditor] = p;
@@ -172,7 +227,10 @@ namespace charliesoft
       vbox = new QVBoxLayout();
       group->setLayout(vbox);
       group->setCheckable(true);
-      tabs_content_[0]->addWidget(group);
+      if (_vertex->hasDynamicParams())
+        tabs_content_[0]->insertWidget(0, group);
+      else
+        tabs_content_[0]->addWidget(group);
     }
     else
     {
@@ -181,6 +239,13 @@ namespace charliesoft
     }
 
     ParamValue* param = p->getParamValue();
+    if (param == NULL)
+    {
+      QMessageBox msgBox;
+      msgBox.setText((my_format(_STR("ERROR_PARAM_FOUND")) % p->getParamName()).str().c_str());
+      msgBox.exec();
+      return;
+    }
     if (isSubParam)
     {
       subparamGroup_[subWidget_[parent]].push_back(p);
@@ -264,7 +329,7 @@ namespace charliesoft
     }
     case Color:
     {
-      QPushButton* colorEditor = new QPushButton(_QT("COLOR_EDITOR"));
+      QPushButton* colorEditor = new QPushButton(_QT("BUTTON_COLOR"));
       layout->addWidget(colorEditor);
       _inputValue12[p] = colorEditor;
       _inputValue21[colorEditor] = p;
@@ -279,7 +344,7 @@ namespace charliesoft
     }
     case Matrix:
     {
-      QPushButton* matEditor = new QPushButton(_QT("MATRIX_EDITOR"));
+      QPushButton* matEditor = new QPushButton(_QT("BUTTON_MATRIX"));
       layout->addWidget(matEditor);
       _inputValue12[p] = matEditor;
       _inputValue21[matEditor] = p;
@@ -652,7 +717,7 @@ namespace charliesoft
     auto param = _inputValue21.find(sender());
     if (param == _inputValue21.end())
       return;//param src not found...
-    MatrixViewer* win = createWindow(_STR("MATRIX_EDITOR"), _WINDOW_MATRIX_CREATION_MODE);
+    MatrixViewer* win = createWindow(_STR("BUTTON_MATRIX"), _WINDOW_MATRIX_CREATION_MODE);
     win->setParent(this, Qt::Tool);
 
     if (!_paramMatrix[param->second].empty())

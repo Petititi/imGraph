@@ -73,22 +73,36 @@ namespace charliesoft
     translations["BUTTON_DELETE"] = "Delete";
     translations["BUTTON_BROWSE"] = "Browse...";
     translations["BUTTON_UPDATE"] = "Update";
-    translations["BUTTON_COLOR"] = "Color";
+    translations["BUTTON_COLOR"] = "Color editor";
+    translations["BUTTON_MATRIX"] = "Matrix editor";
+    translations["BUTTON_ADD_INPUT"] = "Add input...";
+    translations["BUTTON_ADD_OUTPUT"] = "Add output...";
 
-    translations["MATRIX_EDITOR"] = "Matrix editor";
-    translations["COLOR_EDITOR"] = "Color editor";
+    translations["TYPE_DATAS_BOOL"] = "Boolean";
+    translations["TYPE_DATAS_INT"] = "Int";
+    translations["TYPE_DATAS_FLOAT"] = "Float";
+    translations["TYPE_DATAS_COLOR"] = "Color";
+    translations["TYPE_DATAS_MATRIX"] = "Matrix";
+    translations["TYPE_DATAS_STRING"] = "String";
+    translations["TYPE_DATAS_FILE"] = "FilePath";
+    translations["TYPE_DATAS_LISTBOX"] = "ListBox";
+    translations["TYPE_DATAS_ERROR"] = "typeError";
+
     translations["CONDITION_EDITOR"] = "Condition editor...";
     translations["CONDITION_EDITOR_HELP"] = "You can define here which conditions are needed for block rendering!";
-    translations["NOT_INITIALIZED"] = "Not initialized...";
     translations["CONDITION_BLOCK_ERROR_INPUT"] = "Condition can't be input of block...";
     translations["CONDITION_BLOCK_LEFT"] = "left";
     translations["CONDITION_BLOCK_HELP"] = "link to the output's block<br/>whose value will be used in condition";
     translations["CONDITION_BLOCK_RIGHT"] = "right";
     translations["CONDITION_CARDINAL"] = "#rendering";
     translations["CONDITION_IS_EMPTY"] = "is empty";
+
+    translations["NOT_INITIALIZED"] = "Not initialized...";
+
     translations["BLOCK_OUTPUT"] = "output";
     translations["BLOCK_INPUT"] = "input";
     translations["BLOCK_OUTPUT"] = "output";
+
     translations["ERROR_GENERIC"] = "Error undefined!";
     translations["ERROR_GENERIC_TITLE"] = "Error!";
     translations["ERROR_TYPE"] = "The type of \"%1$s.%2$s\" (%3$s) doesn't correspond to \"%4$s.%5$s\" (%6$s)";
@@ -114,6 +128,12 @@ namespace charliesoft
     translations["MENU_FILE_SAVEAS_TIP"] = "Choose file where to save current project";
     translations["MENU_FILE_QUIT"] = "Quit";
     translations["MENU_FILE_QUIT_TIP"] = "Quit application";
+
+    translations["CREATE_PARAM_TITLE"] = "Parameter creation";
+    translations["CREATE_PARAM_TYPE"] = "Type of the parameter: ";
+    translations["CREATE_PARAM_NAME"] = "Short name of the parameter: ";
+    translations["CREATE_PARAM_NAME_HELP"] = "Short description of the parameter: ";
+    translations["CREATE_PARAM_INIT_VAL"] = "Initial value of the parameter: ";
 
     translations["MATRIX_EDITOR_TOOLS"] = "Tools";
     translations["MATRIX_EDITOR_BLOCKS"] = "Blocks";
@@ -153,6 +173,7 @@ namespace charliesoft
     translations["DOCK_TITLE"] = "Toolbox";
     translations["DOCK_PROPERTY_TITLE"] = "Properties";
     
+    translations["SUBBLOCK__"] = "Sub graph";
 
     translations["BLOCK_TITLE_INPUT"] = "Input";
     translations["BLOCK_TITLE_IMG_PROCESS"] = "2D processing";
