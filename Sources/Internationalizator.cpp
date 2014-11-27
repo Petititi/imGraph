@@ -129,6 +129,10 @@ namespace charliesoft
     translations["MENU_FILE_QUIT"] = "Quit";
     translations["MENU_FILE_QUIT_TIP"] = "Quit application";
 
+    translations["MENU_EDIT"] = "Edit";
+    translations["MENU_EDIT_SUBGRAPH"] = "Create subprocess";
+    translations["MENU_EDIT_SUBGRAPH_TIP"] = "Create a subprocess using every selected widgets";
+
     translations["CREATE_PARAM_TITLE"] = "Parameter creation";
     translations["CREATE_PARAM_TYPE"] = "Type of the parameter: ";
     translations["CREATE_PARAM_NAME"] = "Short name of the parameter: ";

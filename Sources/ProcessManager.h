@@ -9,13 +9,13 @@
 #include <boost/functional/factory.hpp>
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/lock_guard.hpp>
+#include <iostream>
 
 #include "OpenCV_filter.h"
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
 
-#include <iostream>
 #include "blocks/ParamValue.h"
 
 namespace charliesoft

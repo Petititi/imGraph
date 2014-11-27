@@ -12,6 +12,9 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <opencv2/core.hpp>
+
+#include <iostream>
+
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
@@ -19,8 +22,6 @@
 
 #include "Internationalizator.h"
 #include "blocks/ParamValue.h"
-#include <iostream>
-#include "OpenCV_filter.h"
 #include "ProcessManager.h"
 
 //macro to add algo to list:
@@ -144,6 +145,8 @@ namespace charliesoft
     std::string _name;
     std::string _helper;
     ParamValue _initVal;
+    ParamDefinition() :
+      _show(false), _type(typeError), _name("_"), _helper("_"), _initVal(Not_A_Value()){};
     ParamDefinition(bool show, ParamType type, std::string name, std::string helper) :
       _show(show), _type(type), _name(name), _helper(helper), _initVal(Not_A_Value()){};
     ParamDefinition(bool show, ParamType type, std::string name, std::string helper, ParamValue initVal) :
@@ -194,6 +197,7 @@ namespace charliesoft
     void newProducedData();
 
     virtual bool run(bool oneShot = false) = 0;
+    bool _executeOnlyOnce;
   public:
     Block(std::string name, BlockType typeExec = oneShot);
     std::string getName(){
@@ -264,8 +268,13 @@ namespace charliesoft
     void setPosition(int x, int y);
     void removeCondition();
 
+    bool executeOnlyOnce() const { return _executeOnlyOnce; }
+    void setExecuteOnlyOnce(bool val) { _executeOnlyOnce = val; }
+
     virtual std::vector<ParamDefinition> getInParams() const;
     virtual std::vector<ParamDefinition> getOutParams() const;
+    std::map<std::string, ParamValue>const & getInputsVals() const { return _myInputs; }
+    std::map<std::string, ParamValue>const & getOutputsVals() const { return _myOutputs; }
   };
 
   struct BlockLink

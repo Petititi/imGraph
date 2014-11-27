@@ -172,13 +172,13 @@ namespace charliesoft
   void VertexRepresentation::createListParamsFromModel()
   {
     //for each input and output create buttons:
-    const vector<ParamDefinition>& inputParams = _PROCESS_MANAGER->getAlgo_InParams(_model->getName());
+    const vector<ParamDefinition>& inputParams = _model->getInParams();
     QRect tmpSize;
     int showIn = 0, showOut = 0;
     for (size_t i = 0; i < inputParams.size(); i++)
       addNewInputParam(inputParams[i]);
 
-    const vector<ParamDefinition>& outputParams = _PROCESS_MANAGER->getAlgo_OutParams(_model->getName());
+    const vector<ParamDefinition>& outputParams = _model->getOutParams();
     for (size_t i = 0; i < outputParams.size(); i++)
       addNewOutputParam(outputParams[i]);
   }
@@ -879,7 +879,7 @@ namespace charliesoft
           {
             if (vertex->geometry().intersects(selectBox_.toRect()))
               vertex->setSelected(true);
-            else
+            else if (!me->modifiers().testFlag(Qt::ControlModifier))
               vertex->setSelected(false);
           }
         }
@@ -889,7 +889,7 @@ namespace charliesoft
         {
           if (link.second->intersect(selectBox_.toRect()))
             link.second->setSelected(true);
-          else
+          else if (!me->modifiers().testFlag(Qt::ControlModifier))
             link.second->setSelected(false);
         }
       }
@@ -906,12 +906,16 @@ namespace charliesoft
       selectBox_.setCoords(startMouse_.x()-3, startMouse_.y()-3,
         startMouse_.x() + 3, startMouse_.y() + 3);
 
-      VertexRepresentation::resetSelection();
-      GraphRepresentation* representation = dynamic_cast<GraphRepresentation*>(layout());
-      std::map<BlockLink, LinkPath*>& links = representation->getLinks();
-      for (auto link : links)
-        link.second->setSelected(link.second->intersect(selectBox_.toRect()));
+      if (!mouseE->modifiers().testFlag(Qt::ControlModifier))
+      {
+        GraphRepresentation* representation = dynamic_cast<GraphRepresentation*>(layout());
+        std::map<BlockLink, LinkPath*>& links = representation->getLinks();
+        for (auto link : links)
+          link.second->setSelected(link.second->intersect(selectBox_.toRect()));
 
+        VertexRepresentation::resetSelection();
+      }
+      
       isSelecting_ = true;
     }
   }

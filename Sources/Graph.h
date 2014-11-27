@@ -28,10 +28,11 @@ namespace charliesoft
 
     void addNewProcess(Block* filter);
     void deleteProcess(Block* process);
+    void extractProcess(Block* process);
 
     void createLink(Block* src, std::string paramName, Block* dest, std::string paramNameDest);
     
-    bool run();
+    bool run(bool singleShot = false);
     void stop();
     void switchPause();
 

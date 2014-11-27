@@ -235,6 +235,7 @@ namespace charliesoft
     _name = name;
     _timestamp = 0;
     nbRendering = 0;
+    _executeOnlyOnce = false;
   };
 
   void Block::operator()()
@@ -269,6 +270,8 @@ namespace charliesoft
 
         _cond_sync.notify_all();//wake up waiting thread (if needed)
         boost::this_thread::sleep(boost::posix_time::milliseconds(10.));
+        if (_executeOnlyOnce)
+          break;
       }
     }
     catch (boost::thread_interrupted const&)

@@ -65,6 +65,18 @@ namespace charliesoft
     }
   };
 
+  void GraphOfProcess::extractProcess(Block* process){
+    for (auto it = _vertices.begin();
+      it != _vertices.end(); it++)
+    {
+      if (*it == process)
+      {
+        _vertices.erase(it);
+        return;
+      }
+    }
+  };
+
   void GraphOfProcess::removeLink(const BlockLink& l)
   {
     *(l._to->getParam(l._toParam, true)) = Not_A_Value();
@@ -180,13 +192,16 @@ namespace charliesoft
     _runningThread.clear();
   }
 
-  bool GraphOfProcess::run()
+  bool GraphOfProcess::run(bool singleShot)
   {
     stop();//just in case...
     bool res = true;
     for (auto it = _vertices.begin();
       it != _vertices.end(); it++)
+    {
+      (*it)->setExecuteOnlyOnce(singleShot);
       _runningThread.push_back(boost::thread(boost::ref(**it)));
+    }
 
     return res;
   }

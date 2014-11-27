@@ -46,6 +46,7 @@
 #include "GraphicView.h"
 #include "ProcessManager.h"
 #include "ParameterDock.h"
+#include "SubBlock.h"
 
 using namespace std;
 using namespace charliesoft;
@@ -72,7 +73,8 @@ namespace charliesoft
     return ptr;
   }
 
-  MainWidget* Window::getMainWidget() const {
+  MainWidget* Window::getMainWidget() const
+  {
     QScrollArea* tmp = dynamic_cast<QScrollArea*>(_tabWidget->currentWidget());
     if (tmp == NULL)
       return NULL;
@@ -122,33 +124,40 @@ namespace charliesoft
     //create opencv main thread:
     new GuiReceiver();
 
-    menuFichier = menuBar()->addMenu(_QT("MENU_FILE"));
+    menuFile = menuBar()->addMenu(_QT("MENU_FILE"));
+    menuEdit = menuBar()->addMenu(_QT("MENU_EDIT"));
 
     QAction* openAct = new QAction(_QT("MENU_FILE_OPEN"), this);
     openAct->setShortcuts(QKeySequence::Open);
     openAct->setStatusTip(_QT("MENU_FILE_OPEN_TIP"));
     connect(openAct, SIGNAL(triggered()), this, SLOT(openFile()));
-    menuFichier->addAction(openAct);
+    menuFile->addAction(openAct);
     QAction* createAct = new QAction(_QT("MENU_FILE_CREATE"), this);
     createAct->setShortcuts(QKeySequence::New);
     createAct->setStatusTip(_QT("MENU_FILE_CREATE_TIP"));
     connect(createAct, SIGNAL(triggered()), this, SLOT(newProject()));
-    menuFichier->addAction(createAct);
+    menuFile->addAction(createAct);
     QAction* saveAct = new QAction(_QT("MENU_FILE_SAVE"), this);
     saveAct->setShortcuts(QKeySequence::Save);
     saveAct->setStatusTip(_QT("MENU_FILE_SAVE_TIP"));
     connect(saveAct, SIGNAL(triggered()), this, SLOT(saveProject()));
-    menuFichier->addAction(saveAct);
+    menuFile->addAction(saveAct);
     QAction* saveAsAct = new QAction(_QT("MENU_FILE_SAVEAS"), this);
     saveAsAct->setShortcuts(QKeySequence::SaveAs);
     saveAsAct->setStatusTip(_QT("MENU_FILE_SAVEAS_TIP"));
     connect(saveAsAct, SIGNAL(triggered()), this, SLOT(saveAsProject()));
-    menuFichier->addAction(saveAsAct);
+    menuFile->addAction(saveAsAct);
     QAction* actionQuitter = new QAction(_QT("MENU_FILE_QUIT"), this);
     actionQuitter->setShortcuts(QKeySequence::Close);
     actionQuitter->setStatusTip(_QT("MENU_FILE_QUIT_TIP"));
     connect(actionQuitter, SIGNAL(triggered()), this, SLOT(quitProg()));
-    menuFichier->addAction(actionQuitter);
+    menuFile->addAction(actionQuitter);
+
+    QAction* editSubGraph = new QAction(_QT("MENU_EDIT_SUBGRAPH"), this);
+    editSubGraph->setShortcut(QKeySequence("Ctrl+G"));
+    editSubGraph->setStatusTip(_QT("MENU_EDIT_SUBGRAPH_TIP"));
+    connect(editSubGraph, SIGNAL(triggered()), this, SLOT(createSubgraph()));
+    menuEdit->addAction(editSubGraph);
 
     menuAide = menuBar()->addMenu("?");
     menuAide->addAction(_QT("MENU_HELP_INFO"));
@@ -380,6 +389,91 @@ namespace charliesoft
       write_xml(GlobalConfig::getInstance()->lastProject_, localElement, std::locale(), settings);
     }
   };
+
+  void Window::createSubgraph()
+  {
+    MainWidget* currentWidget = getMainWidget();
+    GraphOfProcess* graph = currentWidget->getModel();
+    //create subgraph:
+    SubBlock* subBlock = new SubBlock();
+    GraphOfProcess* subGraph = subBlock->getSubGraph();
+
+    //first select blocks selected:
+    set<Block*> selectedBlocks;
+    vector<VertexRepresentation*> representations = VertexRepresentation::getSelection();
+    VertexRepresentation::resetSelection();//we got the selection, now reset the list...
+
+    float x = 0, y = 0;
+    for (auto rep : representations)
+    {
+      Block* b = rep->getModel();
+      cv::Vec2f pos = b->getPosition();
+      x += pos[0];
+      y += pos[1];
+      selectedBlocks.insert(b);
+    }
+    x /= representations.size();
+    y /= representations.size();
+
+    //now get external links
+    vector<BlockLink> externBlocksInput, externBlocksOutput;
+    ParamValue* falseValue = new ParamValue();
+    for (auto block : selectedBlocks)
+    {
+      const std::map<std::string, ParamValue>& params = block->getInputsVals();
+      for (auto param : params)
+      {
+        if (param.second.isLinked())
+        {
+          ParamValue* otherParam = param.second.get<ParamValue*>(false);
+          if (selectedBlocks.find(otherParam->getBlock()) == selectedBlocks.end())
+          {
+            externBlocksInput.push_back(BlockLink(otherParam->getBlock(), param.second.getBlock(),
+              otherParam->getName(), param.second.getName()));
+            block->setParamValue(param.second.getName(), falseValue);
+          }
+        }
+      }
+      const std::map<std::string, ParamValue>& paramsOut = block->getOutputsVals();
+      for (auto param : paramsOut)
+      {
+        std::set<ParamValue*>& listeners = param.second.getListeners();
+        for (auto listener : listeners)
+        {
+          if (listener->isLinked() && selectedBlocks.find(listener->getBlock()) == selectedBlocks.end())
+          {
+            externBlocksOutput.push_back(BlockLink(param.second.getBlock(), listener->getBlock(),
+              param.second.getName(), listener->getName()));
+            *listener = Not_A_Value();
+          }
+        }
+      }
+      //remove from current graph the blocks:
+      graph->extractProcess(block);
+      subGraph->addNewProcess(block);
+    }
+    subBlock->updatePosition(x, y);
+    //create every input needed:
+    for (auto link : externBlocksInput)
+    {
+      ParamValue* val = link._from->getParam(link._fromParam, false);
+      ParamValue* newVal = subBlock->addNewInput(
+        ParamDefinition(true, val->getType(), link._fromParam, "_"));
+      (*newVal) = val;//create link!
+      subBlock->addExternLink(link, true);
+    }
+    //create every output needed:
+    for (auto link : externBlocksOutput)
+    {
+      ParamValue* val = link._to->getParam(link._toParam, true);
+      ParamValue* newVal = subBlock->addNewOutput(
+        ParamDefinition(true, val->getType(), link._toParam, "_"));
+      (*val) = newVal;//create link!
+      subBlock->addExternLink(link, false);
+    }
+    graph->addNewProcess(subBlock);
+    synchroMainGraph();
+  }
 
   void Window::saveAsProject()
   {

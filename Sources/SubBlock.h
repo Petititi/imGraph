@@ -7,12 +7,14 @@
 #include <vector>
 #include <opencv2/nonfree.hpp>
 #include <opencv2/features2d.hpp>
+#include <boost/thread/mutex.hpp>
 #include <boost/algorithm/string.hpp>
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
 
 #include "Block.h"
+#include "Graph.h"
 
 namespace charliesoft
 {
@@ -32,20 +34,31 @@ namespace charliesoft
     //////////////////////////////////////////////////////////////////////////
     static bool addedToList;
   protected:
-    std::vector<ParamDefinition> _inputParams;
-    std::vector<ParamDefinition> _outputParams;
+    std::map<std::string, ParamDefinition> _inputParams;
+    std::map<std::string, ParamDefinition> _outputParams;
+
+    std::vector<BlockLink> externBlocksInput;
+    std::vector<BlockLink> externBlocksOutput;
+
+    GraphOfProcess* _subGraph;
     virtual bool run(bool oneShot = false);
   public:
     SubBlock();
 
-    void addNewInput(ParamDefinition& param);
-    void addNewOutput(ParamDefinition& param);
-    std::vector<ParamDefinition> getInputs(){ return _inputParams; };
-    std::vector<ParamDefinition> getOutputs(){ return _outputParams; };
-
+    ParamValue* addNewInput(ParamDefinition& param);
+    ParamValue* addNewOutput(ParamDefinition& param);
 
     virtual std::vector<ParamDefinition> getInParams() const;
     virtual std::vector<ParamDefinition> getOutParams() const;
+
+    virtual boost::property_tree::ptree getXML() const;
+    virtual void initFromXML(boost::property_tree::ptree* tree,
+      std::vector < std::pair<ParamValue*, unsigned int> >& toUpdate,
+      std::map<unsigned int, ParamValue*>& addressesMap,
+      std::vector<ConditionOfRendering*>& condToUpdate);
+
+    GraphOfProcess* getSubGraph() const { return _subGraph; };
+    void addExternLink(BlockLink link, bool isInput);
   };
 
 };

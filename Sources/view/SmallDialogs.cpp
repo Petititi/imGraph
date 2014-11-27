@@ -182,6 +182,6 @@ namespace charliesoft
       _initVal = _initialValue_text->text().toInt(0) != 0;
       break;
     }
-    return ParamDefinition(false, type, name, help, _initVal);
+    return ParamDefinition(true, type, name, help, _initVal);
   }
 }

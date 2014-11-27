@@ -54,7 +54,7 @@ namespace charliesoft
     static void synchroMainGraph();
 
     void show();
-    charliesoft::MainWidget* getMainWidget() const;
+    MainWidget* getMainWidget() const;
     std::string getKey(QTreeWidgetItem* w) {
       try{ return keysName_.at(w); }
       catch (std::out_of_range){ return ""; };
@@ -70,7 +70,8 @@ namespace charliesoft
     Window();
     ~Window();
 
-    QMenu *menuFichier;
+    QMenu *menuFile;
+    QMenu *menuEdit;
     QMenu *menuAide;
     QTabWidget* _tabWidget;
 
@@ -90,6 +91,7 @@ namespace charliesoft
     void newProject();
     void saveProject();
     void saveAsProject();
+    void createSubgraph();
     bool quitProg();
     void printHelp();
 
