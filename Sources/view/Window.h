@@ -30,7 +30,7 @@
 
 namespace charliesoft
 {
-  class GraphRepresentation;
+  class GraphLayout;
   class MainWidget;
   class GlobalConfig;
   class VertexRepresentation;

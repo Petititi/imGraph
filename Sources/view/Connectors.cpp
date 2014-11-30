@@ -5,6 +5,7 @@
 
 #include "Window.h"
 #include "GraphicView.h"
+#include "VertexRepresentation.h"
 
 namespace charliesoft
 {
@@ -108,9 +109,20 @@ namespace charliesoft
     setObjectName("ParamRepresentation");
     if (!param._show) this->hide();
     setToolTip(_QT(param._helper));
-    VertexRepresentation* parent = (VertexRepresentation*)father->parentWidget();
-    connect(this, SIGNAL(askSynchro()), parent, SLOT(reshape()));
+    if (father != NULL)
+    {
+      VertexRepresentation* parent = dynamic_cast<VertexRepresentation*>(father->parentWidget());
+      if (parent != NULL)
+        connect(this, SIGNAL(askSynchro()), parent, SLOT(reshape()));
+    }
   };
+
+  SubGraphParamRepresentation::SubGraphParamRepresentation(SubBlock* model, const ParamDefinition& def, bool isInput, QWidget *father) :
+    LinkConnexionRepresentation(_STR(def._name), isInput, father), _model(model), _param(def){
+    setObjectName("SubGraphParamRepresentation");
+    setToolTip(_QT(def._helper));
+    setAlignment(Qt::AlignCenter);
+  }
 
   std::string ParamRepresentation::getParamHelper() const {
     size_t pos = _STR(_param._helper).find_first_of('|');

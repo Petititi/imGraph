@@ -212,27 +212,27 @@ namespace charliesoft
       notifyRemove();
       _newValue = true;
       if (value->isLinked())
-        value = value->get<ParamValue*>(true);
+        value = value->get<ParamValue*>(false);
       switch (value->getType())
       {
       case Boolean:
-        value_ = value->get<bool>(true);
+        value_ = value->get<bool>(false);
         break;
       case Int:
-        value_ = value->get<int>(true);
+        value_ = value->get<int>(false);
         break;
       case Float:
-        value_ = value->get<double>(true);
+        value_ = value->get<double>(false);
         break;
       case String:
       case FilePath:
-        value_ = value->get<std::string>(true);
+        value_ = value->get<std::string>(false);
         break;
       case Color:
-        value_ = value->get<cv::Scalar>(true);
+        value_ = value->get<cv::Scalar>(false);
         break;
       default:
-        value_ = value->get<cv::Mat>(true);
+        value_ = value->get<cv::Mat>(false);
         break;
       }
       notifyUpdate(_newValue);

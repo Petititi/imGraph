@@ -55,6 +55,7 @@
 #include "ProcessManager.h"
 #include "blocks/ParamValidator.h"
 #include "SubBlock.h"
+#include "VertexRepresentation.h"
 
 using namespace std;
 using namespace charliesoft;
@@ -67,495 +68,22 @@ using cv::Mat;
 
 namespace charliesoft
 {
-  vector<VertexRepresentation*> VertexRepresentation::selectedBlock_;
 
-  VertexRepresentation::~VertexRepresentation()
-  {
-    GraphRepresentation* representation = dynamic_cast<GraphRepresentation*>(layout());
-    if (representation!=NULL)
-      representation->removeLinks(this);
-
-    for (auto it = listOfInputChilds_.begin(); it != listOfInputChilds_.end(); it++)
-      delete it->second;
-    listOfInputChilds_.clear();
-    for (auto it = listOfOutputChilds_.begin(); it != listOfOutputChilds_.end(); it++)
-      delete it->second;
-    listOfOutputChilds_.clear();
-    _links.clear();
-    delete _blockRepresentation;
-    delete _conditionsRepresentation;
-  }
-
-  VertexRepresentation::VertexRepresentation(Block* model)
-  {
-    _blockRepresentation = new QWidget(this);
-    _conditionsRepresentation = new QWidget(this);
-
-    _blockRepresentation->setObjectName("VertexRepresentation");
-    _conditionsRepresentation->setObjectName("CondRepresentation");
-    _paramActiv = NULL;
-    _isDragging = false;
-
-    _hasDynamicParams = dynamic_cast<SubBlock*>(model) != NULL;
-    _model = model;
-    _vertexTitle = new QLabel(_QT(model->getName()), _blockRepresentation);
-    _vertexTitle->setObjectName("VertexTitle");
-
-    _conditionTitle = new QLabel("Conditions", _conditionsRepresentation);
-    _conditionTitle->setObjectName("ConditionTitle");
-    _conditionTitle->setAlignment(Qt::AlignCenter);
-
-    _conditionsValues = new QLabel("No conditions...", _conditionsRepresentation);
-    _conditionsValues->setAlignment(Qt::AlignCenter);
-    _conditionsValues->setWordWrap(true);
-    createListParamsFromModel();
-
-    _lineTitle = new QFrame(_blockRepresentation);//add a line...
-    _lineTitle->setFrameShape(QFrame::HLine);
-    _lineTitle->setObjectName("VertexTitleLine");
-
-    reshape();
-
-    QGraphicsDropShadowEffect* shadowEffect = new QGraphicsDropShadowEffect();
-    shadowEffect->setBlurRadius(15);
-    shadowEffect->setOffset(3, 3);
-    _blockRepresentation->setGraphicsEffect(shadowEffect);
-
-    move((int)model->getPosition().x, (int)model->getPosition().y);
-    _blockRepresentation->move(0, 5);
-
-    connect(this, SIGNAL(updateProp(VertexRepresentation*)), Window::getInstance(), SLOT(updatePropertyDock(VertexRepresentation*)));
-  }
-
-  ParamRepresentation* VertexRepresentation::addNewInputParam(ParamDefinition def)
-  {
-    ParamRepresentation  *tmp = new ParamRepresentation(_model, def, true, _blockRepresentation);
-    connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
-    connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
-    listOfInputChilds_[def._name] = tmp;
-    if (def._type == ListBox)
-    {
-      std::vector<string> paramChoices = tmp->getParamListChoice();
-      string paramValName = _STR(tmp->getParamName());
-      for (size_t idSubParam = 0; idSubParam < paramChoices.size(); idSubParam++)
-      {
-        vector<cv::String> subParams = _model->getSubParams(def._name + "." + paramChoices[idSubParam]);
-        for (cv::String subParam : subParams)
-        {
-          string fullSubName = def._name + "." + paramChoices[idSubParam] + "." + subParam;
-          ParamValue* param = _model->getParam(fullSubName, true);
-          if (param != NULL)
-          {
-            ParamDefinition tmpDef(false, param->getType(), fullSubName, subParam);
-            ParamRepresentation *tmp = new ParamRepresentation(_model, tmpDef, true, _blockRepresentation);
-            tmp->setVisibility(false);
-            tmp->isSubParam(true);
-            connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
-            connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
-            listOfInputSubParams_[tmpDef._name] = tmp;
-          }
-        }
-      }
-    }
-    return tmp;
-  }
-
-  ParamRepresentation* VertexRepresentation::addNewOutputParam(ParamDefinition def)
-  {
-    ParamRepresentation  *tmp = new ParamRepresentation(_model, def, false, _blockRepresentation);
-    connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
-    connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
-    listOfOutputChilds_[def._name] = tmp;
-    return tmp;
-  }
-
-  void VertexRepresentation::createListParamsFromModel()
-  {
-    //for each input and output create buttons:
-    const vector<ParamDefinition>& inputParams = _model->getInParams();
-    QRect tmpSize;
-    int showIn = 0, showOut = 0;
-    for (size_t i = 0; i < inputParams.size(); i++)
-      addNewInputParam(inputParams[i]);
-
-    const vector<ParamDefinition>& outputParams = _model->getOutParams();
-    for (size_t i = 0; i < outputParams.size(); i++)
-      addNewOutputParam(outputParams[i]);
-  }
-
-  void VertexRepresentation::removeLink(BlockLink l){
-    _links.erase(l);
-
-    MainWidget* parent = dynamic_cast<MainWidget*>(parentWidget());
-    if (parent == NULL)
-      return;
-    parent->getModel()->removeLink(l);
-  };
-
-  ConditionLinkRepresentation* VertexRepresentation::getCondition(ConditionOfRendering* cor, bool isLeft)
-  {
-    for (auto it : linksConditions_)
-    {
-      if (it.first == cor && (it.second->isLeftCond()==isLeft))
-        return it.second;
-    }
-    return NULL;
-  }
-
-  void VertexRepresentation::reshape()
-  {
-    QRect sizeNameVertex = _vertexTitle->fontMetrics().boundingRect(_vertexTitle->text());
-
-    //conditions:
-    vector<ConditionOfRendering>& conditions = _model->getConditions();
-    int heightOfConditions_tmp = 0;
-    int maxWidth = 0;
-    string conditionsText = "";
-    for (ConditionOfRendering& condition : conditions)
-    {
-      conditionsText += condition.toString() + "\n";
-      QRect sizeTMP_cond = _conditionsValues->fontMetrics().boundingRect(condition.toString().c_str());
-      if (maxWidth < sizeTMP_cond.width())maxWidth = sizeTMP_cond.width();
-      heightOfConditions_tmp += sizeNameVertex.height() + 5;
-    }
-    if (sizeNameVertex.width() < maxWidth + 26)
-      sizeNameVertex.setWidth(maxWidth + 26);
-    
-    int topPadding = sizeNameVertex.height() + 20;
-
-    int projectedHeight = topPadding;
-    int inputHeight, outputHeight, maxInputWidth, maxOutputWidth;
-    inputHeight = outputHeight = topPadding;
-    maxInputWidth = maxOutputWidth = 0;
-
-    //for each input and output create buttons:
-    vector<ParamDefinition> tmpParamsIn = _model->getInParams();
-    auto it = tmpParamsIn.begin();
-    QRect tmpSize;
-    int showIn = 0, showOut = 0;
-    for (; it != tmpParamsIn.end(); it++)
-    {
-      ParamRepresentation  *tmp = listOfInputChilds_[it->_name];
-      tmp->setMinimumWidth(5);
-      tmp->move(-2, inputHeight);//move the name at the top of vertex...
-      tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
-      tmp->setVisible(tmp->shouldShow());
-      if (tmp->shouldShow())
-      {
-        showIn++;
-        inputHeight += tmpSize.height() + 10;
-        if (maxInputWidth < tmpSize.width())
-          maxInputWidth = tmpSize.width();
-      }
-    }
-
-    for (auto subPara : listOfInputSubParams_)
-    {
-      ParamRepresentation  *tmp = subPara.second;
-      tmp->setMinimumWidth(5);
-      tmp->move(-2, inputHeight);//move the name at the top of vertex...
-      tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
-      tmp->setVisible(tmp->shouldShow());
-      if (tmp->shouldShow())
-      {
-        showIn++;
-        inputHeight += tmpSize.height() + 10;
-        if (maxInputWidth < tmpSize.width())
-          maxInputWidth = tmpSize.width();
-      }
-    }
-
-    vector<ParamDefinition> tmpParamsOut = _model->getOutParams();
-    it = tmpParamsOut.begin();
-    for (; it != tmpParamsOut.end(); it++)
-    {
-      ParamRepresentation  *tmp = listOfOutputChilds_[it->_name];
-
-      tmp->setMinimumWidth(5);
-      tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
-      tmp->move(sizeNameVertex.width() + 16 - tmpSize.width() - 8, outputHeight);//move the name at the top of vertex...
-      tmp->setVisible(tmp->shouldShow());
-      if (tmp->shouldShow())
-      {
-        showOut++;
-        outputHeight += tmpSize.height() + 10;
-        if (maxOutputWidth < tmpSize.width())
-          maxOutputWidth = tmpSize.width();
-      }
-    }
-    maxInputWidth += 10;
-    maxOutputWidth += 10;
-    //now recompute with correct width:
-    int newWidth = maxOutputWidth + maxInputWidth + 10;
-    if (newWidth < sizeNameVertex.width() + 16)
-      newWidth = sizeNameVertex.width() + 16;
-
-    inputHeight = outputHeight = topPadding;
-    if (showIn > showOut)
-      outputHeight += (tmpSize.height() + 10) * (int)((static_cast<double>(showIn)-showOut) / 2.);
-    else
-      inputHeight += (tmpSize.height() + 10) * (int)((static_cast<double>(showOut)-showIn) / 2.);
-
-    it = tmpParamsIn.begin();
-    for (; it != tmpParamsIn.end(); it++)
-    {
-      ParamRepresentation  *tmp = listOfInputChilds_[it->_name];
-      QRect tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
-      tmp->resize(maxInputWidth, tmpSize.height() + 5);
-      tmp->move(-2, inputHeight);//move the name at the top of vertex...
-      if (tmp->shouldShow())
-        inputHeight += tmpSize.height() + 10;
-    }
-    for (auto subPara : listOfInputSubParams_)
-    {
-      ParamRepresentation  *tmp = subPara.second;
-      QRect tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
-      tmp->resize(maxInputWidth, tmpSize.height() + 5);
-      tmp->move(-2, inputHeight);//move the name at the top of vertex...
-      if (tmp->shouldShow())
-        inputHeight += tmpSize.height() + 10;
-    }
-
-    it = tmpParamsOut.begin();
-    for (; it != tmpParamsOut.end(); it++)
-    {
-      ParamRepresentation  *tmp = listOfOutputChilds_[it->_name];
-      QRect tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
-      tmp->resize(maxOutputWidth, tmpSize.height() + 5);
-      tmp->move(newWidth - maxOutputWidth + 4, outputHeight);//move the name at the top of vertex...
-      if (tmp->shouldShow())
-        outputHeight += tmpSize.height() + 10;
-    }
-
-    _vertexTitle->move((newWidth - sizeNameVertex.width()) / 2, 5);//move the name at the top of vertex...
-
-    _lineTitle->resize(newWidth, 2);
-    _lineTitle->move(0, sizeNameVertex.height() + 8);//move the name at the top of vertex...
-
-
-    projectedHeight += max(inputHeight, outputHeight);
-
-    heightOfConditions = sizeNameVertex.height();
-    _blockRepresentation->resize(newWidth, projectedHeight - 20);
-    _conditionTitle->resize(newWidth - 26, heightOfConditions);
-
-    _conditionsValues->move(0, heightOfConditions);
-
-    heightOfConditions += heightOfConditions_tmp;
-    _conditionsValues->resize(newWidth - 26, heightOfConditions);
-
-    //conditions reshaping:
-    _conditionsValues->setText(conditionsText.c_str());
-
-    _conditionsRepresentation->move(13, 0);
-
-    QRect prevSize = _conditionsRepresentation->geometry();
-    _conditionsRepresentation->setGeometry(QRect(prevSize.x(), prevSize.y(), newWidth - 26, heightOfConditions + 20));
-
-    //now add connection bloc for each needed conditions:
-    heightOfConditions_tmp = sizeNameVertex.height();
-    for (ConditionOfRendering& condition : conditions)
-    {
-      if (condition.getCategory_left() == 1)//output of block...
-      {
-        ConditionLinkRepresentation* tmp = getCondition(&condition, true);
-        if (tmp == NULL)
-        {
-          tmp = new ConditionLinkRepresentation(&condition, true, _conditionsRepresentation);
-          connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
-          connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
-          linksConditions_.push_back(std::pair<ConditionOfRendering*, ConditionLinkRepresentation*>(&condition, tmp));
-        }
-        tmp->move(-2, heightOfConditions_tmp);//move the name at the top of vertex...
-        tmp->show();
-      }
-      if (condition.getCategory_right() == 1)//output of block...
-      {
-        ConditionLinkRepresentation* tmp = getCondition(&condition, false);
-        if (tmp == NULL)
-        {
-          tmp = new ConditionLinkRepresentation(&condition, false, _conditionsRepresentation);
-          connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
-          connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
-          linksConditions_.push_back(std::pair<ConditionOfRendering*, ConditionLinkRepresentation*>(&condition, tmp));
-        }
-        QRect tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
-        tmp->move(newWidth - 32 - tmpSize.width(), heightOfConditions_tmp);//move the name at the top of vertex...
-        tmp->show();
-      }
-      heightOfConditions_tmp += sizeNameVertex.height() + 5;
-    }
-    if (conditions.empty())
-    {
-      while (!linksConditions_.empty())
-      {
-        delete linksConditions_.back().second;
-        linksConditions_.pop_back();
-      }
-    }
-    _blockRepresentation->raise();
-
-    resize(newWidth + 10, projectedHeight - 10);
-  }
-  
-  void VertexRepresentation::setParamActiv(LinkConnexionRepresentation* param)
-  {
-    _paramActiv = param;
-  }
-
-  ParamRepresentation* VertexRepresentation::getParamRep(std::string paramName, bool input)
-  {
-    if (input)
-    {
-      if (listOfInputChilds_.find(paramName) != listOfInputChilds_.end())
-        return listOfInputChilds_[paramName];
-    }
-    else
-    {
-      if (listOfOutputChilds_.find(paramName) != listOfOutputChilds_.end())
-        return listOfOutputChilds_[paramName];
-    }
-    return NULL;
-  }
-
-  void VertexRepresentation::changeStyleProperty(const char* propertyName, QVariant val)
-  {
-    _blockRepresentation->setProperty(propertyName, val);
-    _blockRepresentation->style()->unpolish(_blockRepresentation);
-    _blockRepresentation->style()->polish(_blockRepresentation);
-    _blockRepresentation->update();
-  }
-
-  void VertexRepresentation::setSelected(bool isSelected)
-  {
-    bool prevProperty = _blockRepresentation->property("selected").toBool();
-    if (prevProperty == isSelected)
-      return;//nothing to do: already in correct state...
-    changeStyleProperty("selected", isSelected);
-    if (isSelected)
-      selectedBlock_.push_back(this);
-    else
-    {
-      //remove from list:
-      for (unsigned int pos = 0; pos < selectedBlock_.size(); pos++)
-      {
-        if (selectedBlock_[pos] == this)
-        {
-          selectedBlock_.erase(selectedBlock_.begin() + pos);
-          return;
-        }
-      }
-    }
-  }
-
-  void VertexRepresentation::resetSelection()
-  {
-    for (auto selection : selectedBlock_)
-      selection->changeStyleProperty("selected", false);
-    selectedBlock_.clear();
-  }
-
-  void VertexRepresentation::mousePressEvent(QMouseEvent *mouseE)
-  {
-    QPoint mouseP = mouseE->pos();
-    if (_paramActiv == NULL && mouseE->button() == Qt::LeftButton)
-    {
-      _isMoving = false;
-      if (mouseP.y()>heightOfConditions + 5)
-      {
-        bool prevProperty = _blockRepresentation->property("selected").toBool();
-        if (!prevProperty)//if not previously selected, we reset the selection list...
-          resetSelection();
-        setSelected(true);
-        _isDragging = true;
-        startClick_ = mouseE->globalPos();
-      }
-      if (mouseP.y()<heightOfConditions + 5)
-      {
-        resetSelection();
-        _isDragging = false;
-      }
-    }
-    else
-      mouseE->ignore();
-    raise();
-  }
-
-  void VertexRepresentation::mouseReleaseEvent(QMouseEvent *mouseE)
-  {
-    _isDragging = false;
-
-    if (!_isMoving && mouseE->button() == Qt::LeftButton)
-      emit updateProp(this);
-  }
-
-  void VertexRepresentation::moveDelta(QPoint delta)
-  {
-    delta = pos() + delta;
-    move(delta.x(), delta.y());
-    _model->setPosition(delta.x(), delta.y());
-    Window::getInstance()->redraw();
-  }
-
-  void VertexRepresentation::mouseMoveEvent(QMouseEvent *mouseE)
-  {
-    if (_isDragging)
-    {
-      QPoint p = mouseE->globalPos();
-      QPoint deltaClick_ = p - startClick_;
-      startClick_ = p;
-      _isMoving = true;
-      for (VertexRepresentation* vRep:selectedBlock_)
-        vRep->moveDelta(deltaClick_);
-    }
-    else
-      mouseE->ignore();
-  }
-
-  void VertexRepresentation::mouseDoubleClickEvent(QMouseEvent *mouseE)
-  {/*
-    QPoint mouseP = mouseE->pos();
-    if (mouseP.y() > heightOfConditions + 5)
-    {
-      ParamsConfigurator config(this);
-      int retour = config.exec();
-    }
-    else
-    {
-      ConditionConfigurator config(this);
-      int retour = config.exec();
-    }*/
-  }
-
-  void VertexRepresentation::enterEvent(QEvent *)
-  {
-    QRect prevSize = geometry();
-    setGeometry(QRect(prevSize.x(), prevSize.y() - heightOfConditions, prevSize.width(), prevSize.height() + heightOfConditions));
-    _blockRepresentation->move(0, heightOfConditions + 5);
-  }
-
-  void VertexRepresentation::leaveEvent(QEvent *)
-  {
-    QRect prevSize = geometry();
-    setGeometry(QRect(prevSize.x(), prevSize.y() + heightOfConditions, prevSize.width(), prevSize.height() - heightOfConditions));
-    _blockRepresentation->move(0, 5);
-  }
-
-  void GraphRepresentation::addItem(QLayoutItem * item)
+  void GraphLayout::addItem(QLayoutItem * item)
   {
     //get widget:
     if (VertexRepresentation* derived = dynamic_cast<VertexRepresentation*>(item->widget())) {
-      orderedBlocks_.push_back(derived->getModel());
+      _orderedBlocks.push_back(derived->getModel());
       _items[derived->getModel()] = item;
     }
   }
 
-  QLayoutItem * GraphRepresentation::itemAt(int index) const
+  QLayoutItem * GraphLayout::itemAt(int index) const
   {
-    if (index >= (int)orderedBlocks_.size())
+    if (index >= (int)_orderedBlocks.size())
       return NULL;
     try {
-      QLayoutItem * tmp = _items.at(orderedBlocks_[index]);
+      QLayoutItem * tmp = _items.at(_orderedBlocks[index]);
       return tmp;
     }
     catch (const std::out_of_range&) {
@@ -563,24 +91,24 @@ namespace charliesoft
     }
   }
 
-  QLayoutItem * GraphRepresentation::takeAt(int index)
+  QLayoutItem * GraphLayout::takeAt(int index)
   {
     boost::unique_lock<boost::mutex> lock(_mtx);
     if (index >= (int)_items.size())
       return NULL;
-    QLayoutItem *output = _items[orderedBlocks_[index]];
-    _items.erase(orderedBlocks_[index]);
-    orderedBlocks_.erase(orderedBlocks_.begin() + index);
+    QLayoutItem *output = _items[_orderedBlocks[index]];
+    _items.erase(_orderedBlocks[index]);
+    _orderedBlocks.erase(_orderedBlocks.begin() + index);
     //TODO: remove edges!
     return output;
   }
 
-  int GraphRepresentation::indexOf(QWidget *widget) const
+  int GraphLayout::indexOf(QWidget *widget) const
   {
-    for (size_t i = 0; i < orderedBlocks_.size(); i++)
+    for (size_t i = 0; i < _orderedBlocks.size(); i++)
     {
       try {
-        if (_items.at(orderedBlocks_[i])->widget() == widget)
+        if (_items.at(_orderedBlocks[i])->widget() == widget)
           return i;
       }
       catch (const std::out_of_range&) {
@@ -590,22 +118,22 @@ namespace charliesoft
     return -1;
   }
 
-  int GraphRepresentation::indexOf(Block *widget) const
+  int GraphLayout::indexOf(Block *widget) const
   {
-    for (size_t i = 0; i < orderedBlocks_.size(); i++)
+    for (size_t i = 0; i < _orderedBlocks.size(); i++)
     {
-      if (orderedBlocks_[i] == widget)
+      if (_orderedBlocks[i] == widget)
         return i;
     }
     return -1;
   }
 
-  int GraphRepresentation::count() const
+  int GraphLayout::count() const
   {
-    return orderedBlocks_.size();
+    return _orderedBlocks.size();
   }
 
-  QSize GraphRepresentation::sizeHint() const
+  QSize GraphLayout::sizeHint() const
   {
     QSize mySize(800,600);
     //test if block still exist:
@@ -620,7 +148,7 @@ namespace charliesoft
     return mySize;
   }
 
-  void GraphRepresentation::removeLinks(VertexRepresentation* vertex)
+  void GraphLayout::removeLinks(VertexRepresentation* vertex)
   {
     boost::unique_lock<boost::mutex> lock(_mtx);
     //remove every links connected to vertex (in and out):
@@ -630,8 +158,6 @@ namespace charliesoft
       if (_links.find(link.first) != _links.end())
       {
         _links.erase(link.first);//delete map association...
-        //if (_items.find(link.first._from)!=_items.end())
-        //  dynamic_cast<VertexRepresentation*>(_items[link.first._from]->widget())->removeLink(link.first);
         if (_items.find(link.first._to) != _items.end())
           dynamic_cast<VertexRepresentation*>(_items[link.first._to]->widget())->removeLink(link.first);
 
@@ -640,7 +166,7 @@ namespace charliesoft
     }
   }
 
-  void GraphRepresentation::removeSelectedLinks()
+  void GraphLayout::removeSelectedLinks()
   {
     boost::unique_lock<boost::mutex> lock(_mtx);
     auto it = _links.begin();
@@ -661,29 +187,35 @@ namespace charliesoft
     }
   }
 
-  void GraphRepresentation::addLink(const BlockLink& link)
-  {
-    if (_links.find(link) != _links.end())
-      return;//nothing to do...
 
+  void GraphLayout::addLink(const BlockLink& link, LinkPath* path)
+  {
     boost::unique_lock<boost::mutex> lock(_mtx);
-    VertexRepresentation* fromVertex, *toVertex;
-    fromVertex = dynamic_cast<VertexRepresentation*>(_items[link._from]->widget());
-    toVertex = dynamic_cast<VertexRepresentation*>(_items[link._to]->widget());
-    if (fromVertex != NULL && toVertex != NULL)
+    if (_links.find(link) != _links.end())
+      return;//nothing to do... Already exist
+
+    if (path == NULL)
     {
-      auto paramFrom = fromVertex->getParamRep(link._fromParam, false);
-      auto paramTo = toVertex->getParamRep(link._toParam, true);
-      paramFrom->setVisibility(true);
-      paramTo->setVisibility(true);
-      LinkPath* path = new LinkPath(paramFrom, paramTo);
-      _links[link] = path;
-      fromVertex->addLink(link, path);
-      toVertex->addLink(link, path);
+      VertexRepresentation* fromVertex, *toVertex;
+      fromVertex = dynamic_cast<VertexRepresentation*>(_items[link._from]->widget());
+      toVertex = dynamic_cast<VertexRepresentation*>(_items[link._to]->widget());
+      if (fromVertex != NULL && toVertex != NULL)
+      {
+        auto paramFrom = fromVertex->getParamRep(link._fromParam, false);
+        auto paramTo = toVertex->getParamRep(link._toParam, true);
+        paramFrom->setVisibility(true);
+        paramTo->setVisibility(true);
+        path = new LinkPath(paramFrom, paramTo);
+        fromVertex->addLink(link, path);
+        toVertex->addLink(link, path);
+        _links[link] = path;
+      }
     }
+    else
+      _sublinks.insert(path);
   }
 
-  void GraphRepresentation::clearLayout(QLayout* layout)
+  void GraphLayout::clearLayout(QLayout* layout)
   {
     if (layout == NULL)
       layout = this;
@@ -697,14 +229,16 @@ namespace charliesoft
     }
   }
 
-  void GraphRepresentation::drawEdges(QPainter& p)
+  void GraphLayout::drawEdges(QPainter& p)
   {
     boost::unique_lock<boost::mutex> lock(_mtx);
     for (auto iter : _links)
       iter.second->draw(&p, NULL, NULL);
+    for (auto iter : _sublinks)
+      iter->draw(&p, NULL, NULL);
   }
 
-  VertexRepresentation* GraphRepresentation::getVertexRepresentation(Block* b)
+  VertexRepresentation* GraphLayout::getVertexRepresentation(Block* b)
   {
     boost::unique_lock<boost::mutex> lock(_mtx);
     if (_items.find(b) == _items.end())
@@ -712,7 +246,7 @@ namespace charliesoft
     return dynamic_cast<VertexRepresentation*>(_items[b]->widget());
   }
 
-  void GraphRepresentation::synchronize()
+  void GraphLayout::synchronize()
   {
     MainWidget* parent = dynamic_cast<MainWidget*>(parentWidget());
     if (parent == NULL)
@@ -808,9 +342,11 @@ namespace charliesoft
   {
     _model = model;
     setObjectName("MainWidget");
-    isSelecting_ = creatingLink_ = false;
-    startParam_ = NULL;
+    _isSelecting = _creatingLink = false;
+    _startParam = NULL;
     setAcceptDrops(true);
+
+    setLayout(new GraphLayout());
   }
 
   void MainWidget::dragEnterEvent(QDragEnterEvent *event)
@@ -841,34 +377,34 @@ namespace charliesoft
 
     painter.setPen(QPen(Qt::black, 2));
 
-    if (creatingLink_)
-      painter.drawLine(startMouse_, endMouse_);
+    if (_creatingLink)
+      painter.drawLine(_startMouse, _endMouse);
 
-    if (isSelecting_)
+    if (_isSelecting)
     {
-      painter.fillRect((int)selectBox_.x(), (int)selectBox_.y(), (int)selectBox_.width(), (int)selectBox_.height(),
+      painter.fillRect((int)_selectBox.x(), (int)_selectBox.y(), (int)_selectBox.width(), (int)_selectBox.height(),
         QColor(0, 0, 255, 128));
       painter.setPen(QColor(0, 0, 200, 255));
-      painter.drawRect(selectBox_);
+      painter.drawRect(_selectBox);
     }
 
     //now ask each vertex to draw the links:
-    dynamic_cast<GraphRepresentation*>(layout())->drawEdges(painter);
+    dynamic_cast<GraphLayout*>(layout())->drawEdges(painter);
   }
 
   void MainWidget::mouseMoveEvent(QMouseEvent *me)
   {
-    if (creatingLink_)
+    if (_creatingLink)
     {
-      endMouse_ = me->pos();
+      _endMouse = me->pos();
       Window::getInstance()->redraw();
     }
-    if (isSelecting_)
+    if (_isSelecting)
     {
-      selectBox_.setCoords(startMouse_.x(), startMouse_.y(),
+      _selectBox.setCoords(_startMouse.x(), _startMouse.y(),
         me->x() + 1, me->y() + 1);
       //test intersection between vertex representation and selection rect:
-      GraphRepresentation* representation = dynamic_cast<GraphRepresentation*>(layout());
+      GraphLayout* representation = dynamic_cast<GraphLayout*>(layout());
       if (representation != NULL)
       {
         std::map<Block*, QLayoutItem*>& items = representation->getItems();
@@ -877,7 +413,7 @@ namespace charliesoft
         {
           if (VertexRepresentation* vertex = dynamic_cast<VertexRepresentation*>(item.second->widget()))
           {
-            if (vertex->geometry().intersects(selectBox_.toRect()))
+            if (vertex->geometry().intersects(_selectBox.toRect()))
               vertex->setSelected(true);
             else if (!me->modifiers().testFlag(Qt::ControlModifier))
               vertex->setSelected(false);
@@ -887,7 +423,7 @@ namespace charliesoft
         std::map<BlockLink, LinkPath*>& links = representation->getLinks();
         for (auto link : links)
         {
-          if (link.second->intersect(selectBox_.toRect()))
+          if (link.second->intersect(_selectBox.toRect()))
             link.second->setSelected(true);
           else if (!me->modifiers().testFlag(Qt::ControlModifier))
             link.second->setSelected(false);
@@ -899,43 +435,43 @@ namespace charliesoft
 
   void MainWidget::mousePressEvent(QMouseEvent *mouseE)
   {
-    if (!creatingLink_ && mouseE->button() == Qt::LeftButton)
+    if (!_creatingLink && mouseE->button() == Qt::LeftButton)
     {
-      startMouse_ = mouseE->pos();
+      _startMouse = mouseE->pos();
       //begin rect:
-      selectBox_.setCoords(startMouse_.x()-3, startMouse_.y()-3,
-        startMouse_.x() + 3, startMouse_.y() + 3);
+      _selectBox.setCoords(_startMouse.x()-3, _startMouse.y()-3,
+        _startMouse.x() + 3, _startMouse.y() + 3);
 
       if (!mouseE->modifiers().testFlag(Qt::ControlModifier))
       {
-        GraphRepresentation* representation = dynamic_cast<GraphRepresentation*>(layout());
+        GraphLayout* representation = dynamic_cast<GraphLayout*>(layout());
         std::map<BlockLink, LinkPath*>& links = representation->getLinks();
         for (auto link : links)
-          link.second->setSelected(link.second->intersect(selectBox_.toRect()));
+          link.second->setSelected(link.second->intersect(_selectBox.toRect()));
 
         VertexRepresentation::resetSelection();
       }
       
-      isSelecting_ = true;
+      _isSelecting = true;
     }
   }
   
   void MainWidget::mouseReleaseEvent(QMouseEvent *)
   {
-    creatingLink_ = isSelecting_ = false;
+    _creatingLink = _isSelecting = false;
     Window::getInstance()->redraw();
   }
 
   void MainWidget::endLinkCreation(QPoint end)
   {
-    endMouse_ = end;
-    creatingLink_ = false;
+    _endMouse = end;
+    _creatingLink = false;
 
     Window::getInstance()->redraw();//redraw window...
 
     //find an hypotetic param widget under mouse:
-    ParamRepresentation* param = dynamic_cast<ParamRepresentation*>(childAt(endMouse_));
-    ParamRepresentation* startParam = dynamic_cast<ParamRepresentation*>(startParam_);
+    ParamRepresentation* param = dynamic_cast<ParamRepresentation*>(childAt(_endMouse));
+    ParamRepresentation* startParam = dynamic_cast<ParamRepresentation*>(_startParam);
     if (param != NULL && startParam != NULL)
     {
       //we have a candidate!
@@ -975,11 +511,11 @@ namespace charliesoft
     //if one is ConditionLinkRepresentation, other is ParamRepresentation:
     ConditionLinkRepresentation* condParam;
     if (param != NULL)
-      condParam = dynamic_cast<ConditionLinkRepresentation*>(startParam_);
+      condParam = dynamic_cast<ConditionLinkRepresentation*>(_startParam);
     if (startParam != NULL)
     {
       param = startParam;
-      condParam = dynamic_cast<ConditionLinkRepresentation*>(childAt(endMouse_));
+      condParam = dynamic_cast<ConditionLinkRepresentation*>(childAt(_endMouse));
     }
     if (param != NULL &&condParam != NULL)
     {
@@ -999,9 +535,9 @@ namespace charliesoft
 
   void MainWidget::initLinkCreation(QPoint start)
   {
-    startMouse_ = endMouse_ = start;
-    creatingLink_ = true;
-    startParam_ = dynamic_cast<LinkConnexionRepresentation*>(sender());
+    _startMouse = _endMouse = start;
+    _creatingLink = true;
+    _startParam = dynamic_cast<LinkConnexionRepresentation*>(sender());
   }
 
   QSize MainWidget::sizeHint() const
@@ -1017,4 +553,82 @@ namespace charliesoft
     return sizeHint();
   }
 
+
+  MainWidget_SubGraph::MainWidget_SubGraph(SubBlock *model) :
+    MainWidget(model->getSubGraph())
+  {
+    _posInput = _posOutput = 10;
+    _model = model;
+    //add input/output parameters:
+
+    const vector<ParamDefinition>& inputParams = model->getInParams();
+    QRect tmpSize;
+    int showIn = 0, showOut = 0;
+    for (size_t i = 0; i < inputParams.size(); i++)
+      addParameter(new SubGraphParamRepresentation(_model, inputParams[i], false, this));
+
+    const vector<ParamDefinition>& outputParams = _model->getOutParams();
+    for (size_t i = 0; i < outputParams.size(); i++)
+      addParameter(new SubGraphParamRepresentation(_model, outputParams[i], true, this));
+  };
+
+  void MainWidget_SubGraph::addParameter(SubGraphParamRepresentation* param)
+  {
+    _params[param->getDefinition()._name] = param;
+    layout()->addWidget(param);
+    connect(param, SIGNAL(creationLink(QPoint)), this, SLOT(initLinkCreation(QPoint)));
+    connect(param, SIGNAL(releaseLink(QPoint)), this, SLOT(endLinkCreation(QPoint)));
+    QRect sizeNameVertex = param->fontMetrics().boundingRect(param->text());
+    int newWidth = sizeNameVertex.width() + 15;
+    if (newWidth < 50)newWidth = 50;
+    int newHeight = sizeNameVertex.height() + 5;
+    if (newHeight < 25)newHeight = 25;
+    param->resize(newWidth, newHeight);
+    if (!param->isInput())
+    {
+      param->move(5, _posInput);//move the name at the top of vertex...
+      _posInput += newHeight + 10;
+    }
+    else
+    {
+      param->move(width() - sizeNameVertex.width() - 5, _posOutput);//move the name at the top of vertex...
+      _posOutput += newHeight + 10;
+    }
+  };
+
+  void MainWidget_SubGraph::addNewParamLink(const BlockLink& link)
+  {
+    GraphLayout* graphRep = dynamic_cast<GraphLayout*>(layout());
+    if (graphRep == NULL)
+      return;//Nothing to do...
+
+    //get parameters link:
+    LinkConnexionRepresentation* paramFrom, *paramTo;
+    if (link._from->getGraph() == _model->getSubGraph())
+    {
+      paramFrom = _params[link._toParam];
+      paramTo = graphRep->getVertexRepresentation(link._from)->getParamRep(link._fromParam, false);
+    }
+    else
+    {
+      paramFrom = graphRep->getVertexRepresentation(link._to)->getParamRep(link._toParam, true);
+      paramTo = _params[link._fromParam];
+    }
+
+    LinkPath* path = new LinkPath(paramTo, paramFrom);
+    graphRep->addLink(link, path);
+  }
+
+  void MainWidget_SubGraph::resizeEvent(QResizeEvent * event)
+  {
+    int myWidth = width();
+    for (auto param : _params)
+    {
+      QRect sizeNameVertex = param.second->geometry();
+      if (param.second->isInput())
+      {
+        param.second->move(myWidth - sizeNameVertex.width() - 5, sizeNameVertex.y());
+      }
+    }
+  }
 }

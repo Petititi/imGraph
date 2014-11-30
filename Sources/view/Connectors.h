@@ -19,6 +19,7 @@ namespace charliesoft
 {
   class VertexRepresentation;
   class LinkConnexionRepresentation;
+  class SubBlock;
 
   class LinkPath : public QGraphicsLineItem
   {
@@ -78,6 +79,19 @@ namespace charliesoft
     void askSynchro();
   };
 
+  class SubGraphParamRepresentation :public LinkConnexionRepresentation
+  {
+    Q_OBJECT;
+
+    SubBlock* _model;
+    ParamDefinition _param;
+    bool _isLeftCond;
+  public:
+    SubGraphParamRepresentation(SubBlock* model, const ParamDefinition& def, bool isInput, QWidget *father);
+
+    const ParamDefinition& getDefinition() const{ return _param; };
+  };
+
   class ParamRepresentation :public LinkConnexionRepresentation
   {
     Q_OBJECT;
@@ -94,7 +108,9 @@ namespace charliesoft
     void setVisibility(bool visible);
     void useDefault(bool defaultVal){ _defaultValue = defaultVal; };
     std::string getParamName() const { return _param._name; }
-    ParamValue* getParamValue() const { return _model->getParam(_param._name, _isInput); }
+    ParamValue* getParamValue() const { 
+      if (_model != NULL)return _model->getParam(_param._name, _isInput); else return NULL;
+    }
     std::string getParamHelper() const;
     std::vector<std::string> getParamListChoice() const;
     Block* getModel() const { return _model; };

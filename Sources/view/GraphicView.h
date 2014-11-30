@@ -33,97 +33,29 @@
 
 #include <map>
 #include "Window.h"
-#include "Configuration.h"
-#include "Connectors.h"
 
 namespace charliesoft
 {
+  class SubBlock;
+  class LinkPath;
+  class VertexRepresentation;
+  class LinkConnexionRepresentation;
+  class SubGraphParamRepresentation;
 
-  class VertexRepresentation :public QWidget
-  {
-    Q_OBJECT;
-
-    QWidget* _blockRepresentation;
-    QWidget* _conditionsRepresentation;
-    QFrame* _lineTitle;
-    QLabel* _vertexTitle;
-    QLabel* _conditionTitle;
-    QLabel* _conditionsValues;
-    Block* _model;
-    bool _isDragging;
-    bool _isMoving;
-    bool _hasDynamicParams;
-    QPoint startClick_;
-    LinkConnexionRepresentation* _paramActiv;
-    int heightOfConditions;
-
-    std::map<BlockLink, LinkPath*> _links;
-    std::vector< std::pair<ConditionOfRendering*, ConditionLinkRepresentation*> > linksConditions_;
-    std::map<std::string, ParamRepresentation*> listOfInputChilds_;
-    std::map<std::string, ParamRepresentation*> listOfInputSubParams_;
-    std::map<std::string, ParamRepresentation*> listOfOutputChilds_;
-    std::vector<ParamRepresentation*> listOfSubParams_;
-  public:
-    VertexRepresentation(Block* model);
-    ~VertexRepresentation();
-
-    void createListParamsFromModel();
-    bool hasDynamicParams() const { return _hasDynamicParams; };
-
-    ParamRepresentation* addNewInputParam(ParamDefinition def);
-    ParamRepresentation* addNewOutputParam(ParamDefinition def);
-
-    Block* getModel() const { return _model; }
-    void setParamActiv(LinkConnexionRepresentation*);
-
-    std::map<BlockLink, LinkPath*> getLinks() const { return _links; }
-
-    void addLink(BlockLink l, LinkPath* p){
-      _links[l] = p;
-    };
-    void removeLink(BlockLink l);
-
-    void changeStyleProperty(const char* propertyName, QVariant val);
-    void setSelected(bool isSelected);
-    static void resetSelection();
-    static std::vector<VertexRepresentation*> getSelection(){
-      return selectedBlock_;
-    };
-    ParamRepresentation* getParamRep(std::string paramName, bool input);
-    std::map<std::string, ParamRepresentation*>& getListOfInputChilds() { return listOfInputChilds_; }
-    std::map<std::string, ParamRepresentation*>& getListOfSubParams() { return listOfInputSubParams_; }
-    std::map<std::string, ParamRepresentation*>& getListOfOutputChilds() { return listOfOutputChilds_; }
-  protected:
-    ConditionLinkRepresentation* getCondition(ConditionOfRendering*, bool isLeft);
-    static std::vector<VertexRepresentation*> selectedBlock_;
-    void moveDelta(QPoint delta);
-    virtual void mousePressEvent(QMouseEvent *);
-    virtual void mouseReleaseEvent(QMouseEvent *);
-    virtual void mouseDoubleClickEvent(QMouseEvent *);
-    virtual void mouseMoveEvent(QMouseEvent *);
-    virtual void enterEvent(QEvent *);
-    virtual void leaveEvent(QEvent *);
-
-    public slots:
-    void reshape();
-
-  signals:
-    void updateProp(VertexRepresentation*);
-  };
-
-  class GraphRepresentation :public QLayout
+  class GraphLayout :public QLayout
   {
     Q_OBJECT;
     boost::mutex _mtx;    // explicit mutex declaration
 
     std::map<Block*, QLayoutItem*> _items;
     std::map<BlockLink, LinkPath*> _links;
-    std::vector<Block*> orderedBlocks_;
+    std::set<LinkPath*> _sublinks;
+    std::vector<Block*> _orderedBlocks;
   public:
 
     void removeLinks(VertexRepresentation* vertex);
     void removeSelectedLinks();
-    void addLink(const BlockLink& link);
+    void addLink(const BlockLink& link, LinkPath* path=NULL);
 
     void clearLayout(QLayout* layout = NULL);
     std::map<Block*, QLayoutItem*> getItems() const { return _items; }
@@ -150,12 +82,12 @@ namespace charliesoft
 
     charliesoft::GraphOfProcess *_model;
 
-    LinkConnexionRepresentation* startParam_;
-    QPoint startMouse_;
-    QPoint endMouse_;
-    QRectF selectBox_;
-    bool isSelecting_;
-    bool creatingLink_;
+    LinkConnexionRepresentation* _startParam;
+    QPoint _startMouse;
+    QPoint _endMouse;
+    QRectF _selectBox;
+    bool _isSelecting;
+    bool _creatingLink;
 
     virtual void paintEvent(QPaintEvent *);
     virtual void mouseMoveEvent(QMouseEvent *);
@@ -165,7 +97,7 @@ namespace charliesoft
     virtual void dragEnterEvent(QDragEnterEvent *);
     virtual void dropEvent(QDropEvent *);
   public:
-    MainWidget(charliesoft::GraphOfProcess *model);
+    MainWidget(GraphOfProcess *model);
 
     virtual QSize sizeHint() const;
     virtual QSize minimumSizeHint() const;
@@ -175,9 +107,25 @@ namespace charliesoft
     public slots:
     void initLinkCreation(QPoint start);
     void endLinkCreation(QPoint end);
-
   };
 
+  class MainWidget_SubGraph :public MainWidget
+  {
+    SubBlock* _model;
+
+    int _posInput;
+    int _posOutput;
+
+    std::map<std::string, SubGraphParamRepresentation*> _params;
+
+    void addParameter(SubGraphParamRepresentation* param);
+  public:
+    MainWidget_SubGraph(SubBlock *model);
+
+    void addNewParamLink(const BlockLink& link);
+  protected:
+    virtual void	resizeEvent(QResizeEvent * event);
+  };
 }
 
 

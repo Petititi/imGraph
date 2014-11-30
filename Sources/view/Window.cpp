@@ -47,6 +47,7 @@
 #include "ProcessManager.h"
 #include "ParameterDock.h"
 #include "SubBlock.h"
+#include "VertexRepresentation.h"
 
 using namespace std;
 using namespace charliesoft;
@@ -86,7 +87,7 @@ namespace charliesoft
     MainWidget* mainWidget = getInstance()->getMainWidget();
     if (mainWidget != NULL)
     {
-      GraphRepresentation* graphRep = dynamic_cast<GraphRepresentation*>(mainWidget->layout());
+      GraphLayout* graphRep = dynamic_cast<GraphLayout*>(mainWidget->layout());
       if (graphRep != NULL)
       {
         graphRep->synchronize();
@@ -229,9 +230,6 @@ namespace charliesoft
 
   void Window::addTab(MainWidget* tmp, QString tabName)
   {
-    GraphRepresentation* layout = new GraphRepresentation();
-    tmp->setLayout(layout);
-
     QScrollArea* scrollarea = new QScrollArea(this);
     scrollarea->setWidgetResizable(true);
 
@@ -306,7 +304,7 @@ namespace charliesoft
             getMainWidget()->getModel()->switchPause();
           break;
         case Qt::Key_Delete:
-          dynamic_cast<GraphRepresentation*>(getMainWidget()->layout())->removeSelectedLinks();
+          dynamic_cast<GraphLayout*>(getMainWidget()->layout())->removeSelectedLinks();
           for (auto rep : VertexRepresentation::getSelection())
             getMainWidget()->getModel()->deleteProcess(rep->getModel());
           VertexRepresentation::resetSelection();
@@ -450,28 +448,44 @@ namespace charliesoft
       subGraph->addNewProcess(block);
     }
     subBlock->updatePosition(x, y);
+    int idx = 0;
     //create every input needed:
-    for (auto link : externBlocksInput)
+    for (auto& link : externBlocksInput)
     {
       ParamValue* val = link._from->getParam(link._fromParam, false);
+      string newName = _STR(link._fromParam) + lexical_cast<string>(idx++);
       ParamValue* newVal = subBlock->addNewInput(
-        ParamDefinition(true, val->getType(), link._fromParam, "_"));
-      //graph->removeLink(link);
+        ParamDefinition(true, val->getType(), newName, link._fromParam));
+      graph->removeLink(link);
       *newVal = val;//create link!
+      link._to->getParam(link._toParam, true)->setValue(val);
+      link._fromParam = newName;
       subBlock->addExternLink(link, true);
     }
     //create every output needed:
-    for (auto link : externBlocksOutput)
+    for (auto& link : externBlocksOutput)
     {
       ParamValue* val = link._to->getParam(link._toParam, true);
+      string newName = _STR(link._toParam) + lexical_cast<string>(idx++);
       ParamValue* newVal = subBlock->addNewOutput(
-        ParamDefinition(true, val->getType(), link._toParam, "_"));
-      //graph->removeLink(link);
+        ParamDefinition(true, val->getType(), newName, link._toParam));
+      graph->removeLink(link);
       *val = newVal;//create link!
+      link._toParam = newName;
       subBlock->addExternLink(link, false);
     }
     graph->addNewProcess(subBlock);
     synchroMainGraph();
+
+    MainWidget_SubGraph* handler = new MainWidget_SubGraph(subBlock);
+    addTab(handler, "subGraph");
+    synchroMainGraph();
+
+    for (auto link : externBlocksInput)
+      handler->addNewParamLink(link);
+
+    for (auto link : externBlocksOutput)
+      handler->addNewParamLink(link);
   }
 
   void Window::saveAsProject()

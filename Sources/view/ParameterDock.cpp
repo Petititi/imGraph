@@ -56,6 +56,7 @@
 #include "blocks/ParamValidator.h"
 #include "SmallDialogs.h"
 #include "SubBlock.h"
+#include "VertexRepresentation.h"
 
 using namespace std;
 using namespace charliesoft;
