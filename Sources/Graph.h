@@ -34,6 +34,7 @@ namespace charliesoft
     
     bool run(bool singleShot = false);
     void stop();
+    void waitUntilEnd();
     void switchPause();
 
     /**

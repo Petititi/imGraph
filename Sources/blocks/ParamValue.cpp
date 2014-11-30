@@ -168,14 +168,13 @@ namespace charliesoft
     if (isLinked())
       boost::get<ParamValue*>(value_)->distantListeners_.erase(this);
   }
-  
-
   void ParamValue::notifyUpdate(bool isNew)
   {
     _newValue = isNew;
     for (auto listener : distantListeners_)
       listener->notifyUpdate(isNew);
   }
+
   ParamValue& ParamValue::operator = (bool const &rhs) {
     notifyRemove();
     if (*this != rhs)

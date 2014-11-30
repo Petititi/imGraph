@@ -121,6 +121,7 @@ namespace charliesoft
       }
     }
 
+    const std::set<ParamValue*>& getListeners() const { return  distantListeners_; };
     std::set<ParamValue*>& getListeners() { return  distantListeners_; };
 
     static ParamValue fromString(ParamType,std::string);
@@ -165,6 +166,7 @@ namespace charliesoft
     {
       return _newValue && !isDefaultValue();
     }
+    void setNew(bool isNew){ _newValue = isNew; };
     bool isDefaultValue() const;
     bool isLinked() const {
       boost::unique_lock<boost::recursive_mutex> lock(_mtx);
@@ -202,6 +204,38 @@ namespace charliesoft
       {
         return T();
       }
+    }
+
+    void setValue(const ParamValue* value)
+    {
+      boost::unique_lock<boost::recursive_mutex> lock(_mtx);
+      notifyRemove();
+      _newValue = true;
+      if (value->isLinked())
+        value = value->get<ParamValue*>(true);
+      switch (value->getType())
+      {
+      case Boolean:
+        value_ = value->get<bool>(true);
+        break;
+      case Int:
+        value_ = value->get<int>(true);
+        break;
+      case Float:
+        value_ = value->get<double>(true);
+        break;
+      case String:
+      case FilePath:
+        value_ = value->get<std::string>(true);
+        break;
+      case Color:
+        value_ = value->get<cv::Scalar>(true);
+        break;
+      default:
+        value_ = value->get<cv::Mat>(true);
+        break;
+      }
+      notifyUpdate(_newValue);
     }
 
     void valid_and_set(const ParamValue& v);

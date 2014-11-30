@@ -192,6 +192,15 @@ namespace charliesoft
     _runningThread.clear();
   }
 
+  void GraphOfProcess::waitUntilEnd()
+  {
+    for (size_t i = 0; i < _runningThread.size(); i++)
+    {
+      _runningThread[i].join();//wait for the end...
+    }
+    _runningThread.clear();
+  }
+
   bool GraphOfProcess::run(bool singleShot)
   {
     stop();//just in case...

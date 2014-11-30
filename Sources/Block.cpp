@@ -475,7 +475,7 @@ namespace charliesoft
     else
       if (!input && _myOutputs.find(nameParam_) != _myOutputs.end())
         return &_myOutputs[nameParam_];
-      
+
     return NULL;
   };
 

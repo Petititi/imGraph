@@ -33,6 +33,7 @@ namespace charliesoft
       {return std::vector <ParamDefinition>();}
     //////////////////////////////////////////////////////////////////////////
     static bool addedToList;
+    boost::mutex _mtx_1;    // explicit mutex declaration
   protected:
     std::map<std::string, ParamDefinition> _inputParams;
     std::map<std::string, ParamDefinition> _outputParams;

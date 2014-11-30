@@ -417,11 +417,10 @@ namespace charliesoft
 
     //now get external links
     vector<BlockLink> externBlocksInput, externBlocksOutput;
-    ParamValue* falseValue = new ParamValue();
     for (auto block : selectedBlocks)
     {
       const std::map<std::string, ParamValue>& params = block->getInputsVals();
-      for (auto param : params)
+      for (auto& param : params)
       {
         if (param.second.isLinked())
         {
@@ -430,21 +429,19 @@ namespace charliesoft
           {
             externBlocksInput.push_back(BlockLink(otherParam->getBlock(), param.second.getBlock(),
               otherParam->getName(), param.second.getName()));
-            block->setParamValue(param.second.getName(), falseValue);
           }
         }
       }
       const std::map<std::string, ParamValue>& paramsOut = block->getOutputsVals();
-      for (auto param : paramsOut)
+      for (const auto& param : paramsOut)
       {
-        std::set<ParamValue*>& listeners = param.second.getListeners();
+        const std::set<ParamValue*>& listeners = param.second.getListeners();
         for (auto listener : listeners)
         {
           if (listener->isLinked() && selectedBlocks.find(listener->getBlock()) == selectedBlocks.end())
           {
             externBlocksOutput.push_back(BlockLink(param.second.getBlock(), listener->getBlock(),
               param.second.getName(), listener->getName()));
-            *listener = Not_A_Value();
           }
         }
       }
@@ -459,7 +456,8 @@ namespace charliesoft
       ParamValue* val = link._from->getParam(link._fromParam, false);
       ParamValue* newVal = subBlock->addNewInput(
         ParamDefinition(true, val->getType(), link._fromParam, "_"));
-      (*newVal) = val;//create link!
+      //graph->removeLink(link);
+      *newVal = val;//create link!
       subBlock->addExternLink(link, true);
     }
     //create every output needed:
@@ -468,7 +466,8 @@ namespace charliesoft
       ParamValue* val = link._to->getParam(link._toParam, true);
       ParamValue* newVal = subBlock->addNewOutput(
         ParamDefinition(true, val->getType(), link._toParam, "_"));
-      (*val) = newVal;//create link!
+      //graph->removeLink(link);
+      *val = newVal;//create link!
       subBlock->addExternLink(link, false);
     }
     graph->addNewProcess(subBlock);

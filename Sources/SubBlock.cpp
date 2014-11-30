@@ -32,23 +32,34 @@ namespace charliesoft
   };
 
   bool SubBlock::run(bool oneShot){
+    boost::unique_lock<boost::mutex> lock(_mtx_1);
     //first set input values:
     for (auto link : externBlocksInput)
     {
       try
       {
         if (!_myInputs[link._fromParam].isDefaultValue())
-          link._to->getParam(link._toParam, true)->valid_and_set(_myInputs[link._fromParam]);
-      }
-      catch (ErrorValidator& e)
-      {
-      	//nothing to do...
+        {
+          ParamValue* distVal = link._to->getParam(link._toParam, true);
+          distVal->setValue(&_myInputs[link._fromParam]);
+
+          _myInputs[link._fromParam].setNew(false);
+        }
       }
       catch (...)
       {
+      	//nothing to do...
       }
     }
     _subGraph->run(true);
+    //wait for ouput updates:
+    for (auto link : externBlocksOutput)
+    {
+      link._from->waitUpdateTimestamp(lock);
+      ParamValue* value = link._from->getParam(link._fromParam, false);
+      _myOutputs[link._toParam].setValue(value);
+    }
+    _subGraph->waitUntilEnd();
     return true;
   };
 
