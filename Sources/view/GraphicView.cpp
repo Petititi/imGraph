@@ -185,6 +185,25 @@ namespace charliesoft
       else
         it++;
     }
+
+    MainWidget_SubGraph* mainWidget = dynamic_cast<MainWidget_SubGraph*>(parentWidget());
+    if (mainWidget != NULL)
+    {
+      auto it1 = _sublinks.begin();
+      while (it1 != _sublinks.end())
+      {
+        if (it1->second->isSelected())
+        {
+          mainWidget->removeParamLink(it1->first);
+          delete it1->second;//delete LinkPath
+
+          _sublinks.erase(it1);//delete map association...
+          it1 = _sublinks.begin();//as "it" is now in an undefined state...
+        }
+        else
+          it1++;
+      }
+    }
   }
 
 
@@ -212,7 +231,7 @@ namespace charliesoft
       }
     }
     else
-      _sublinks.insert(path);
+      _sublinks[link] = path;
   }
 
   void GraphLayout::clearLayout(QLayout* layout)
@@ -235,7 +254,7 @@ namespace charliesoft
     for (auto iter : _links)
       iter.second->draw(&p, NULL, NULL);
     for (auto iter : _sublinks)
-      iter->draw(&p, NULL, NULL);
+      iter.second->draw(&p, NULL, NULL);
   }
 
   VertexRepresentation* GraphLayout::getVertexRepresentation(Block* b)
@@ -407,9 +426,9 @@ namespace charliesoft
       GraphLayout* representation = dynamic_cast<GraphLayout*>(layout());
       if (representation != NULL)
       {
-        std::map<Block*, QLayoutItem*>& items = representation->getItems();
+        const std::map<Block*, QLayoutItem*>& items = representation->getItems();
 
-        for (auto item : items)
+        for (auto& item : items)
         {
           if (VertexRepresentation* vertex = dynamic_cast<VertexRepresentation*>(item.second->widget()))
           {
@@ -420,8 +439,17 @@ namespace charliesoft
           }
         }
 
-        std::map<BlockLink, LinkPath*>& links = representation->getLinks();
-        for (auto link : links)
+        const std::map<BlockLink, LinkPath*>& links = representation->getLinks();
+        for (auto& link : links)
+        {
+          if (link.second->intersect(_selectBox.toRect()))
+            link.second->setSelected(true);
+          else if (!me->modifiers().testFlag(Qt::ControlModifier))
+            link.second->setSelected(false);
+        }
+
+        const map<BlockLink, LinkPath*>& links_sub = representation->getSubLinks();
+        for (auto& link : links_sub)
         {
           if (link.second->intersect(_selectBox.toRect()))
             link.second->setSelected(true);
@@ -445,7 +473,7 @@ namespace charliesoft
       if (!mouseE->modifiers().testFlag(Qt::ControlModifier))
       {
         GraphLayout* representation = dynamic_cast<GraphLayout*>(layout());
-        std::map<BlockLink, LinkPath*>& links = representation->getLinks();
+        const std::map<BlockLink, LinkPath*>& links = representation->getLinks();
         for (auto link : links)
           link.second->setSelected(link.second->intersect(_selectBox.toRect()));
 
@@ -466,11 +494,9 @@ namespace charliesoft
   {
     _endMouse = end;
     _creatingLink = false;
-
-    Window::getInstance()->redraw();//redraw window...
-
     //find an hypotetic param widget under mouse:
-    ParamRepresentation* param = dynamic_cast<ParamRepresentation*>(childAt(_endMouse));
+    QWidget* childAtEnd = childAt(_endMouse);
+    ParamRepresentation* param = dynamic_cast<ParamRepresentation*>(childAtEnd);
     ParamRepresentation* startParam = dynamic_cast<ParamRepresentation*>(_startParam);
     if (param != NULL && startParam != NULL)
     {
@@ -505,7 +531,6 @@ namespace charliesoft
         messageBox.critical(0, _STR("ERROR_GENERIC_TITLE").c_str(), e.errorMsg.c_str());
         return;
       }
-      Window::synchroMainGraph();
     }
 
     //if one is ConditionLinkRepresentation, other is ParamRepresentation:
@@ -515,7 +540,7 @@ namespace charliesoft
     if (startParam != NULL)
     {
       param = startParam;
-      condParam = dynamic_cast<ConditionLinkRepresentation*>(childAt(_endMouse));
+      condParam = dynamic_cast<ConditionLinkRepresentation*>(childAtEnd);
     }
     if (param != NULL &&condParam != NULL)
     {
@@ -527,9 +552,42 @@ namespace charliesoft
       }
       ConditionOfRendering* model = condParam->getModel();
       model->setValue(condParam->isLeftCond(), param->getParamValue());
-      
-      Window::synchroMainGraph();
     }
+
+    //if one is ConditionLinkRepresentation, other is ParamRepresentation:
+    SubGraphParamRepresentation* subGraphParam;
+    if (param != NULL)
+      subGraphParam = dynamic_cast<SubGraphParamRepresentation*>(_startParam);
+    if (startParam != NULL)
+    {
+      param = startParam;
+      subGraphParam = dynamic_cast<SubGraphParamRepresentation*>(childAtEnd);
+    }
+    if (param != NULL &&subGraphParam != NULL)
+    {
+      //If we are here, we are a MainWidget_SubGraph:
+      MainWidget_SubGraph* subGraphWidget = dynamic_cast<MainWidget_SubGraph*>(this);
+
+      //we should link input on output(or vice versa)
+      if (param->isInput() == subGraphParam->isInput())
+      {
+        string typeLink = param->isInput() ? _STR("BLOCK_INPUT") : _STR("BLOCK_OUTPUT");
+        QMessageBox messageBox;
+        string msg = (my_format(_STR("ERROR_LINK_WRONG_INPUT_OUTPUT")) % _STR(startParam->getParamName()) % _STR(param->getParamName()) % typeLink).str();
+        messageBox.critical(0, _STR("ERROR_GENERIC_TITLE").c_str(), msg.c_str());
+        return;
+      }
+
+      if (param->isInput())
+        subGraphWidget->addNewParamLink(BlockLink(subGraphParam->getModel(), param->getModel(),
+                subGraphParam->getDefinition()._name, param->getParamName()));
+      else
+        subGraphWidget->addNewParamLink(BlockLink(param->getModel(), subGraphParam->getModel(),
+        param->getParamName(), subGraphParam->getDefinition()._name));
+    }
+    Window::synchroMainGraph();
+
+    Window::getInstance()->redraw();//redraw window...
 
   }
 
@@ -596,6 +654,11 @@ namespace charliesoft
     }
   };
 
+  void MainWidget_SubGraph::removeParamLink(const BlockLink& link)
+  {
+    _model->removeExternLink(link);
+  }
+
   void MainWidget_SubGraph::addNewParamLink(const BlockLink& link)
   {
     GraphLayout* graphRep = dynamic_cast<GraphLayout*>(layout());
@@ -608,11 +671,13 @@ namespace charliesoft
     {
       paramFrom = _params[link._toParam];
       paramTo = graphRep->getVertexRepresentation(link._from)->getParamRep(link._fromParam, false);
+      _model->addExternLink(link, false);
     }
     else
     {
       paramFrom = graphRep->getVertexRepresentation(link._to)->getParamRep(link._toParam, true);
       paramTo = _params[link._fromParam];
+      _model->addExternLink(link, true);
     }
 
     LinkPath* path = new LinkPath(paramTo, paramFrom);

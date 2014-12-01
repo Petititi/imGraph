@@ -59,7 +59,8 @@ namespace charliesoft
       std::vector<ConditionOfRendering*>& condToUpdate);
 
     GraphOfProcess* getSubGraph() const { return _subGraph; };
-    void addExternLink(BlockLink link, bool isInput);
+    void addExternLink(const BlockLink& link, bool isInput);
+    void removeExternLink(const BlockLink& link);
   };
 
 };

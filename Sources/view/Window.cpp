@@ -460,7 +460,6 @@ namespace charliesoft
       *newVal = val;//create link!
       link._to->getParam(link._toParam, true)->setValue(val);
       link._fromParam = newName;
-      subBlock->addExternLink(link, true);
     }
     //create every output needed:
     for (auto& link : externBlocksOutput)
@@ -472,7 +471,6 @@ namespace charliesoft
       graph->removeLink(link);
       *val = newVal;//create link!
       link._toParam = newName;
-      subBlock->addExternLink(link, false);
     }
     graph->addNewProcess(subBlock);
     synchroMainGraph();

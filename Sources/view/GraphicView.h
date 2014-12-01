@@ -49,7 +49,7 @@ namespace charliesoft
 
     std::map<Block*, QLayoutItem*> _items;
     std::map<BlockLink, LinkPath*> _links;
-    std::set<LinkPath*> _sublinks;
+    std::map<BlockLink, LinkPath*> _sublinks;
     std::vector<Block*> _orderedBlocks;
   public:
 
@@ -58,8 +58,9 @@ namespace charliesoft
     void addLink(const BlockLink& link, LinkPath* path=NULL);
 
     void clearLayout(QLayout* layout = NULL);
-    std::map<Block*, QLayoutItem*> getItems() const { return _items; }
-    std::map<BlockLink, LinkPath*> getLinks() const { return _links; }
+    const std::map<Block*, QLayoutItem*>& getItems() const { return _items; }
+    const std::map<BlockLink, LinkPath*>& getLinks() const { return _links; }
+    const std::map<BlockLink, LinkPath*>& getSubLinks() const { return _sublinks; }
 
     virtual void addItem(QLayoutItem *);
     virtual QLayoutItem * itemAt(int index) const;
@@ -123,6 +124,7 @@ namespace charliesoft
     MainWidget_SubGraph(SubBlock *model);
 
     void addNewParamLink(const BlockLink& link);
+    void removeParamLink(const BlockLink& link);
   protected:
     virtual void	resizeEvent(QResizeEvent * event);
   };

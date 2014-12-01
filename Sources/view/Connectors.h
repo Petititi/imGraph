@@ -90,6 +90,7 @@ namespace charliesoft
     SubGraphParamRepresentation(SubBlock* model, const ParamDefinition& def, bool isInput, QWidget *father);
 
     const ParamDefinition& getDefinition() const{ return _param; };
+    SubBlock* getModel() const { return _model; }
   };
 
   class ParamRepresentation :public LinkConnexionRepresentation

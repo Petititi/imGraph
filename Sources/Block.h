@@ -284,7 +284,7 @@ namespace charliesoft
     std::string _fromParam;
     std::string _toParam;
     BlockLink(){ _from = _to = NULL; };
-    BlockLink(Block* from,Block* to,std::string fromParam,std::string toParam)
+    BlockLink(Block* from, Block* to, std::string fromParam, std::string toParam)
     {
       _from = from; _to = to; _fromParam = fromParam; _toParam = toParam;
     }

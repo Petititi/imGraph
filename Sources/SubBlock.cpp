@@ -63,7 +63,32 @@ namespace charliesoft
     return true;
   };
 
-  void SubBlock::addExternLink(BlockLink link, bool isInput)
+  void SubBlock::removeExternLink(const BlockLink& link)
+  {
+    auto it1 = externBlocksInput.begin();
+    while (it1 != externBlocksInput.end())
+    {
+      if ((*it1) == link)
+      {
+        externBlocksInput.erase(it1);
+        it1 = externBlocksInput.begin();//start back at the begining
+      }else
+      it1++;
+    }
+    it1 = externBlocksOutput.begin();
+    while (it1 != externBlocksOutput.end())
+    {
+      if ((*it1) == link)
+      {
+        externBlocksOutput.erase(it1);
+        it1 = externBlocksOutput.begin();//start back at the begining
+      }
+      else
+      it1++;
+    }
+  }
+
+  void SubBlock::addExternLink(const BlockLink& link, bool isInput)
   {
     if (isInput)
       externBlocksInput.push_back(link);
