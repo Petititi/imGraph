@@ -54,6 +54,8 @@ namespace charliesoft
     static void synchroMainGraph();
 
     void show();
+    void addTab(MainWidget* tmp, QString tabName);
+
     MainWidget* getMainWidget() const;
     std::string getKey(QTreeWidgetItem* w) {
       try{ return keysName_.at(w); }
@@ -64,7 +66,6 @@ namespace charliesoft
 
     bool event(QEvent *event);
   private:
-    void addTab(MainWidget* tmp, QString tabName);
     static Window* ptr;
 
     Window();

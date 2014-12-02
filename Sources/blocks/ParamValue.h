@@ -51,11 +51,11 @@ namespace charliesoft
     mutable boost::recursive_mutex _mtx;    //< explicit mutex declaration
     boost::condition_variable _cond_sync;  //< global sync condition
     mutable bool _newValue;  //< is this value not yet processed?
-    std::vector<ParamValidator*> validators_;
-    std::set<ParamValue*> distantListeners_;
-    Block *block_;
+    std::vector<ParamValidator*> _validators;
+    std::set<ParamValue*> _distantListeners;
+    Block *_block;
     std::string _name;
-    bool isOutput_;
+    bool _isOutput;
     bool _paramNeeded;
 
     void notifyUpdate(bool isNew);
@@ -63,66 +63,66 @@ namespace charliesoft
   public:
     VariantClasses value_;
     ParamValue(Block *algo, std::string name, bool isOutput) :
-      block_(algo), _name(name), isOutput_(isOutput), value_(Not_A_Value()){
+      _block(algo), _name(name), _isOutput(isOutput), value_(Not_A_Value()){
       _newValue = false; _paramNeeded = true;
     };
     ParamValue() :
-      block_(NULL), _name(""), isOutput_(false), value_(Not_A_Value()){
+      _block(NULL), _name(""), _isOutput(false), value_(Not_A_Value()){
       _newValue = false; _paramNeeded = true;
     };
     ParamValue(bool v) :
-      block_(NULL), _name(""), isOutput_(false), value_(v){
+      _block(NULL), _name(""), _isOutput(false), value_(v){
       _newValue = false; _paramNeeded = true;
     };
     ParamValue(int v) :
-      block_(NULL), _name(""), isOutput_(false), value_(v){
+      _block(NULL), _name(""), _isOutput(false), value_(v){
       _newValue = false; _paramNeeded = true;
     };
     ParamValue(double v) :
-      block_(NULL), _name(""), isOutput_(false), value_(v){
+      _block(NULL), _name(""), _isOutput(false), value_(v){
       _newValue = false; _paramNeeded = true;
     };
     ParamValue(std::string v) :
-      block_(NULL), _name(""), isOutput_(false), value_(v){
+      _block(NULL), _name(""), _isOutput(false), value_(v){
       _newValue = false; _paramNeeded = true;
     };
     ParamValue(cv::Scalar v) :
-      block_(NULL), _name(""), isOutput_(false), value_(v){
+      _block(NULL), _name(""), _isOutput(false), value_(v){
       _newValue = false; _paramNeeded = true;
     };
     ParamValue(cv::Mat v) :
-      block_(NULL), _name(""), isOutput_(false), value_(v){
+      _block(NULL), _name(""), _isOutput(false), value_(v){
       _newValue = false; _paramNeeded = true;
     };
     ParamValue(Not_A_Value v) :
-      block_(NULL), _name(""), isOutput_(false), value_(Not_A_Value()){
+      _block(NULL), _name(""), _isOutput(false), value_(Not_A_Value()){
       _newValue = false; _paramNeeded = true;
     };
     ParamValue(ParamValue* v) :
-      block_(NULL), _name(""), isOutput_(false), value_(v){
-      if (v != NULL) v->distantListeners_.insert(this);
+      _block(NULL), _name(""), _isOutput(false), value_(v){
+      if (v != NULL) v->_distantListeners.insert(this);
       _newValue = false; _paramNeeded = true;
     };
     ParamValue(const ParamValue& va) :
-      block_(va.block_), _name(va._name), isOutput_(va.isOutput_), value_(va.value_),
-      validators_(va.validators_), distantListeners_(va.distantListeners_){
+      _block(va._block), _name(va._name), _isOutput(va._isOutput), value_(va.value_),
+      _validators(va._validators), _distantListeners(va._distantListeners){
       _newValue = false; _paramNeeded = true;
     };
 
     ~ParamValue()
     {
       if (isLinked())
-        boost::get<ParamValue*>(value_)->distantListeners_.erase(this);
-      for (auto it = distantListeners_.begin();
-        it != distantListeners_.end(); it++)
+        boost::get<ParamValue*>(value_)->_distantListeners.erase(this);
+      for (auto it = _distantListeners.begin();
+        it != _distantListeners.end(); it++)
       {
         if (*it != NULL)
           (*it)->value_ = Not_A_Value();
       }
     }
 
-    const std::set<ParamValue*>& getListeners() const { return  distantListeners_; };
-    std::set<ParamValue*>& getListeners() { return  distantListeners_; };
+    const std::set<ParamValue*>& getListeners() const { return  _distantListeners; };
+    std::set<ParamValue*>& getListeners() { return  _distantListeners; };
 
     static ParamValue fromString(ParamType,std::string);
 
@@ -175,8 +175,8 @@ namespace charliesoft
     };
 
     ParamType getType() const;
-    Block * getBlock() const { return block_; };
-    void setBlock(Block *b) { block_=b; };
+    Block * getBlock() const { return _block; };
+    void setBlock(Block *b) { _block=b; };
 
     ///Param useData, when true indicate that algorithm will process this data, so it can
     ///be marked as _isNew=false...

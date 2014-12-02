@@ -4,6 +4,7 @@
 #include "ProcessManager.h"
 #include "ParamValidator.h"
 
+#include "SubBlock.h"
 #include "Block.h"
 #include "Graph.h"
 
@@ -14,11 +15,20 @@ namespace charliesoft
 {
   // Boolean, Int, Float, Color, Matrix, String, FilePath, ListBox, typeError
   ParamType ParamValue::getType() const{
-    if (block_ == NULL)
+    if (_block == NULL)
       return typeError;
-    ParamType out = _PROCESS_MANAGER->getParamType(block_->getName(), _name, !isOutput_);
+    ParamType out = _PROCESS_MANAGER->getParamType(_block->getName(), _name, !_isOutput);
     if (out == typeError)
     {
+      //try to ask block for the type:
+      SubBlock* subBlock = dynamic_cast<SubBlock*>(_block);
+      if (subBlock != NULL)
+      {
+        out = subBlock->getDef(_name, !_isOutput)._type;
+        if (out != typeError)
+          return out;
+      }
+
       //try to find value type:
       if (value_.type() == typeid(ParamValue*))
       {
@@ -49,13 +59,13 @@ namespace charliesoft
     for (auto elem : list)
     {
       elem->setParamOrigin(this);
-      validators_.push_back(elem);
+      _validators.push_back(elem);
     }
   };
 
   void ParamValue::validate(const ParamValue& other) const
   {
-    for (auto elem : validators_)
+    for (auto elem : _validators)
       elem->validate(other);//throw ErrorValidator if not valid
   }
 
@@ -101,7 +111,8 @@ namespace charliesoft
 
   bool ParamValue::isDefaultValue() const{
     boost::unique_lock<boost::recursive_mutex> lock(_mtx);
-    return (value_.type() == typeid(Not_A_Value)) || 
+    return (value_.type() == typeid(Not_A_Value)) ||
+      (value_.type() == typeid(cv::Mat) && boost::get<cv::Mat>(value_).empty()) ||
       (isLinked() && boost::get<ParamValue*>(value_)->isDefaultValue());
   };
 
@@ -110,9 +121,9 @@ namespace charliesoft
     if (v.value_.type() == typeid(ParamValue *))
     {
       if (isLinked())
-        boost::get<ParamValue*>(value_)->distantListeners_.erase(this);
+        boost::get<ParamValue*>(value_)->_distantListeners.erase(this);
       ParamValue* vDist = boost::get<ParamValue*>(v.value_);
-      if (vDist != NULL) vDist->distantListeners_.insert(this);
+      if (vDist != NULL) vDist->_distantListeners.insert(this);
       if (vDist->value_.type() != typeid(Not_A_Value))
         _newValue = true;
     }
@@ -127,7 +138,7 @@ namespace charliesoft
   BlockLink ParamValue::toBlockLink() const
   {
     ParamValue* other = get<ParamValue*>(false);
-    return BlockLink(other->block_, block_, other->_name, _name);
+    return BlockLink(other->_block, _block, other->_name, _name);
   }
 
 
@@ -166,12 +177,12 @@ namespace charliesoft
   void ParamValue::notifyRemove()
   {
     if (isLinked())
-      boost::get<ParamValue*>(value_)->distantListeners_.erase(this);
+      boost::get<ParamValue*>(value_)->_distantListeners.erase(this);
   }
   void ParamValue::notifyUpdate(bool isNew)
   {
     _newValue = isNew;
-    for (auto listener : distantListeners_)
+    for (auto listener : _distantListeners)
       listener->notifyUpdate(isNew);
   }
 
@@ -237,7 +248,7 @@ namespace charliesoft
   ParamValue& ParamValue::operator = (ParamValue *vDist) {
     boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     notifyRemove();
-    if (vDist != NULL) vDist->distantListeners_.insert(this);
+    if (vDist != NULL) vDist->_distantListeners.insert(this);
     _newValue = vDist->_newValue;
     value_ = vDist;
     notifyUpdate(_newValue);
@@ -249,11 +260,11 @@ namespace charliesoft
       notifyRemove();
       _newValue = true;
       value_ = rhs.value_;
-      if (rhs.block_ != NULL)
+      if (rhs._block != NULL)
       {
-        block_ = rhs.block_;
+        _block = rhs._block;
         _name = rhs._name;
-        isOutput_ = rhs.isOutput_;
+        _isOutput = rhs._isOutput;
       }
       if (value_.type() != typeid(Not_A_Value))
         notifyUpdate(_newValue);

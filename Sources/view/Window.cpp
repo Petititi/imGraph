@@ -477,14 +477,14 @@ namespace charliesoft
     synchroMainGraph();
 
     MainWidget_SubGraph* handler = new MainWidget_SubGraph(subBlock);
-    addTab(handler, "subGraph");
-    synchroMainGraph();
-
     for (auto link : externBlocksInput)
       handler->addNewParamLink(link);
 
     for (auto link : externBlocksOutput)
       handler->addNewParamLink(link);
+
+    addTab(handler, "subGraph");
+    synchroMainGraph();
   }
 
   void Window::saveAsProject()

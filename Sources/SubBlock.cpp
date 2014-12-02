@@ -51,7 +51,7 @@ namespace charliesoft
       	//nothing to do...
       }
     }
-    _subGraph->run(oneShot);
+    _subGraph->run(true);
     //wait for ouput updates:
     for (auto link : externBlocksOutput)
     {
@@ -212,7 +212,7 @@ namespace charliesoft
         string val = it1->second.get("FromParam", "0");
         string fromParam = it1->second.get("ToParam", "_");
         ParamValue* dist = addressesMap[lexical_cast<unsigned int>(val)];
-        ParamValue& local = _myInputs[fromParam];
+        ParamValue& local = _myOutputs[fromParam];
         addExternLink(BlockLink(dist->getBlock(), local.getBlock(),
           dist->getName(), local.getName()), false);
       }
@@ -304,4 +304,24 @@ namespace charliesoft
 
     return tree;
   };
+
+  ParamDefinition SubBlock::getDef(std::string name, bool isInput)
+  {
+    if (isInput)
+    {
+      auto iter = _inputParams.find(name);
+      if (iter == _inputParams.end())
+        return ParamDefinition();
+      else
+        return iter->second;
+    }
+    else
+    {
+      auto iter = _outputParams.find(name);
+      if (iter == _outputParams.end())
+        return ParamDefinition();
+      else
+        return iter->second;
+    }
+  }
 };

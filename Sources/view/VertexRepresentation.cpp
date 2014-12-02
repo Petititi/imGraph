@@ -514,18 +514,15 @@ namespace charliesoft
   }
 
   void VertexRepresentation::mouseDoubleClickEvent(QMouseEvent *mouseE)
-  {/*
-    QPoint mouseP = mouseE->pos();
-    if (mouseP.y() > heightOfConditions + 5)
+  {
+    SubBlock* subBlock = dynamic_cast<SubBlock*>(_model);
+    if (subBlock != NULL)
     {
-      ParamsConfigurator config(this);
-      int retour = config.exec();
+      Window* win = Window::getInstance();
+      MainWidget_SubGraph* handler = new MainWidget_SubGraph(subBlock);
+      win->addTab(handler, "subGraph");
+      win->synchroMainGraph();
     }
-    else
-    {
-      ConditionConfigurator config(this);
-      int retour = config.exec();
-    }*/
   }
 
   void VertexRepresentation::enterEvent(QEvent *)

@@ -61,6 +61,8 @@ namespace charliesoft
     GraphOfProcess* getSubGraph() const { return _subGraph; };
     void addExternLink(const BlockLink& link, bool isInput);
     void removeExternLink(const BlockLink& link);
+
+    ParamDefinition getDef(std::string name, bool isInput);
   };
 
 };
