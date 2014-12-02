@@ -13,7 +13,25 @@ using boost::lexical_cast;
 
 namespace charliesoft
 {
-  // Boolean, Int, Float, Color, Matrix, String, FilePath, ListBox, typeError
+
+  std::string ParamValue::getValFromList()
+  {
+    if (getType() != ListBox || _block == NULL)
+      return "";
+    string help = _PROCESS_MANAGER->getParamHelp(_block->getName(), _name, !_isOutput);
+    size_t pos = _STR(help).find_first_of('|');
+    if (pos != std::string::npos)
+    {
+      std::string params = _STR(help).substr(pos + 1);
+      std::vector<std::string> values;
+      boost::split(values, params, boost::is_any_of("^"));
+      size_t idx = static_cast<size_t>(boost::get<int>(value_));
+      if (idx >= 0 && idx<values.size())
+        return values[idx];
+    };
+    return "";
+  }
+
   ParamType ParamValue::getType() const{
     if (_block == NULL)
       return typeError;

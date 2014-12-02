@@ -314,6 +314,20 @@ namespace charliesoft
     return false;
   }
 
+  std::vector<cv::String> Block::getSubParams(std::string paramName)
+  {
+    vector<cv::String> out;
+    const std::vector<ParamDefinition>& subParams = _PROCESS_MANAGER->getAlgo_SubParams(_name);
+    //test if param exist
+    for (auto val : subParams)
+    {
+      auto pos = val._name.find(paramName);
+      if (pos != string::npos && paramName.length() > pos + 1)
+        out.push_back(val._helper);
+    }
+    return out;
+  }
+
   bool Block::isStartingBlock()
   {
     if (ProcessManager::getInstance()->getAlgoType(_name) != input)
@@ -555,6 +569,29 @@ namespace charliesoft
         if (cLeft == 1 || cRight == 1)//output of block...
           condToUpdate.push_back(&_conditions.back());
       }
+      if (it1->first.compare("SubParam") == 0)
+      {
+        string nameIn = it1->second.get("Name", "Error");
+        bool link = it1->second.get("Link", false);
+        string val = it1->second.get("Value", "Not initialized...");
+        ParamValue* tmpVal = getParam(nameIn, true);
+        string valID = it1->second.get("ID", "0");
+        addressesMap[lexical_cast<unsigned int>(valID)] = tmpVal;
+
+        if (!link)
+        {
+          try
+          {
+            if (tmpVal != NULL)
+              tmpVal->valid_and_set(tmpVal->fromString(tmpVal->getType(), val));
+          }
+          catch (...)
+          {
+          }
+        }
+        else
+          toUpdate.push_back(std::pair<ParamValue*, unsigned int>(tmpVal, lexical_cast<unsigned int>(val)));
+      }
     }
   }
 
@@ -563,6 +600,7 @@ namespace charliesoft
     ptree tree;
     tree.put("name", _name);
     tree.put("position", _position);
+    vector<string> inputWithSubparams;
 
     for (auto it = _myInputs.begin();
       it != _myInputs.end(); it++)
@@ -577,6 +615,11 @@ namespace charliesoft
         paramTree.put("Value", (unsigned int)it->second.get<ParamValue*>(false));
 
       tree.add_child("Input", paramTree);
+
+      if (it->second.getType()==ListBox)
+      {
+        inputWithSubparams.push_back(it->second.getName() + "." + it->second.getValFromList());
+      }
     }
 
     for (auto it = _myOutputs.begin();
@@ -587,6 +630,32 @@ namespace charliesoft
       paramTree.put("ID", (unsigned int)&it->second);
 
       tree.add_child("Output", paramTree);
+    }
+
+    for (auto it = _mySubParams.begin();
+      it != _mySubParams.end(); it++)
+    {
+      bool shouldAdd = false;
+      string paramName = it->first;
+      for (auto it1 = inputWithSubparams.begin();
+        it1 != inputWithSubparams.end() && !shouldAdd; it1++)
+      {
+        if (paramName.find(*it1) != string::npos)
+          shouldAdd = true;
+      }
+      if (shouldAdd)
+      {
+        ptree paramTree;
+        paramTree.put("Name", it->first);
+        paramTree.put("ID", (unsigned int)&it->second);
+        paramTree.put("Link", it->second.isLinked());
+        if (!it->second.isLinked())
+          paramTree.put("Value", it->second.toString());
+        else
+          paramTree.put("Value", (unsigned int)it->second.get<ParamValue*>(false));
+
+        tree.add_child("SubParam", paramTree);
+      }
     }
 
     for (auto it = _conditions.begin();

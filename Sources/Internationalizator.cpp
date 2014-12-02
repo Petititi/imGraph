@@ -252,7 +252,7 @@ namespace charliesoft
     translations["BLOCK__CREATEMATRIX_IN_HEIGHT"] = translations["BLOCK__INPUT_INOUT_HEIGHT"];
     translations["BLOCK__CREATEMATRIX_IN_HEIGHT_HELP"] = translations["BLOCK__INPUT_INOUT_HEIGHT_HELP"];
     translations["BLOCK__CREATEMATRIX_IN_INIT"] = "intialisation";
-    translations["BLOCK__CREATEMATRIX_IN_INIT_HELP"] = "Initial values of matrix|zeros^ones^eye^ellipse^rect^cross^random";
+    translations["BLOCK__CREATEMATRIX_IN_INIT_HELP"] = "Initial values of matrix|zeros^ones^eye^ellipse^rect^cross^random uniform^random gaussian";
     translations["BLOCK__CREATEMATRIX_OUT_IMAGE"] = "image";
     translations["BLOCK__CREATEMATRIX_OUT_IMAGE_HELP"] = "Binary output image";
 

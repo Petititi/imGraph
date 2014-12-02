@@ -25,6 +25,7 @@ namespace charliesoft
 {
   BLOCK_BEGIN_INSTANTIATION(CreateMatrix);
   //You can add methods, re implement needed functions...
+public:
   BLOCK_END_INSTANTIATION(CreateMatrix, AlgoType::input, BLOCK__CREATEMATRIX_NAME);
 
   BEGIN_BLOCK_INPUT_PARAMS(CreateMatrix);
@@ -42,6 +43,10 @@ namespace charliesoft
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_SUBPARAMS_DEF(CreateMatrix);
+  ADD_PARAMETER_FULL(false, Float, "BLOCK__CREATEMATRIX_IN_INIT.random uniform.minValue", "minValue", 0.);
+  ADD_PARAMETER_FULL(false, Float, "BLOCK__CREATEMATRIX_IN_INIT.random uniform.maxValue", "maxValue", 255.);
+  ADD_PARAMETER_FULL(false, Float, "BLOCK__CREATEMATRIX_IN_INIT.random gaussian.mean", "mean", 128.);
+  ADD_PARAMETER_FULL(false, Float, "BLOCK__CREATEMATRIX_IN_INIT.random gaussian.std dev", "std dev", 128.);
   END_BLOCK_PARAMS();
 
   CreateMatrix::CreateMatrix() :Block("BLOCK__CREATEMATRIX_NAME"){
@@ -49,7 +54,7 @@ namespace charliesoft
     _myInputs["BLOCK__CREATEMATRIX_IN_WIDTH"].addValidator({ new ValNeeded(), new ValPositiv(true) });
     _myInputs["BLOCK__CREATEMATRIX_IN_HEIGHT"].addValidator({ new ValNeeded(), new ValPositiv(true) });
     _myInputs["BLOCK__CREATEMATRIX_IN_NBCHANNEL"].addValidator({ new ValNeeded(), new ValPositiv(true) });
-    _myInputs["BLOCK__CREATEMATRIX_IN_INIT"].addValidator({ new ValNeeded(), new ValRange(0, 7) });
+    _myInputs["BLOCK__CREATEMATRIX_IN_INIT"].addValidator({ new ValNeeded(), new ValRange(0, 8) });
   };
   
   bool CreateMatrix::run(bool oneShot){
@@ -83,10 +88,23 @@ namespace charliesoft
       newMatrix = charliesoft::MatrixConvertor::convert(newMatrix, wantedType);
       break;
     case 6:
+    {
       newMatrix = cv::Mat(wantedRow * wantedCol, 1, wantedType);
-      rng.fill(newMatrix, RNG::UNIFORM, 0, 255);
+      double a = _mySubParams["BLOCK__CREATEMATRIX_IN_INIT.random uniform.minValue"].get<double>(true);
+      double b = _mySubParams["BLOCK__CREATEMATRIX_IN_INIT.random uniform.maxValue"].get<double>(true);
+      rng.fill(newMatrix, RNG::UNIFORM, a, b);
       newMatrix = newMatrix.reshape(nbChannels, wantedRow);
       break;
+    }
+    case 7:
+    {
+      newMatrix = cv::Mat(wantedRow * wantedCol, 1, wantedType);
+      double a = _mySubParams["BLOCK__CREATEMATRIX_IN_INIT.random gaussian.mean"].get<double>(true);
+      double b = _mySubParams["BLOCK__CREATEMATRIX_IN_INIT.random gaussian.std dev"].get<double>(true);
+      rng.fill(newMatrix, RNG::NORMAL, a, b);
+      newMatrix = newMatrix.reshape(nbChannels, wantedRow);
+      break;
+    }
     default:
       newMatrix = cv::Mat::zeros(wantedRow, wantedCol, wantedType);
       break;

@@ -69,6 +69,7 @@ namespace charliesoft
     AlgoType getAlgoType(std::string algo_name) const;
     Block* createAlgoInstance(std::string algo_name) const;
     ParamType getParamType(std::string algo_name, std::string paramName, bool input) const;
+    std::string getParamHelp(std::string algo_name, std::string paramName, bool input) const;
   };
 }
 

@@ -235,9 +235,7 @@ namespace charliesoft
     virtual void setParamValue(std::string nameParam_, ParamValue* value);
     virtual ParamValue* getParam(std::string nameParam_, bool input);
 
-    virtual std::vector<cv::String> getSubParams(std::string paramVal){
-      return std::vector<cv::String>();
-    };
+    virtual std::vector<cv::String> getSubParams(std::string paramName);
 
     bool isStartingBlock();
     bool isAncestor(Block* other);

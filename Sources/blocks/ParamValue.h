@@ -178,6 +178,8 @@ namespace charliesoft
     Block * getBlock() const { return _block; };
     void setBlock(Block *b) { _block=b; };
 
+    std::string getValFromList();
+
     ///Param useData, when true indicate that algorithm will process this data, so it can
     ///be marked as _isNew=false...
     template<typename T>

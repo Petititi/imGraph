@@ -30,7 +30,6 @@ namespace charliesoft
 
   void setParamOpencv(cv::Algorithm* algo, string paramName, string subParamName);
 public:
-  virtual vector<cv::String> getSubParams(std::string paramVal);
   BLOCK_END_INSTANTIATION(PointFinderBlock, AlgoType::imgProcess, BLOCK__POINT_FINDER_NAME);
 
   BEGIN_BLOCK_INPUT_PARAMS(PointFinderBlock);
@@ -135,20 +134,6 @@ public:
       boost::split(modificatorList, params, boost::is_any_of("^"));
     }
   };
-
-  vector<cv::String> PointFinderBlock::getSubParams(std::string paramName)
-  {
-    vector<cv::String> out;
-    const std::vector<ParamDefinition>& subParams = _PROCESS_MANAGER->getAlgo_SubParams(_name);
-    //test if param is an algo:
-    for (auto val : subParams)
-    {
-      auto pos = val._name.find(paramName);
-      if (pos != string::npos && paramName.length()>pos+1)
-        out.push_back(val._helper);
-    }
-    return out;
-  }
   
   void PointFinderBlock::setParamOpencv(cv::Algorithm* algo, string paramName, string subParamName)
   {

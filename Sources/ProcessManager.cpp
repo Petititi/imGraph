@@ -110,4 +110,31 @@ namespace charliesoft
     }
     return typeError;
   }
+
+  std::string ProcessManager::getParamHelp(std::string algo_name, std::string paramName, bool input) const
+  {
+    if (input)
+    {
+      const std::vector<ParamDefinition> &params = getAlgo_InParams(algo_name);
+      auto it = params.begin();
+      while (it != params.end())
+      {
+        if (it->_name.compare(paramName) == 0)
+          return it->_helper;
+        it++;
+      }
+    }
+    else
+    {
+      const std::vector<ParamDefinition> &params = getAlgo_OutParams(algo_name);
+      auto it = params.begin();
+      while (it != params.end())
+      {
+        if (it->_name.compare(paramName) == 0)
+          return it->_helper;
+        it++;
+      }
+    }
+    return "";
+  }
 }
