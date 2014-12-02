@@ -74,10 +74,8 @@ namespace charliesoft
 
     graph->saveGraph(localElement);
 
-    if (lastProject_.empty())
-      lastProject_ = "config.xml";
     boost::property_tree::xml_writer_settings<char> settings(' ', 2);
-    write_xml(lastProject_, localElement, std::locale(), settings);
+    write_xml("config.xml", localElement, std::locale(), settings);
   }
 
   void GlobalConfig::loadConfig()

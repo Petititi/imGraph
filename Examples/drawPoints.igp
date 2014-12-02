@@ -5,71 +5,79 @@
     <position>[41, 184]</position>
     <Input>
       <Name>BLOCK__INPUT_INOUT_HEIGHT</Name>
+      <ID>107593536</ID>
       <Link>false</Link>
       <Value>Not initialized...</Value>
     </Input>
     <Input>
       <Name>BLOCK__INPUT_INOUT_POS_FRAMES</Name>
+      <ID>107593816</ID>
       <Link>false</Link>
       <Value>Not initialized...</Value>
     </Input>
     <Input>
       <Name>BLOCK__INPUT_INOUT_POS_RATIO</Name>
+      <ID>107591296</ID>
       <Link>false</Link>
       <Value>Not initialized...</Value>
     </Input>
     <Input>
       <Name>BLOCK__INPUT_INOUT_WIDTH</Name>
+      <ID>107590456</ID>
       <Link>false</Link>
       <Value>Not initialized...</Value>
     </Input>
     <Input>
       <Name>BLOCK__INPUT_IN_COLOR</Name>
+      <ID>107597176</ID>
       <Link>false</Link>
       <Value>Not initialized...</Value>
     </Input>
     <Input>
       <Name>BLOCK__INPUT_IN_FILE</Name>
+      <ID>181315072</ID>
       <Link>false</Link>
       <Value>D:/Travail/Douane/data/sequence/video_compress.avi</Value>
     </Input>
     <Input>
       <Name>BLOCK__INPUT_IN_GREY</Name>
+      <ID>107593256</ID>
       <Link>false</Link>
       <Value>Not initialized...</Value>
     </Input>
     <Input>
       <Name>BLOCK__INPUT_OUT_FRAMERATE</Name>
+      <ID>107594376</ID>
       <Link>false</Link>
       <Value>Not initialized...</Value>
     </Input>
     <Output>
       <Name>BLOCK__INPUT_INOUT_HEIGHT</Name>
-      <ID>39160648</ID>
+      <ID>107592416</ID>
     </Output>
     <Output>
       <Name>BLOCK__INPUT_INOUT_POS_FRAMES</Name>
-      <ID>39161576</ID>
+      <ID>107590176</ID>
     </Output>
     <Output>
       <Name>BLOCK__INPUT_INOUT_POS_RATIO</Name>
-      <ID>39162504</ID>
+      <ID>107596336</ID>
     </Output>
     <Output>
       <Name>BLOCK__INPUT_INOUT_WIDTH</Name>
-      <ID>39159720</ID>
+      <ID>107595496</ID>
     </Output>
     <Output>
       <Name>BLOCK__INPUT_OUT_FORMAT</Name>
-      <ID>39163432</ID>
+      <ID>107591576</ID>
     </Output>
     <Output>
       <Name>BLOCK__INPUT_OUT_FRAMERATE</Name>
-      <ID>39158792</ID>
+      <ID>107597736</ID>
     </Output>
     <Output>
       <Name>BLOCK__INPUT_OUT_IMAGE</Name>
-      <ID>39157864</ID>
+      <ID>107594656</ID>
     </Output>
   </Block>
   <Block>
@@ -77,16 +85,19 @@
     <position>[957, 118]</position>
     <Input>
       <Name>BLOCK__OUTPUT_IN_IMAGE</Name>
+      <ID>107598016</ID>
       <Link>true</Link>
-      <Value>40036736</Value>
+      <Value>108327816</Value>
     </Input>
     <Input>
       <Name>BLOCK__OUTPUT_IN_NORMALIZE</Name>
+      <ID>107591856</ID>
       <Link>false</Link>
       <Value>Not initialized...</Value>
     </Input>
     <Input>
       <Name>BLOCK__OUTPUT_IN_WIN_NAME</Name>
+      <ID>107591016</ID>
       <Link>false</Link>
       <Value>points1</Value>
     </Input>
@@ -96,6 +107,7 @@
     <position>[742, 118]</position>
     <Input>
       <Name>BLOCK__POINTDRAWER_IN_COLOR</Name>
+      <ID>108325296</ID>
       <Link>false</Link>
       <Value>%YAML:1.0
 colorValue: [ 4., 0., 239., 255. ]
@@ -103,22 +115,25 @@ colorValue: [ 4., 0., 239., 255. ]
     </Input>
     <Input>
       <Name>BLOCK__POINTDRAWER_IN_IMAGE</Name>
+      <ID>107592136</ID>
       <Link>true</Link>
-      <Value>39157864</Value>
+      <Value>182279768</Value>
     </Input>
     <Input>
       <Name>BLOCK__POINTDRAWER_IN_POINTS</Name>
+      <ID>107596616</ID>
       <Link>true</Link>
-      <Value>40046648</Value>
+      <Value>105557192</Value>
     </Input>
     <Input>
       <Name>BLOCK__POINTDRAWER_IN_SIZE</Name>
+      <ID>108331736</ID>
       <Link>false</Link>
       <Value>10</Value>
     </Input>
     <Output>
       <Name>BLOCK__POINTDRAWER_OUT_IMAGE</Name>
-      <ID>40036736</ID>
+      <ID>108327816</ID>
     </Output>
   </Block>
   <Block>
@@ -126,31 +141,81 @@ colorValue: [ 4., 0., 239., 255. ]
     <position>[412, 61]</position>
     <Input>
       <Name>BLOCK__POINT_FINDER_IN_DETECTOR</Name>
+      <ID>108329776</ID>
       <Link>false</Link>
-      <Value>2</Value>
+      <Value>6</Value>
     </Input>
     <Input>
       <Name>BLOCK__POINT_FINDER_IN_EXTRACTOR</Name>
+      <ID>108325576</ID>
       <Link>false</Link>
       <Value>0</Value>
     </Input>
     <Input>
       <Name>BLOCK__POINT_FINDER_IN_IMAGE</Name>
+      <ID>108328656</ID>
       <Link>true</Link>
-      <Value>39157864</Value>
+      <Value>182279768</Value>
     </Input>
     <Input>
       <Name>BLOCK__POINT_FINDER_IN_MODIFICATOR</Name>
+      <ID>108329496</ID>
       <Link>false</Link>
-      <Value>Not initialized...</Value>
+      <Value>0</Value>
     </Input>
     <Output>
       <Name>BLOCK__POINT_FINDER_OUT_DESC</Name>
-      <ID>40047576</ID>
+      <ID>182231840</ID>
     </Output>
     <Output>
       <Name>BLOCK__POINT_FINDER_OUT_POINTS</Name>
-      <ID>40046648</ID>
+      <ID>105557192</ID>
+    </Output>
+  </Block>
+  <Block>
+    <name>BLOCK__CROP_NAME</name>
+    <position>[175, 170]</position>
+    <Input>
+      <Name>BLOCK__CROP_HEIGHT</Name>
+      <ID>182279488</ID>
+      <Link>false</Link>
+      <Value>540</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__CROP_IN_IMAGE</Name>
+      <ID>182278648</ID>
+      <Link>true</Link>
+      <Value>107594656</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__CROP_IN_X</Name>
+      <ID>182275008</ID>
+      <Link>false</Link>
+      <Value>88</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__CROP_IN_Y</Name>
+      <ID>182274448</ID>
+      <Link>false</Link>
+      <Value>60</Value>
+    </Input>
+    <Input>
+      <Name>BLOCK__CROP_WIDTH</Name>
+      <ID>182278928</ID>
+      <Link>false</Link>
+      <Value>1192</Value>
+    </Input>
+    <Output>
+      <Name>BLOCK__CROP_HEIGHT</Name>
+      <ID>182275288</ID>
+    </Output>
+    <Output>
+      <Name>BLOCK__CROP_OUT_IMAGE</Name>
+      <ID>182279768</ID>
+    </Output>
+    <Output>
+      <Name>BLOCK__CROP_WIDTH</Name>
+      <ID>182276688</ID>
     </Output>
   </Block>
 </GraphOfProcess>

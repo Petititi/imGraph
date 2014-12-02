@@ -124,6 +124,8 @@ namespace charliesoft
 
     SubBlock* getSubModel() const { return _subModel; }
 
+    SubGraphParamRepresentation* getParamRepresentation(std::string paramName) const;
+
     void addNewParamLink(const BlockLink& link);
     void removeParamLink(const BlockLink& link);
   protected:

@@ -177,7 +177,7 @@ namespace charliesoft
 
   ///TODO:
   /// Verify that parameter update set timestamp, even if not linked!
-  /// But don't change timestamp is value set is the same as previous stored value.
+  /// But don't change timestamp if value set is the same as previous stored value.
   void GraphOfProcess::blockProduced(Block* process, bool fullyRendered)
   {
     boost::unique_lock<boost::mutex> lock(_mtx);

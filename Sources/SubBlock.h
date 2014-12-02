@@ -58,6 +58,9 @@ namespace charliesoft
       std::map<unsigned int, ParamValue*>& addressesMap,
       std::vector<ConditionOfRendering*>& condToUpdate);
 
+    const std::vector<BlockLink>& getExternBlocksInput() const { return externBlocksInput; }
+    const std::vector<BlockLink>& getExternBlocksOutput() const { return externBlocksOutput; }
+
     GraphOfProcess* getSubGraph() const { return _subGraph; };
     void addExternLink(const BlockLink& link, bool isInput);
     void removeExternLink(const BlockLink& link);

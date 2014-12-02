@@ -354,6 +354,41 @@ namespace charliesoft
         addLink(link);
       }
     }
+
+    MainWidget_SubGraph* handler = dynamic_cast<MainWidget_SubGraph*>(parent);
+    if (handler != NULL)
+    {
+      SubBlock* subModel = handler->getSubModel();
+      //if we are a subgraph, we also draw the sublinks:
+      LinkConnexionRepresentation* paramFrom, *paramTo;
+
+      const std::vector<BlockLink>& externBlocksInput = subModel->getExternBlocksInput();
+      for (auto link : externBlocksInput)
+      {
+        if (_sublinks.find(link) == _sublinks.end())
+        {
+          paramFrom = getVertexRepresentation(link._to)->getParamRep(link._toParam, true);
+          paramTo = handler->getParamRepresentation(link._fromParam);
+
+          LinkPath* path = new LinkPath(paramTo, paramFrom);
+          addLink(link, path);
+        }
+      }
+
+      const std::vector<BlockLink>& externBlocksOutput = subModel->getExternBlocksOutput();
+      for (auto link : externBlocksOutput)
+      {
+        if (_sublinks.find(link) == _sublinks.end())
+        {
+          paramFrom = handler->getParamRepresentation(link._toParam);
+          paramTo = getVertexRepresentation(link._from)->getParamRep(link._fromParam, false);
+
+          LinkPath* path = new LinkPath(paramTo, paramFrom);
+          addLink(link, path);
+        }
+      }
+    }
+
     Window::getInstance()->redraw();
   }
 
@@ -681,6 +716,16 @@ namespace charliesoft
 
     LinkPath* path = new LinkPath(paramTo, paramFrom);
     graphRep->addLink(link, path);
+  }
+
+  SubGraphParamRepresentation* MainWidget_SubGraph::getParamRepresentation(
+    std::string paramName) const
+  {
+    auto it = _params.find(paramName);
+    if (it == _params.end())
+      return NULL;
+    else
+      return it->second;
   }
 
   void MainWidget_SubGraph::resizeEvent(QResizeEvent * event)
