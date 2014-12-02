@@ -158,16 +158,18 @@ namespace charliesoft
       //wait for every childs. They have to be fully rendered before we rerun this block!
       for (auto it = process->_myOutputs.begin(); it != process->_myOutputs.end(); it++)
       {
-        //wake up the threads, if any!
+        //wait for threads consumption
         std::set<ParamValue*>& listeners = it->second.getListeners();
         for (auto listener : listeners)
         {
-          if (listener->isLinked())
+          if (listener->isLinked() && listener->isNew())//this param is still not consumed...
             waitForFullRendering(process, listener->getBlock());
         }
       }
       if (!_waitingForRendering[process].empty())
+      {
         process->waitUpdateTimestamp(lock);//wait for parameter update!
+      }
       _current_timestamp++;
       return;//ok, every child have processed our value!
     }

@@ -255,7 +255,7 @@ namespace charliesoft
       {
         _renderingSkiped = false;
         while (GraphOfProcess::pauseProcess)
-          _cond_pause.wait(lock);//wait for any parameter update...
+          _cond_pause.wait(lock);//wait for play
 
         _processes->shouldWaitChild(this);//ask to scheduler if we have to wait...
         bool shouldRun = true;
