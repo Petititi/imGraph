@@ -83,7 +83,7 @@ namespace charliesoft
     else
       return emptyVector;
   }
-
+  
   ParamType ProcessManager::getParamType(std::string algo_name, std::string paramName, bool input) const
   {
     if (input)

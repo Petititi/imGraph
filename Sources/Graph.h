@@ -7,8 +7,9 @@ namespace charliesoft
 {
   class GraphOfProcess
   {
+    GraphOfProcess* _parent;
     std::map< Block*, std::set<Block*> > _waitingForRendering;
-    std::vector< boost::thread > _runningThread;
+    std::map< Block*, boost::thread > _runningThread;
     std::vector<Block*> _vertices;
     boost::mutex _mtx;
     //edges are stored into Block (_myInputs[]->isLinked())
@@ -16,11 +17,14 @@ namespace charliesoft
     void waitForFullRendering(Block* main_process, Block* process);
   public:
     static bool pauseProcess;
-    GraphOfProcess();
+    GraphOfProcess(GraphOfProcess* parent=NULL);
     ~GraphOfProcess();
 
     void saveGraph(boost::property_tree::ptree& tree) const;
-    void fromGraph(boost::property_tree::ptree& tree);
+    void fromGraph(boost::property_tree::ptree& tree,
+      std::map<unsigned int, ParamValue*>& = std::map<unsigned int, ParamValue*>());
+    GraphOfProcess* getParent() const { return _parent; }
+    void setParent(GraphOfProcess* val) { _parent = val; }
 
     static unsigned int _current_timestamp;
     void initChildDatas(Block*, std::set<Block*>& listOfRenderedBlocks);

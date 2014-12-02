@@ -37,7 +37,9 @@ namespace charliesoft
   unsigned int GraphOfProcess::_current_timestamp = 0;
   bool GraphOfProcess::pauseProcess = false;
 
-  GraphOfProcess::GraphOfProcess(){
+  GraphOfProcess::GraphOfProcess(GraphOfProcess* parent)
+  {
+    _parent = parent;
   };
 
   GraphOfProcess::~GraphOfProcess()
@@ -59,6 +61,13 @@ namespace charliesoft
       if (*it == process)
       {
         _vertices.erase(it);
+        auto& it = _runningThread.find(process);
+        if (it != _runningThread.end())
+        {
+          it->second.interrupt();
+          it->second.join();//wait for the end...
+          _runningThread.erase(it);
+        }
         delete process;
         return;
       }
@@ -72,6 +81,13 @@ namespace charliesoft
       if (*it == process)
       {
         _vertices.erase(it);
+        auto& it = _runningThread.find(process);
+        if (it != _runningThread.end())
+        {
+          it->second.interrupt();
+          it->second.join();//wait for the end...
+          _runningThread.erase(it);
+        }
         return;
       }
     }
@@ -184,20 +200,19 @@ namespace charliesoft
 
   void GraphOfProcess::stop()
   {
-    for (size_t i = 0; i < _runningThread.size(); i++)
+    for (auto& it = _runningThread.begin(); it != _runningThread.end(); it++)
     {
-      _runningThread[i].interrupt();
-      _runningThread[i].join();//wait for the end...
+      it->second.interrupt();
+      it->second.join();//wait for the end...
     }
     _runningThread.clear();
   }
 
   void GraphOfProcess::waitUntilEnd()
   {
-    for (size_t i = 0; i < _runningThread.size(); i++)
-    {
-      _runningThread[i].join();//wait for the end...
-    }
+    for (auto& it = _runningThread.begin(); it != _runningThread.end(); it++)
+      it->second.join();//wait for the end...
+
     _runningThread.clear();
   }
 
@@ -209,7 +224,7 @@ namespace charliesoft
       it != _vertices.end(); it++)
     {
       (*it)->setExecuteOnlyOnce(singleShot);
-      _runningThread.push_back(boost::thread(boost::ref(**it)));
+      _runningThread[*it] = boost::thread(boost::ref(**it));
     }
 
     return res;
@@ -265,11 +280,11 @@ namespace charliesoft
     }
   }
 
-  void GraphOfProcess::fromGraph(boost::property_tree::ptree& tree)
+  void GraphOfProcess::fromGraph(boost::property_tree::ptree& tree,
+    std::map<unsigned int, ParamValue*>& addressesMap)
   {
     boost::optional<ptree&> vertices = tree.get_child_optional("GraphOfProcess");
 
-    map<unsigned int, ParamValue*> addressesMap;
     vector < std::pair<ParamValue*, unsigned int> > toUpdate;
     vector<ConditionOfRendering*> condToUpdate;
 
@@ -289,48 +304,48 @@ namespace charliesoft
           }
         }
       }
-    }
-    //now make links:
-    for (auto valToUpdate : toUpdate)
-    {
-      Block* fromBlock = valToUpdate.first != NULL ? valToUpdate.first->getBlock() : NULL;
-      ParamValue* secondVal = addressesMap[valToUpdate.second];
-      Block* toBlock = secondVal != NULL ? secondVal->getBlock() : NULL;
-      if (fromBlock != NULL && toBlock != NULL)
+      //now make links:
+      for (auto valToUpdate : toUpdate)
       {
-        try
+        Block* fromBlock = valToUpdate.first != NULL ? valToUpdate.first->getBlock() : NULL;
+        ParamValue* secondVal = addressesMap[valToUpdate.second];
+        Block* toBlock = secondVal != NULL ? secondVal->getBlock() : NULL;
+        if (fromBlock != NULL && toBlock != NULL)
         {
-          createLink(toBlock, secondVal->getName(), fromBlock, valToUpdate.first->getName());
+          try
+          {
+            createLink(toBlock, secondVal->getName(), fromBlock, valToUpdate.first->getName());
+          }
+          catch (ErrorValidator& e)
+          {//algo doesn't accept this value!
+            //QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), e.errorMsg.c_str());
+            std::cout << e.errorMsg << std::endl;
+          }
         }
-        catch (ErrorValidator& e)
-        {//algo doesn't accept this value!
-          //QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), e.errorMsg.c_str());
-          std::cout << e.errorMsg << std::endl;
+      }
+      //and set correct values of conditions:
+      for (auto cond : condToUpdate)
+      {
+        if (cond->getCategory_left() == 1)//output of block:
+        {
+          unsigned int addr = static_cast<unsigned int>(cond->getOpt_value_left().get<double>(false) + 0.5);
+          cond->setValue(true, addressesMap[addr]);
+        }
+        if (cond->getCategory_right() == 1)//output of block:
+        {
+          unsigned int addr = static_cast<unsigned int>(cond->getOpt_value_right().get<double>(false) + 0.5);
+          cond->setValue(false, addressesMap[addr]);
         }
       }
-    }
-    //and set correct values of conditions:
-    for (auto cond : condToUpdate)
-    {
-      if (cond->getCategory_left() == 1)//output of block:
-      {
-        unsigned int addr = static_cast<unsigned int>(cond->getOpt_value_left().get<double>(false) + 0.5);
-        cond->setValue(true, addressesMap[addr]);
-      }
-      if (cond->getCategory_right() == 1)//output of block:
-      {
-        unsigned int addr = static_cast<unsigned int>(cond->getOpt_value_right().get<double>(false) + 0.5);
-        cond->setValue(false, addressesMap[addr]);
-      }
-    }
 
-    //first look for edges who are ready to run:
-    set<Block*> renderedBlocks;
-    for (auto it = _vertices.begin();
-      it != _vertices.end(); it++)
-    {
-      if ((*it)->isReadyToRun(true))
-        initChildDatas(*it, renderedBlocks);//and init him and output childs
+      //first look for edges who are ready to run:
+      set<Block*> renderedBlocks;
+      for (auto it = _vertices.begin();
+        it != _vertices.end(); it++)
+      {
+        if ((*it)->isReadyToRun(true))
+          initChildDatas(*it, renderedBlocks);//and init him and output childs
+      }
     }
   }
 

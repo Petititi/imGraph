@@ -22,6 +22,7 @@
 #include "view/Window.h"
 #include "view/GraphicView.h"
 
+#include "SubBlock.h"
 #include "Graph.h"
 #include "ProcessManager.h"
 #include "blocks/ParamValidator.h"
@@ -68,6 +69,9 @@ namespace charliesoft
     localElement.put("GlobConfig.processSync", processSync_);
 
     charliesoft::GraphOfProcess* graph = Window::getInstance()->getMainWidget()->getModel();
+    while (graph->getParent() != NULL)
+      graph = graph->getParent();
+
     graph->saveGraph(localElement);
 
     if (lastProject_.empty())

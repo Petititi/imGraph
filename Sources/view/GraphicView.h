@@ -112,8 +112,7 @@ namespace charliesoft
 
   class MainWidget_SubGraph :public MainWidget
   {
-    SubBlock* _model;
-
+    SubBlock* _subModel;
     int _posInput;
     int _posOutput;
 
@@ -122,6 +121,8 @@ namespace charliesoft
     void addParameter(SubGraphParamRepresentation* param);
   public:
     MainWidget_SubGraph(SubBlock *model);
+
+    SubBlock* getSubModel() const { return _subModel; }
 
     void addNewParamLink(const BlockLink& link);
     void removeParamLink(const BlockLink& link);

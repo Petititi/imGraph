@@ -394,6 +394,7 @@ namespace charliesoft
     GraphOfProcess* graph = currentWidget->getModel();
     //create subgraph:
     SubBlock* subBlock = new SubBlock();
+    subBlock->getSubGraph()->setParent(graph);
     GraphOfProcess* subGraph = subBlock->getSubGraph();
 
     //first select blocks selected:

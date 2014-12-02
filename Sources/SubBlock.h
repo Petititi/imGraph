@@ -52,7 +52,7 @@ namespace charliesoft
     virtual std::vector<ParamDefinition> getInParams() const;
     virtual std::vector<ParamDefinition> getOutParams() const;
 
-    virtual boost::property_tree::ptree getXML() const;
+    virtual boost::property_tree::ptree getXML();
     virtual void initFromXML(boost::property_tree::ptree* tree,
       std::vector < std::pair<ParamValue*, unsigned int> >& toUpdate,
       std::map<unsigned int, ParamValue*>& addressesMap,

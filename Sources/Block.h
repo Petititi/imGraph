@@ -200,6 +200,7 @@ namespace charliesoft
     bool _executeOnlyOnce;
   public:
     Block(std::string name, BlockType typeExec = oneShot);
+    ~Block();
     std::string getName(){
       return _name;
     };
@@ -211,7 +212,7 @@ namespace charliesoft
     void setGraph(GraphOfProcess* processes){
       _processes = processes;
     };
-    GraphOfProcess* getGraph(){ return _processes; };
+    GraphOfProcess* getGraph() const { return _processes; };
 
     unsigned int getNbRendering() const { return nbRendering; }
     unsigned int getTimestamp(){ return _timestamp; };
@@ -259,7 +260,7 @@ namespace charliesoft
     void updatePosition(float x, float y) { _position.x = x; _position.y = y; };
     void linkParam(std::string paramName, Block* dest, std::string paramNameDest);
 
-    virtual boost::property_tree::ptree getXML() const;
+    virtual boost::property_tree::ptree getXML();
     virtual void initFromXML(boost::property_tree::ptree* tree,
       std::vector < std::pair<ParamValue*, unsigned int> >& toUpdate,
       std::map<unsigned int, ParamValue*>& addressesMap,

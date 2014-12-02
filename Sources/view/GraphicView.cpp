@@ -588,7 +588,6 @@ namespace charliesoft
     Window::synchroMainGraph();
 
     Window::getInstance()->redraw();//redraw window...
-
   }
 
   void MainWidget::initLinkCreation(QPoint start)
@@ -616,18 +615,18 @@ namespace charliesoft
     MainWidget(model->getSubGraph())
   {
     _posInput = _posOutput = 10;
-    _model = model;
+    _subModel = model;
     //add input/output parameters:
 
     const vector<ParamDefinition>& inputParams = model->getInParams();
     QRect tmpSize;
     int showIn = 0, showOut = 0;
     for (size_t i = 0; i < inputParams.size(); i++)
-      addParameter(new SubGraphParamRepresentation(_model, inputParams[i], false, this));
+      addParameter(new SubGraphParamRepresentation(_subModel, inputParams[i], false, this));
 
-    const vector<ParamDefinition>& outputParams = _model->getOutParams();
+    const vector<ParamDefinition>& outputParams = _subModel->getOutParams();
     for (size_t i = 0; i < outputParams.size(); i++)
-      addParameter(new SubGraphParamRepresentation(_model, outputParams[i], true, this));
+      addParameter(new SubGraphParamRepresentation(_subModel, outputParams[i], true, this));
   };
 
   void MainWidget_SubGraph::addParameter(SubGraphParamRepresentation* param)
@@ -656,7 +655,7 @@ namespace charliesoft
 
   void MainWidget_SubGraph::removeParamLink(const BlockLink& link)
   {
-    _model->removeExternLink(link);
+    _subModel->removeExternLink(link);
   }
 
   void MainWidget_SubGraph::addNewParamLink(const BlockLink& link)
@@ -667,17 +666,17 @@ namespace charliesoft
 
     //get parameters link:
     LinkConnexionRepresentation* paramFrom, *paramTo;
-    if (link._from->getGraph() == _model->getSubGraph())
+    if (link._from->getGraph() == _subModel->getSubGraph())
     {
       paramFrom = _params[link._toParam];
       paramTo = graphRep->getVertexRepresentation(link._from)->getParamRep(link._fromParam, false);
-      _model->addExternLink(link, false);
+      _subModel->addExternLink(link, false);
     }
     else
     {
       paramFrom = graphRep->getVertexRepresentation(link._to)->getParamRep(link._toParam, true);
       paramTo = _params[link._fromParam];
-      _model->addExternLink(link, true);
+      _subModel->addExternLink(link, true);
     }
 
     LinkPath* path = new LinkPath(paramTo, paramFrom);

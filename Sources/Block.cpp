@@ -230,6 +230,13 @@ namespace charliesoft
     }
   }
 
+  Block::~Block()
+  {
+    _processes->extractProcess(this);
+    wakeUp();
+    wakeUpOutputListeners();
+  }
+
   Block::Block(std::string name, BlockType typeExec){
     _exec_type = typeExec;
     _name = name;
@@ -511,6 +518,9 @@ namespace charliesoft
         bool link = it1->second.get("Link", false);
         string val = it1->second.get("Value", "Not initialized...");
         ParamValue* tmpVal = getParam(nameIn, true);
+        string valID = it1->second.get("ID", "0");
+        addressesMap[lexical_cast<unsigned int>(valID)] = tmpVal;
+
         if (!link)
         {
           try
@@ -548,7 +558,7 @@ namespace charliesoft
     }
   }
 
-  boost::property_tree::ptree Block::getXML() const
+  boost::property_tree::ptree Block::getXML()
   {
     ptree tree;
     tree.put("name", _name);
@@ -559,6 +569,7 @@ namespace charliesoft
     {
       ptree paramTree;
       paramTree.put("Name", it->first);
+      paramTree.put("ID", (unsigned int)&it->second);
       paramTree.put("Link", it->second.isLinked());
       if (!it->second.isLinked())
         paramTree.put("Value", it->second.toString());

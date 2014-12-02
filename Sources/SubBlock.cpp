@@ -51,7 +51,7 @@ namespace charliesoft
       	//nothing to do...
       }
     }
-    _subGraph->run(true);
+    _subGraph->run(oneShot);
     //wait for ouput updates:
     for (auto link : externBlocksOutput)
     {
@@ -105,6 +105,7 @@ namespace charliesoft
     t = param._initVal;
     return &t;
   };
+
   ParamValue* SubBlock::addNewOutput(ParamDefinition& param)
   {
     _outputParams[param._name] = param;
@@ -141,7 +142,9 @@ namespace charliesoft
     string xPos = pos.substr(1, posSepare - 2);
     string yPos = pos.substr(posSepare + 1, pos.size() - posSepare - 2);
 
-    setPosition(lexical_cast<int>(xPos), lexical_cast<int>(yPos));
+    setPosition(
+      static_cast<int>(lexical_cast<float>(xPos)),
+      static_cast<int>(lexical_cast<float>(yPos)));
     for (ptree::iterator it1 = block->begin(); it1 != block->end(); it1++)
     {
       if (it1->first.compare("Input") == 0)
@@ -151,16 +154,16 @@ namespace charliesoft
         string val = it1->second.get("Value", "Not initialized...");
         ParamType paramType = static_cast<ParamType>(it1->second.get("ParamType", 0));
         ParamValue& tmpValLoaded = ParamValue::fromString(paramType, val);
-        addNewInput(ParamDefinition(true, paramType, nameIn, helper, tmpValLoaded));
+        ParamValue* tmpVal=addNewInput(ParamDefinition(true, paramType, nameIn, helper, tmpValLoaded));
 
         bool link = it1->second.get("Link", false);
-        ParamValue* tmpVal = getParam(nameIn, true);
+
         if (!link)
         {
           try
           {
             if (tmpVal != NULL)
-              tmpVal->valid_and_set(tmpValLoaded);
+              tmpVal->valid_and_set(tmpVal->fromString(tmpVal->getType(), val));
           }
           catch (...)
           {
@@ -192,11 +195,47 @@ namespace charliesoft
         if (cLeft == 1 || cRight == 1)//output of block...
           condToUpdate.push_back(&_conditions.back());
       }
+      if (it1->first.compare("SubGraph") == 0)
+        _subGraph->fromGraph(it1->second, addressesMap);
+
+      if (it1->first.compare("InputLink") == 0)
+      {
+        string fromParam = it1->second.get("FromParam", "_");
+        string val = it1->second.get("ToParam", "0");
+        ParamValue* dist = addressesMap[lexical_cast<unsigned int>(val)];
+        ParamValue& local = _myInputs[fromParam];
+        addExternLink(BlockLink(local.getBlock(), dist->getBlock(),
+          local.getName(), dist->getName()), true);
+      }
+      if (it1->first.compare("OutputLink") == 0)
+      {
+        string val = it1->second.get("FromParam", "0");
+        string fromParam = it1->second.get("ToParam", "_");
+        ParamValue* dist = addressesMap[lexical_cast<unsigned int>(val)];
+        ParamValue& local = _myInputs[fromParam];
+        addExternLink(BlockLink(dist->getBlock(), local.getBlock(),
+          dist->getName(), local.getName()), false);
+      }
     }
   }
 
-  boost::property_tree::ptree SubBlock::getXML() const
+  boost::property_tree::ptree SubBlock::getXML()
   {
+    //before storing into XML, remove input modified by subparam:
+    ParamValue fakeValue = Not_A_Value();
+    for (auto link : externBlocksInput)
+    {
+      try
+      {
+          link._to->getParam(link._toParam, true)->setValue(&fakeValue);
+      }
+      catch (...)
+      {
+        //nothing to do...
+      }
+    }
+
+
     ptree tree;
     tree.put("name", _name);
     tree.put("position", _position);
@@ -223,11 +262,40 @@ namespace charliesoft
     for (auto it = _myOutputs.begin();
       it != _myOutputs.end(); it++)
     {
+      const ParamDefinition pDef = _outputParams.at(it->first);
+
       ptree paramTree;
-      paramTree.put("Name", it->first);
+      paramTree.put("Name", pDef._name);
+      paramTree.put("Helper", pDef._helper);
+      paramTree.put("ParamType", pDef._type);
       paramTree.put("ID", (unsigned int)&it->second);
 
       tree.add_child("Output", paramTree);
+    }
+
+    //create also the subgraph xml:
+    ptree subgraphTree;
+    _subGraph->saveGraph(subgraphTree);
+    tree.add_child("SubGraph", subgraphTree);
+
+    //and also the links:
+    for (auto it = externBlocksInput.begin();
+      it != externBlocksInput.end(); it++)
+    {
+      ptree paramTree;
+      paramTree.put("FromParam", it->_fromParam);
+      paramTree.put("ToParam", (unsigned int)it->_to->getParam(it->_toParam, true));
+
+      tree.add_child("InputLink", paramTree);
+    }
+    for (auto it = externBlocksOutput.begin();
+      it != externBlocksOutput.end(); it++)
+    {
+      ptree paramTree;
+      paramTree.put("FromParam", (unsigned int)it->_from->getParam(it->_fromParam, false));
+      paramTree.put("ToParam", it->_toParam);
+
+      tree.add_child("OutputLink", paramTree);
     }
 
     for (auto it = _conditions.begin();
