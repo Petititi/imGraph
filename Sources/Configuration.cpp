@@ -6,7 +6,6 @@
 #pragma warning(push)
 #pragma warning(disable:4996 4251 4275 4800)
 #endif
-#include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/filesystem.hpp>   // includes all needed Boost.Filesystem declarations
@@ -81,7 +80,7 @@ namespace charliesoft
   void GlobalConfig::loadConfig()
   {
     bool xmlOK = false;
-    ptree xmlTree;
+
     //try to read config.xml:
     ifstream ifs("config.xml");
     if (ifs.is_open())
@@ -91,7 +90,7 @@ namespace charliesoft
       contentStreamed << str;
       try
       {
-        read_xml(contentStreamed, xmlTree);
+        read_xml(contentStreamed, _xmlTree);
         xmlOK = true;
       }
       catch (boost::property_tree::ptree_bad_path&)
@@ -101,19 +100,16 @@ namespace charliesoft
     }
     if (xmlOK)
     {
-      lastProject_ = xmlTree.get("GlobConfig.LastProject", "");
-      prefLang_ = xmlTree.get("GlobConfig.PrefLang", "en");
-      isMaximized = xmlTree.get("GlobConfig.ShowMaximized", true);
-      styleSheet_ = xmlTree.get("GlobConfig.styleSheet", "");
-      processSync_ = xmlTree.get("GlobConfig.processSync", true);
+      lastProject_ = _xmlTree.get("GlobConfig.LastProject", "");
+      prefLang_ = _xmlTree.get("GlobConfig.PrefLang", "en");
+      isMaximized = _xmlTree.get("GlobConfig.ShowMaximized", true);
+      styleSheet_ = _xmlTree.get("GlobConfig.styleSheet", "");
+      processSync_ = _xmlTree.get("GlobConfig.processSync", true);
 
-      lastPosition.setLeft(xmlTree.get("GlobConfig.lastPosition.x", 0));
-      lastPosition.setTop(xmlTree.get("GlobConfig.lastPosition.y", 0));
-      lastPosition.setWidth(xmlTree.get("GlobConfig.lastPosition.width", 1024));
-      lastPosition.setHeight(xmlTree.get("GlobConfig.lastPosition.height", 768));
-
-      charliesoft::GraphOfProcess* graph = Window::getInstance()->getMainWidget()->getModel();
-      graph->fromGraph(xmlTree);
+      lastPosition.setLeft(_xmlTree.get("GlobConfig.lastPosition.x", 0));
+      lastPosition.setTop(_xmlTree.get("GlobConfig.lastPosition.y", 0));
+      lastPosition.setWidth(_xmlTree.get("GlobConfig.lastPosition.width", 1024));
+      lastPosition.setHeight(_xmlTree.get("GlobConfig.lastPosition.height", 768));
     }
     else
     {

@@ -6,6 +6,7 @@
 #pragma warning(disable:4996 4251 4275 4800 4503)
 #endif
 
+#include <boost/property_tree/ptree.hpp>
 #include <QRect>
 #include <string>
 
@@ -20,11 +21,15 @@ namespace charliesoft
     GlobalConfig(){};
     ~GlobalConfig(){};
     static GlobalConfig* _ptr;
+
+    boost::property_tree::ptree _xmlTree;
   public:
     static GlobalConfig* getInstance();
     static void release();
     void loadConfig();
     void saveConfig();
+
+    boost::property_tree::ptree getXML() const { return _xmlTree; }
 
     bool processSync_;
     std::string lastProject_;

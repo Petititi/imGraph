@@ -259,6 +259,9 @@ namespace charliesoft
     
     setStyleSheet(GlobalConfig::getInstance()->styleSheet_.c_str());
 
+    charliesoft::GraphOfProcess* graph = getMainWidget()->getModel();
+    graph->fromGraph(GlobalConfig::getInstance()->getXML());
+
     synchroMainGraph();
   }
 
