@@ -181,7 +181,7 @@ namespace charliesoft
   void GraphOfProcess::blockProduced(Block* process, bool fullyRendered)
   {
     boost::unique_lock<boost::mutex> lock(_mtx);
-    std::cout << "   " << _STR(process->getName()) << " (" << _current_timestamp << ") Produced!" << endl;
+    //std::cout << "   " << _STR(process->getName()) << " (" << _current_timestamp << ") Produced!" << endl;
     if (fullyRendered)
     {
       //remove this block for every waiting thread:

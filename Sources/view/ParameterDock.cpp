@@ -468,13 +468,17 @@ namespace charliesoft
     if (src == NULL) return;
 
     ParamRepresentation* param;
+    if (outputGroup_.find(src) != outputGroup_.end())
+    {
+      outputGroup_.at(src)->setVisibility(state);
+      Window::synchroMainGraph();
+      return;
+    }
     if (inputGroup_.find(src) != inputGroup_.end())
       param = inputGroup_.at(src);
-    if (outputGroup_.find(src) != outputGroup_.end())
-      param = outputGroup_.at(src);
+    if (param == NULL) return;
     try
     {
-      if (param == NULL) return;
 
       param->useDefault(!state);
 

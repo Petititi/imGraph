@@ -5,10 +5,21 @@
 #include "view/MatrixViewer.h"
 #include "MatrixConvertor.h"
 #include "ParamValidator.h"
+
+#ifdef _WIN32
+#pragma warning(push)
+#pragma warning(disable:4996 4251 4275 4800 4503)
+#endif
+#include "opencv2/core/utility.hpp"
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
+
 using namespace lsis_org;
 using std::vector;
 using std::string;
 using cv::Mat;
+using cv::RNG;
 
 namespace charliesoft
 {
@@ -38,15 +49,17 @@ namespace charliesoft
     _myInputs["BLOCK__CREATEMATRIX_IN_WIDTH"].addValidator({ new ValNeeded(), new ValPositiv(true) });
     _myInputs["BLOCK__CREATEMATRIX_IN_HEIGHT"].addValidator({ new ValNeeded(), new ValPositiv(true) });
     _myInputs["BLOCK__CREATEMATRIX_IN_NBCHANNEL"].addValidator({ new ValNeeded(), new ValPositiv(true) });
-    _myInputs["BLOCK__CREATEMATRIX_IN_INIT"].addValidator({ new ValNeeded(), new ValRange(0, 6) });
+    _myInputs["BLOCK__CREATEMATRIX_IN_INIT"].addValidator({ new ValNeeded(), new ValRange(0, 7) });
   };
   
   bool CreateMatrix::run(bool oneShot){
     //todo: verify that type index correspond to constant!
-    int wantedType = CV_MAKETYPE(_myInputs["BLOCK__CREATEMATRIX_IN_TYPE"].get<int>(true),
-      _myInputs["BLOCK__CREATEMATRIX_IN_NBCHANNEL"].get<int>(true));
+    int nbChannels = _myInputs["BLOCK__CREATEMATRIX_IN_NBCHANNEL"].get<int>(true);
+    int wantedType = CV_MAKETYPE(_myInputs["BLOCK__CREATEMATRIX_IN_TYPE"].get<int>(true), nbChannels);
     int wantedRow = _myInputs["BLOCK__CREATEMATRIX_IN_HEIGHT"].get<int>(true);
     int wantedCol = _myInputs["BLOCK__CREATEMATRIX_IN_WIDTH"].get<int>(true);
+
+    static RNG rng(cv::getTickCount());
 
     cv::Mat newMatrix;
     switch (_myInputs["BLOCK__CREATEMATRIX_IN_INIT"].get<int>(true))
@@ -70,8 +83,9 @@ namespace charliesoft
       newMatrix = charliesoft::MatrixConvertor::convert(newMatrix, wantedType);
       break;
     case 6:
-      newMatrix = cv::Mat(wantedRow, wantedCol, wantedType);
-      //todo : randomize!
+      newMatrix = cv::Mat(wantedRow * wantedCol, 1, wantedType);
+      rng.fill(newMatrix, RNG::UNIFORM, 0, 255);
+      newMatrix = newMatrix.reshape(nbChannels, wantedRow);
       break;
     default:
       newMatrix = cv::Mat::zeros(wantedRow, wantedCol, wantedType);
