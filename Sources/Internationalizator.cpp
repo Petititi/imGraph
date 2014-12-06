@@ -328,13 +328,13 @@ namespace charliesoft
     translations["BLOCK__DELAY_VIDEO_OUT_IMAGE"] = "image";
     translations["BLOCK__DELAY_VIDEO_OUT_IMAGE_HELP"] = "N-th old image";
 
-    translations["BLOCK__MERGING_NAME"] = "Merge two images";
-    translations["BLOCK__MERGING_IN_IMAGE1"] = "image1";
-    translations["BLOCK__MERGING_IN_IMAGE1_HELP"] = "First input image";
-    translations["BLOCK__MERGING_IN_IMAGE2"] = "image2";
-    translations["BLOCK__MERGING_IN_IMAGE2_HELP"] = "Second input image";
-    translations["BLOCK__MERGING_OUT_IMAGE"] = "image";
-    translations["BLOCK__MERGING_OUT_IMAGE_HELP"] = "Cropped image";
+    translations["BLOCK__MERGING_NAME"] = "Add";
+    translations["BLOCK__MERGING_IN_IMAGE1"] = "input1";
+    translations["BLOCK__MERGING_IN_IMAGE1_HELP"] = "First input (Matrix, number...)";
+    translations["BLOCK__MERGING_IN_IMAGE2"] = "input2";
+    translations["BLOCK__MERGING_IN_IMAGE2_HELP"] = "Second input (Matrix, number...)";
+    translations["BLOCK__MERGING_OUT_IMAGE"] = "sum";
+    translations["BLOCK__MERGING_OUT_IMAGE_HELP"] = "Output sum of the two matrix";
 
     translations["BLOCK__CROP_NAME"] = "Crop image";
     translations["BLOCK__CROP_IN_IMAGE"] = "image";

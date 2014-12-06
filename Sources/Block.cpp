@@ -43,6 +43,8 @@ namespace charliesoft
       return "String";
     case FilePath:
       return "FilePath";
+    case AnyType:
+      return "AnyType";
     default:
       return "typeError";
     }
@@ -675,7 +677,7 @@ namespace charliesoft
 
     ParamValue& valOut = _myOutputs[paramName];
     //first test type of input:
-    if (valIn.getType() != valOut.getType())
+    if (valIn.getType() != AnyType && valIn.getType() != valOut.getType())
     {
       throw (ErrorValidator((my_format(_STR("ERROR_TYPE")) %
         _STR(getName()) % _STR(valOut.getName()) % typeName(valOut.getType()) %

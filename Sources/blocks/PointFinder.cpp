@@ -171,30 +171,31 @@ public:
     cv::Ptr<FeatureDetector> detect = FeatureDetector::create(detectorList[methodDetect]);
 
     //set sub params values:
+    
     vector<cv::String> subValuesDetector;
     detect->getParams(subValuesDetector);
     for (cv::String subParam : subValuesDetector)
       setParamOpencv(detect, "BLOCK__POINT_FINDER_IN_DETECTOR." + detectorList[methodDetect], subParam);
-
+    
     string modificator = "";
     if (!_myInputs["BLOCK__POINT_FINDER_IN_MODIFICATOR"].isDefaultValue())
     {
       int idxModificator = _myInputs["BLOCK__POINT_FINDER_IN_MODIFICATOR"].get<int>(true);
       modificator = modificatorList[idxModificator];
-      if (modificator.compare("Grid"))
+      if (modificator.compare("Grid")==0)
       {
         cv::Ptr<FeatureDetector> subdetect = FeatureDetector::create(modificator);
         subdetect->set("detector", detect);
         //set sub params values:
         vector<cv::String> out;
-        detect->getParams(out);
+        subdetect->getParams(out);
         for (cv::String subParam : out)
           setParamOpencv(subdetect, "BLOCK__POINT_FINDER_IN_MODIFICATOR." + modificator, subParam);
 
         detect = subdetect;//detector are now chained, take the parent
       }
     }
-
+    
     if (!detect.empty())
       detect->detect(mat, points);
 

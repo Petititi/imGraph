@@ -21,13 +21,13 @@ namespace charliesoft
 {
   BLOCK_BEGIN_INSTANTIATION(MergingBlock);
   //You can add methods, re implement needed functions... 
-  BLOCK_END_INSTANTIATION(MergingBlock, AlgoType::imgProcess, BLOCK__MERGING_NAME);
+  BLOCK_END_INSTANTIATION(MergingBlock, AlgoType::mathOperator, BLOCK__MERGING_NAME);
 
   BEGIN_BLOCK_INPUT_PARAMS(MergingBlock);
   //Add parameters, with following parameters:
   //default visibility, type of parameter, name (key of internationalizor), helper...
-  ADD_PARAMETER(true, Matrix, "BLOCK__MERGING_IN_IMAGE1", "BLOCK__MERGING_IN_IMAGE1_HELP");
-  ADD_PARAMETER(true, Matrix, "BLOCK__MERGING_IN_IMAGE2", "BLOCK__MERGING_IN_IMAGE2_HELP");
+  ADD_PARAMETER(true, AnyType, "BLOCK__MERGING_IN_IMAGE1", "BLOCK__MERGING_IN_IMAGE1_HELP");
+  ADD_PARAMETER(true, AnyType, "BLOCK__MERGING_IN_IMAGE2", "BLOCK__MERGING_IN_IMAGE2_HELP");
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_OUTPUT_PARAMS(MergingBlock);

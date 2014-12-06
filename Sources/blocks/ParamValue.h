@@ -24,7 +24,7 @@ namespace charliesoft
 
   enum ParamType
   {
-    Boolean=0, Int, Float, Color, Matrix, String, FilePath, ListBox, typeError
+    Boolean = 0, Int, Float, Color, Matrix, String, FilePath, ListBox, AnyType, typeError
   };
 
   struct Not_A_Value
@@ -174,7 +174,7 @@ namespace charliesoft
         boost::get<ParamValue*>(value_) != NULL;
     };
 
-    ParamType getType() const;
+    ParamType getType(bool realType=true) const;
     Block * getBlock() const { return _block; };
     void setBlock(Block *b) { _block=b; };
 

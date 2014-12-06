@@ -32,42 +32,48 @@ namespace charliesoft
     return "";
   }
 
-  ParamType ParamValue::getType() const{
+  ParamType ParamValue::getType(bool realType) const{
     if (_block == NULL)
       return typeError;
     ParamType out = _PROCESS_MANAGER->getParamType(_block->getName(), _name, !_isOutput);
-    if (out == typeError)
+    if (out == typeError || out == AnyType)//if anyType, try to detect type...
     {
-      //try to ask block for the type:
-      SubBlock* subBlock = dynamic_cast<SubBlock*>(_block);
-      if (subBlock != NULL)
+      if (out != AnyType)
       {
-        out = subBlock->getDef(_name, !_isOutput)._type;
-        if (out != typeError)
-          return out;
+        //try to ask block for the type:
+        SubBlock* subBlock = dynamic_cast<SubBlock*>(_block);
+        if (subBlock != NULL)
+        {
+          out = subBlock->getDef(_name, !_isOutput)._type;
+          if (out != typeError)
+            return out;
+        }
       }
-
-      //try to find value type:
-      if (value_.type() == typeid(ParamValue*))
+      if ((out == AnyType && !realType) ||
+        (out != AnyType))
       {
-        ParamValue* val = boost::get<ParamValue*>(value_);
-        if (val == NULL)
-          return typeError;
-        else
-          return val->getType();
+        //try to find value type:
+        if (value_.type() == typeid(ParamValue*))
+        {
+          ParamValue* val = boost::get<ParamValue*>(value_);
+          if (val == NULL)
+            return typeError;
+          else
+            return val->getType();
+        }
+        if (value_.type() == typeid(bool))
+          return Boolean;
+        if (value_.type() == typeid(int))
+          return Int;
+        if (value_.type() == typeid(double))
+          return Float;
+        if (value_.type() == typeid(std::string))
+          return String;
+        if (value_.type() == typeid(cv::Scalar))
+          return Color;
+        if (value_.type() == typeid(cv::Mat))
+          return Matrix;
       }
-      if (value_.type() == typeid(bool))
-        return Boolean;
-      if (value_.type() == typeid(int))
-        return Int;
-      if (value_.type() == typeid(double))
-        return Float;
-      if (value_.type() == typeid(std::string))
-        return String;
-      if (value_.type() == typeid(cv::Scalar))
-        return Color;
-      if (value_.type() == typeid(cv::Mat))
-        return Matrix;
     }
     return out;
   };

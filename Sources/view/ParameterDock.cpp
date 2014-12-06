@@ -392,8 +392,25 @@ namespace charliesoft
       connect(lineEdit, SIGNAL(editingFinished()), this, SLOT(textChanged()));
       break;
     }
-    default://probably typeError
+    default://probably AnyType
+    {
+      QComboBox* combo = new QComboBox();
+      combo->addItem(_QT("TYPE_DATAS_BOOL"));
+      combo->addItem(_QT("TYPE_DATAS_INT"));
+      combo->addItem(_QT("TYPE_DATAS_FLOAT"));
+      combo->addItem(_QT("TYPE_DATAS_COLOR"));
+      combo->addItem(_QT("TYPE_DATAS_MATRIX"));
+      combo->addItem(_QT("TYPE_DATAS_STRING"));
+      combo->addItem(_QT("TYPE_DATAS_FILE"));
+      combo->setCurrentIndex(-1);//that way, next setCurrentIndex will throw signal, even if it's index 0!
+      connect(combo, SIGNAL(currentIndexChanged(int)), this, SLOT(subParamChange(int)));
+      layout->addWidget(combo);
+      _inputValue12[p] = combo;
+      _inputValue21[combo] = p;
+
+      combo->setCurrentIndex(param->get<int>(false));
       break;
+    }
     }
 
     connect(checkGraph, SIGNAL(stateChanged(int)), this, SLOT(switchEnable(int)));
@@ -420,9 +437,6 @@ namespace charliesoft
     }
     if (groupParams != NULL)
     {
-      //try to add this param:
-      if (!updateParamModel(value))
-        return;
       //remove the subParams:
       std::vector<ParamRepresentation*>& paramsRep = subparamGroup_[subWidget_[value]];
       for (ParamRepresentation* p : paramsRep)
@@ -432,32 +446,73 @@ namespace charliesoft
         _inputModificator12.erase(_inputModificator21[p]);
         _inputModificator21.erase(p);
       }
+      if (value->getParamValue()->getType() == ListBox)
+      {//This is a listBox, so we set the value, and add subParams if needed:
+        //try to add this param:
+        if (groupParams->isChecked())
+        {//but only if the group is used!
+          if (!updateParamModel(value))
+            return;
+        }
 
-      QVBoxLayout *vbox = dynamic_cast<QVBoxLayout*>(groupParams->layout());
-      vbox->removeWidget(subWidget_[value]);
-      delete subWidget_[value];
-      subWidget_.erase(value);
+        QVBoxLayout *vbox = dynamic_cast<QVBoxLayout*>(groupParams->layout());
+        vbox->removeWidget(subWidget_[value]);
+        delete subWidget_[value];
+        subWidget_.erase(value);
 
 
-      subparamGroup_[value].clear();
+        subparamGroup_[value].clear();
 
-      //reconstruct the subParams group:
-      subWidget_[value] = new QWidget();
-      vbox->addWidget(subWidget_[value]);
-      subWidget_[value]->setLayout(new QVBoxLayout());
+        //reconstruct the subParams group:
+        subWidget_[value] = new QWidget();
+        vbox->addWidget(subWidget_[value]);
+        subWidget_[value]->setLayout(new QVBoxLayout());
 
-      //now add also subparameters, if any:
-      Block* model = value->getModel();
-      string paramValName = src->currentText().toStdString();
-      ParamRepresentation* p = inputGroup_[groupParams];
+        //now add also subparameters, if any:
+        Block* model = value->getModel();
+        string paramValName = src->currentText().toStdString();
+        ParamRepresentation* p = inputGroup_[groupParams];
 
-      vector<cv::String> subParams = model->getSubParams(p->getParamName() + "." + paramValName);
-      for (cv::String subParam : subParams)
-      {
-        string fullSubName = p->getParamName() + "." + paramValName + "." + subParam;
-        ParamRepresentation *tmp = sub_param_[fullSubName];
+        vector<cv::String> subParams = model->getSubParams(p->getParamName() + "." + paramValName);
+        for (cv::String subParam : subParams)
+        {
+          string fullSubName = p->getParamName() + "." + paramValName + "." + subParam;
+          ParamRepresentation *tmp = sub_param_[fullSubName];
 
-        addParamIn(tmp, value);
+          addParamIn(tmp, value);
+        }
+      }
+      else
+      {//It's probably a "AnyType" value, so we provide a subCategory input:
+        switch (newVal)
+        {
+        case 0://TYPE_DATAS_BOOL
+        {
+          break;
+        }
+        case 1://TYPE_DATAS_INT
+        {
+          break;
+        }
+        case 2://TYPE_DATAS_FLOAT
+        {
+          break;
+        }
+        case 3://TYPE_DATAS_COLOR
+        {
+          break;
+        }
+        case 4://TYPE_DATAS_MATRIX
+        {
+          break;
+        }
+        case 5://TYPE_DATAS_STRING
+        {
+          break;
+        }
+        default://TYPE_DATAS_FILE
+          break;
+        }
       }
     }
   }
@@ -467,22 +522,39 @@ namespace charliesoft
     QGroupBox* src = dynamic_cast<QGroupBox*>(sender());
     if (src == NULL) return;
 
-    ParamRepresentation* param;
     if (outputGroup_.find(src) != outputGroup_.end())
     {
       outputGroup_.at(src)->setVisibility(state);
       Window::synchroMainGraph();
       return;
     }
+    ParamRepresentation* param;
     if (inputGroup_.find(src) != inputGroup_.end())
       param = inputGroup_.at(src);
     if (param == NULL) return;
     try
     {
-
       param->useDefault(!state);
 
-      if (!state)
+      //if there is subParameters, set them to the new state:
+      ParamValue* paramVal = param->getParamValue();
+      if (paramVal->getType() == ListBox)
+      {
+        size_t value = paramVal->get<int>(false);
+        std::vector<std::string>& paramsList = param->getParamListChoice();
+        if (paramsList.size() > value)
+        {
+          vector<cv::String> subParams = paramVal->getBlock()->getSubParams(param->getParamName() + "." + paramsList[value]);
+          for (cv::String subParam : subParams)
+          {
+            string fullSubName = param->getParamName() + "." + paramsList[value] + "." + subParam;
+            ParamRepresentation *tmp = sub_param_[fullSubName];
+            param->useDefault(!state);
+          }
+        }
+      }
+
+      if (state)
       {
         if (!updateParamModel(param))
           src->setChecked(!state);
@@ -529,6 +601,7 @@ namespace charliesoft
         }
       }
       inputWidget->setEnabled(newState == Qt::Checked);
+
       updateParamModel(p);
 
       Window::synchroMainGraph();
