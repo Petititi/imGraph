@@ -119,11 +119,24 @@ namespace charliesoft
     out_param_(vertex->getListOfOutputChilds())
   {
     tabWidget_ = new QTabWidget(this);
-    
-    QPushButton* button = new QPushButton(_QT("CONDITION_EDITOR"));
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
-    mainLayout->addWidget(button);
+
+    QWidget *tmpWidget = new QWidget();
+    QHBoxLayout* tmpLay = new QHBoxLayout();
+    tmpWidget->setLayout(tmpLay);
+
+    mainLayout->addWidget(tmpWidget);
+
+    QPushButton* button = new QPushButton(_QT("CONDITION_EDITOR"));
+    tmpLay->addWidget(button);
     connect(button, SIGNAL(clicked()), this, SLOT(configCondition()));
+
+    _switchSynchro = new QPushButton();
+    _switchSynchro->setIcon(QIcon(":/synchr-icon"));
+    _switchSynchro->setFixedWidth(30);
+    tmpLay->addWidget(_switchSynchro);
+    connect(_switchSynchro, SIGNAL(clicked()), this, SLOT(changeSynchro()));
+
     mainLayout->addWidget(tabWidget_);
     setLayout(mainLayout);
 
@@ -132,7 +145,7 @@ namespace charliesoft
     tabs_content_.push_back(new QVBoxLayout(scrollarea));//input tab
     tabs_content_.push_back(new QVBoxLayout());//output tab
 
-    QWidget *tmpWidget = new QWidget(scrollarea);
+    tmpWidget = new QWidget(scrollarea);
     tmpWidget->setLayout(tabs_content_[0]);
     scrollarea->setWidget(tmpWidget);
     tabWidget_->addTab(scrollarea, _QT("BLOCK_TITLE_INPUT"));
@@ -471,12 +484,11 @@ namespace charliesoft
         //now add also subparameters, if any:
         Block* model = value->getModel();
         string paramValName = src->currentText().toStdString();
-        ParamRepresentation* p = inputGroup_[groupParams];
 
-        vector<cv::String> subParams = model->getSubParams(p->getParamName() + "." + paramValName);
+        vector<cv::String> subParams = model->getSubParams(value->getParamName() + "." + paramValName);
         for (cv::String subParam : subParams)
         {
-          string fullSubName = p->getParamName() + "." + paramValName + "." + subParam;
+          string fullSubName = value->getParamName() + "." + paramValName + "." + subParam;
           ParamRepresentation *tmp = sub_param_[fullSubName];
 
           addParamIn(tmp, value);
@@ -624,6 +636,26 @@ namespace charliesoft
   {
     QLineEdit* send = dynamic_cast<QLineEdit*>(sender());
     updateParamModel(_inputValue21[send]);
+  }
+
+  void ParamsConfigurator::changeSynchro()
+  {
+    QPushButton* send = dynamic_cast<QPushButton*>(sender());
+    if (send == NULL)
+      return;
+    Block* model = _vertex->getModel();
+    Block::BlockType type = model->getExecType();
+    if (type == Block::BlockType::producer || type == Block::BlockType::oneShot)
+    {
+      _switchSynchro->setIcon(QIcon(":/asynchr-icon"));
+      model->setExecType(Block::BlockType::asynchrone);
+    }
+    else
+    {
+      _switchSynchro->setIcon(QIcon(":/synchr-icon"));
+      model->setExecType(Block::BlockType::producer);
+    }
+
   }
 
   void ParamsConfigurator::openFile()

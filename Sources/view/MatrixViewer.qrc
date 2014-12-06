@@ -15,5 +15,8 @@
     <file alias="zoom_in-icon">../Milky/64/106.png</file>
     <file alias="zoom_out-icon">../Milky/64/107.png</file>
     <file alias="load-icon">../Milky/64/119.png</file>
+    
+    <file alias="asynchr-icon">../Milky/64/asynchr.png</file>
+    <file alias="synchr-icon">../Milky/64/synchr.png</file>
   </qresource>
 </RCC>

@@ -96,6 +96,8 @@ namespace charliesoft
     QTabWidget* tabWidget_;
     std::vector<QVBoxLayout *> tabs_content_;
 
+    QPushButton* _switchSynchro;
+
     void addParamOut(ParamRepresentation  *p);
     void addParamIn(ParamRepresentation  *p, ParamRepresentation* parent = NULL);
     bool updateParamModel(ParamRepresentation* param);
@@ -109,6 +111,7 @@ namespace charliesoft
     void askSynchro();
 
     public slots:
+    void changeSynchro();
     void textChanged();
     void switchEnable(int);
     void switchParamUse(bool);

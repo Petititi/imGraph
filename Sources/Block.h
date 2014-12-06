@@ -156,8 +156,7 @@ namespace charliesoft
   class Block{
     friend class GraphOfProcess;
     friend class charliesoft::ProcessManager;
-
-  protected:
+  public:
     /**
     * Three types of blocks:
     * Classic one-shot block. Called "consumer" they just take some input and create some output. Ex: line finder.
@@ -170,8 +169,8 @@ namespace charliesoft
       producer,
       asynchrone
     };
+  protected:
     BlockType _exec_type;
-
     bool _renderingSkiped;
     unsigned int nbRendering;
     GraphOfProcess* _processes;///<list of process currently in use
@@ -213,6 +212,9 @@ namespace charliesoft
       _processes = processes;
     };
     GraphOfProcess* getGraph() const { return _processes; };
+
+    BlockType getExecType() const { return _exec_type; }
+    void setExecType(BlockType val) { _exec_type = val; }
 
     unsigned int getNbRendering() const { return nbRendering; }
     unsigned int getTimestamp(){ return _timestamp; };
