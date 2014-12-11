@@ -118,6 +118,9 @@ namespace charliesoft
     sub_param_(vertex->getListOfSubParams()),
     out_param_(vertex->getListOfOutputChilds())
   {
+    Block* model = _vertex->getModel();
+    Block::BlockType type = model->getExecType();
+
     tabWidget_ = new QTabWidget(this);
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
 
@@ -132,8 +135,22 @@ namespace charliesoft
     connect(button, SIGNAL(clicked()), this, SLOT(configCondition()));
 
     _switchSynchro = new QPushButton();
-    _switchSynchro->setIcon(QIcon(":/synchr-icon"));
     _switchSynchro->setFixedWidth(30);
+    switch (type)
+    {
+    case Block::BlockType::oneShot:
+      _switchSynchro->setIcon(QIcon(":/oneShot-icon"));
+      _switchSynchro->setToolTip(_QT("BUTTON_SWITCH_ONESHOT"));
+      break;
+    case Block::BlockType::producer:
+      _switchSynchro->setIcon(QIcon(":/synchr-icon"));
+      _switchSynchro->setToolTip(_QT("BUTTON_SWITCH_SYNC"));
+      break;
+    default:
+      _switchSynchro->setIcon(QIcon(":/asynchr-icon"));
+      _switchSynchro->setToolTip(_QT("BUTTON_SWITCH_ASYNC"));
+      break;
+    }
     tmpLay->addWidget(_switchSynchro);
     connect(_switchSynchro, SIGNAL(clicked()), this, SLOT(changeSynchro()));
 
@@ -154,7 +171,6 @@ namespace charliesoft
     tmpWidget->setLayout(tabs_content_[1]);
     tabWidget_->addTab(tmpWidget, _QT("BLOCK_TITLE_OUTPUT"));
 
-    Block* model = vertex->getModel();
     //fill input parameters:
     const vector<ParamDefinition>& paramsIn = model->getInParams();
     auto it = paramsIn.begin();
@@ -640,20 +656,32 @@ namespace charliesoft
 
   void ParamsConfigurator::changeSynchro()
   {
+    //More to come(like adjust the frequency, one shot...)
     QPushButton* send = dynamic_cast<QPushButton*>(sender());
     if (send == NULL)
       return;
     Block* model = _vertex->getModel();
     Block::BlockType type = model->getExecType();
-    if (type == Block::BlockType::producer || type == Block::BlockType::oneShot)
+    if (type == Block::BlockType::oneShot)
     {
       _switchSynchro->setIcon(QIcon(":/asynchr-icon"));
+      _switchSynchro->setToolTip(_QT("BUTTON_SWITCH_ASYNC"));
       model->setExecType(Block::BlockType::asynchrone);
     }
     else
     {
-      _switchSynchro->setIcon(QIcon(":/synchr-icon"));
-      model->setExecType(Block::BlockType::producer);
+      if (type == Block::BlockType::producer)
+      {
+        _switchSynchro->setIcon(QIcon(":/oneShot-icon"));
+        _switchSynchro->setToolTip(_QT("BUTTON_SWITCH_ONESHOT"));
+        model->setExecType(Block::BlockType::oneShot);
+      }
+      else
+      {
+        _switchSynchro->setIcon(QIcon(":/synchr-icon"));
+        _switchSynchro->setToolTip(_QT("BUTTON_SWITCH_SYNC"));
+        model->setExecType(Block::BlockType::producer);
+      }
     }
 
   }

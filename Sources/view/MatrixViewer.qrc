@@ -18,5 +18,6 @@
     
     <file alias="asynchr-icon">../Milky/64/asynchr.png</file>
     <file alias="synchr-icon">../Milky/64/synchr.png</file>
+    <file alias="oneShot-icon">../Milky/64/oneShot.png</file>
   </qresource>
 </RCC>

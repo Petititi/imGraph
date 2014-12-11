@@ -77,7 +77,9 @@ namespace charliesoft
     translations["BUTTON_MATRIX"] = "Matrix editor";
     translations["BUTTON_ADD_INPUT"] = "Add input...";
     translations["BUTTON_ADD_OUTPUT"] = "Add output...";
-    translations["BUTTON_SWITCH_SYNC"] = "Switch block rendering type (sync/async)";
+    translations["BUTTON_SWITCH_SYNC"] = "Change block rendering type<br/>(currently synchrone)";
+    translations["BUTTON_SWITCH_ASYNC"] = "Change block rendering type<br/>(currently asyncrone)";
+    translations["BUTTON_SWITCH_ONESHOT"] = "Change block rendering type<br/>(currently one shot)";
 
     translations["TYPE_DATAS_BOOL"] = "Boolean";
     translations["TYPE_DATAS_INT"] = "Int";

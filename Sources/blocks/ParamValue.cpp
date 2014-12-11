@@ -16,16 +16,19 @@ namespace charliesoft
 
   std::string ParamValue::getValFromList()
   {
+    boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     if (getType() != ListBox || _block == NULL)
       return "";
-    string help = _PROCESS_MANAGER->getParamHelp(_block->getName(), _name, !_isOutput);
-    size_t pos = _STR(help).find_first_of('|');
-    if (pos != std::string::npos)
+    string help = _STR(_PROCESS_MANAGER->getParamHelp(_block->getName(), _name, !_isOutput));
+    size_t pos = help.find_first_of('|');
+    if (pos != std::string::npos && pos<help.length()-2)
     {
-      std::string params = _STR(help).substr(pos + 1);
+      std::string params = help.substr(pos + 1);
       std::vector<std::string> values;
       boost::split(values, params, boost::is_any_of("^"));
-      size_t idx = static_cast<size_t>(boost::get<int>(value_));
+      size_t idx = 0;
+      if (!isDefaultValue())
+        idx = static_cast<size_t>(boost::get<int>(value_));
       if (idx >= 0 && idx<values.size())
         return values[idx];
     };
@@ -35,6 +38,7 @@ namespace charliesoft
   ParamType ParamValue::getType(bool realType) const{
     if (_block == NULL)
       return typeError;
+    boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     ParamType out = _PROCESS_MANAGER->getParamType(_block->getName(), _name, !_isOutput);
     if (out == typeError || out == AnyType)//if anyType, try to detect type...
     {
