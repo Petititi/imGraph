@@ -98,7 +98,7 @@ namespace charliesoft
   ConditionLinkRepresentation::ConditionLinkRepresentation(ConditionOfRendering* model, bool isLeftCond, QWidget *father) :
     LinkConnexionRepresentation(_STR(isLeftCond ? "CONDITION_BLOCK_LEFT" : "CONDITION_BLOCK_RIGHT"), isLeftCond, father), _model(model){
     setObjectName("ParamRepresentation");
-    setToolTip(_QT("CONDITION_BLOCK_HELP"));
+    setToolTip("<FONT>" + _QT("CONDITION_BLOCK_HELP") + "</FONT>");
 
     connect(this, SIGNAL(askSynchro()), (VertexRepresentation*)father->parentWidget(), SLOT(reshape()));
   }
@@ -108,7 +108,7 @@ namespace charliesoft
     _defaultValue = _isSubParam = false;
     setObjectName("ParamRepresentation");
     if (!param._show) this->hide();
-    setToolTip(_QT(param._helper));
+    setToolTip("<FONT>" + _QT(param._helper) + "</FONT>");
     if (father != NULL)
     {
       VertexRepresentation* parent = dynamic_cast<VertexRepresentation*>(father->parentWidget());
@@ -120,7 +120,7 @@ namespace charliesoft
   SubGraphParamRepresentation::SubGraphParamRepresentation(SubBlock* model, const ParamDefinition& def, bool isInput, QWidget *father) :
     LinkConnexionRepresentation(_STR(def._name), isInput, father), _model(model), _param(def){
     setObjectName("SubGraphParamRepresentation");
-    setToolTip(_QT(def._helper));
+    setToolTip("<FONT>" + _QT(def._helper) + "</FONT>");
     setAlignment(Qt::AlignCenter);
   }
 

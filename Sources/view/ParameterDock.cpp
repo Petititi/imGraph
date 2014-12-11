@@ -140,15 +140,15 @@ namespace charliesoft
     {
     case Block::BlockType::oneShot:
       _switchSynchro->setIcon(QIcon(":/oneShot-icon"));
-      _switchSynchro->setToolTip(_QT("BUTTON_SWITCH_ONESHOT"));
+      _switchSynchro->setToolTip("<FONT>" + _QT("BUTTON_SWITCH_ONESHOT") + "</FONT>");
       break;
     case Block::BlockType::producer:
       _switchSynchro->setIcon(QIcon(":/synchr-icon"));
-      _switchSynchro->setToolTip(_QT("BUTTON_SWITCH_SYNC"));
+      _switchSynchro->setToolTip("<FONT>" + _QT("BUTTON_SWITCH_SYNC") + "</FONT>");
       break;
     default:
       _switchSynchro->setIcon(QIcon(":/asynchr-icon"));
-      _switchSynchro->setToolTip(_QT("BUTTON_SWITCH_ASYNC"));
+      _switchSynchro->setToolTip("<FONT>" + _QT("BUTTON_SWITCH_ASYNC") + "</FONT>");
       break;
     }
     tmpLay->addWidget(_switchSynchro);
@@ -651,7 +651,15 @@ namespace charliesoft
   void ParamsConfigurator::textChanged()
   {
     QLineEdit* send = dynamic_cast<QLineEdit*>(sender());
-    updateParamModel(_inputValue21[send]);
+    ParamRepresentation* p = dynamic_cast<ParamRepresentation*>(_inputValue21[send]);
+    if (p == NULL)
+      return;//nothing to do...
+    if (!updateParamModel(p))
+    {
+      //value is not accepted, restore previous one:
+      ParamValue* param = p->getParamValue();
+      send->setText(param->toString().c_str());
+    }
   }
 
   void ParamsConfigurator::changeSynchro()
@@ -665,7 +673,7 @@ namespace charliesoft
     if (type == Block::BlockType::oneShot)
     {
       _switchSynchro->setIcon(QIcon(":/asynchr-icon"));
-      _switchSynchro->setToolTip(_QT("BUTTON_SWITCH_ASYNC"));
+      _switchSynchro->setToolTip("<FONT>" + _QT("BUTTON_SWITCH_ASYNC") + "</FONT>");
       model->setExecType(Block::BlockType::asynchrone);
     }
     else
@@ -673,13 +681,13 @@ namespace charliesoft
       if (type == Block::BlockType::producer)
       {
         _switchSynchro->setIcon(QIcon(":/oneShot-icon"));
-        _switchSynchro->setToolTip(_QT("BUTTON_SWITCH_ONESHOT"));
+        _switchSynchro->setToolTip("<FONT>" + _QT("BUTTON_SWITCH_ONESHOT") + "</FONT>");
         model->setExecType(Block::BlockType::oneShot);
       }
       else
       {
         _switchSynchro->setIcon(QIcon(":/synchr-icon"));
-        _switchSynchro->setToolTip(_QT("BUTTON_SWITCH_SYNC"));
+        _switchSynchro->setToolTip("<FONT>" + _QT("BUTTON_SWITCH_SYNC") + "</FONT>");
         model->setExecType(Block::BlockType::producer);
       }
     }
@@ -718,7 +726,9 @@ namespace charliesoft
       }
       catch (ErrorValidator& e)
       {//algo doesn't accept this value!
-        QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), e.errorMsg.c_str());
+        if(QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"),
+          QString(e.errorMsg.c_str()) + "<br/>" + _QT("ERROR_CONFIRM_SET_VALUE"),
+          QMessageBox::Apply | QMessageBox::RestoreDefaults, QMessageBox::Apply) != QMessageBox::Apply)
         return false;//stop here the validation: should correct the error!
       }
       paramRep->setVisibility(false);
@@ -751,8 +761,12 @@ namespace charliesoft
         }
         catch (ErrorValidator& e)
         {//algo doesn't accept this value!
-          QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), e.errorMsg.c_str());
-          return false;//stop here the validation: should correct the error!
+          if (QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"),
+            QString(e.errorMsg.c_str()) + "<br/>" + _QT("ERROR_CONFIRM_SET_VALUE"),
+            QMessageBox::Apply | QMessageBox::RestoreDefaults, QMessageBox::Apply) != QMessageBox::Apply)
+            return false;//stop here the validation: should correct the error!
+          else
+            *param = true;//force the value!
         }
       }
     }
@@ -770,8 +784,12 @@ namespace charliesoft
         }
         catch (ErrorValidator& e)
         {//algo doesn't accept this value!
-          QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), e.errorMsg.c_str());
-          return false;//stop here the validation: should correct the error!
+          if (QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"),
+            QString(e.errorMsg.c_str()) + "<br/>" + _QT("ERROR_CONFIRM_SET_VALUE"),
+            QMessageBox::Apply | QMessageBox::RestoreDefaults, QMessageBox::Apply) != QMessageBox::Apply)
+            return false;//stop here the validation: should correct the error!
+          else
+            *param = val;//force the value!
         }
       }
     }
@@ -788,8 +806,12 @@ namespace charliesoft
         }
         catch (ErrorValidator& e)
         {//algo doesn't accept this value!
-          QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), e.errorMsg.c_str());
-          return false;//stop here the validation: should correct the error!
+          if (QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"),
+            QString(e.errorMsg.c_str()) + "<br/>" + _QT("ERROR_CONFIRM_SET_VALUE"),
+            QMessageBox::Apply | QMessageBox::RestoreDefaults, QMessageBox::Apply) != QMessageBox::Apply)
+            return false;//stop here the validation: should correct the error!
+          else
+            *param = val;//force the value!
         }
       }
     }
@@ -802,8 +824,12 @@ namespace charliesoft
       }
       catch (ErrorValidator& e)
       {//algo doesn't accept this value!
-        QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), e.errorMsg.c_str());
-        return false;//stop here the validation: should correct the error!
+        if (QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"),
+          QString(e.errorMsg.c_str()) + "<br/>" + _QT("ERROR_CONFIRM_SET_VALUE"),
+          QMessageBox::Apply | QMessageBox::RestoreDefaults, QMessageBox::Apply) != QMessageBox::Apply)
+          return false;//stop here the validation: should correct the error!
+        else
+          *param = val;//force the value!
       }
     }
     if (param->getType() == Matrix)
@@ -815,12 +841,17 @@ namespace charliesoft
       }
       catch (ErrorValidator& e)
       {//algo doesn't accept this value!
-        QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"), e.errorMsg.c_str());
-        return false;//stop here the validation: should correct the error!
+        if (QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"),
+          QString(e.errorMsg.c_str()) + "<br/>" + _QT("ERROR_CONFIRM_SET_VALUE"),
+          QMessageBox::Apply | QMessageBox::RestoreDefaults, QMessageBox::Apply) != QMessageBox::Apply)
+          return false;//stop here the validation: should correct the error!
+        else
+          *param = val;//force the value!
       }
     }
 
     paramRep->getModel()->getGraph()->initChildDatas(paramRep->getModel(), std::set<Block*>());
+    Window::synchroMainGraph();
     return true;
   }
 

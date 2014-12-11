@@ -3,7 +3,7 @@
   <LastProject/>
   <PrefLang>en</PrefLang>
   <styleSheet>
-  QToolTip {font-style:italic; color: #ffffff; background-color: #2a82aa; border: 1px solid white;}
+  QToolTip {opacity: 200;border: 1px;}
   QWidget#MainWidget{background:white;background-image:url(logo.png);background-repeat:no-repeat;background-position:center;}
   QWidget#DraggableWidget{max-height:50px; padding: 2px; margin:5px; border:1px solid #888;border-radius: 5px;
     background: qradialgradient(cx: 0.3, cy: -0.4, fx: 0.3, fy : -0.4, radius : 1.35, stop : 0 #fff, stop: 1 #bbb);}
