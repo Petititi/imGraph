@@ -651,14 +651,19 @@ namespace charliesoft
   void ParamsConfigurator::textChanged()
   {
     QLineEdit* send = dynamic_cast<QLineEdit*>(sender());
-    ParamRepresentation* p = dynamic_cast<ParamRepresentation*>(_inputValue21[send]);
-    if (p == NULL)
-      return;//nothing to do...
-    if (!updateParamModel(p))
+    if (send->hasFocus())//remove focus!
+      Window::getInstance()->getMainWidget()->setFocus();
+    else
     {
-      //value is not accepted, restore previous one:
-      ParamValue* param = p->getParamValue();
-      send->setText(param->toString().c_str());
+      ParamRepresentation* p = dynamic_cast<ParamRepresentation*>(_inputValue21[send]);
+      if (p == NULL)
+        return;//nothing to do...
+      if (!updateParamModel(p))
+      {
+        //value is not accepted, restore previous one:
+        ParamValue* param = p->getParamValue();
+        send->setText(param->toString().c_str());
+      }
     }
   }
 

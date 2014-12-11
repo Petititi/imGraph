@@ -11,6 +11,7 @@
 #include <QRect>
 #include <QString>
 #include <QDialog>
+#include <QStatusBar>
 #include <QLabel>
 #include <QWidget>
 #include <QLayout>
@@ -55,6 +56,10 @@ namespace charliesoft
 
     void show();
     void addTab(MainWidget* tmp, QString tabName);
+
+    void setStatusMessage(QString msg){
+      statusBar()->showMessage(msg);
+    };
 
     MainWidget* getMainWidget() const;
     std::string getKey(QTreeWidgetItem* w) {
