@@ -646,6 +646,10 @@ namespace charliesoft
   }
 
 
+  MainWidget_ForGraph::MainWidget_ForGraph(SubBlock *model) : MainWidget_SubGraph(model)
+  {
+  };
+
   MainWidget_SubGraph::MainWidget_SubGraph(SubBlock *model) :
     MainWidget(model->getSubGraph())
   {

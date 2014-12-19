@@ -112,6 +112,7 @@ namespace charliesoft
 
   class MainWidget_SubGraph :public MainWidget
   {
+  protected:
     SubBlock* _subModel;
     int _posInput;
     int _posOutput;
@@ -119,6 +120,7 @@ namespace charliesoft
     std::map<std::string, SubGraphParamRepresentation*> _params;
 
     void addParameter(SubGraphParamRepresentation* param);
+    virtual void	resizeEvent(QResizeEvent * event);
   public:
     MainWidget_SubGraph(SubBlock *model);
 
@@ -128,8 +130,12 @@ namespace charliesoft
 
     void addNewParamLink(const BlockLink& link);
     void removeParamLink(const BlockLink& link);
-  protected:
-    virtual void	resizeEvent(QResizeEvent * event);
+  };
+
+  class MainWidget_ForGraph :public MainWidget_SubGraph
+  {
+  public:
+    MainWidget_ForGraph(SubBlock *model);
   };
 }
 

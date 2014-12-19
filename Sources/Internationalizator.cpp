@@ -183,6 +183,14 @@ namespace charliesoft
     
     translations["SUBBLOCK__"] = "Sub graph";
 
+    translations["FOR_BLOCK_"] = "for";
+    translations["FOR_BLOCK_INITVAL"] = "start";
+    translations["FOR_BLOCK_INITVAL_HELP"] = "Initial value of counter";
+    translations["FOR_BLOCK_ENDVAL"] = "end";
+    translations["FOR_BLOCK_ENDVAL_HELP"] = "Final value of counter";
+    translations["FOR_BLOCK_STEPVAL"] = "step";
+    translations["FOR_BLOCK_STEPVAL_HELP"] = "Step value of counter";
+
     translations["BLOCK_TITLE_INPUT"] = "Input";
     translations["BLOCK_TITLE_IMG_PROCESS"] = "2D processing";
     translations["BLOCK_TITLE_SIGNAL"] = "Video processing";

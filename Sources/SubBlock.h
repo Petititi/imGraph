@@ -21,6 +21,7 @@ namespace charliesoft
 
   class SubBlock :public Block
   {
+  protected:
     friend class charliesoft::ProcessManager;
 
     //////////////////////////////////////////////////////////////////////////
@@ -34,7 +35,7 @@ namespace charliesoft
     //////////////////////////////////////////////////////////////////////////
     static bool addedToList;
     boost::mutex _mtx_1;    // explicit mutex declaration
-  protected:
+
     std::map<std::string, ParamDefinition> _inputParams;
     std::map<std::string, ParamDefinition> _outputParams;
 
@@ -45,6 +46,7 @@ namespace charliesoft
     virtual bool run(bool oneShot = false);
   public:
     SubBlock();
+    SubBlock(std::string name);
 
     ParamValue* addNewInput(ParamDefinition& param);
     ParamValue* addNewOutput(ParamDefinition& param);

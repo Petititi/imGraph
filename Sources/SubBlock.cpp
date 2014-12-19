@@ -27,7 +27,10 @@ namespace charliesoft
   bool SubBlock::addedToList = 
     charliesoft::ProcessManager::getInstance()->addNewAlgo<SubBlock>(input, "SUBBLOCK__");
 
-  SubBlock::SubBlock() :Block("SUBBLOCK__"){
+  SubBlock::SubBlock() :SubBlock("SUBBLOCK__"){
+  };
+
+  SubBlock::SubBlock(string name) :Block(name){
     _subGraph = new GraphOfProcess();
   };
 
