@@ -175,6 +175,15 @@ namespace charliesoft
       return QPoint(p.x() + width(), (int)(p.y() + height() / 2.));
   }
 
+  void LinkConnexionRepresentation::setVisibility(bool visible)
+  {
+    if (_shouldShow == visible)
+      return;//Nothing to do...
+
+    _shouldShow = visible;
+    emit askSynchro();
+  }
+
   void LinkConnexionRepresentation::mousePressEvent(QMouseEvent *e)
   {
     QWidget* parent = parentWidget();

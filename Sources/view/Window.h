@@ -35,6 +35,7 @@ namespace charliesoft
   class MainWidget;
   class GlobalConfig;
   class VertexRepresentation;
+  class GroupParamRepresentation;
 
 
   class DraggableContainer : public QTreeWidget
@@ -101,7 +102,7 @@ namespace charliesoft
     bool quitProg();
     void printHelp();
 
-    void updatePropertyDock(VertexRepresentation*);
+    void updatePropertyDock(GroupParamRepresentation*);
 
     void closeTab_(int index)
     {

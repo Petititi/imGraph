@@ -38,17 +38,17 @@
 
 namespace charliesoft
 {
-  class VertexRepresentation :public QWidget
+  class GroupParamRepresentation :public QWidget
   {
     Q_OBJECT;
-
+  protected:
     QWidget* _blockRepresentation;
     QWidget* _conditionsRepresentation;
     QFrame* _lineTitle;
     QLabel* _vertexTitle;
     QLabel* _conditionTitle;
     QLabel* _conditionsValues;
-    Block* _model;
+
     bool _isDragging;
     bool _isMoving;
     bool _hasDynamicParams;
@@ -57,22 +57,23 @@ namespace charliesoft
     int heightOfConditions;
 
     std::map<BlockLink, LinkPath*> _links;
-    std::vector< std::pair<ConditionOfRendering*, ConditionLinkRepresentation*> > linksConditions_;
-    std::map<std::string, ParamRepresentation*> listOfInputChilds_;
-    std::map<std::string, ParamRepresentation*> listOfInputSubParams_;
-    std::map<std::string, ParamRepresentation*> listOfOutputChilds_;
-    std::vector<ParamRepresentation*> listOfSubParams_;
-  public:
-    VertexRepresentation(Block* model);
-    ~VertexRepresentation();
+    std::vector< std::pair<ConditionOfRendering*, ConditionLinkRepresentation*> > _linksConditions;
+    std::map<std::string, LinkConnexionRepresentation*> _listOfInputChilds;
+    std::map<std::string, LinkConnexionRepresentation*> _listOfInputSubParams;
+    std::map<std::string, LinkConnexionRepresentation*> _listOfOutputChilds;
+    std::vector<LinkConnexionRepresentation*> _listOfSubParams;
+    std::vector<ConditionOfRendering> _conditions;
 
-    void createListParamsFromModel();
+    static std::vector<GroupParamRepresentation*> _selectedBlock;
+  public:
+    GroupParamRepresentation(std::string title);
+    ~GroupParamRepresentation();
+
     bool hasDynamicParams() const { return _hasDynamicParams; };
 
-    ParamRepresentation* addNewInputParam(ParamDefinition def);
-    ParamRepresentation* addNewOutputParam(ParamDefinition def);
+    virtual LinkConnexionRepresentation* addNewInputParam(ParamDefinition def);
+    virtual LinkConnexionRepresentation* addNewOutputParam(ParamDefinition def);
 
-    Block* getModel() const { return _model; }
     void setParamActiv(LinkConnexionRepresentation*);
 
     std::map<BlockLink, LinkPath*> getLinks() const { return _links; }
@@ -84,18 +85,20 @@ namespace charliesoft
 
     void changeStyleProperty(const char* propertyName, QVariant val);
     void setSelected(bool isSelected);
+
     static void resetSelection();
-    static std::vector<VertexRepresentation*> getSelection(){
-      return selectedBlock_;
+    static std::vector<GroupParamRepresentation*> getSelection(){
+      return _selectedBlock;
     };
-    ParamRepresentation* getParamRep(std::string paramName, bool input);
-    std::map<std::string, ParamRepresentation*>& getListOfInputChilds() { return listOfInputChilds_; }
-    std::map<std::string, ParamRepresentation*>& getListOfSubParams() { return listOfInputSubParams_; }
-    std::map<std::string, ParamRepresentation*>& getListOfOutputChilds() { return listOfOutputChilds_; }
+
+    LinkConnexionRepresentation* getParamRep(std::string paramName, bool input);
+    std::map<std::string, LinkConnexionRepresentation*>& getListOfInputChilds() { return _listOfInputChilds; }
+    std::map<std::string, LinkConnexionRepresentation*>& getListOfSubParams() { return _listOfInputSubParams; }
+    std::map<std::string, LinkConnexionRepresentation*>& getListOfOutputChilds() { return _listOfOutputChilds; }
   protected:
     ConditionLinkRepresentation* getCondition(ConditionOfRendering*, bool isLeft);
-    static std::vector<VertexRepresentation*> selectedBlock_;
-    void moveDelta(QPoint delta);
+
+    virtual void moveDelta(QPoint delta);
     virtual void mousePressEvent(QMouseEvent *);
     virtual void mouseReleaseEvent(QMouseEvent *);
     virtual void mouseDoubleClickEvent(QMouseEvent *);
@@ -104,10 +107,34 @@ namespace charliesoft
     virtual void leaveEvent(QEvent *);
 
     public slots:
-    void reshape();
+    virtual void reshape();
 
   signals:
-    void updateProp(VertexRepresentation*);
+    void updateProp(GroupParamRepresentation*);
+  };
+
+  class VertexRepresentation :public GroupParamRepresentation
+  {
+    Q_OBJECT;
+    Block* _model;
+
+  public:
+    VertexRepresentation(Block* model);
+    ~VertexRepresentation();
+
+    Block* getModel() const { return _model; }
+
+
+    virtual LinkConnexionRepresentation* addNewInputParam(ParamDefinition def);
+    virtual LinkConnexionRepresentation* addNewOutputParam(ParamDefinition def);
+
+  protected:
+    void createListParamsFromModel();
+    virtual void moveDelta(QPoint delta);
+    virtual void mouseDoubleClickEvent(QMouseEvent *);
+
+    public slots:
+    virtual void reshape();
   };
 
 }

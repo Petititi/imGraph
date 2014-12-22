@@ -309,7 +309,11 @@ namespace charliesoft
         case Qt::Key_Delete:
           dynamic_cast<GraphLayout*>(getMainWidget()->layout())->removeSelectedLinks();
           for (auto rep : VertexRepresentation::getSelection())
-            getMainWidget()->getModel()->deleteProcess(rep->getModel());
+          {
+            VertexRepresentation* param = dynamic_cast<VertexRepresentation*>(rep);
+            if (param != NULL)
+              getMainWidget()->getModel()->deleteProcess(param->getModel());
+          }
           VertexRepresentation::resetSelection();
           synchroMainGraph();
           break;
@@ -402,17 +406,21 @@ namespace charliesoft
 
     //first select blocks selected:
     set<Block*> selectedBlocks;
-    vector<VertexRepresentation*> representations = VertexRepresentation::getSelection();
-    VertexRepresentation::resetSelection();//we got the selection, now reset the list...
+    vector<GroupParamRepresentation*> representations = GroupParamRepresentation::getSelection();
+    GroupParamRepresentation::resetSelection();//we got the selection, now reset the list...
 
     float x = 0, y = 0;
     for (auto rep : representations)
     {
-      Block* b = rep->getModel();
-      cv::Vec2f pos = b->getPosition();
-      x += pos[0];
-      y += pos[1];
-      selectedBlocks.insert(b);
+      VertexRepresentation* param = dynamic_cast<VertexRepresentation*>(rep);
+      if (param != NULL)
+      {
+        Block* b = param->getModel();
+        cv::Vec2f pos = b->getPosition();
+        x += pos[0];
+        y += pos[1];
+        selectedBlocks.insert(b);
+      }
     }
     x /= representations.size();
     y /= representations.size();
@@ -519,12 +527,16 @@ namespace charliesoft
 
   }
 
-  void Window::updatePropertyDock(VertexRepresentation* vertex)
+  void Window::updatePropertyDock(GroupParamRepresentation* vertex)
   {
-    QWidget *prevWidget = property_dock_->widget();
-    property_dock_->setWidget(new ParamsConfigurator(vertex));
-    if (prevWidget != NULL)
-      delete prevWidget;
+    VertexRepresentation* param = dynamic_cast<VertexRepresentation*>(vertex);
+    if (param != NULL)
+    {
+      QWidget *prevWidget = property_dock_->widget();
+      property_dock_->setWidget(new ParamsConfigurator(param));
+      if (prevWidget != NULL)
+        delete prevWidget;
+    }
   }
 
   void DraggableContainer::mousePressEvent(QMouseEvent *mouse)

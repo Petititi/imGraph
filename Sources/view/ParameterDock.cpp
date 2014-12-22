@@ -79,15 +79,15 @@ namespace charliesoft
     if (input)
     {
       model->addNewInput(def);
-      param = _vertex->addNewInputParam(def);
-      in_param_[def._name] = param;
+      param = dynamic_cast<ParamRepresentation*>(_vertex->addNewInputParam(def));
+      _in_param[def._name] = param;
       addParamIn(param);
     }
     else
     {
       model->addNewOutput(def);
-      param = _vertex->addNewOutputParam(def);
-      out_param_[def._name] = param;
+      param = dynamic_cast<ParamRepresentation*>(_vertex->addNewOutputParam(def));
+      _out_param[def._name] = param;
       addParamOut(param);
     }
   }
@@ -114,9 +114,9 @@ namespace charliesoft
 
   ParamsConfigurator::ParamsConfigurator(VertexRepresentation* vertex) :
     QDialog(vertex), _vertex(vertex), 
-    in_param_(vertex->getListOfInputChilds()),
-    sub_param_(vertex->getListOfSubParams()),
-    out_param_(vertex->getListOfOutputChilds())
+    _in_param(vertex->getListOfInputChilds()),
+    _sub_param(vertex->getListOfSubParams()),
+    _out_param(vertex->getListOfOutputChilds())
   {
     Block* model = _vertex->getModel();
     Block::BlockType type = model->getExecType();
@@ -176,7 +176,9 @@ namespace charliesoft
     auto it = paramsIn.begin();
     while (it != paramsIn.end())
     {
-      addParamIn(in_param_[it->_name]);
+      ParamRepresentation* param = dynamic_cast<ParamRepresentation*>(_in_param[it->_name]);
+      if (param != NULL)
+        addParamIn(param);
       it++;
     }
 
@@ -184,7 +186,9 @@ namespace charliesoft
     it = paramsOut.begin();
     while (it != paramsOut.end())
     {
-      addParamOut(out_param_[it->_name]);
+      ParamRepresentation* param = dynamic_cast<ParamRepresentation*>(_out_param[it->_name]);
+      if (param!=NULL)
+        addParamOut(param);
       it++;
     }
 
@@ -505,13 +509,13 @@ namespace charliesoft
         for (cv::String subParam : subParams)
         {
           string fullSubName = value->getParamName() + "." + paramValName + "." + subParam;
-          ParamRepresentation *tmp = sub_param_[fullSubName];
+          ParamRepresentation *tmp = dynamic_cast<ParamRepresentation*>(_sub_param[fullSubName]);
 
           addParamIn(tmp, value);
         }
       }
       else
-      {//It's probably a "AnyType" value, so we provide a subCategory input:
+      {//It's probably a "AnyType" value, so we provide a subCategory input: TODO
         switch (newVal)
         {
         case 0://TYPE_DATAS_BOOL
@@ -576,7 +580,7 @@ namespace charliesoft
           for (cv::String subParam : subParams)
           {
             string fullSubName = param->getParamName() + "." + paramsList[value] + "." + subParam;
-            ParamRepresentation *tmp = sub_param_[fullSubName];
+            ParamRepresentation *tmp = dynamic_cast<ParamRepresentation*>(_sub_param[fullSubName]);
             param->useDefault(!state);
           }
         }

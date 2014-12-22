@@ -85,9 +85,9 @@ namespace charliesoft
     std::map<ParamRepresentation*, QObject* > _inputValue12;
     std::map<QObject*, ParamRepresentation*> _inputValue21;
 
-    std::map<std::string, ParamRepresentation*>& in_param_;
-    std::map<std::string, ParamRepresentation*>& sub_param_;
-    std::map<std::string, ParamRepresentation*>& out_param_;
+    std::map<std::string, LinkConnexionRepresentation*>& _in_param;
+    std::map<std::string, LinkConnexionRepresentation*>& _sub_param;
+    std::map<std::string, LinkConnexionRepresentation*>& _out_param;
 
     std::map<ParamRepresentation*, QWidget*> subWidget_;
 

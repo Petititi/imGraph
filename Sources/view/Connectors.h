@@ -47,6 +47,7 @@ namespace charliesoft
     Q_OBJECT;
   protected:
     bool _isInput;
+    bool _shouldShow;
     VertexRepresentation* _vertex;
   public:
     LinkConnexionRepresentation(std::string text, bool isInput, QWidget *father);
@@ -57,6 +58,9 @@ namespace charliesoft
     virtual void mouseMoveEvent(QMouseEvent *);
 
     bool isInput() const { return _isInput; }
+
+    virtual bool shouldShow() const { return _shouldShow; }
+    virtual void setVisibility(bool visible);
 
     QPoint getWorldAnchor();
   signals:
@@ -104,9 +108,10 @@ namespace charliesoft
   public:
     ParamRepresentation(Block* model, ParamDefinition param, bool isInput, QWidget *father);
 
-    bool shouldShow() const { return _param._show; }
+    virtual bool shouldShow() const { return _param._show; }
+    virtual void setVisibility(bool visible);
+
     bool isDefaultVal() const { return _defaultValue; }
-    void setVisibility(bool visible);
     void useDefault(bool defaultVal){ _defaultValue = defaultVal; };
     std::string getParamName() const { return _param._name; }
     ParamValue* getParamValue() const { 
