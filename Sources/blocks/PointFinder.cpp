@@ -85,7 +85,7 @@ public:
           ADD_SUBPARAM_FROM_OPENCV_ALGO(detect, "BLOCK__POINT_FINDER_IN_EXTRACTOR", param, subParam);
       }
     }
-  }
+  };
   pos = _STR("BLOCK__POINT_FINDER_IN_MODIFICATOR_HELP").find_first_of('|');
   if (pos != std::string::npos)
   {

@@ -12,6 +12,7 @@
 #include "Block.h"
 #include "ParamValidator.h"
 #include "OpenCV_filter.h"
+#include "MatrixConvertor.h"
 using namespace lsis_org;
 using std::vector;
 using std::string;
@@ -41,28 +42,149 @@ namespace charliesoft
     _myInputs["BLOCK__MERGING_IN_IMAGE1"].addValidator({ new ValNeeded() });
     _myInputs["BLOCK__MERGING_IN_IMAGE2"].addValidator({ new ValNeeded() });
   };
-  
+
   bool MergingBlock::run(bool oneShot){
     if (_myInputs["BLOCK__MERGING_IN_IMAGE1"].isDefaultValue())
       return false;
     if (_myInputs["BLOCK__MERGING_IN_IMAGE2"].isDefaultValue())
       return false;
-    cv::Mat mat1 = _myInputs["BLOCK__MERGING_IN_IMAGE1"].get<cv::Mat>(true) / 2.;
-    cv::Mat mat2 = _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<cv::Mat>(true) / 2.;
+    ParamType type1 = _myInputs["BLOCK__MERGING_IN_IMAGE1"].getType(false),
+      type2 = _myInputs["BLOCK__MERGING_IN_IMAGE2"].getType(false);
+    //Boolean = 0, Int, Float, Color, Matrix, String, FilePath, ListBox, AnyType, typeError
 
-    if (!mat1.empty() && !mat2.empty())
+    switch (type1)
     {
-      if (mat1.channels() != mat2.channels())
+    case Int:
+    {
+      int param1 = _myInputs["BLOCK__MERGING_IN_IMAGE1"].get<int>(true);
+      switch (type2)
       {
-        if (mat1.channels() == 1 &&
-          mat2.channels() == 3)
-          cv::cvtColor(mat1, mat1, cv::COLOR_GRAY2BGR);
-        if (mat2.channels() == 1 &&
-          mat1.channels() == 3)
-          cv::cvtColor(mat2, mat2, cv::COLOR_GRAY2BGR);
+      case Int:
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<int>(true);
+        break;
+      case Float:
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<double>(true);
+        break;
+      case Color:
+      {
+        cv::Scalar tmp(param1, param1, param1, param1);
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = tmp + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<cv::Scalar>(true);
+        break;
       }
-      _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = mat1 + mat2;
+      case Matrix:
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<cv::Mat>(true);
+        break;
+      default:
+        return false;//nothing to do as we don't support this type of operation
+        break;
+      }
+      break;
     }
+    case Float:
+    {
+      double param1 = _myInputs["BLOCK__MERGING_IN_IMAGE1"].get<double>(true);
+      switch (type2)
+      {
+      case Int:
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<int>(true);
+        break;
+      case Float:
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<double>(true);
+        break;
+      case Color:
+      {
+        cv::Scalar tmp(param1, param1, param1, param1);
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = tmp + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<cv::Scalar>(true);
+        break;
+      }
+      case Matrix:
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<cv::Mat>(true);
+        break;
+      default:
+        return false;//nothing to do as we don't support this type of operation
+        break;
+      }
+      break;
+    }
+    case Color:
+    {
+      cv::Scalar param1 = _myInputs["BLOCK__MERGING_IN_IMAGE1"].get<cv::Scalar>(true);
+      switch (type2)
+      {
+      case Int:
+      {
+        int param2 = _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<int>(true);
+        cv::Scalar tmp(param2, param2, param2, param2);
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + tmp;
+        break;
+      }
+      case Float:
+      {
+        double param2 = _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<double>(true);
+        cv::Scalar tmp(param2, param2, param2, param2);
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + tmp;
+        break;
+      }
+      case Color:
+      {
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<cv::Scalar>(true);
+        break;
+      }
+      case Matrix:
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<cv::Mat>(true);
+        break;
+      default:
+        return false;//nothing to do as we don't support this type of operation
+        break;
+      }
+      break;
+    }
+    case Matrix:
+    {
+      cv::Mat param1 = _myInputs["BLOCK__MERGING_IN_IMAGE1"].get<cv::Mat>(true);
+      switch (type2)
+      {
+      case Int:
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<int>(true);
+        break;
+      case Float:
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<double>(true);
+        break;
+      case Color:
+      {
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<cv::Scalar>(true);
+        break;
+      }
+      case Matrix:
+      {
+        cv::Mat param2 = _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<cv::Mat>(true);
+        int outputType = param1.type();
+        if (param1.channels() != param2.channels())
+        {
+          if (param1.channels() < param2.channels())
+          {
+            param1 = MatrixConvertor::adjustChannels(param1, param2.channels());
+            outputType = param2.type();
+          }
+          else
+            param2 = MatrixConvertor::adjustChannels(param2, param1.channels());
+        }
+        Mat dest;
+        cv::add(param1, param2, dest, cv::Mat(), outputType);
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = dest;
+      }
+        break;
+      default:
+        return false;//nothing to do as we don't support this type of operation
+        break;
+      }
+      break;
+    }
+    default:
+      return false;//nothing to do as we don't support this type of operation
+      break;
+    }
+
     return true;
   };
 };

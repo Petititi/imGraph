@@ -42,10 +42,12 @@ namespace charliesoft
   ParamType ParamValue::getType(bool realType) const{
     if (_block == NULL)
       return typeError;
-    if (_definition != NULL)
-      return _definition->_type;
+    ParamType out = typeError;
     boost::unique_lock<boost::recursive_mutex> lock(_mtx);
-    ParamType out = _PROCESS_MANAGER->getParamType(_block->getName(), _name, !_isOutput);
+    if (_definition != NULL)
+      out = _definition->_type;
+    if (out == typeError)//if anyType, try to detect type...
+      out = _PROCESS_MANAGER->getParamType(_block->getName(), _name, !_isOutput);
     if (out == typeError || out == AnyType)//if anyType, try to detect type...
     {
       if (out != AnyType)
