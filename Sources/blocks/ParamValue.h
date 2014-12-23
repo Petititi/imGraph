@@ -21,6 +21,7 @@ namespace charliesoft
   class ParamValidator;
   class Block;
   struct BlockLink;
+  struct ParamDefinition;
 
   enum ParamType
   {
@@ -54,6 +55,7 @@ namespace charliesoft
     std::vector<ParamValidator*> _validators;
     std::set<ParamValue*> _distantListeners;
     Block *_block;
+    const ParamDefinition* _definition;
     std::string _name;
     bool _isOutput;
     bool _paramNeeded;
@@ -64,49 +66,41 @@ namespace charliesoft
     VariantClasses value_;
     ParamValue(Block *algo, std::string name, bool isOutput) :
       _block(algo), _name(name), _isOutput(isOutput), value_(Not_A_Value()){
-      _newValue = false; _paramNeeded = true;
+      _newValue = false; _paramNeeded = true; _definition = NULL;
     };
     ParamValue() :
       _block(NULL), _name(""), _isOutput(false), value_(Not_A_Value()){
-      _newValue = false; _paramNeeded = true;
+      _newValue = false; _paramNeeded = true; _definition = NULL;
     };
-    ParamValue(bool v) :
-      _block(NULL), _name(""), _isOutput(false), value_(v){
-      _newValue = false; _paramNeeded = true;
+    ParamValue(Block *algo, const ParamDefinition* def, bool isOutput);
+    ParamValue(bool v) : ParamValue(){
+      value_ = v;
     };
-    ParamValue(int v) :
-      _block(NULL), _name(""), _isOutput(false), value_(v){
-      _newValue = false; _paramNeeded = true;
+    ParamValue(int v) :ParamValue(){
+      value_ = v;
     };
-    ParamValue(double v) :
-      _block(NULL), _name(""), _isOutput(false), value_(v){
-      _newValue = false; _paramNeeded = true;
+    ParamValue(double v) :ParamValue(){
+      value_ = v;
     };
-    ParamValue(std::string v) :
-      _block(NULL), _name(""), _isOutput(false), value_(v){
-      _newValue = false; _paramNeeded = true;
+    ParamValue(std::string v) :ParamValue(){
+      value_ = v;
     };
-    ParamValue(cv::Scalar v) :
-      _block(NULL), _name(""), _isOutput(false), value_(v){
-      _newValue = false; _paramNeeded = true;
+    ParamValue(cv::Scalar v) :ParamValue(){
+      value_ = v;
     };
-    ParamValue(cv::Mat v) :
-      _block(NULL), _name(""), _isOutput(false), value_(v){
-      _newValue = false; _paramNeeded = true;
+    ParamValue(cv::Mat v) :ParamValue(){
+      value_ = v;
     };
-    ParamValue(Not_A_Value v) :
-      _block(NULL), _name(""), _isOutput(false), value_(Not_A_Value()){
-      _newValue = false; _paramNeeded = true;
+    ParamValue(Not_A_Value v) :ParamValue(){
     };
-    ParamValue(ParamValue* v) :
-      _block(NULL), _name(""), _isOutput(false), value_(v){
+    ParamValue(ParamValue* v) :ParamValue(){
+      value_ = v;
       if (v != NULL) v->_distantListeners.insert(this);
-      _newValue = false; _paramNeeded = true;
     };
     ParamValue(const ParamValue& va) :
       _block(va._block), _name(va._name), _isOutput(va._isOutput), value_(va.value_),
       _validators(va._validators), _distantListeners(va._distantListeners){
-      _newValue = false; _paramNeeded = true;
+      _newValue = false; _paramNeeded = true; _definition = va._definition;
     };
 
     ~ParamValue()
@@ -161,6 +155,8 @@ namespace charliesoft
     void addValidator(std::initializer_list<ParamValidator*> list);
 
     std::string getName() const { return _name; };
+    const ParamDefinition* getDefinition() const { return _definition; }
+    void setName(std::string val) { _name = val; }
 
     bool isNew() const
     {

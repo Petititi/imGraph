@@ -104,21 +104,20 @@ namespace charliesoft
   }
 
   ParamRepresentation::ParamRepresentation(Block* model, ParamDefinition param, bool isInput, QWidget *father) :
-    LinkConnexionRepresentation(_STR(param._name), isInput, father), _model(model), _param(param){
+    LinkConnexionRepresentation(param._name, isInput, father), _model(model), _param(param){
+
     _defaultValue = _isSubParam = false;
     setObjectName("ParamRepresentation");
     if (!param._show) this->hide();
     setToolTip("<FONT>" + _QT(param._helper) + "</FONT>");
-    if (father != NULL)
+    if (_vertex != NULL)
     {
-      VertexRepresentation* parent = dynamic_cast<VertexRepresentation*>(father->parentWidget());
-      if (parent != NULL)
-        connect(this, SIGNAL(askSynchro()), parent, SLOT(reshape()));
+        connect(this, SIGNAL(askSynchro()), _vertex, SLOT(reshape()));
     }
   };
 
   SubGraphParamRepresentation::SubGraphParamRepresentation(SubBlock* model, const ParamDefinition& def, bool isInput, QWidget *father) :
-    LinkConnexionRepresentation(_STR(def._name), isInput, father), _model(model), _param(def){
+    LinkConnexionRepresentation(def._name, isInput, father), _model(model), _param(def){
     setObjectName("SubGraphParamRepresentation");
     setToolTip("<FONT>" + _QT(def._helper) + "</FONT>");
     setAlignment(Qt::AlignCenter);
@@ -162,9 +161,14 @@ namespace charliesoft
   }
 
   LinkConnexionRepresentation::LinkConnexionRepresentation(std::string text, bool isInput, QWidget *father) :
-    QLabel(text.c_str(), father), _isInput(isInput)
+    QLabel(_QT(text), father), _isInput(isInput)
   {
-    _vertex = NULL;
+    if (father!=NULL)
+      _vertex = dynamic_cast<VertexRepresentation*>(father->parentWidget());
+    else
+      _vertex = NULL;
+
+    _name = text;
   };
   QPoint LinkConnexionRepresentation::getWorldAnchor()
   {

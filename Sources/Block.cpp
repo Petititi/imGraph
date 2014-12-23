@@ -456,27 +456,23 @@ namespace charliesoft
     const std::vector<ParamDefinition>& outParam)
   {
     //add empty parameters:
-    auto it = inParam.begin();
-    while (it != inParam.end())
+    for (const auto& it : inParam)
     {
-      ParamValue& t = _myInputs[it->_name] = ParamValue(this, it->_name, false);
-      t.isNeeded(it->_show);
-      t = it->_initVal;
-      it++;
+      ParamValue& t = _myInputs[it._name] = ParamValue(this, &it, false);
+      t.isNeeded(it._show);
+      t = it._initVal;
     }
-    it = outParam.begin();
-    while (it != outParam.end())
+    for (const auto& it : outParam)
     {
-      ParamValue& t = _myOutputs[it->_name] = ParamValue(this, it->_name, true);
-      t.isNeeded(it->_show);
-      t = it->_initVal;
-      it++;
+      ParamValue& t = _myOutputs[it._name] = ParamValue(this, &it, true);
+      t.isNeeded(it._show);
+      t = it._initVal;
     }
     const std::vector<ParamDefinition>& subParams = _PROCESS_MANAGER->getAlgo_SubParams(_name);
     //test if param is an algo:
-    for (auto val : subParams)
+    for (const auto& val : subParams)
     {
-      ParamValue& t = _mySubParams[val._name] = ParamValue(this, val._helper, true);
+      ParamValue& t = _mySubParams[val._name] = ParamValue(this, &val, false);
       t = val._initVal;
       t.isNeeded(false);
     }

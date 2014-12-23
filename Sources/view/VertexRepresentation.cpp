@@ -74,11 +74,18 @@ namespace charliesoft
   GroupParamRepresentation::~GroupParamRepresentation()
   {
     for (auto it = _listOfInputChilds.begin(); it != _listOfInputChilds.end(); it++)
-      delete it->second;
+      delete *it;
     _listOfInputChilds.clear();
     for (auto it = _listOfOutputChilds.begin(); it != _listOfOutputChilds.end(); it++)
-      delete it->second;
+      delete *it;
     _listOfOutputChilds.clear();
+    for (auto it = _listOfInputSubParams.begin(); it != _listOfInputSubParams.end(); it++)
+      delete it->second;
+    _listOfInputSubParams.clear();
+    for (auto it = _listOfSubParams.begin(); it != _listOfSubParams.end(); it++)
+      delete *it;
+    _listOfSubParams.clear();
+
     _links.clear();
     delete _blockRepresentation;
     delete _conditionsRepresentation;
@@ -128,7 +135,7 @@ namespace charliesoft
     LinkConnexionRepresentation  *tmp = new LinkConnexionRepresentation(def._name, true, _blockRepresentation);
     connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
     connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
-    _listOfInputChilds[def._name] = tmp;
+    _listOfInputChilds.push_back(tmp);
     return tmp;
   }
 
@@ -137,7 +144,7 @@ namespace charliesoft
     LinkConnexionRepresentation  *tmp = new LinkConnexionRepresentation(def._name, false, _blockRepresentation);
     connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
     connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
-    _listOfOutputChilds[def._name] = tmp;
+    _listOfOutputChilds.push_back(tmp);
     return tmp;
   }
 
@@ -191,11 +198,11 @@ namespace charliesoft
     int showIn = 0, showOut = 0;
     for (auto& tmp : _listOfInputChilds)
     {
-      tmp.second->setMinimumWidth(5);
-      tmp.second->move(-2, inputHeight);//move the name at the top of vertex...
-      tmpSize = tmp.second->fontMetrics().boundingRect(tmp.second->text());
-      tmp.second->setVisible(tmp.second->shouldShow());
-      if (tmp.second->shouldShow())
+      tmp->setMinimumWidth(5);
+      tmp->move(-2, inputHeight);//move the name at the top of vertex...
+      tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
+      tmp->setVisible(tmp->shouldShow());
+      if (tmp->shouldShow())
       {
         showIn++;
         inputHeight += tmpSize.height() + 10;
@@ -221,11 +228,11 @@ namespace charliesoft
 
     for (auto tmp : _listOfOutputChilds)
     {
-      tmp.second->setMinimumWidth(5);
-      tmpSize = tmp.second->fontMetrics().boundingRect(tmp.second->text());
-      tmp.second->move(sizeNameVertex.width() + 16 - tmpSize.width() - 8, outputHeight);//move the name at the top of vertex...
-      tmp.second->setVisible(tmp.second->shouldShow());
-      if (tmp.second->shouldShow())
+      tmp->setMinimumWidth(5);
+      tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
+      tmp->move(sizeNameVertex.width() + 16 - tmpSize.width() - 8, outputHeight);//move the name at the top of vertex...
+      tmp->setVisible(tmp->shouldShow());
+      if (tmp->shouldShow())
       {
         showOut++;
         outputHeight += tmpSize.height() + 10;
@@ -248,10 +255,10 @@ namespace charliesoft
 
     for (auto& tmp : _listOfInputChilds)
     {
-      QRect tmpSize = tmp.second->fontMetrics().boundingRect(tmp.second->text());
-      tmp.second->resize(maxInputWidth, tmpSize.height() + 5);
-      tmp.second->move(-2, inputHeight);//move the name at the top of vertex...
-      if (tmp.second->shouldShow())
+      QRect tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
+      tmp->resize(maxInputWidth, tmpSize.height() + 5);
+      tmp->move(-2, inputHeight);//move the name at the top of vertex...
+      if (tmp->shouldShow())
         inputHeight += tmpSize.height() + 10;
     }
     for (auto tmp : _listOfInputSubParams)
@@ -264,10 +271,10 @@ namespace charliesoft
     }
     for (auto tmp : _listOfOutputChilds)
     {
-      QRect tmpSize = tmp.second->fontMetrics().boundingRect(tmp.second->text());
-      tmp.second->resize(maxOutputWidth, tmpSize.height() + 5);
-      tmp.second->move(newWidth - maxOutputWidth + 4, outputHeight);//move the name at the top of vertex...
-      if (tmp.second->shouldShow())
+      QRect tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
+      tmp->resize(maxOutputWidth, tmpSize.height() + 5);
+      tmp->move(newWidth - maxOutputWidth + 4, outputHeight);//move the name at the top of vertex...
+      if (tmp->shouldShow())
         outputHeight += tmpSize.height() + 10;
     }
 
@@ -352,13 +359,15 @@ namespace charliesoft
   {
     if (input)
     {
-      if (_listOfInputChilds.find(paramName) != _listOfInputChilds.end())
-        return _listOfInputChilds[paramName];
+      for (auto& param : _listOfInputChilds)
+        if (param->getName().compare(paramName) == 0)
+          return param;
     }
     else
     {
-      if (_listOfOutputChilds.find(paramName) != _listOfOutputChilds.end())
-        return _listOfOutputChilds[paramName];
+      for (auto& param : _listOfOutputChilds)
+        if (param->getName().compare(paramName) == 0)
+          return param;
     }
     return NULL;
   }
@@ -436,8 +445,8 @@ namespace charliesoft
 
   void GroupParamRepresentation::moveDelta(QPoint delta)
   {
-    delta = pos() + delta;
-    move(delta.x(), delta.y());
+    QPoint newPos = pos() + delta;
+    move(newPos.x(), newPos.y());
     Window::getInstance()->redraw();
   }
 
@@ -480,16 +489,6 @@ namespace charliesoft
     GraphLayout* representation = dynamic_cast<GraphLayout*>(layout());
     if (representation!=NULL)
       representation->removeLinks(this);
-
-    for (auto it = _listOfInputChilds.begin(); it != _listOfInputChilds.end(); it++)
-      delete it->second;
-    _listOfInputChilds.clear();
-    for (auto it = _listOfOutputChilds.begin(); it != _listOfOutputChilds.end(); it++)
-      delete it->second;
-    _listOfOutputChilds.clear();
-    _links.clear();
-    delete _blockRepresentation;
-    delete _conditionsRepresentation;
   }
 
   VertexRepresentation::VertexRepresentation(Block* model):
@@ -511,7 +510,8 @@ namespace charliesoft
 
   void VertexRepresentation::moveDelta(QPoint delta)
   {
-    _model->setPosition(delta.x(), delta.y());
+    QPoint newPos = pos() + delta;
+    _model->setPosition(newPos.x(), newPos.y());
     GroupParamRepresentation::moveDelta(delta);
   }
 
@@ -547,7 +547,7 @@ namespace charliesoft
     ParamRepresentation  *tmp = new ParamRepresentation(_model, def, true, _blockRepresentation);
     connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
     connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
-    _listOfInputChilds[def._name] = tmp;
+    _listOfInputChilds.push_back(tmp);
     if (def._type == ListBox)
     {
       std::vector<string> paramChoices = tmp->getParamListChoice();
@@ -561,13 +561,13 @@ namespace charliesoft
           ParamValue* param = _model->getParam(fullSubName, true);
           if (param != NULL)
           {
-            ParamDefinition tmpDef(false, param->getType(), fullSubName, subParam);
-            ParamRepresentation *tmp = new ParamRepresentation(_model, tmpDef, true, _blockRepresentation);
+            const ParamDefinition* tmpDef = param->getDefinition();
+            ParamRepresentation *tmp = new ParamRepresentation(_model, *tmpDef, true, _blockRepresentation);
             tmp->setVisibility(false);
             tmp->isSubParam(true);
             connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
             connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
-            _listOfInputSubParams[tmpDef._name] = tmp;
+            _listOfInputSubParams[tmpDef->_name] = tmp;
           }
         }
       }
@@ -580,7 +580,7 @@ namespace charliesoft
     ParamRepresentation  *tmp = new ParamRepresentation(_model, def, false, _blockRepresentation);
     connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
     connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
-    _listOfOutputChilds[def._name] = tmp;
+    _listOfOutputChilds.push_back(tmp);
     return tmp;
   }
 

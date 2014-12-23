@@ -13,6 +13,10 @@ using boost::lexical_cast;
 
 namespace charliesoft
 {
+  ParamValue::ParamValue(Block *algo, const ParamDefinition* def, bool isOutput) :
+    _block(algo), _name(def->_name), _isOutput(isOutput), value_(Not_A_Value()), _definition(def){
+    _newValue = false; _paramNeeded = true;
+  };
 
   std::string ParamValue::getValFromList()
   {
@@ -38,6 +42,8 @@ namespace charliesoft
   ParamType ParamValue::getType(bool realType) const{
     if (_block == NULL)
       return typeError;
+    if (_definition != NULL)
+      return _definition->_type;
     boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     ParamType out = _PROCESS_MANAGER->getParamType(_block->getName(), _name, !_isOutput);
     if (out == typeError || out == AnyType)//if anyType, try to detect type...
@@ -276,6 +282,8 @@ namespace charliesoft
   ParamValue& ParamValue::operator = (ParamValue *vDist) {
     boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     notifyRemove();
+    if (_definition == NULL)
+      _definition = vDist->_definition;
     if (vDist != NULL) vDist->_distantListeners.insert(this);
     _newValue = vDist->_newValue;
     value_ = vDist;
@@ -286,6 +294,8 @@ namespace charliesoft
     if (this != &rhs) {
       boost::unique_lock<boost::recursive_mutex> lock(_mtx);
       notifyRemove();
+      if (_definition == NULL)
+        _definition = rhs._definition;
       _newValue = true;
       value_ = rhs.value_;
       if (rhs._block != NULL)

@@ -49,6 +49,7 @@ namespace charliesoft
     bool _isInput;
     bool _shouldShow;
     VertexRepresentation* _vertex;
+    std::string _name;
   public:
     LinkConnexionRepresentation(std::string text, bool isInput, QWidget *father);
 
@@ -56,6 +57,8 @@ namespace charliesoft
     virtual void mouseReleaseEvent(QMouseEvent *);
     virtual void mouseDoubleClickEvent(QMouseEvent *);
     virtual void mouseMoveEvent(QMouseEvent *);
+
+    std::string getName() const { return _name; }
 
     bool isInput() const { return _isInput; }
 

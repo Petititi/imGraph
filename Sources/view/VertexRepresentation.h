@@ -58,9 +58,9 @@ namespace charliesoft
 
     std::map<BlockLink, LinkPath*> _links;
     std::vector< std::pair<ConditionOfRendering*, ConditionLinkRepresentation*> > _linksConditions;
-    std::map<std::string, LinkConnexionRepresentation*> _listOfInputChilds;
+    std::vector<LinkConnexionRepresentation*> _listOfInputChilds;
     std::map<std::string, LinkConnexionRepresentation*> _listOfInputSubParams;
-    std::map<std::string, LinkConnexionRepresentation*> _listOfOutputChilds;
+    std::vector<LinkConnexionRepresentation*> _listOfOutputChilds;
     std::vector<LinkConnexionRepresentation*> _listOfSubParams;
     std::vector<ConditionOfRendering> _conditions;
 
@@ -92,9 +92,9 @@ namespace charliesoft
     };
 
     LinkConnexionRepresentation* getParamRep(std::string paramName, bool input);
-    std::map<std::string, LinkConnexionRepresentation*>& getListOfInputChilds() { return _listOfInputChilds; }
+    std::vector<LinkConnexionRepresentation*>& getListOfInputChilds() { return _listOfInputChilds; }
     std::map<std::string, LinkConnexionRepresentation*>& getListOfSubParams() { return _listOfInputSubParams; }
-    std::map<std::string, LinkConnexionRepresentation*>& getListOfOutputChilds() { return _listOfOutputChilds; }
+    std::vector<LinkConnexionRepresentation*>& getListOfOutputChilds() { return _listOfOutputChilds; }
   protected:
     ConditionLinkRepresentation* getCondition(ConditionOfRendering*, bool isLeft);
 

@@ -89,8 +89,17 @@ namespace charliesoft
     if (input)
     {
       const std::vector<ParamDefinition> &params = getAlgo_InParams(algo_name);
-      auto it = params.begin();
+      auto& it = params.begin();
       while (it != params.end())
+      {
+        if (it->_name.compare(paramName) == 0)
+          return it->_type;
+        it++;
+      }
+      //Maybe it's subparam:
+      const std::vector<ParamDefinition> &subParams = getAlgo_SubParams(algo_name);
+      it = subParams.begin();
+      while (it != subParams.end())
       {
         if (it->_name.compare(paramName) == 0)
           return it->_type;

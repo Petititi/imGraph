@@ -80,14 +80,14 @@ namespace charliesoft
     {
       model->addNewInput(def);
       param = dynamic_cast<ParamRepresentation*>(_vertex->addNewInputParam(def));
-      _in_param[def._name] = param;
+      _in_param.push_back(param);
       addParamIn(param);
     }
     else
     {
       model->addNewOutput(def);
       param = dynamic_cast<ParamRepresentation*>(_vertex->addNewOutputParam(def));
-      _out_param[def._name] = param;
+      _out_param.push_back(param);
       addParamOut(param);
     }
   }
@@ -172,24 +172,18 @@ namespace charliesoft
     tabWidget_->addTab(tmpWidget, _QT("BLOCK_TITLE_OUTPUT"));
 
     //fill input parameters:
-    const vector<ParamDefinition>& paramsIn = model->getInParams();
-    auto it = paramsIn.begin();
-    while (it != paramsIn.end())
+    for (auto& it : _in_param)
     {
-      ParamRepresentation* param = dynamic_cast<ParamRepresentation*>(_in_param[it->_name]);
+      ParamRepresentation* param = dynamic_cast<ParamRepresentation*>(it);
       if (param != NULL)
         addParamIn(param);
-      it++;
     }
 
-    const vector<ParamDefinition>& paramsOut = model->getOutParams();
-    it = paramsOut.begin();
-    while (it != paramsOut.end())
+    for (auto& it : _out_param)
     {
-      ParamRepresentation* param = dynamic_cast<ParamRepresentation*>(_out_param[it->_name]);
+      ParamRepresentation* param = dynamic_cast<ParamRepresentation*>(it);
       if (param!=NULL)
         addParamOut(param);
-      it++;
     }
 
     if (vertex->hasDynamicParams())

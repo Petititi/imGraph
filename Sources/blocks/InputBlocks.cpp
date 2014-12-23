@@ -23,7 +23,7 @@ protected:
   BEGIN_BLOCK_INPUT_PARAMS(BlockLoader);
   //Add parameters, with following parameters:
   //default visibility, type of parameter, name (key of internationalizor), helper...
-  ADD_PARAMETER(false, FilePath,"BLOCK__INPUT_IN_FILE",         "BLOCK__INPUT_IN_FILE_HELP");
+  ADD_PARAMETER_FULL(false, ListBox, "BLOCK__INPUT_IN_INPUT_TYPE", "BLOCK__INPUT_IN_INPUT_TYPE_HELP", 0);
   ADD_PARAMETER(false, Boolean, "BLOCK__INPUT_IN_GREY",         "BLOCK__INPUT_IN_GREY_HELP");
   ADD_PARAMETER(false, Boolean, "BLOCK__INPUT_IN_COLOR",        "BLOCK__INPUT_IN_COLOR_HELP");
   ADD_PARAMETER(false, Int,     "BLOCK__INPUT_INOUT_WIDTH",     "BLOCK__INPUT_INOUT_WIDTH_HELP");
@@ -44,10 +44,14 @@ protected:
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_SUBPARAMS_DEF(BlockLoader);
+  ADD_PARAMETER_FULL(false, FilePath, "BLOCK__INPUT_IN_INPUT_TYPE.Video file.input file", "input file", "");
+  ADD_PARAMETER_FULL(false, FilePath, "BLOCK__INPUT_IN_INPUT_TYPE.Folder.input folder", "input folder", "");
+  ADD_PARAMETER_FULL(false, Int, "BLOCK__INPUT_IN_INPUT_TYPE.Webcam.webcam index", "webcam index", 0);
   END_BLOCK_PARAMS();
 
   BlockLoader::BlockLoader() :Block("BLOCK__INPUT_NAME", producer){
-    _myInputs["BLOCK__INPUT_IN_FILE"].addValidator({ new ValNeeded(), new ValFileExist() });
+    _mySubParams["BLOCK__INPUT_IN_INPUT_TYPE.Video file.video file"].addValidator({ new ValFileExist() });
+    _mySubParams["BLOCK__INPUT_IN_INPUT_TYPE.Folder.input folder"].addValidator({ new ValFileExist() });
     _myInputs["BLOCK__INPUT_INOUT_WIDTH"].addValidator({ new ValPositiv(true) });
     _myInputs["BLOCK__INPUT_INOUT_HEIGHT"].addValidator({ new ValPositiv(true) });
     _myInputs["BLOCK__INPUT_INOUT_POS_FRAMES"].addValidator({ new ValPositiv(false) });
@@ -58,14 +62,38 @@ protected:
   };
 
   bool BlockLoader::run(bool oneShot){
-    if (!_myInputs["BLOCK__INPUT_IN_FILE"].isDefaultValue())
+    int inputType = _myInputs["BLOCK__INPUT_IN_INPUT_TYPE"].get<int>(true);
+    switch (inputType)
     {
-      string fileName = _myInputs["BLOCK__INPUT_IN_FILE"].get<string>(true);
+    case 0://webcam
+    {
+      int IdWebcam = _mySubParams["BLOCK__INPUT_IN_INPUT_TYPE.Webcam.webcam index"].get<int>(true);
+      if (!processor_.setInputSource(IdWebcam))
+      {
+        _error_msg = (my_format(_STR("BLOCK__INPUT_IN_FILE_PROBLEM")) % "WebCam").str();
+        return false;
+      }
+    }
+      break;
+    case 2://folder
+    {
+      string fileName = _mySubParams["BLOCK__INPUT_IN_INPUT_TYPE.Folder.input folder"].get<string>(true);
       if (!processor_.setInputSource(fileName))
       {
         _error_msg = (my_format(_STR("BLOCK__INPUT_IN_FILE_PROBLEM")) % fileName).str();
         return false;
       }
+    }
+      break;
+    default://video
+    {
+      string fileName = _mySubParams["BLOCK__INPUT_IN_INPUT_TYPE.Video file.input file"].get<string>(true);
+      if (!processor_.setInputSource(fileName))
+      {
+        _error_msg = (my_format(_STR("BLOCK__INPUT_IN_FILE_PROBLEM")) % fileName).str();
+        return false;
+      }
+    }
     }
     if (!_myInputs["BLOCK__INPUT_IN_GREY"].isDefaultValue())
       if (_myInputs["BLOCK__INPUT_IN_GREY"].get<bool>(true))
