@@ -54,7 +54,7 @@ namespace charliesoft
       	//nothing to do...
       }
     }
-    _subGraph->run(true);
+    _subGraph->run(true, false);
     //wait for ouput updates:
     for (auto link : externBlocksOutput)
     {

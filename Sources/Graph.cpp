@@ -23,6 +23,7 @@
 
 #include "ProcessManager.h"
 #include "blocks/ParamValidator.h"
+#include "SubBlock.h"
 
 using namespace std;
 using namespace charliesoft;
@@ -200,8 +201,10 @@ namespace charliesoft
     process->wakeUpOutputListeners();
   }
 
-  void GraphOfProcess::stop()
+  void GraphOfProcess::stop(bool delegateParent)
   {
+    if (_parent != NULL && delegateParent)
+      return _parent->stop();
     for (auto& it = _runningThread.begin(); it != _runningThread.end(); it++)
     {
       it->second.interrupt();
@@ -218,9 +221,11 @@ namespace charliesoft
     _runningThread.clear();
   }
 
-  bool GraphOfProcess::run(bool singleShot)
+  bool GraphOfProcess::run(bool singleShot, bool delegateParent)
   {
-    stop();//just in case...
+    if (_parent != NULL && delegateParent)
+      return _parent->run(singleShot);
+    stop(delegateParent);//just in case...
     bool res = true;
     for (auto it = _vertices.begin();
       it != _vertices.end(); it++)
@@ -232,8 +237,10 @@ namespace charliesoft
     return res;
   }
 
-  void GraphOfProcess::switchPause()
+  void GraphOfProcess::switchPause(bool delegateParent)
   {
+    if (_parent != NULL && delegateParent)
+      return _parent->switchPause();
     pauseProcess = !pauseProcess;
     if (!pauseProcess)
     {

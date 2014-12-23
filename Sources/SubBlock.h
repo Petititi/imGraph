@@ -48,6 +48,11 @@ namespace charliesoft
     SubBlock();
     SubBlock(std::string name);
 
+    virtual void setGraph(GraphOfProcess* processes){
+      _processes = processes;
+      _subGraph->setParent(processes);
+    };
+
     ParamValue* addNewInput(ParamDefinition& param);
     ParamValue* addNewOutput(ParamDefinition& param);
 

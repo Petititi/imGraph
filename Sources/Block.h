@@ -208,7 +208,7 @@ namespace charliesoft
     };
     void operator()();
 
-    void setGraph(GraphOfProcess* processes){
+    virtual void setGraph(GraphOfProcess* processes){
       _processes = processes;
     };
     GraphOfProcess* getGraph() const { return _processes; };

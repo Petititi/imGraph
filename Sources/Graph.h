@@ -36,10 +36,10 @@ namespace charliesoft
 
     void createLink(Block* src, std::string paramName, Block* dest, std::string paramNameDest);
     
-    bool run(bool singleShot = false);
-    void stop();
+    bool run(bool singleShot = false, bool delegateParent = true);
+    void stop(bool delegateParent = true);
     void waitUntilEnd();
-    void switchPause();
+    void switchPause(bool delegateParent = true);
 
     /**
     * Will wake up waiting childs if needed... 
