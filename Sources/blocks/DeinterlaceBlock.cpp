@@ -106,7 +106,7 @@ namespace charliesoft
 
     int nbSkip = _myInputs["BLOCK__SKIP_FRAME_IN_TYPE"].get<int>(true);
     nbFrame++;
-    if (nbFrame >= nbSkip)
+    if (nbFrame > nbSkip)
     {
       nbFrame = 0;
       cv::Mat mat = _myInputs["BLOCK__SKIP_FRAME_IN_IMAGE"].get<cv::Mat>(true);
@@ -116,10 +116,7 @@ namespace charliesoft
       }
     }
     else
-    {
       skipRendering();
-    }
-
 
     return true;
   };

@@ -132,7 +132,7 @@ namespace charliesoft
       return;//no need to wait
     if (process->getTypeExec() == Block::oneShot || process->getTypeExec() == Block::producer)
     {
-      //wait for every direct linked ancestors (using timestamp verification):
+      //wait for every direct linked ancestors:
       //Is there old parameters? -> if yes, we wait for update, else we process the block right now:
       for (auto it = process->_myInputs.begin(); it != process->_myInputs.end(); it++)
       {
@@ -164,7 +164,9 @@ namespace charliesoft
         for (auto listener : listeners)
         {
           if (listener->isLinked() && listener->isNew())//this param is still not consumed...
+          {
             waitForFullRendering(process, listener->getBlock());
+          }
         }
       }
       if (!_waitingForRendering[process].empty())
@@ -200,6 +202,27 @@ namespace charliesoft
     //wake up linked output blocks
     process->wakeUpOutputListeners();
   }
+
+  ///TODO:
+  /// Verify that parameter update set timestamp, even if not linked!
+  /// But don't change timestamp if value set is the same as previous stored value.
+  void GraphOfProcess::blockWantToSkip(Block* process)
+  {
+    boost::unique_lock<boost::mutex> lock(_mtx);
+    std::cout << "   " << _STR(process->getName()) << " (" << _current_timestamp << ") want to skip further processing!" << endl;
+
+    //remove this block for every waiting thread:
+    for (auto& waitThread : _waitingForRendering)
+    {
+      if (waitThread.second.find(process) != waitThread.second.end())
+      {
+        waitThread.second.clear();
+        waitThread.first->wakeUp();
+      }
+    }
+    //set timestamp of block to current timestamp:
+    process->_timestamp = _current_timestamp;
+  };
 
   void GraphOfProcess::stop(bool delegateParent)
   {

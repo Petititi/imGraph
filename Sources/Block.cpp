@@ -371,20 +371,8 @@ namespace charliesoft
       boost::unique_lock<boost::mutex> guard(_mtx_timestamp_inc);
       _timestamp = _processes->_current_timestamp;
       _renderingSkiped = true;
+      _processes->blockWantToSkip(this);
     }
-    //go through outputs and skip it:
-    auto it = _myOutputs.begin();
-    while (it != _myOutputs.end())
-    {
-      std::set<ParamValue*>& listeners = it->second.getListeners();
-      for (auto listener : listeners)
-      {
-        if (listener != NULL)
-          listener->getBlock()->skipRendering();
-      }
-      it++;
-    }
-    _cond_sync.notify_all();//wake up waiting thread (if needed)
   }
 
   bool Block::isReadyToRun(bool realCheck)

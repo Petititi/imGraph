@@ -46,6 +46,8 @@ namespace charliesoft
     */
     void blockProduced(Block* process, bool fullyRendered = true);
 
+    void blockWantToSkip(Block* process);
+
     /**
     * Will wait for rendering block ancestor
     */
