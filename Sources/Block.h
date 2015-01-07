@@ -1,6 +1,18 @@
 #ifndef _BLOCK_IMGRAPH_HEADER_
 #define _BLOCK_IMGRAPH_HEADER_
 
+/*!
+\page BlockSection Block
+\section BlockSection_intro Introduction
+<p>
+A block (or node, or process) represents an operation. This can be of several types (mathematical operation, image processing, loading, ...), as well as several rendering types:
+- The asynchronous rendering. This block will produce the output independently of other blocks. It's useful when you want realtime processing.
+- The "one shot" rendering. This block will produce the output only when input values changes. It's useful to save some CPU.
+- The synchronous rendering. It's close to the "one shot" rendering, but the block also wait for the whole graph uses the value it has produced. It's useful when you want to process each frame of a video without skipping a single frame.
+
+</p>
+*/
+
 #ifndef Q_MOC_RUN
 #ifdef _WIN32
 #pragma warning(push)

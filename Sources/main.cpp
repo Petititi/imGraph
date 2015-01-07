@@ -46,6 +46,9 @@ We use the 1.55 version (some problem exist with 1.57), you can found some <a hr
 This is a private library used to easily load/store videos (from webcam, files or folder).\n
 You can <a href="https://synogsm.lsis.univ-tln.fr/indefero/index.php/p/inputloader/source/tree/master/">download it here</a>. You should build and install it before building ImGraph!
 
-\section sec2 Project Structure
-To be done!
+\section ProjectStruct Project Structure
+\subsection ProjectStruct_Sub1 Scheduling and synchronization
+If you need details about how the graph of the processes handle scheduling and synchronization, this page is for you: \ref ProcessGraph
+\subsection ProjectStruct_Sub2 Build a Node
+\subsection ProjectStruct_Sub3 IHM
 */
