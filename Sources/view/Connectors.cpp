@@ -23,7 +23,7 @@ namespace charliesoft
   LinkPath::LinkPath(LinkConnexionRepresentation* src,
     LinkConnexionRepresentation* dst,
     QGraphicsItem *parent, QGraphicsScene *scene) :
-    QGraphicsLineItem(parent, scene){
+    QGraphicsLineItem(parent){
     _src = src; _dst = dst; _selected = false;
     setFlag(QGraphicsItem::ItemIsSelectable, true);
     setPen(QPen(Qt::black, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));

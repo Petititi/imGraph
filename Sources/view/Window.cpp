@@ -26,7 +26,8 @@
 #include <QDockWidget>
 #include <QSplitter>
 #include <QTextEdit>
-
+#include <QMimeData>
+#include <QDrag>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/lexical_cast.hpp>
@@ -548,12 +549,11 @@ namespace charliesoft
       string objName = Window::getInstance()->getKey(itemAt(mouse->pos()));
       if (!objName.empty())
       {
-        QDrag *drag = new QDrag(this);
         QMimeData *mimeData = new QMimeData;
-
-        mimeData->setText(objName.c_str());
-        drag->setMimeData(mimeData);
-
+		mimeData->setText(objName.c_str());
+		
+		QDrag *drag = new QDrag(this);
+		drag->setMimeData(mimeData);
         Qt::DropAction dropAction = drag->exec();
       }
     }

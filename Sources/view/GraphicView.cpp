@@ -31,6 +31,7 @@
 #include <QScrollArea>
 #include <QDoubleValidator>
 #include <QIntValidator>
+#include <QMimeData>
 #include "opencv2/core.hpp"
 
 #include <boost/property_tree/ptree.hpp>

@@ -59,7 +59,7 @@
 #include <QBoxLayout>
 #include <QSettings>
 #include <qtimer.h>
-#include <QtConcurrentRun>
+#include <QtConcurrent/QtConcurrentRun>
 #include <QWaitCondition>
 #include <QKeyEvent>
 #include <QMetaObject>
