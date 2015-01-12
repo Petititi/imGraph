@@ -1,5 +1,6 @@
   
-QT4_ADD_RESOURCES(_RCC_OUTFILES view/MatrixViewer.qrc)
-QT4_WRAP_CPP(HEADERS_MOC "view/Window.h" "view/GraphicView.h" "view/MatrixViewer.h" "view/Connectors.h" "view/ParameterDock.h" "view/SmallDialogs.h" "view/VertexRepresentation.h")
+QT5_ADD_RESOURCES(_RCC_OUTFILES view/MatrixViewer.qrc)
+QT5_WRAP_CPP(HEADERS_MOC "view/Window.h" "view/GraphicView.h" "view/MatrixViewer.h" "view/Connectors.h" "view/ParameterDock.h" "view/SmallDialogs.h" "view/VertexRepresentation.h")
 
 new_executable( imGraph )
+qt5_use_modules(imGraph Core Gui OpenGL Network)

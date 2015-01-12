@@ -30,13 +30,16 @@ include( ProjectAdd.cmake REQUIRED )
 FIND_PACKAGE( OpenCV REQUIRED )# opencv_calib3d opencv_core opencv_objdetect opencv_features2d opencv_highgui opencv_imgproc opencv_flann opencv_nonfree
 set ( OPENCV_CONCAT "${OpenCV_VERSION_MAJOR}${OpenCV_VERSION_MINOR}${OpenCV_VERSION_PATCH}" )
 
-FIND_PACKAGE(Qt4 COMPONENTS QtCore QtGui QtNetwork REQUIRED)
-FIND_PACKAGE (OPENGL REQUIRED)
+#set(CMAKE_INCLUDE_CURRENT_DIR ON)
+#set(CMAKE_AUTOMOC ON)
+FIND_PACKAGE(Qt5Widgets REQUIRED)
+FIND_PACKAGE(OPENGL REQUIRED)
 set(QT_USE_QTOPENGL TRUE)
-INCLUDE(${QT_USE_FILE})
-ADD_DEFINITIONS(${QT_DEFINITIONS})
 
-find_package( Boost )
+#include_directories(${Qt5Widgets_INCLUDES})
+#add_definitions(${Qt5Widgets_DEFINITIONS})
+
+find_package(Boost REQUIRED)
 if( Boost_FOUND )
     if ("${Boost_LIBRARY_DIRS}" STREQUAL "")
         if(EXISTS "${Boost_INCLUDE_DIR}/lib32-msvc-12.0")
@@ -56,12 +59,12 @@ else()
     MESSAGE(STATUS "--------(pour Visual 2008, c'est boost_1_55_0-msvc-9.0-32.exe)")
 endif( )
 
-#set( DETECT_LINKER_LIBS "debug;opencv_features2d${OPENCV_CONCAT}d;optimized;opencv_features2d${OPENCV_CONCAT};debug;opencv_highgui${OPENCV_CONCAT}d;optimized;opencv_highgui${OPENCV_CONCAT};" )
 set( DETECT_LINKER_LIBS "${OpenCV_LIBS}")
 
 find_package(OpencvInput REQUIRED)
+MESSAGE(STATUS "OPENCVINPUT_INCLUDE_DIRS : ${OPENCVINPUT_INCLUDE_DIRS}")
 
-set( DIR_ADD_INCLUDE "${CMAKE_SOURCE_DIR}/include" ${Boost_INCLUDE_DIR} ${QT_QTOPENGL_INCLUDE_DIR} ${OPENCVINPUT_INCLUDE_DIRS} )
+set( DIR_ADD_INCLUDE "${CMAKE_SOURCE_DIR}/include" ${Boost_INCLUDE_DIR} ${QT_QTOPENGL_INCLUDE_DIR} ${OPENCVINPUT_INCLUDE_DIRS})
 MESSAGE(STATUS "DIR_ADD_INCLUDE : ${DIR_ADD_INCLUDE}")
 
 set( ADD_LIB_DIR "${SuransLib}" "${CMAKE_SOURCE_DIR}/libs" ${Boost_LIBRARY_DIRS} ${QT_QTOPENGL_LIBRARY} )
@@ -71,3 +74,53 @@ set( ADD_LIBRARIES
     ${OPENCVINPUT_LIBRARIES} )
 
 add_subdirectory( Sources )
+
+# ----------------------------------------------------------------------------
+#  Copy required OpenCV and QT5 dlls into output path
+# ----------------------------------------------------------------------------
+if (MSVC)
+	SET(CMAKE_FIND_LIBRARY_SUFFIXES ".dll")
+	if(OpenCV_DIR)
+		foreach(dll_name ${OpenCV_LIBS})
+            set(dll "${dll_name}${OpenCV_VERSION_MAJOR}${OpenCV_VERSION_MINOR}${OpenCV_VERSION_PATCH}")
+			find_library(OpenCV_DLL_PATH_${dll} NAMES ${dll} PATHS "${OpenCV_DIR}/bin" PATH_SUFFIXES Release )
+			if (EXISTS ${OpenCV_DLL_PATH_${dll}})
+				file(COPY ${OpenCV_DLL_PATH_${dll}} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/Release)
+			else()
+				MESSAGE("[Warning] ${dll}.dll cannot be found in ${OpenCV_DIR}/bin/Release")
+			endif()
+			find_library(OpenCV_DLL_PATH_${dll}d ${dll}d PATHS "${OpenCV_DIR}/bin" PATH_SUFFIXES Debug )
+			if (EXISTS ${OpenCV_DLL_PATH_${dll}d})
+				file(COPY ${OpenCV_DLL_PATH_${dll}d} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/Debug)
+			else()
+				MESSAGE("[Warning] ${dll}d.dll cannot be found in ${OpenCV_DIR}/bin/Debug")
+			endif()
+		endforeach()
+	else()
+		MESSAGE("[Warning] OpenCV_DIR is missing, opencv DLLs cannot be copied to executable directory") 
+	endif()
+    
+	get_target_property(qtrelease Qt5::Core LOCATION_RELEASE) 
+    get_filename_component(qtdir ${qtrelease} DIRECTORY)
+    
+	SET(QT5_DLLS Core Gui Widgets Test Opengl)
+	foreach(dll ${QT5_DLLS})
+        if (EXISTS "${qtdir}/Qt5${dll}.dll")
+            file(COPY "${qtdir}/Qt5${dll}.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/Release)
+        endif()
+        if (EXISTS "${qtdir}/Qt5${dll}d.dll")
+            file(COPY "${qtdir}/Qt5${dll}d.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/Debug)
+        endif()
+	endforeach()
+	
+	SET(QT5_DLLS_ENGINE icudt52 icuin52 icuuc52 icudt53 icuin53 icuuc53)
+	foreach(dll ${QT5_DLLS_ENGINE})
+        if (EXISTS "${qtdir}/${dll}.dll")
+            file(COPY "${qtdir}/${dll}.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/Release)
+            file(COPY "${qtdir}/${dll}.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/Debug)
+        else()
+            MESSAGE("[Warning] ${dll}.dll cannot be found in ${qtdir}")
+        endif()
+	endforeach()
+	
+endif()
