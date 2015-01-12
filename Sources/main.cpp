@@ -45,6 +45,10 @@ We use the 1.55 version (some problem exist with 1.57), you can found some <a hr
 \subsection InputLoader
 This is a private library used to easily load/store videos (from webcam, files or folder).\n
 You can <a href="https://synogsm.lsis.univ-tln.fr/indefero/index.php/p/inputloader/source/tree/master/">download it here</a>. You should build and install it before building ImGraph!
+\subsection subsection_doxygen Doxygen (optional)
+Doxygen is used to generate the documentation of imGraph by creating an additionnal cmake target named "doc". Once the documentation is generated, please refer to html/index.html in the BINARY folder. If Doxygen cannot be found, this step is ignored (documentation is also available online at http://imgraph.github.io).
+\section section_installation Installation
+Once dependencies are installed and built, run cmake command :
 
 \section ProjectStruct Project Structure
 \subsection ProjectStruct_Sub1 Scheduling and synchronization

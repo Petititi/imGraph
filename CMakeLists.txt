@@ -76,7 +76,7 @@ set( ADD_LIBRARIES
 add_subdirectory( Sources )
 
 # ----------------------------------------------------------------------------
-#  Copy required OpenCV and QT5 dlls into output path
+#  Copy required OpenCV and QT5 dlls into output path (Windows only)
 # ----------------------------------------------------------------------------
 if (MSVC)
 	SET(CMAKE_FIND_LIBRARY_SUFFIXES ".dll")
@@ -121,6 +121,21 @@ if (MSVC)
         else()
             MESSAGE("[Warning] ${dll}.dll cannot be found in ${qtdir}")
         endif()
-	endforeach()
-	
+	endforeach()	
+endif()
+
+# ----------------------------------------------------------------------------
+#  Generate doc
+# ----------------------------------------------------------------------------
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+	# Read doxygen configuration file
+	FILE( READ ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile DOXYFILE_CONTENTS )
+
+	add_custom_target(doc
+		${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+		COMMENT "Generating API documentation with Doxygen" VERBATIM
+	)
 endif()
