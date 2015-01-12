@@ -8,9 +8,15 @@
 \page ProcessGraph Scheduling and synchronization
 \section ProcessGraph_intro Introduction
 <p>
-As seen in section \ref BlockSection, there is 3 type of rendering allowed : asynchronous, "one shot" and synchronous. The differences between each mode imply that the graph processing should allow "push" and "pull" data flow.<br/>
-"Push" event occurs when a block produces a value and wake up a child block which was waiting for a value. This is the case when, for example, an input block read a frame from a video file and give this frame to the next block.<br/>
-"Pull" event occurs when a block asks for a value instead of waiting the parent to produce. This is the case when, for example, a block want to skip a frame: it will then ask the parent to render again.
+As seen in section \ref BlockSection, there is 3 types of rendering allowed : asynchronous, "one shot" and synchronous. The differences between each mode imply that the graph processing should allow "push" and "pull" data flow.<br/>
+ - a "Push" event occurs when a block produces a value and wake up a child block which was waiting for a value. This is the case when, for example, an input block read a frame from a video file and give this frame to the next block.<br/>
+ - a "Pull" event occurs when a block asks for a value instead of waiting the parent to produce. This is the case when, for example, a block want to skip a frame: it will then ask the parent to render again.
+</p>
+<p>
+In order to allow these functionalities, we use a double linked oriented graph. Each node of the graph need to know every child that are connected, as well as its parents.
+\ref charliesoft::GraphOfProcess stores a std::map of \ref charliesoft::Block, and each block stores a std::map of parameters (\ref charliesoft::ParamValue) which can be then be an edge of the graph. A parameter can indeed be linked to another parameter.
+In this case, the parameter knows its parent (the block which owns him), and if it's an input parameter, its value will be the address of the output parameter.
+If it's an output parameter, the children can be recovered from \ref charliesoft::ParamValue::_distantListeners.
 </p>
 */
 
