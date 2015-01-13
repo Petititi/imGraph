@@ -26,6 +26,7 @@ list( GET SURANS_VERS_PARTS 2 SURANS_VERS_PATCH )
 
 
 include( ProjectAdd.cmake REQUIRED )
+set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
 
 FIND_PACKAGE( OpenCV REQUIRED )# opencv_calib3d opencv_core opencv_objdetect opencv_features2d opencv_highgui opencv_imgproc opencv_flann opencv_nonfree
 set ( OPENCV_CONCAT "${OpenCV_VERSION_MAJOR}${OpenCV_VERSION_MINOR}${OpenCV_VERSION_PATCH}" )
@@ -76,13 +77,13 @@ set( ADD_LIBRARIES
 add_subdirectory( Sources )
 
 # ----------------------------------------------------------------------------
-#  Copy required OpenCV and QT5 dlls into output path
+#  Copy required OpenCV and QT5 dlls into output path (Windows only)
 # ----------------------------------------------------------------------------
 if (MSVC)
 	SET(CMAKE_FIND_LIBRARY_SUFFIXES ".dll")
 	if(OpenCV_DIR)
-		SET(OPENCV_DLLS opencv_superres300 opencv_ocl300 opencv_objdetect300 opencv_nonfree300 opencv_ml300 opencv_imgproc300 opencv_highgui300 opencv_flann300 opencv_features2d300 opencv_core300 opencv_photo300 opencv_video300)
-		foreach(dll ${OPENCV_DLLS})
+		foreach(dll_name ${OpenCV_LIBS})
+            set(dll "${dll_name}${OpenCV_VERSION_MAJOR}${OpenCV_VERSION_MINOR}${OpenCV_VERSION_PATCH}")
 			find_library(OpenCV_DLL_PATH_${dll} NAMES ${dll} PATHS "${OpenCV_DIR}/bin" PATH_SUFFIXES Release )
 			if (EXISTS ${OpenCV_DLL_PATH_${dll}})
 				file(COPY ${OpenCV_DLL_PATH_${dll}} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/Release)
@@ -99,22 +100,41 @@ if (MSVC)
 	else()
 		MESSAGE("[Warning] OpenCV_DIR is missing, opencv DLLs cannot be copied to executable directory") 
 	endif()
-	
-	SET(QT5_DLLS Core Gui Widgets)
-	foreach(dll ${QT5_DLLS})
-		get_target_property(Qt5${dll}_PATH Qt5::${dll} LOCATION_RELEASE)
-		get_target_property(Qt5${dll}d_PATH Qt5::${dll} LOCATION_DEBUG)
-		file(COPY ${Qt5${dll}_PATH} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/Release)
-		file(COPY ${Qt5${dll}d_PATH} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/Debug)
-	endforeach()
-	
+    
 	get_target_property(qtrelease Qt5::Core LOCATION_RELEASE) 
     get_filename_component(qtdir ${qtrelease} DIRECTORY)
-	file(COPY ${qtdir}/icudt52.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/Release)
-	file(COPY ${qtdir}/icuin52.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/Release)
-	file(COPY ${qtdir}/icuuc52.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/Release)
-	file(COPY ${qtdir}/icudt52.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/Debug)
-	file(COPY ${qtdir}/icuin52.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/Debug)
-	file(COPY ${qtdir}/icuuc52.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/Debug)
+    
+	SET(QT5_DLLS Core Gui Widgets Test Opengl)
+	foreach(dll ${QT5_DLLS})
+        if (EXISTS "${qtdir}/Qt5${dll}.dll")
+            file(COPY "${qtdir}/Qt5${dll}.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/Release)
+        endif()
+        if (EXISTS "${qtdir}/Qt5${dll}d.dll")
+            file(COPY "${qtdir}/Qt5${dll}d.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/Debug)
+        endif()
+	endforeach()
 	
+	SET(QT5_DLLS_ENGINE icudt52 icuin52 icuuc52 icudt53 icuin53 icuuc53)
+	foreach(dll ${QT5_DLLS_ENGINE})
+        if (EXISTS "${qtdir}/${dll}.dll")
+            file(COPY "${qtdir}/${dll}.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/Release)
+            file(COPY "${qtdir}/${dll}.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/Debug)
+        else()
+            MESSAGE("[Warning] ${dll}.dll cannot be found in ${qtdir}")
+        endif()
+	endforeach()	
+endif()
+
+# ----------------------------------------------------------------------------
+#  Generate doc
+# ----------------------------------------------------------------------------
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+
+	add_custom_target(doc
+		${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+		COMMENT "Generating API documentation with Doxygen" VERBATIM
+	)
 endif()
