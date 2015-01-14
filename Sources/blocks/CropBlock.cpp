@@ -28,8 +28,8 @@ namespace charliesoft
 
   BEGIN_BLOCK_OUTPUT_PARAMS(BlockCrop);
   ADD_PARAMETER(true, Matrix, "BLOCK__CROP_OUT_IMAGE", "BLOCK__CROP_OUT_IMAGE_HELP");
-  ADD_PARAMETER(false, Int, "BLOCK__CROP_WIDTH", "BLOCK__CROP_WIDTH_HELP");
-  ADD_PARAMETER(false, Int, "BLOCK__CROP_HEIGHT", "BLOCK__CROP_HEIGHT_HELP");
+  ADD_PARAMETER_FULL(false, Int, "BLOCK__CROP_WIDTH", "BLOCK__CROP_WIDTH_HELP", -1);
+  ADD_PARAMETER_FULL(false, Int, "BLOCK__CROP_HEIGHT", "BLOCK__CROP_HEIGHT_HELP", -1);
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_SUBPARAMS_DEF(BlockCrop);
@@ -37,8 +37,6 @@ namespace charliesoft
 
   BlockCrop::BlockCrop() :Block("BLOCK__CROP_NAME"){
     _myInputs["BLOCK__CROP_IN_IMAGE"].addValidator({ new ValNeeded() });
-    _myInputs["BLOCK__CROP_WIDTH"].addValidator({ new ValPositiv(true) });
-    _myInputs["BLOCK__CROP_HEIGHT"].addValidator({ new ValPositiv(true) });
   };
 
   bool BlockCrop::run(bool oneShot){

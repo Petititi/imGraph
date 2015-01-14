@@ -9,7 +9,7 @@
 \section ProcessGraph_intro Introduction
 <p>
 As seen in section \ref BlockSection, there is 3 types of rendering allowed : asynchronous, "one shot" and synchronous. The differences between each mode imply that the graph processing should allow "push" and "pull" data flow.<br/>
- - a "Push" event occurs when a block produces a value and wake up a child block which was waiting for a value. This is the case when, for example, an input block read a frame from a video file and give this frame to the next block.<br/>
+ - a "Push" event occurs when a block produces a value and wake up a child block which was waiting for a value (this is true only if each input value of this block is new or constant). This is the case when, for example, an input block read a frame from a video file and give this frame to the next block.<br/>
  - a "Pull" event occurs when a block asks for a value instead of waiting the parent to produce. This is the case when, for example, a block want to skip a frame: it will then ask the parent to render again.
 </p>
 <p>
@@ -31,7 +31,6 @@ namespace charliesoft
     boost::mutex _mtx;
     //edges are stored into Block (_myInputs[]->isLinked())
 
-    void waitForFullRendering(Block* main_process, Block* process);
   public:
     static bool pauseProcess;
     GraphOfProcess(GraphOfProcess* parent=NULL);
@@ -43,7 +42,6 @@ namespace charliesoft
     GraphOfProcess* getParent() const { return _parent; }
     void setParent(GraphOfProcess* val) { _parent = val; }
 
-    static unsigned int _current_timestamp;
     void initChildDatas(Block*, std::set<Block*>& listOfRenderedBlocks);
 
 
@@ -63,16 +61,23 @@ namespace charliesoft
     */
     void blockProduced(Block* process, bool fullyRendered = true);
 
-    void blockWantToSkip(Block* process);
-
     /**
-    * Will wait for rendering block ancestor
+    * Will wait end of rendering for every block ancestor
     */
-    void shouldWaitChild(Block* process);
+    void shouldWaitAncestors(Block* process);
+    /**
+    * Ask an update for each block ancestor
+    */
+    void updateAncestors(Block* process);
     /**
     * Will wait for childs to process the data we just produce
     */
     void shouldWaitConsumers(Block* process);
+
+    /**
+    * Reset the waiting list of block of the parameter
+    */
+    void clearWaitingList(Block* process);
 
     std::vector<Block*>& getVertices();
     void removeLink(const BlockLink& l);

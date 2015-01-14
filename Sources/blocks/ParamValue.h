@@ -145,6 +145,9 @@ namespace charliesoft
       return !(this->operator==(b));
     }
 
+    ///Update the value. This will render the corresponding block and every ancestors.
+    void update();
+
     bool isNeeded(){ return _paramNeeded; };
     void isNeeded(bool paramNeeded){ _paramNeeded = paramNeeded; };
 

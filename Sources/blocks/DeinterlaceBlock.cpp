@@ -40,7 +40,7 @@ namespace charliesoft
   BEGIN_BLOCK_SUBPARAMS_DEF(DeinterlaceBlock);
   END_BLOCK_PARAMS();
 
-  DeinterlaceBlock::DeinterlaceBlock() :Block("BLOCK__DEINTERLACE_NAME", producer){
+  DeinterlaceBlock::DeinterlaceBlock() :Block("BLOCK__DEINTERLACE_NAME"){
     _myInputs["BLOCK__DEINTERLACE_IN_IMAGE"].addValidator({ new ValNeeded() });
   };
   
@@ -60,14 +60,14 @@ namespace charliesoft
       if (oneShot)
         return true;
 
-      newProducedData();
+      newProducedData(false);
 
       mat = filter.getProducedFrame();//get an other img?
       
       while (!mat.empty())
       {
         _myOutputs["BLOCK__DEINTERLACE_OUT_IMAGE"] = mat;
-        newProducedData();
+        newProducedData(false);
         mat = filter.getProducedFrame();
       }
     }
@@ -78,7 +78,6 @@ namespace charliesoft
 
   BLOCK_BEGIN_INSTANTIATION(InterlaceBlock);
   //You can add methods, re implement needed functions...
-  int nbFrame;
   BLOCK_END_INSTANTIATION(InterlaceBlock, AlgoType::videoProcess, BLOCK__SKIP_FRAME_NAME);
 
   BEGIN_BLOCK_INPUT_PARAMS(InterlaceBlock);
@@ -97,7 +96,6 @@ namespace charliesoft
 
   InterlaceBlock::InterlaceBlock() :Block("BLOCK__SKIP_FRAME_NAME"){
     _myInputs["BLOCK__SKIP_FRAME_IN_IMAGE"].addValidator({ new ValNeeded() });
-    nbFrame = 0;
   };
 
   bool InterlaceBlock::run(bool oneShot){
@@ -105,18 +103,21 @@ namespace charliesoft
       return false;
 
     int nbSkip = _myInputs["BLOCK__SKIP_FRAME_IN_TYPE"].get<int>(true);
-    nbFrame++;
-    if (nbFrame > nbSkip)
+    int nbFrame = 0;
+    if (!oneShot)
     {
-      nbFrame = 0;
-      cv::Mat mat = _myInputs["BLOCK__SKIP_FRAME_IN_IMAGE"].get<cv::Mat>(true);
-      if (!mat.empty())
+      while (nbFrame < nbSkip)
       {
-        _myOutputs["BLOCK__SKIP_FRAME_OUT_IMAGE"] = mat;
+        nbFrame++;
+        _myInputs["BLOCK__SKIP_FRAME_IN_IMAGE"].update();//discard current value and get a new one
       }
     }
-    else
-      skipRendering();
+
+    cv::Mat mat = _myInputs["BLOCK__SKIP_FRAME_IN_IMAGE"].get<cv::Mat>(true);
+    if (!mat.empty())
+    {
+      _myOutputs["BLOCK__SKIP_FRAME_OUT_IMAGE"] = mat;
+    }
 
     return true;
   };

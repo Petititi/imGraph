@@ -152,6 +152,18 @@ namespace charliesoft
       (isLinked() && boost::get<ParamValue*>(value_)->isDefaultValue());
   };
 
+
+  void ParamValue::update()
+  {
+    if (_block == NULL)
+      return;//nothing to do, this value can't be updated!
+    if (_isOutput)//the wanted value is the output of this block...
+      _block->update();
+    else if (isLinked())//the wanted value is the output of the connected block...
+      boost::get<ParamValue*>(value_)->_block->update();
+    //else : nothing to do!
+  }
+
   void ParamValue::valid_and_set(const ParamValue& v){
     validate(v);//if not valid throw an error!
     if (v.value_.type() == typeid(ParamValue *))

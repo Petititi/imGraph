@@ -35,7 +35,6 @@ using boost::lock_guard;
 
 namespace charliesoft
 {
-  unsigned int GraphOfProcess::_current_timestamp = 0;
   bool GraphOfProcess::pauseProcess = false;
 
   GraphOfProcess::GraphOfProcess(GraphOfProcess* parent)
@@ -109,54 +108,57 @@ namespace charliesoft
     return _vertices;
   }
 
-  void GraphOfProcess::waitForFullRendering(Block* father_process, Block* process)
+  void GraphOfProcess::updateAncestors(Block* process)
   {
-    _waitingForRendering[father_process].insert(process);
-    for (auto it = process->_myOutputs.begin(); it != process->_myOutputs.end(); it++)
+    //wait for every direct linked ancestors:
+    //Is there old parameters? -> if yes, we wait for update, else we process the block right now:
+    for (auto it = process->_myInputs.begin(); it != process->_myInputs.end(); it++)
     {
-      //wait the thread to process it!
-      std::set<ParamValue*>& listeners = it->second.getListeners();
-      for (auto listener : listeners)
+      ParamValue* linkedBlock = it->second.get<ParamValue*>(false);
+      if (linkedBlock!=NULL)
       {
-        if (listener->isLinked())
-          waitForFullRendering(father_process, listener->getBlock());
+        //we have an ancestor! We ask for an update:
+        linkedBlock->update();
       }
     }
   }
 
-  void GraphOfProcess::shouldWaitChild(Block* process)
+  void GraphOfProcess::shouldWaitAncestors(Block* process)
   {
     boost::unique_lock<boost::mutex> lock(_mtx);
     //should we wait for a process? (depending on the block type)
     if (process->getTypeExec() == Block::asynchrone)
       return;//no need to wait
-    if (process->getTypeExec() == Block::oneShot || process->getTypeExec() == Block::producer)
+    //wait for every direct linked ancestors:
+    //Is there old parameters? -> if yes, we wait for update, else we process the block right now:
+    for (auto it = process->_myInputs.begin(); it != process->_myInputs.end(); it++)
     {
-      //wait for every direct linked ancestors:
-      //Is there old parameters? -> if yes, we wait for update, else we process the block right now:
-      for (auto it = process->_myInputs.begin(); it != process->_myInputs.end(); it++)
+      if (it->second.isLinked())
       {
-        if (it->second.isLinked())
-        {
-          while (!it->second.isNew())
-          {
-            //std::cout << "---  " << _STR(process->getName()) << " (" << process->_timestamp << ") Wait " << _STR(it->second.getName()) << endl;
-            process->waitUpdateTimestamp(lock);//wait for parameter update!
-          }
+        ParamValue* other = it->second.get<ParamValue*>(false);
+        while (!it->second.isNew())
+        {//we have to wait for any update!
+          //std::cout << "---  " << _STR(process->getName()) << " (" << process->_timestamp << ") Wait " << _STR(it->second.getName()) << endl;
+          process->setState(Block::waitingChild);
+          other->getBlock()->waitProducers(lock);//wait for parameter update!
         }
       }
+    }//ok, every ancestor have produced a value!
+  }
 
-      return;//ok, every ancestor have produced a value!
-    }
+  void GraphOfProcess::clearWaitingList(Block* process)
+  {
+    boost::unique_lock<boost::mutex> lock(_mtx);
+    _waitingForRendering[process].clear();
   }
 
   void GraphOfProcess::shouldWaitConsumers(Block* process)
   {
     boost::unique_lock<boost::mutex> lock(_mtx);
     //should we wait for a process? (depending on the block type)
-    if (process->getTypeExec() == Block::producer)
+    if (process->getTypeExec() == Block::synchrone)
     {
-      //wait for every childs. They have to be fully rendered before we rerun this block!
+      //wait for the childs of this process. They have to be fully rendered before we rerun this block!
       for (auto it = process->_myOutputs.begin(); it != process->_myOutputs.end(); it++)
       {
         //wait for threads consumption
@@ -165,15 +167,16 @@ namespace charliesoft
         {
           if (listener->isLinked() && listener->isNew())//this param is still not consumed...
           {
-            waitForFullRendering(process, listener->getBlock());
+            _waitingForRendering[process].insert(listener->getBlock());
           }
         }
       }
       if (!_waitingForRendering[process].empty())
       {
-        process->waitUpdateTimestamp(lock);//wait for parameter update!
+        process->setState(Block::waitingConsumers);
+        process->waitConsumers(lock);//wait for parameter update! Will be waked up when _waitingForRendering is empty!
       }
-      _current_timestamp++;
+
       return;//ok, every child have processed our value!
     }
   }
@@ -184,7 +187,10 @@ namespace charliesoft
   void GraphOfProcess::blockProduced(Block* process, bool fullyRendered)
   {
     boost::unique_lock<boost::mutex> lock(_mtx);
-    std::cout << "   " << _STR(process->getName()) << " (" << _current_timestamp << ") Produced!" << endl;
+    if (fullyRendered)
+      std::cout << "   " << _STR(process->getName()) << " Produced!" << endl;
+    else
+      std::cout << "   " << _STR(process->getName()) << " partially rendered!" << endl;
     if (fullyRendered)
     {
       //remove this block for every waiting thread:
@@ -192,37 +198,10 @@ namespace charliesoft
       {
         waitThread.second.erase(process);
         if (waitThread.second.empty())
-          waitThread.first->wakeUp();
+          waitThread.first->wakeUpFromConsumers();
       }
-      //set timestamp of block to current timestamp:
-      process->_timestamp = _current_timestamp;
-      //wake up any waiting thread (some thread can wait specifically our rendering):
-      process->wakeUp();
     }
-    //wake up linked output blocks
-    process->wakeUpOutputListeners();
   }
-
-  ///TODO:
-  /// Verify that parameter update set timestamp, even if not linked!
-  /// But don't change timestamp if value set is the same as previous stored value.
-  void GraphOfProcess::blockWantToSkip(Block* process)
-  {
-    boost::unique_lock<boost::mutex> lock(_mtx);
-    std::cout << "   " << _STR(process->getName()) << " (" << _current_timestamp << ") want to skip further processing!" << endl;
-
-    //remove this block for every waiting thread:
-    for (auto& waitThread : _waitingForRendering)
-    {
-      if (waitThread.second.find(process) != waitThread.second.end())
-      {
-        waitThread.second.clear();
-        waitThread.first->wakeUp();
-      }
-    }
-    //set timestamp of block to current timestamp:
-    process->_timestamp = _current_timestamp;
-  };
 
   void GraphOfProcess::stop(bool delegateParent)
   {
@@ -270,7 +249,7 @@ namespace charliesoft
       //wake up threads:
       for (auto it = _vertices.begin();
         it != _vertices.end(); it++)
-        (*it)->wakeUp();
+        (*it)->wakeUpFromConsumers();
     }
   }
 

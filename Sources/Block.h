@@ -170,27 +170,42 @@ namespace charliesoft
     friend class charliesoft::ProcessManager;
   public:
     /**
-    * Three types of blocks:
-    * Classic one-shot block. Called "consumer" they just take some input and create some output. Ex: line finder.
-    * The "producers" : they create new data continuously, but wait for data to be fully processed (one frame at the time).
-    * The "asynchrones" : they produce data cotinuously without waiting anything.
+    * Two types of blocks:
+    * - Classic block. Called "synchrone" they just take some input and create some output. They also wait the output childs to process the data. Ex: line finder.
+    * - The "asynchrones" : they produce data continuously without waiting anything.
     */
     enum BlockType
     {
-      oneShot = 0,
-      producer,
+      synchrone = 0,
       asynchrone
     };
+
+    /**
+    * Four states of blocks:
+    * - Block wait for new input values... Only synchrone block can be in this state.
+    * - Block is active and produce new datas
+    * - Block wait until all its output are consumed.
+    * - Block is not yet started
+    */
+    enum BlockState
+    {
+      waitingChild = 0,
+      running,
+      waitingConsumers,
+      stopped
+    };
   protected:
+    boost::thread::id _threadID;
+
+    BlockState _state;///<Current state of the block
     BlockType _exec_type;
-    bool _renderingSkiped;
     unsigned int nbRendering;
     GraphOfProcess* _processes;///<list of process currently in use
-    boost::condition_variable _cond_pause;  // pause condition
-    boost::mutex _mtx;    // explicit mutex declaration
-    boost::condition_variable _cond_sync;  // global sync condition
-    boost::condition_variable _param_sync;  // parameter update sync condition
-    boost::mutex _mtx_timestamp_inc;    // Timestamps update
+    boost::condition_variable _cond_pause;  ///< pause condition
+    boost::mutex _mtx;    ///< explicit mutex declaration
+    boost::condition_variable _wait_consume;  ///< parameter consumption sync condition
+    boost::condition_variable _wait_processed;  ///<Block has processed the input datas
+    boost::mutex _mtx_timestamp_inc;    ///< Timestamps update
     unsigned int _timestamp;///<timestamp of produced values
 
     std::string _error_msg;
@@ -205,12 +220,13 @@ namespace charliesoft
     void initParameters(const std::vector<ParamDefinition>& inParam, 
       const std::vector<ParamDefinition>& outParam);
 
-    void newProducedData();
+    void newProducedData(bool fullyRendered);
 
     virtual bool run(bool oneShot = false) = 0;
     bool _executeOnlyOnce;
+    bool _newData;
   public:
-    Block(std::string name, BlockType typeExec = oneShot);
+    Block(std::string name, BlockType typeExec = synchrone);
     ~Block();
     std::string getName(){
       return _name;
@@ -225,6 +241,9 @@ namespace charliesoft
     };
     GraphOfProcess* getGraph() const { return _processes; };
 
+    BlockState getState() const { return _state; };
+    void setState(BlockState val) { _state = val; };
+
     BlockType getExecType() const { return _exec_type; }
     void setExecType(BlockType val) { _exec_type = val; }
 
@@ -234,7 +253,6 @@ namespace charliesoft
     bool validateParams(std::string param, const ParamValue val);
     ///if realCheck is true, we look for links being ready to consume
     bool isReadyToRun(bool realCheck=false);
-    void skipRendering();
 
     void addCondition(ConditionOfRendering& c){
       if (_conditions.empty())
@@ -254,9 +272,10 @@ namespace charliesoft
     bool isStartingBlock();
     bool isAncestor(Block* other);
     bool hasNewParameters();//true if at least one parameter has timestamp>block timestamp
-    void wakeUp();
-    void wakeUpOutputListeners();
-    void waitUpdateTimestamp(boost::unique_lock<boost::mutex>& lock);
+    void wakeUpFromConsumers();
+    void wakeUpFromPause();
+    void waitConsumers(boost::unique_lock<boost::mutex>& lock);
+    void waitProducers(boost::unique_lock<boost::mutex>& lock);
     boost::mutex& getMutex(){
       return _mtx;
     };
@@ -281,7 +300,9 @@ namespace charliesoft
     void setPosition(int x, int y);
     void removeCondition();
 
-    bool executeOnlyOnce() const { return _executeOnlyOnce; }
+    ///Re-run this block. If links exist, this will also render every ancestors.
+    void update();
+    bool shouldExecuteOnlyOnce() const { return _executeOnlyOnce; }
     void setExecuteOnlyOnce(bool val) { _executeOnlyOnce = val; }
 
     virtual std::vector<ParamDefinition> getInParams() const;

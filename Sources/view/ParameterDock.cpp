@@ -138,11 +138,7 @@ namespace charliesoft
     _switchSynchro->setFixedWidth(30);
     switch (type)
     {
-    case Block::BlockType::oneShot:
-      _switchSynchro->setIcon(QIcon(":/oneShot-icon"));
-      _switchSynchro->setToolTip("<FONT>" + _QT("BUTTON_SWITCH_ONESHOT") + "</FONT>");
-      break;
-    case Block::BlockType::producer:
+    case Block::BlockType::synchrone:
       _switchSynchro->setIcon(QIcon(":/synchr-icon"));
       _switchSynchro->setToolTip("<FONT>" + _QT("BUTTON_SWITCH_SYNC") + "</FONT>");
       break;
@@ -673,7 +669,7 @@ namespace charliesoft
       return;
     Block* model = _vertex->getModel();
     Block::BlockType type = model->getExecType();
-    if (type == Block::BlockType::oneShot)
+    if (type == Block::BlockType::synchrone)
     {
       _switchSynchro->setIcon(QIcon(":/asynchr-icon"));
       _switchSynchro->setToolTip("<FONT>" + _QT("BUTTON_SWITCH_ASYNC") + "</FONT>");
@@ -681,18 +677,9 @@ namespace charliesoft
     }
     else
     {
-      if (type == Block::BlockType::producer)
-      {
-        _switchSynchro->setIcon(QIcon(":/oneShot-icon"));
-        _switchSynchro->setToolTip("<FONT>" + _QT("BUTTON_SWITCH_ONESHOT") + "</FONT>");
-        model->setExecType(Block::BlockType::oneShot);
-      }
-      else
-      {
-        _switchSynchro->setIcon(QIcon(":/synchr-icon"));
-        _switchSynchro->setToolTip("<FONT>" + _QT("BUTTON_SWITCH_SYNC") + "</FONT>");
-        model->setExecType(Block::BlockType::producer);
-      }
+      _switchSynchro->setIcon(QIcon(":/synchr-icon"));
+      _switchSynchro->setToolTip("<FONT>" + _QT("BUTTON_SWITCH_SYNC") + "</FONT>");
+      model->setExecType(Block::BlockType::synchrone);
     }
 
   }

@@ -58,7 +58,7 @@ namespace charliesoft
     //wait for ouput updates:
     for (auto link : externBlocksOutput)
     {
-      link._from->waitUpdateTimestamp(lock);
+      link._from->waitProducers(lock);
       ParamValue* value = link._from->getParam(link._fromParam, false);
       _myOutputs[link._toParam].setValue(value);
     }

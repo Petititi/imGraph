@@ -235,11 +235,14 @@ namespace charliesoft
   Block::~Block()
   {
     _processes->extractProcess(this);
-    wakeUp();
-    wakeUpOutputListeners();
+    wakeUpFromPause();
+    wakeUpFromConsumers();
+    _wait_processed.notify_all();
   }
 
   Block::Block(std::string name, BlockType typeExec){
+    _state = stopped;
+    _threadID = boost::thread::id();
     _exec_type = typeExec;
     _name = name;
     _timestamp = 0;
@@ -250,16 +253,20 @@ namespace charliesoft
   void Block::operator()()
   {
     boost::unique_lock<boost::mutex> lock(_mtx);
+    if (_threadID == boost::thread::id())//not a thread...
+      _threadID = boost::this_thread::get_id();
+    else
+      return;//this thread is already running! This should not be possible...
     nbRendering = 0;
     try
     {
       while (true)//this will stop when user stop the process...
       {
-        _renderingSkiped = false;
         while (GraphOfProcess::pauseProcess)
           _cond_pause.wait(lock);//wait for play
 
-        _processes->shouldWaitChild(this);//ask to scheduler if we have to wait...
+        _processes->shouldWaitAncestors(this);//ask to scheduler if we have to wait...
+        _state = running;
         bool shouldRun = true;
         for (ConditionOfRendering& condition : _conditions)
         {
@@ -267,17 +274,14 @@ namespace charliesoft
             shouldRun= false;
         }
         //now we can run the process:
-        if (shouldRun && !_renderingSkiped)
+        if (shouldRun)
         {
-          run();
-          _processes->blockProduced(this);//tell to scheduler we produced some datas...
+          run(_executeOnlyOnce);
+          newProducedData(true);//tell to scheduler we produced some datas...
         }
-        else
-          skipRendering();
 
         nbRendering++;
 
-        _cond_sync.notify_all();//wake up waiting thread (if needed)
         boost::this_thread::sleep(boost::posix_time::milliseconds(10.));
         if (_executeOnlyOnce)
           break;
@@ -287,11 +291,41 @@ namespace charliesoft
     {
       //end of thread (requested by interrupt())!
     }
+    _state = stopped;
+    _threadID = boost::thread::id();//reset thread ID!
+  }
+  
+  void Block::update()
+  {
+    //first of all, ask ancestors to render themselves!
+    _processes->updateAncestors(this);
+    if (_threadID == boost::thread::id())//thread not running
+    {
+      //in this case, we have to run him by hand!
+      bool wasExecOnce = _executeOnlyOnce;
+      _executeOnlyOnce = true;
+      (*this)();//run
+      _executeOnlyOnce = wasExecOnce;
+    }
+    else
+    {
+      boost::unique_lock<boost::mutex> lock(_mtx_timestamp_inc);
+      //there is a running thread! Just have to wake it up, and wait for rendering:
+      _processes->clearWaitingList(this);
+      _wait_consume.notify_all();//now we are awake!
+      //and we should be processing the value...
+      _wait_processed.wait(lock);//wait the update!
+    }
   }
 
-  void Block::newProducedData()
+  void Block::newProducedData(bool fullyRendered)
   {
-    _processes->blockProduced(this, false);//tell to scheduler we produced some datas...
+    {
+      boost::unique_lock<boost::mutex> guard(_mtx_timestamp_inc);
+      _processes->blockProduced(this, fullyRendered);//tell to scheduler we produced some datas...
+      //wake up linked output blocks
+      _wait_processed.notify_all();
+    }
     if (_exec_type == asynchrone)return;//no need to wait
     //we have to wait entire chain of rendering to process our data:
     _processes->shouldWaitConsumers(this);//ask to scheduler if we have to wait...
@@ -344,35 +378,14 @@ namespace charliesoft
     return true;
   }
 
-  void Block::wakeUpOutputListeners()
+  void Block::wakeUpFromPause()
   {
-    //for each output, test if a new value was set
-    for (auto it = _myOutputs.begin(); it != _myOutputs.end(); it++)
-    {
-      //wake up the threads, if any!
-      std::set<ParamValue*>& listeners = it->second.getListeners();
-      for (auto listener : listeners)
-      {
-        if (listener->isLinked())
-          listener->getBlock()->wakeUp();
-      }
-    }
-  }
-  void Block::wakeUp()
-  {
-    _cond_sync.notify_all();//wake up waiting thread (if needed)
-    _param_sync.notify_all();
     _cond_pause.notify_all();
   }
 
-  void Block::skipRendering()
+  void Block::wakeUpFromConsumers()
   {
-    {
-      boost::unique_lock<boost::mutex> guard(_mtx_timestamp_inc);
-      _timestamp = _processes->_current_timestamp;
-      _renderingSkiped = true;
-      _processes->blockWantToSkip(this);
-    }
+    _wait_consume.notify_all();//wake up waiting thread (if needed)
   }
 
   bool Block::isReadyToRun(bool realCheck)
@@ -416,9 +429,14 @@ namespace charliesoft
     return false;
   }
 
-  void Block::waitUpdateTimestamp(boost::unique_lock<boost::mutex>& lock)
+  void Block::waitConsumers(boost::unique_lock<boost::mutex>& lock)
   {
-    _param_sync.wait(lock);
+    _wait_consume.wait(lock);
+  }
+
+  void Block::waitProducers(boost::unique_lock<boost::mutex>& lock)
+  {
+    _wait_processed.wait(lock);
   }
 
   bool Block::validateParams(std::string param, const ParamValue val){

@@ -49,7 +49,7 @@ protected:
   ADD_PARAMETER_FULL(false, Int, "BLOCK__INPUT_IN_INPUT_TYPE.Webcam.webcam index", "webcam index", 0);
   END_BLOCK_PARAMS();
 
-  BlockLoader::BlockLoader() :Block("BLOCK__INPUT_NAME", producer){
+  BlockLoader::BlockLoader() :Block("BLOCK__INPUT_NAME"){
     _mySubParams["BLOCK__INPUT_IN_INPUT_TYPE.Video file.video file"].addValidator({ new ValFileExist() });
     _mySubParams["BLOCK__INPUT_IN_INPUT_TYPE.Folder.input folder"].addValidator({ new ValFileExist() });
     _myInputs["BLOCK__INPUT_INOUT_WIDTH"].addValidator({ new ValPositiv(true) });
@@ -142,7 +142,7 @@ protected:
       if (fps>0)
         boost::this_thread::sleep(boost::posix_time::milliseconds((1. / fps)*1000.));
       frame = processor_.getFrame();
-      newProducedData();
+      newProducedData(false);
     }
     return true;
   };
