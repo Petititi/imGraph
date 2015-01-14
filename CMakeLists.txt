@@ -13,17 +13,18 @@ endif( )
 # ----------------------------------------------------------------------------
 #  Current version number:
 # ----------------------------------------------------------------------------
-set( SURANS_VERSION "1.0.0" )
-string( REGEX MATCHALL "[ 0-9 ]+" SURANS_VERS_PARTS "${SURANS_VERSION}" )
+set( ImGRAPH_VERSION "1.0.0" )
+string( REGEX MATCHALL "[ 0-9 ]+" ImGRAPH_VERS_PARTS "${ImGRAPH_VERSION}" )
 
-list( GET SURANS_VERS_PARTS 0 SURANS_VERS_MAJOR )
-list( GET SURANS_VERS_PARTS 1 SURANS_VERS_MINOR )
-list( GET SURANS_VERS_PARTS 2 SURANS_VERS_PATCH )
+list( GET ImGRAPH_VERS_PARTS 0 ImGRAPH_VERS_MAJOR )
+list( GET ImGRAPH_VERS_PARTS 1 ImGRAPH_VERS_MINOR )
+list( GET ImGRAPH_VERS_PARTS 2 ImGRAPH_VERS_PATCH )
 
 
 # Alternatively you could simply include version.rc in another rc file
 # if there already is one in one of the files in ${SOURCES}
 
+set(DOXYGEN_OUT_DIR "." CACHE PATH "Directory where doxygen will be build")
 
 include( ProjectAdd.cmake REQUIRED )
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
