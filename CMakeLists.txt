@@ -26,6 +26,7 @@ list( GET SURANS_VERS_PARTS 2 SURANS_VERS_PATCH )
 
 
 include( ProjectAdd.cmake REQUIRED )
+set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
 
 FIND_PACKAGE( OpenCV REQUIRED )# opencv_calib3d opencv_core opencv_objdetect opencv_features2d opencv_highgui opencv_imgproc opencv_flann opencv_nonfree
 set ( OPENCV_CONCAT "${OpenCV_VERSION_MAJOR}${OpenCV_VERSION_MINOR}${OpenCV_VERSION_PATCH}" )
@@ -76,7 +77,7 @@ set( ADD_LIBRARIES
 add_subdirectory( Sources )
 
 # ----------------------------------------------------------------------------
-#  Copy required OpenCV and QT5 dlls into output path
+#  Copy required OpenCV and QT5 dlls into output path (Windows only)
 # ----------------------------------------------------------------------------
 if (MSVC)
 	SET(CMAKE_FIND_LIBRARY_SUFFIXES ".dll")
@@ -121,6 +122,19 @@ if (MSVC)
         else()
             MESSAGE("[Warning] ${dll}.dll cannot be found in ${qtdir}")
         endif()
-	endforeach()
-	
+	endforeach()	
+endif()
+
+# ----------------------------------------------------------------------------
+#  Generate doc
+# ----------------------------------------------------------------------------
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+
+	add_custom_target(doc
+		${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+		COMMENT "Generating API documentation with Doxygen" VERBATIM
+	)
 endif()
