@@ -7,9 +7,10 @@
 #pragma warning(disable:4996 4251 4275 4800)
 #endif
 #include <boost/lexical_cast.hpp>
-#include <Opencv2/imgproc.hpp>
+#include <opencv2/opencv.hpp>
+//#include <Opencv2/imgproc.hpp>
 #include <opencv2/superres/optical_flow.hpp>
-#include <opencv2/ocl/ocl.hpp>
+#include <opencv2/core/ocl.hpp>
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
@@ -67,8 +68,8 @@ namespace charliesoft
       optic = createOptFlow_PyrLK_OCL();
       break;
     }
-    ocl::oclMat ocltmp1(src), ocltmp2(dest), flow1, flow2;
-
+    Mat ocltmp1(src), ocltmp2(dest), flow1, flow2;
+	
     optic->calc(ocltmp1, ocltmp2, flow1, flow2);
 
     Mat finalFlow, printFlow, splitedFlow[2];
@@ -93,7 +94,7 @@ namespace charliesoft
       optic = createOptFlow_Farneback();
       break;
     case 2:
-      optic = createOptFlow_DualTVL1();
+	  optic = superres::createOptFlow_DualTVL1();
       break;
     default:
       optic = createOptFlow_Simple();
@@ -132,22 +133,17 @@ namespace charliesoft
 
 
     //is Opencl OK?
-    cv::ocl::DevicesInfo devices;
-    cv::ocl::getOpenCLDevices(devices);
-    bool opencl = false;
-    for (size_t i = 0; i < devices.size(); i++)
-    {
-      if (devices[i]->deviceVersionMajor > 1)
-        opencl = true;
-      else
-        if (devices[i]->deviceVersionMajor == 1 && devices[i]->deviceVersionMinor >= 1)
-          opencl = true;
-    }
+	
+	bool opencl = cv::ocl::haveOpenCL();
+	
     Mat finalFlow;
-    if (opencl)
-      finalFlow = computeOpenCL(src, dest, method);
-    else
-      finalFlow = computeCPU(src, dest, method);
+	if (opencl) {
+		cv::ocl::setUseOpenCL(true);
+		finalFlow = computeOpenCL(src, dest, method);
+	}
+	else{
+		finalFlow = computeCPU(src, dest, method);
+	}
     _myOutputs["BLOCK__OPTICFLOW_OUT_IMAGE"] = finalFlow;
     return true;
   };

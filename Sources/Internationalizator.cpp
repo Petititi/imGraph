@@ -383,5 +383,11 @@ namespace charliesoft
     translations["BLOCK__MORPHOLOGIC_ITERATIONS_HELP"] = "Number of times erosion and dilation are applied.";
     translations["BLOCK__MORPHOLOGIC_OUT_IMAGE"] = "image";
     translations["BLOCK__MORPHOLOGIC_OUT_IMAGE_HELP"] = "Filtered image";
+
+	translations["BLOCK__CANNY_NAME"] = "Canny";
+	translations["BLOCK__CANNY_IN_IMAGE"] = "image";
+	translations["BLOCK__CANNY_IN_IMAGE_HELP"] = "Input image";
+	translations["BLOCK__CANNY_OUT_IMAGE"] = "image";
+	translations["BLOCK__CANNY_OUT_IMAGE_HELP"] = "Canny image";
   }
 }

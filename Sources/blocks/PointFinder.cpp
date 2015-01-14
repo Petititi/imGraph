@@ -4,8 +4,9 @@
 #pragma warning(disable:4996 4251 4275 4800 4503)
 #endif
 #include <vector>
-#include <opencv2/nonfree.hpp>
-#include <opencv2/features2d.hpp>
+#include <opencv2/opencv.hpp>
+//#include <opencv2/nonfree.hpp>
+//#include <opencv2/features2d.hpp>
 #include <boost/algorithm/string.hpp>
 #ifdef _WIN32
 #pragma warning(pop)
@@ -56,14 +57,24 @@ public:
     //now create all subparameters:
     for (string param : detectorList)
     {
-      vector<cv::String> out;
-      cv::Ptr<FeatureDetector> detect = FeatureDetector::create(param);
-      if (!detect.empty())
-      {
-        detect->getParams(out);
-        for (cv::String subParam : out)
-          ADD_SUBPARAM_FROM_OPENCV_ALGO(detect, "BLOCK__POINT_FINDER_IN_DETECTOR", param, subParam);
-      }
+		vector<cv::String> out;
+		cv::Ptr<FeatureDetector> detect;
+		if (boost::iequals(param, "FAST")) {
+			detect = cv::FastFeatureDetector::create();
+		};
+		if (!detect.empty()){
+			detect->getParams(out);
+			for (cv::String subParam : out)
+				ADD_SUBPARAM_FROM_OPENCV_ALGO(detect, "BLOCK__POINT_FINDER_IN_DETECTOR", param, subParam);
+		}
+      //vector<cv::String> out;
+      //cv::Ptr<FeatureDetector> detect = cv::FeatureDetector::create(param);
+      //if (!detect.empty())
+      //{
+      //  detect->getParams(out);
+      //  for (cv::String subParam : out)
+      //    ADD_SUBPARAM_FROM_OPENCV_ALGO(detect, "BLOCK__POINT_FINDER_IN_DETECTOR", param, subParam);
+      //}
     }
   };
   pos = _STR("BLOCK__POINT_FINDER_IN_EXTRACTOR_HELP").find_first_of('|');
@@ -76,14 +87,14 @@ public:
     //now create all subparameters:
     for (string param : extractorList)
     {
-      vector<cv::String> out;
-      cv::Ptr<DescriptorExtractor> detect = DescriptorExtractor::create(param);
-      if (!detect.empty())
-      {
-        detect->getParams(out);
-        for (cv::String subParam : out)
-          ADD_SUBPARAM_FROM_OPENCV_ALGO(detect, "BLOCK__POINT_FINDER_IN_EXTRACTOR", param, subParam);
-      }
+   //   vector<cv::String> out;
+	  //cv::Ptr<DescriptorExtractor> detect = cv::DescriptorExtractor::create();
+   //   if (!detect.empty())
+   //   {
+   //     detect->getParams(out);
+   //     for (cv::String subParam : out)
+   //       ADD_SUBPARAM_FROM_OPENCV_ALGO(detect, "BLOCK__POINT_FINDER_IN_EXTRACTOR", param, subParam);
+   //   }
     }
   };
   pos = _STR("BLOCK__POINT_FINDER_IN_MODIFICATOR_HELP").find_first_of('|');

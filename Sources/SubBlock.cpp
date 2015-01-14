@@ -4,8 +4,9 @@
 #pragma warning(disable:4996 4251 4275 4800 4503)
 #endif
 #include <vector>
-#include <opencv2/nonfree.hpp>
-#include <opencv2/features2d.hpp>
+#include <opencv2/opencv.hpp>
+//#include <opencv2/nonfree.hpp>
+//#include <opencv2/features2d.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #ifdef _WIN32
