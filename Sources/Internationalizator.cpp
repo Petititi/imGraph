@@ -201,7 +201,6 @@ namespace charliesoft
     translations["BLOCK__INPUT_IN_INPUT_TYPE"] = "input";
     translations["BLOCK__INPUT_IN_INPUT_TYPE_HELP"] = "Input type|Webcam^Video file^Folder";
     translations["BLOCK__INPUT_IN_FILE_HELP"] = "File to load.";
-    translations["BLOCK__INPUT_IN_FILE_HELP"] = "File to load.";
     translations["BLOCK__INPUT_IN_FILE_FILTER"] = "media files";
     translations["BLOCK__INPUT_IN_FILE_NOT_FOUND"] = "File \"%1$s\" not found!";
     translations["BLOCK__INPUT_IN_FILE_PROBLEM"] = "File \"%1$s\" can't be loaded!";
@@ -231,6 +230,16 @@ namespace charliesoft
     translations["BLOCK__OUTPUT_IN_WIN_NAME_HELP"] = "Windows title";
     translations["BLOCK__OUTPUT_IN_NORMALIZE"] = "normalize";
     translations["BLOCK__OUTPUT_IN_NORMALIZE_HELP"] = "Normalize image before show";
+
+    translations["BLOCK__WRITE_NAME"] = "Write video";
+    translations["BLOCK__WRITE_IN_IMAGE"] = "image";
+    translations["BLOCK__WRITE_IN_IMAGE_HELP"] = "Image to add to video file";
+    translations["BLOCK__WRITE_IN_FILENAME"] = "Filename";
+    translations["BLOCK__WRITE_IN_FILENAME_HELP"] = "Filename of the video file";
+    translations["BLOCK__WRITE_IN_FPS"] = "FPS";
+    translations["BLOCK__WRITE_IN_FPS_HELP"] = "Frames per second";
+    translations["BLOCK__WRITE_IN_CODEC"] = "codec";
+    translations["BLOCK__WRITE_IN_CODEC_HELP"] = "FOURCC wanted (XVID, X264...).<br/>Empty if you want no compression,<br/>-1 if you want to choose using IHM!";
 
     translations["BLOCK__LINEDRAWER_NAME"] = "Draw lines";
     translations["BLOCK__LINEDRAWER_IN_LINES"] = "lines list";

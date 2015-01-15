@@ -209,8 +209,12 @@ namespace charliesoft
       return _parent->stop();
     for (auto& it = _runningThread.begin(); it != _runningThread.end(); it++)
     {
-      it->second.interrupt();
-      it->second.join();//wait for the end...
+      if (it->first->getState() != Block::stopped)
+      {
+        it->second.interrupt();
+        if (!it->second.try_join_for(boost::chrono::seconds(5)))//wait 5s max...
+          it->second.interrupt();//try to interrupt it again (but probably without success)
+      }
     }
     _runningThread.clear();
   }

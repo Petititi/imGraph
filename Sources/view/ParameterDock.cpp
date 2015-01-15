@@ -688,16 +688,30 @@ namespace charliesoft
   {
     if (openFiles_.find(sender()) == openFiles_.end())
       return;//nothing to do...
-    QString fileName = QFileDialog::getOpenFileName(this, _QT("BLOCK__INPUT_IN_FILE_HELP"),
-      openFiles_[sender()]->text(), _QT("BLOCK__INPUT_IN_FILE_FILTER") + " (*.bmp *.pbm *.pgm *.ppm *.sr *.ras *.jpeg *.jpg *.jpe *.jp2 *.tiff *.tif *.png *.avi *.mov *.mxf *.wmv *.asf)");
+    QLineEdit* tmp = openFiles_[sender()]; 
+    ParamRepresentation* paramRep = _inputValue21[tmp];
+    QFileDialog dialog(this, _QT(paramRep->getParamHelper()), tmp->text());
+    QString fileName;
+    if (paramRep->getParamValue()->containValidator<ValFileExist>())
+    {
+      fileName = QFileDialog::getOpenFileName(this, _QT(paramRep->getParamHelper()), tmp->text(),
+        _QT("BLOCK__INPUT_IN_FILE_FILTER") +
+        " (*.bmp *.pbm *.pgm *.ppm *.sr *.ras *.jpeg *.jpg *.jpe *.jp2 *.tiff *.tif *.png *.avi *.mov *.mxf *.wmv *.asf)");
+    }
+    else
+    {
+      fileName = QFileDialog::getSaveFileName(this, _QT(paramRep->getParamHelper()), tmp->text());
+    }
     if (!fileName.isEmpty())
     {
-      QLineEdit* tmp = openFiles_[sender()];
+      dialog.selectFile(fileName);
+      string test = fileName.toStdString();
+
       if (tmp != NULL)
       {
         QString prevTxt = tmp->text();
         tmp->setText(fileName);
-        if (!updateParamModel(_inputValue21[tmp]))
+        if (!updateParamModel(paramRep))
           tmp->setText(prevTxt);//set previous text...
       }
     }

@@ -4,7 +4,7 @@
 #ifdef _WIN32
 #pragma warning(disable:4503)
 #pragma warning(push)
-#pragma warning(disable:4996 4251 4275 4800 4503)
+#pragma warning(disable:4996 4244 4251 4275 4800 4503)
 #endif
 #include <QGraphicsView>
 #include <QResizeEvent>

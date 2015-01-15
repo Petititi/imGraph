@@ -8,7 +8,7 @@
 \page ProcessGraph Scheduling and synchronization
 \section ProcessGraph_intro Introduction
 <p>
-As seen in section \ref BlockSection, there is 3 types of rendering allowed : asynchronous, "one shot" and synchronous. The differences between each mode imply that the graph processing should allow "push" and "pull" data flow.<br/>
+As seen in section \ref BlockSection, there is 2 types of rendering allowed : asynchronous and synchronous. The differences between each mode imply that the graph processing should allow "push" and "pull" data flow.<br/>
  - a "Push" event occurs when a block produces a value and wake up a child block which was waiting for a value (this is true only if each input value of this block is new or constant). This is the case when, for example, an input block read a frame from a video file and give this frame to the next block.<br/>
  - a "Pull" event occurs when a block asks for a value instead of waiting the parent to produce. This is the case when, for example, a block want to skip a frame: it will then ask the parent to render again.
 </p>
