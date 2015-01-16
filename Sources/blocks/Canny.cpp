@@ -4,6 +4,7 @@
 #include "Block.h"
 #include "ParamValidator.h"
 #include "opencv2/imgproc/imgproc.hpp"
+
 using std::vector;
 using std::string;
 using cv::Mat;

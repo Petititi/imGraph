@@ -201,7 +201,6 @@ namespace charliesoft
     translations["BLOCK__INPUT_IN_INPUT_TYPE"] = "input";
     translations["BLOCK__INPUT_IN_INPUT_TYPE_HELP"] = "Input type|Webcam^Video file^Folder";
     translations["BLOCK__INPUT_IN_FILE_HELP"] = "File to load.";
-    translations["BLOCK__INPUT_IN_FILE_HELP"] = "File to load.";
     translations["BLOCK__INPUT_IN_FILE_FILTER"] = "media files";
     translations["BLOCK__INPUT_IN_FILE_NOT_FOUND"] = "File \"%1$s\" not found!";
     translations["BLOCK__INPUT_IN_FILE_PROBLEM"] = "File \"%1$s\" can't be loaded!";
@@ -393,5 +392,9 @@ namespace charliesoft
     translations["BLOCK__CANNY_IN_APERTURE_SIZE_HELP"] = "aperture size for the Sobel operator";
     translations["BLOCK__CANNY_IN_L2_GRADIENT"] = "L2 Gradient";
     translations["BLOCK__CANNY_IN_L2_GRADIENT_HELP"] = "Use more accurate L2 gradient";
+
+    translations["BLOCK__INPUT_IN_INPUT_FILE"] = "Input";
+    translations["BLOCK__INPUT_IN_INPUT_FILE_HELP"] = "File Path";
+    translations["BLOCK__INPUT_RAW_VIDEO_NAME"] = "YUV reader";
   }
 }

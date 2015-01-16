@@ -1262,7 +1262,7 @@ void DefaultViewPort::ZoomOut()
 void DefaultViewPort::loadMatrix()
 {
   QString fileName = QFileDialog::getOpenFileName(this, QString(), QString(),
-    "matrices (*.bmp *.pbm *.pgm *.ppm *.sr *.ras *.jpeg *.jpg *.jpe *.jp2 *.tiff *.tif *.png)");
+    "matrices (*.*)");
   if (!fileName.isEmpty())
   {
     Mat img = imread(fileName.toStdString());
@@ -1277,7 +1277,7 @@ void DefaultViewPort::saveView()
   QString date_s = date_d.toString("dd.MM.yyyy");
   QString name_s = centralWidget->windowTitle() + "_screenshot_" + date_s;
 
-  QString fileName = QFileDialog::getSaveFileName(this, tr("Save File %1").arg(name_s), name_s + ".png", tr("Images (*.png *.jpg *.bmp *.jpeg)"));
+  QString fileName = QFileDialog::getSaveFileName(this, tr("Save File %1").arg(name_s), name_s + ".png", tr("Images (*.*)"));
 
   if (!fileName.isEmpty()) //save the picture
   {
