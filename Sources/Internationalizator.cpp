@@ -281,8 +281,6 @@ namespace charliesoft
     translations["BLOCK__OPTICFLOW_IN_IMAGE1_HELP"] = "First image";
     translations["BLOCK__OPTICFLOW_IN_IMAGE2"] = "image2";
     translations["BLOCK__OPTICFLOW_IN_IMAGE2_HELP"] = "Second image";
-    translations["BLOCK__OPTICFLOW_IN_METHOD"] = "method";
-    translations["BLOCK__OPTICFLOW_IN_METHOD_HELP"] = "Method|LK^Farneback^DualTVL1";
     translations["BLOCK__OPTICFLOW_OUT_IMAGE"] = "flow";
     translations["BLOCK__OPTICFLOW_OUT_IMAGE_HELP"] = "Optical flow";
 
@@ -297,8 +295,6 @@ namespace charliesoft
     translations["BLOCK__POINT_FINDER_IN_IMAGE_HELP"] = "Input image";
     translations["BLOCK__POINT_FINDER_IN_DETECTOR"] = "detector";
     translations["BLOCK__POINT_FINDER_IN_DETECTOR_HELP"] = "Method used to detect points|Dense^BRISK^FAST^GFTT^HARRIS^MSER^ORB^SIFT^STAR^SURF^SimpleBlob"; //^Grid^Dense
-    translations["BLOCK__POINT_FINDER_IN_MODIFICATOR"] = "modificator";
-    translations["BLOCK__POINT_FINDER_IN_MODIFICATOR_HELP"] = "Method used to improve detector|Grid^Dynamic^Pyramid";
     translations["BLOCK__POINT_FINDER_IN_EXTRACTOR"] = "extractor";
     translations["BLOCK__POINT_FINDER_IN_EXTRACTOR_HELP"] = "Method used to compute descriptor|SIFT^SURF^ORB^BRIEF^BRISK^MSER";
     translations["BLOCK__POINT_FINDER_OUT_DESC"] = "descriptors";
