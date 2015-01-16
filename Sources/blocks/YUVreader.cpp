@@ -75,6 +75,12 @@ public:
         if (! boost::filesystem::is_regular_file(filepath)) {
             return false;
         }
+        file->open(filepath.c_str(), ios::in | ios::binary | ios::ate);
+        if (!file->is_open()) {
+            return false;
+        }
+        //regex, file width x height if not specified
+        return true;
     }
 
     void BlockYUVreader::uninit() {
@@ -90,7 +96,13 @@ public:
     bool BlockYUVreader::run(bool oneShot){
         
         if (file == NULL) {
-            init(_myInputs["BLOCK__INPUT_IN_INPUT_FILE"].get<string>(true));
+            if (!init(_myInputs["BLOCK__INPUT_IN_INPUT_FILE"].get<string>(true))) {
+                return false;
+            }
+        }
+
+        if (oneShot && file->is_open()) {
+            file->seekg(0); // got to beginning of the file
         }
         return true;
     };
