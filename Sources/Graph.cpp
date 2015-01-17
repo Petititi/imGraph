@@ -138,9 +138,10 @@ namespace charliesoft
         ParamValue* other = it->second.get<ParamValue*>(false);
         while (!it->second.isNew())
         {//we have to wait for any update!
-          //std::cout << "---  " << _STR(process->getName()) << " (" << process->_timestamp << ") Wait " << _STR(it->second.getName()) << endl;
+          std::cout << "---  " << _STR(process->getName()) << " -> Wait " << _STR(it->second.getName()) << endl;
           process->setState(Block::waitingChild);
           other->getBlock()->waitProducers(lock);//wait for parameter update!
+          std::cout << "---  " << _STR(process->getName()) << " <- unblock " << _STR(it->second.getName()) << endl;
         }
       }
     }//ok, every ancestor have produced a value!
@@ -188,9 +189,9 @@ namespace charliesoft
   {
     boost::unique_lock<boost::mutex> lock(_mtx);
     if (fullyRendered)
-      std::cout << "   " << _STR(process->getName()) << " Produced!" << endl;
+      std::cout << " \t\t\t  " << _STR(process->getName()) << " Produced!" << endl;
     else
-      std::cout << "   " << _STR(process->getName()) << " partially rendered!" << endl;
+      std::cout << " \t\t\t  " << _STR(process->getName()) << " partially rendered!" << endl;
     if (fullyRendered)
     {
       //remove this block for every waiting thread:

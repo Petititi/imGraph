@@ -217,7 +217,7 @@ namespace charliesoft
     std::map<std::string, ParamValue> _mySubParams;
     std::vector<ConditionOfRendering> _conditions;
 
-    void initParameters(const std::vector<ParamDefinition>& inParam, 
+    void initParameters(const std::vector<ParamDefinition>& inParam,
       const std::vector<ParamDefinition>& outParam);
 
     void newProducedData(bool fullyRendered);
@@ -235,6 +235,9 @@ namespace charliesoft
       return _exec_type;
     };
     void operator()();
+
+    virtual void init(){};
+    virtual void release(){};
 
     virtual void setGraph(GraphOfProcess* processes){
       _processes = processes;

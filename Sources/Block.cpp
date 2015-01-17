@@ -260,6 +260,7 @@ namespace charliesoft
     nbRendering = 0;
     try
     {
+      init();
       while (true)//this will stop when user stop the process...
       {
         while (GraphOfProcess::pauseProcess)
@@ -291,6 +292,7 @@ namespace charliesoft
     {
       //end of thread (requested by interrupt())!
     }
+    release();
     _state = stopped;
     _threadID = boost::thread::id();//reset thread ID!
   }
@@ -322,9 +324,9 @@ namespace charliesoft
   {
     {
       boost::unique_lock<boost::mutex> guard(_mtx_timestamp_inc);
-      _processes->blockProduced(this, fullyRendered);//tell to scheduler we produced some datas...
       //wake up linked output blocks
       _wait_processed.notify_all();
+      _processes->blockProduced(this, fullyRendered);//tell to scheduler we produced some datas...
     }
     if (_exec_type == asynchrone)return;//no need to wait
     //we have to wait entire chain of rendering to process our data:

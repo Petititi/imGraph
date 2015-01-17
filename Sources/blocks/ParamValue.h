@@ -173,7 +173,7 @@ namespace charliesoft
 
     bool isNew() const
     {
-      return _newValue && !isDefaultValue();
+      return _newValue;
     }
     void setNew(bool isNew){ _newValue = isNew; };
     bool isDefaultValue() const;
