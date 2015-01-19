@@ -324,8 +324,6 @@ namespace charliesoft
   {
     {
       boost::unique_lock<boost::mutex> guard(_mtx_timestamp_inc);
-      //wake up linked output blocks
-      _wait_processed.notify_all();
       _processes->blockProduced(this, fullyRendered);//tell to scheduler we produced some datas...
     }
     if (_exec_type == asynchrone)return;//no need to wait
@@ -388,6 +386,11 @@ namespace charliesoft
   void Block::wakeUpFromConsumers()
   {
     _wait_consume.notify_all();//wake up waiting thread (if needed)
+  }
+
+  void Block::notifyProduction()
+  {
+    _wait_processed.notify_all();
   }
 
   bool Block::isReadyToRun(bool realCheck)

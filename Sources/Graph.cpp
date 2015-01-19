@@ -192,6 +192,8 @@ namespace charliesoft
       std::cout << " \t\t\t  " << _STR(process->getName()) << " Produced!" << endl;
     else
       std::cout << " \t\t\t  " << _STR(process->getName()) << " partially rendered!" << endl;
+    //wake up linked output blocks
+    process->notifyProduction();
     if (fullyRendered)
     {
       //remove this block for every waiting thread:
