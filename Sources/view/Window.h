@@ -50,6 +50,12 @@ namespace charliesoft
   {
     Q_OBJECT;
 
+  protected:
+    QVector<QAction*> vect_QActions;
+    QToolBar* _toolbar;
+
+
+    void createToolbar(QToolBar* toolBar);
   public:
     static Window* getInstance();
     static void releaseInstance();
@@ -97,6 +103,9 @@ namespace charliesoft
     void openFile();
     void newProject();
     void saveProject();
+    void startGraph();
+    void stopGraph();
+    void switchPause();
     void saveAsProject();
     void createSubgraph();
     bool quitProg();

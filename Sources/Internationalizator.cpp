@@ -169,6 +169,9 @@ namespace charliesoft
     translations["MATRIX_EDITOR_HELP_LOAD"] = "Load new matrix (CTRL+O)";
     translations["MATRIX_EDITOR_HELP_EDIT"] = "Edit matrix (CTRL+E)";
     translations["MATRIX_EDITOR_HELP_ONTOP"] = "Always on top (CTRL+T)";
+    translations["MATRIX_EDITOR_HELP_START"] = "Run graph (Enter)";
+    translations["MATRIX_EDITOR_HELP_STOP"] = "Stop graph (End)";
+    translations["MATRIX_EDITOR_HELP_PAUSE"] = "Pause graph (Space)";
 
     translations["MENU_HELP_INFO"] = "Info";
     translations["MENU_HELP_HELP"] = "Help";

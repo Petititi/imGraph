@@ -263,7 +263,7 @@ namespace charliesoft
       init();
       while (true)//this will stop when user stop the process...
       {
-        while (GraphOfProcess::pauseProcess)
+        while (_processes->isPause())
           _cond_pause.wait(lock);//wait for play
 
         _processes->shouldWaitAncestors(this);//ask to scheduler if we have to wait...

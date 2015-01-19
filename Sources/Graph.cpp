@@ -35,10 +35,9 @@ using boost::lock_guard;
 
 namespace charliesoft
 {
-  bool GraphOfProcess::pauseProcess = false;
-
   GraphOfProcess::GraphOfProcess(GraphOfProcess* parent)
   {
+    _pauseProcess = false;
     _parent = parent;
   };
 
@@ -235,6 +234,7 @@ namespace charliesoft
     if (_parent != NULL && delegateParent)
       return _parent->run(singleShot);
     stop(delegateParent);//just in case...
+    _pauseProcess = false;
     bool res = true;
     for (auto it = _vertices.begin();
       it != _vertices.end(); it++)
@@ -246,18 +246,19 @@ namespace charliesoft
     return res;
   }
 
-  void GraphOfProcess::switchPause(bool delegateParent)
+  bool GraphOfProcess::switchPause(bool delegateParent)
   {
     if (_parent != NULL && delegateParent)
       return _parent->switchPause();
-    pauseProcess = !pauseProcess;
-    if (!pauseProcess)
+    _pauseProcess = !_pauseProcess;
+    if (!_pauseProcess)
     {
       //wake up threads:
       for (auto it = _vertices.begin();
         it != _vertices.end(); it++)
-        (*it)->wakeUpFromConsumers();
+        (*it)->wakeUpFromPause();
     }
+    return _pauseProcess;
   }
 
   void GraphOfProcess::saveGraph(boost::property_tree::ptree& tree) const

@@ -24,6 +24,7 @@ namespace charliesoft
 {
   class GraphOfProcess
   {
+    bool _pauseProcess;
     GraphOfProcess* _parent;
     std::map< Block*, std::set<Block*> > _waitingForRendering;
     std::map< Block*, boost::thread > _runningThread;
@@ -32,7 +33,6 @@ namespace charliesoft
     //edges are stored into Block (_myInputs[]->isLinked())
 
   public:
-    static bool pauseProcess;
     GraphOfProcess(GraphOfProcess* parent=NULL);
     ~GraphOfProcess();
 
@@ -54,7 +54,10 @@ namespace charliesoft
     bool run(bool singleShot = false, bool delegateParent = true);
     void stop(bool delegateParent = true);
     void waitUntilEnd();
-    void switchPause(bool delegateParent = true);
+    bool switchPause(bool delegateParent = true);
+    bool isPause(){
+      return _pauseProcess;
+    };
 
     /**
     * Will wake up waiting childs if needed... 
