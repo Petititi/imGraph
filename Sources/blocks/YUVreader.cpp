@@ -16,18 +16,14 @@ using namespace std;
 
 namespace charliesoft
 {
-    BLOCK_BEGIN_INSTANTIATION(BlockYUVreader);
-    //You can add methods, attributs, reimplement needed functions...
+	BLOCK_BEGIN_INSTANTIATION(BlockYUVreader);
+	//You can add methods, attributs, reimplement needed functions...
 protected:
-    ifstream * file;
+	ifstream * file;
 
-    cv::Mat y;            /**< Used internally. >*/
-    cv::Mat cb;           /**< Used internally. >*/
-    cv::Mat cr;           /**< Used internally. >*/
-    cv::Mat cb_half;      /**< Used internally. >*/
-    cv::Mat cr_half;      /**< Used internally. >*/
-    cv::Mat ycrcb;        /**< The most-recently image (width x height, 24
-                            bit).  Stored in YCrCb order. >*/
+	unsigned char *_y;           /**< Used internally. >*/
+	unsigned char *_u;           /**< Used internally. >*/
+	unsigned char *_v;           /**< Used internally. >*/
     int _width;
     int _height;
     int _nr_frames;
@@ -64,6 +60,9 @@ public:
         _myInputs["BLOCK__INPUT_INOUT_POS_FRAMES"].addValidator({ new ValPositiv(false) });
 
         file = NULL;
+		_y = NULL;
+		_u = NULL;
+		_v = NULL;
     };
 
     BlockYUVreader::~BlockYUVreader() {
@@ -79,7 +78,12 @@ public:
         if (!file->is_open()) {
             return false;
         }
+		_nr_frames = 0;
         //regex, file width x height if not specified
+		_y = (unsigned char *)calloc(_width * _height, sizeof(unsigned char));
+		_u = (unsigned char *)calloc(_width * _height / 4, sizeof(unsigned char));
+		_v = (unsigned char *)calloc(_width * _height / 4, sizeof(unsigned char));
+
         return true;
     }
 
@@ -91,6 +95,18 @@ public:
             free(file);
             file = NULL;
         }
+		if (_y != NULL) {
+			free(_y);
+			_y = NULL;
+		}
+		if (_u != NULL) {
+			free(_u);
+			_u = NULL;
+		}
+		if (_v != NULL) {
+			free(_v);
+			_v = NULL;
+		}
     }
 
     bool BlockYUVreader::run(bool oneShot){
@@ -101,9 +117,26 @@ public:
             }
         }
 
-        if (oneShot && file->is_open()) {
-            file->seekg(0); // got to beginning of the file
-        }
+		if (file->eof()){
+			file->seekg(0);
+		}
+
+		file->read((char*)_y, _width * _height);
+		file->read((char*)_u, _width * _height / 4);
+		file->read((char*)_v, _width * _height / 4);
+
+		cv::Mat cv_y = cv::Mat(_height, _width, CV_8UC1, _y);
+		cv::Mat cv_u = cv::Mat(_height / 2, _width / 2, CV_8UC1, _u);
+		cv::Mat cv_v = cv::Mat(_height / 2, _width / 2, CV_8UC1, _v);
+
+		if (oneShot) {
+			if (file->is_open()) {
+				file->seekg(0); // go to beginning of the file
+			}
+		}
+		else {
+			_nr_frames++;
+		}
         return true;
     };
 
