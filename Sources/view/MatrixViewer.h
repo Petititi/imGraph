@@ -140,8 +140,6 @@ public:
   double isFullScreen(QString name);
   double getPropWindow(QString name);
   void setPropWindow(QString name, double flags);
-  double getRatioWindow(QString name);
-  void setRatioWindow(QString name, double arg2);
   void saveWindowParameters(QString name);
   void loadWindowParameters(QString name);
   void enablePropertiesButtonEachWindow();
@@ -207,9 +205,6 @@ public:
   void writeSettings();
   void readSettings();
 
-  double getRatio();
-  void setRatio(int flags);
-
   int getPropWindow();
   void setPropWindow(int flags);
   
@@ -232,11 +227,9 @@ public:
   //parameters (will be save/load)
   int param_flags;
   int param_gui_mode;
-  int param_ratio_mode;
   int param_creation_mode;
 
   QPointer<QBoxLayout> myGlobalLayout; //All the widget (toolbar, view, LayoutBar, ...) are attached to it
-  QPointer<QBoxLayout> myBarLayout;
 
   QVector<QAction*> vect_QActions;
 
@@ -295,9 +288,6 @@ public:
   virtual void writeSettings(QSettings& settings) = 0;
   virtual void readSettings(QSettings& settings) = 0;
 
-  virtual double getRatio() = 0;
-  virtual void setRatio(int flags) = 0;
-
   virtual void updateImage(const cv::Mat arr) = 0;
 
   virtual void startDisplayInfo(QString text, int delayms) = 0;
@@ -315,7 +305,7 @@ class DefaultViewPort : public QGraphicsView, public ViewPort
 public:
   boost::recursive_mutex _mtx;    // explicit mutex declaration
 
-  DefaultViewPort(MatrixViewer* centralWidget, int arg2);
+  DefaultViewPort(MatrixViewer* centralWidget);
   ~DefaultViewPort();
 
   QWidget* getWidget();
@@ -331,6 +321,8 @@ public:
   void startDisplayInfo(QString text, int delayms);
 
   void setSize(QSize size_);
+
+  void updateViewport(){ viewport()->update(); };
 
   public slots:
   //reference:
@@ -370,7 +362,6 @@ protected:
   QPoint toImgCoord(QPointF src);
 
 private:
-  int param_keepRatio;
   QPointF lastPoint;
 
   QColor myPenColor;

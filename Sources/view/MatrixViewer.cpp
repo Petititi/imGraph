@@ -165,29 +165,6 @@ void GuiReceiver::loadWindowParameters(QString name)
 }
 
 
-double GuiReceiver::getRatioWindow(QString name)
-{
-  QPointer<MatrixViewer> w = icvFindWindowByName(name);
-
-  if (!w)
-    return -1;
-
-  return w->getRatio();
-}
-
-
-void GuiReceiver::setRatioWindow(QString name, double arg2)
-{
-  QPointer<MatrixViewer> w = icvFindWindowByName(name.toLatin1().data());
-
-  if (!w)
-    return;
-
-  int flags = (int)arg2;
-
-  w->setRatio(flags);
-}
-
 
 double GuiReceiver::getPropWindow(QString name)
 {
@@ -575,7 +552,6 @@ MatrixViewer::MatrixViewer(QString name, int arg2)
 
   param_flags = arg2 & 0x0000000F;
   param_gui_mode = arg2 & 0x000000F0;
-  param_ratio_mode = arg2 & 0x00000F00;
   param_creation_mode = arg2 & _WINDOW_MATRIX_CREATION_MODE;
 
   setWindowFlags(Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
@@ -593,11 +569,6 @@ MatrixViewer::MatrixViewer(QString name, int arg2)
   //  myTools = createParameterWindow();
 
   //2: Layouts
-  myBarLayout = new QBoxLayout(QBoxLayout::TopToBottom);
-  myBarLayout->setObjectName(QString::fromUtf8("barLayout"));
-  myBarLayout->setContentsMargins(0, 0, 0, 0);
-  myBarLayout->setSpacing(0);
-  myBarLayout->setMargin(0);
   createGlobalLayout();
 
   //3: my view
@@ -646,9 +617,7 @@ MatrixViewer::MatrixViewer(QString name, int arg2)
   if (myToolBar)
     myGlobalLayout->addWidget(myToolBar, Qt::AlignCenter);
 
-  myGlobalLayout->addWidget(myView->getWidget(), Qt::AlignCenter);
-  
-  myGlobalLayout->addLayout(myBarLayout, Qt::AlignCenter);
+  myGlobalLayout->addWidget(myView);
 
   if (param_creation_mode != 0)
   {
@@ -709,18 +678,6 @@ void MatrixViewer::readSettings()
   resize(_size);
   move(_pos);
 
-}
-
-
-double MatrixViewer::getRatio()
-{
-  return myView->getRatio();
-}
-
-
-void MatrixViewer::setRatio(int flags)
-{
-  myView->setRatio(flags);
 }
 
 
@@ -824,7 +781,7 @@ void MatrixViewer::createGlobalLayout()
 
 void MatrixViewer::createView()
 {
-    myView = new DefaultViewPort(this, param_ratio_mode);
+    myView = new DefaultViewPort(this);
 }
 
 
@@ -1071,14 +1028,13 @@ cv::Mat MatrixViewer::getMatrix()
 // DefaultViewPort
 
 
-DefaultViewPort::DefaultViewPort(MatrixViewer* arg, int arg2) : QGraphicsView(arg)
+DefaultViewPort::DefaultViewPort(MatrixViewer* arg) : QGraphicsView(arg)
 {
   imgEditPixel_R = imgEditPixel_G = imgEditPixel_B = imgEditPixel_A = NULL;
   labelsShown = false;
   myPenColor = Qt::black;
   myPenWidth = 2;
   centralWidget = arg;
-  param_keepRatio = arg2;
 
   setContentsMargins(0, 0, 0, 0);
   setMinimumSize(1, 1);
@@ -1146,28 +1102,6 @@ void DefaultViewPort::readSettings(QSettings& settings)
   qreal m33 = settings.value("matrix_view.m33", param_matrixWorld.m33()).toDouble();
 
   param_matrixWorld = QTransform(m11, m12, m13, m21, m22, m23, m31, m32, m33);
-}
-
-
-double DefaultViewPort::getRatio()
-{
-  return param_keepRatio;
-}
-
-
-void DefaultViewPort::setRatio(int flags)
-{
-  if (getRatio() == flags) //nothing to do
-    return;
-
-  //if valid flags
-  if (flags == CV_WINDOW_FREERATIO || flags == CV_WINDOW_KEEPRATIO)
-  {
-    centralWidget->param_ratio_mode = flags;
-    param_keepRatio = flags;
-    updateGeometry();
-    viewport()->update();
-  }
 }
 
 
@@ -1342,33 +1276,8 @@ void DefaultViewPort::resizeEvent(QResizeEvent* evnt)
   //use to compute mouse coordinate, I need to update the ratio here and in resizeEvent
   ratioX = width() / float(image2Draw_mat.cols);
   ratioY = height() / float(image2Draw_mat.rows);
-
-  if (param_keepRatio == CV_WINDOW_KEEPRATIO)//to keep the same aspect ratio
-  {
-    QSize newSize = QSize(image2Draw_mat.cols, image2Draw_mat.rows);
-    newSize.scale(evnt->size(), Qt::KeepAspectRatio);
-
-    //imageWidth/imageHeight = newWidth/newHeight +/- epsilon
-    //ratioX = ratioY +/- epsilon
-    //||ratioX - ratioY|| = epsilon
-    if (fabs(ratioX - ratioY) * 100 > ratioX) //avoid infinity loop / epsilon = 1% of ratioX
-    {
-      resize(newSize);
-
-      //move to the middle
-      //newSize get the delta offset to place the picture in the middle of its parent
-      newSize = (evnt->size() - newSize) / 2;
-
-      //if the toolbar is displayed, avoid drawing myview on top of it
-      if (centralWidget->myToolBar)
-        if (!centralWidget->myToolBar->isHidden())
-          newSize += QSize(0, centralWidget->myToolBar->height());
-
-      move(newSize.width(), newSize.height());
-    }
-  }
-
-  return QGraphicsView::resizeEvent(evnt);
+  
+  QGraphicsView::resizeEvent(evnt);
 }
 
 void DefaultViewPort::drawLineTo(const QPointF &endPoint)
@@ -1637,7 +1546,7 @@ void DefaultViewPort::controlImagePosition()
   //save also the inv matrix
   matrixWorld_inv = param_matrixWorld.inverted();
 
-  //viewport()->update();
+  viewport()->update();
 }
 
 void DefaultViewPort::moveView(QPointF delta)
