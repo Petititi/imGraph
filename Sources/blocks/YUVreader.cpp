@@ -75,7 +75,7 @@ public:
 
     bool BlockYUVreader::_init() {
         _uninit(); //just in case an other file was opened before
-        if (!boost::filesystem::is_regular_file(_filename)) {
+        if (!boost::filesystem::exists(_filename)) {
             return false;
         }
         file = new ifstream(_filename, ios::in | ios::binary);

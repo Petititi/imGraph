@@ -411,5 +411,7 @@ namespace charliesoft
     translations["BLOCK__INPUT_IN_INPUT_FILE"] = "Input";
     translations["BLOCK__INPUT_IN_INPUT_FILE_HELP"] = "File Path";
     translations["BLOCK__INPUT_RAW_VIDEO_NAME"] = "YUV reader";
+
+    translations["BLOCK__OUTPUT_RAW_VIDEO_NAME"] = "YUV writer";
   }
 }
