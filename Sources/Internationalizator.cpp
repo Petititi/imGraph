@@ -1,9 +1,16 @@
 
 #include "Internationalizator.h"
 
+#ifdef _WIN32
+#pragma warning(disable:4503)
+#pragma warning(push)
+#pragma warning(disable:4996 4251 4275 4800)
+#endif
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/lock_guard.hpp>
-
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
 using namespace std;
 using boost::recursive_mutex;
@@ -101,6 +108,7 @@ namespace charliesoft
     translations["CONDITION_IS_EMPTY"] = "is empty";
 
     translations["NOT_INITIALIZED"] = "Not initialized...";
+    translations["PROCESSING_TIME"] = "Mean processing time: ";
 
     translations["BLOCK_OUTPUT"] = "output";
     translations["BLOCK_INPUT"] = "input";

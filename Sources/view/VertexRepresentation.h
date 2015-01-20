@@ -129,6 +129,7 @@ namespace charliesoft
     virtual LinkConnexionRepresentation* addNewOutputParam(ParamDefinition def);
 
   protected:
+    virtual void enterEvent(QEvent *);
     void createListParamsFromModel();
     virtual void moveDelta(QPoint delta);
     virtual void mouseDoubleClickEvent(QMouseEvent *);

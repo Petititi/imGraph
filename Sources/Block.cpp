@@ -22,6 +22,7 @@ using std::map;
 using std::vector;
 using boost::property_tree::ptree;
 using boost::lexical_cast;
+using namespace boost::posix_time;
 
 namespace charliesoft
 {
@@ -232,6 +233,23 @@ namespace charliesoft
     }
   }
 
+
+  AlgoPerformance::AlgoPerformance()
+  {
+    nbMeasures = 0;
+  }
+  int AlgoPerformance::getMeanPerf() const
+  {
+    if (nbMeasures == 0)
+      return 0;
+    return (totalTime / nbMeasures).total_milliseconds();
+  };
+  void AlgoPerformance::addNewPerf(time_duration newTime)
+  {
+    totalTime += newTime;
+    nbMeasures++;
+  };
+
   Block::~Block()
   {
     _processes->extractProcess(this);
@@ -277,6 +295,7 @@ namespace charliesoft
         //now we can run the process:
         if (shouldRun)
         {
+          _time_start = microsec_clock::local_time();
           run(_executeOnlyOnce);
           newProducedData(true);//tell to scheduler we produced some datas...
         }
@@ -322,13 +341,20 @@ namespace charliesoft
 
   void Block::newProducedData(bool fullyRendered)
   {
+    ptime time_end(microsec_clock::local_time());
+    time_duration duration(time_end - _time_start);
+    _perfCounter.addNewPerf(duration);
+
     {
       boost::unique_lock<boost::mutex> guard(_mtx_timestamp_inc);
       _processes->blockProduced(this, fullyRendered);//tell to scheduler we produced some datas...
     }
-    if (_exec_type == asynchrone)return;//no need to wait
+    if (_exec_type == asynchrone) return;//no need to wait
     //we have to wait entire chain of rendering to process our data:
     _processes->shouldWaitConsumers(this);//ask to scheduler if we have to wait...
+
+    if (!fullyRendered)
+      _time_start = microsec_clock::local_time();
   }
 
   bool Block::isAncestor(Block* other)

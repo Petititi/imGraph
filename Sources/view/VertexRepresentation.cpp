@@ -42,6 +42,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/lock_guard.hpp>
+#include <boost/lexical_cast.hpp>
 
 #ifdef _WIN32
 #pragma warning(pop)
@@ -506,6 +507,15 @@ namespace charliesoft
 
     move((int)model->getPosition().x, (int)model->getPosition().y);
     _blockRepresentation->move(0, 5);
+  }
+
+  void VertexRepresentation::enterEvent(QEvent *)
+  {
+    string msg = _STR("PROCESSING_TIME") + lexical_cast<std::string>(_model->getPerf()) + "ms";
+    setToolTip(msg.c_str());
+    QRect prevSize = geometry();
+    setGeometry(QRect(prevSize.x(), prevSize.y() - heightOfConditions, prevSize.width(), prevSize.height() + heightOfConditions));
+    _blockRepresentation->move(0, heightOfConditions + 5);
   }
 
   void VertexRepresentation::moveDelta(QPoint delta)

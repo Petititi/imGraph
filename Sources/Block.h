@@ -23,6 +23,7 @@ A block (or node, or vertex, or process) represents an operation. This can be of
 #include <boost/property_tree/ptree.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <opencv2/core.hpp>
 
 #include <iostream>
@@ -165,6 +166,16 @@ namespace charliesoft
       _show(show), _type(type), _name(name), _helper(helper), _initVal(initVal){};
   };
 
+  class AlgoPerformance 
+  {
+    boost::posix_time::time_duration totalTime;
+    int nbMeasures;
+  public:
+    AlgoPerformance();
+    int getMeanPerf() const;
+    void addNewPerf(boost::posix_time::time_duration newTime);
+  };
+
   class Block{
     friend class GraphOfProcess;
     friend class charliesoft::ProcessManager;
@@ -196,6 +207,8 @@ namespace charliesoft
     };
   protected:
     boost::thread::id _threadID;
+    boost::posix_time::ptime _time_start;///<used to measure processing time...
+    AlgoPerformance _perfCounter;///<Used to record algo performance.
 
     BlockState _state;///<Current state of the block
     BlockType _exec_type;
@@ -238,6 +251,8 @@ namespace charliesoft
 
     virtual void init(){};
     virtual void release(){};
+
+    int getPerf() const { return _perfCounter.getMeanPerf(); }
 
     virtual void setGraph(GraphOfProcess* processes){
       _processes = processes;
