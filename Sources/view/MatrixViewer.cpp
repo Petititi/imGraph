@@ -578,7 +578,7 @@ MatrixViewer::MatrixViewer(QString name, int arg2)
   param_ratio_mode = arg2 & 0x00000F00;
   param_creation_mode = arg2 & _WINDOW_MATRIX_CREATION_MODE;
 
-  setWindowFlags(Qt::WindowMinMaxButtonsHint);
+  setWindowFlags(Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
   setContentsMargins(0, 0, 0, 0);
   setWindowTitle(name);
   setObjectName(name);
@@ -629,7 +629,7 @@ MatrixViewer::MatrixViewer(QString name, int arg2)
     myToolBar->setFixedHeight(28);
     myToolBar->setMinimumWidth(1);
 
-    foreach(QAction *a, vect_QActions)
+    for(QAction *a: vect_QActions)
       myToolBar->addAction(a);
 
     if (param_creation_mode == 0)
@@ -937,14 +937,15 @@ void MatrixViewer::switchOnTop()
 
   if (isOnTop)
   {//add WindowStaysOnTopHint:
-    setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint);
+    setWindowFlags(Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint | Qt::WindowStaysOnTopHint);
     vect_QActions[__ACT_IMGRAPH_ONTOP]->setIcon(QIcon(":/onTop-icon"));
   }
   else
   {//remove WindowStaysOnTopHint:
-    setWindowFlags(windowFlags() & (~Qt::WindowStaysOnTopHint));
+    setWindowFlags(Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
     vect_QActions[__ACT_IMGRAPH_ONTOP]->setIcon(QIcon(":/notOnTop-icon"));
   }
+  
   show();
 }
 
@@ -1096,7 +1097,7 @@ DefaultViewPort::DefaultViewPort(MatrixViewer* arg, int arg2) : QGraphicsView(ar
   mouseCoordinate = QPoint(-1, -1);
 
   //no border
-  setStyleSheet("QGraphicsView { border-style: none; }");
+  setStyleSheet("graphicsView { border-style: none; }");
 
   image2Draw_mat = cv::Mat::zeros(viewport()->height(), viewport()->width(), CV_8UC3);
 

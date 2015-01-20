@@ -118,6 +118,7 @@ namespace charliesoft
   Window::Window()
   {
     ptr = this;
+
     _tabWidget = new QTabWidget(); 
     _tabWidget->setTabsClosable(true);
 
@@ -125,6 +126,16 @@ namespace charliesoft
 
     //create opencv main thread:
     new GuiReceiver();
+
+    _toolbar = new QToolBar(this);
+    _toolbar->setFloatable(false); //is not a window
+    _toolbar->setFixedHeight(28);
+    _toolbar->setMinimumWidth(1);
+
+    createToolbar(_toolbar);
+
+    this->addToolBar(_toolbar);
+    //mainLayout->addWidget(_toolbar, Qt::AlignCenter);
 
     menuFile = menuBar()->addMenu(_QT("MENU_FILE"));
     menuEdit = menuBar()->addMenu(_QT("MENU_EDIT"));
@@ -215,6 +226,43 @@ namespace charliesoft
     }
   }
 
+
+  void Window::createToolbar(QToolBar* toolBar)
+  {
+    QAction* tmp = new QAction(QIcon(":/save-icon"), _QT("MATRIX_EDITOR_HELP_SAVE"), this);
+    tmp->setIconVisibleInMenu(true);
+    QObject::connect(tmp, SIGNAL(triggered()), this, SLOT(saveProject()));
+    vect_QActions.push_back(tmp);
+    _toolbar->addAction(tmp);
+
+    tmp = new QAction(QIcon(":/load-icon"), _QT("MATRIX_EDITOR_HELP_LOAD"), this);
+    tmp->setIconVisibleInMenu(true);
+    QObject::connect(tmp, SIGNAL(triggered()), this, SLOT(openFile()));
+    vect_QActions.push_back(tmp);
+    _toolbar->addAction(tmp);
+
+    _toolbar->addSeparator();
+
+    tmp = new QAction(QIcon(":/stop-icon"), _QT("MATRIX_EDITOR_HELP_STOP"), this);
+    tmp->setIconVisibleInMenu(true);
+    QObject::connect(tmp, SIGNAL(triggered()), this, SLOT(stopGraph()));
+    vect_QActions.push_back(tmp);
+    _toolbar->addAction(tmp);
+
+    tmp = new QAction(QIcon(":/play-icon"), _QT("MATRIX_EDITOR_HELP_START"), this);
+    tmp->setIconVisibleInMenu(true);
+    QObject::connect(tmp, SIGNAL(triggered()), this, SLOT(startGraph()));
+    vect_QActions.push_back(tmp);
+    _toolbar->addAction(tmp);
+
+    tmp = new QAction(QIcon(":/pause-icon"), _QT("MATRIX_EDITOR_HELP_PAUSE"), this);
+    tmp->setIconVisibleInMenu(true);
+    tmp->setEnabled(false);
+    QObject::connect(tmp, SIGNAL(triggered()), this, SLOT(switchPause()));
+    vect_QActions.push_back(tmp);
+    _toolbar->addAction(tmp);
+  }
+
   void Window::fillDock(int idDock)
   {
     std::vector<std::string> list = ProcessManager::getInstance()->getAlgos(AlgoType(idDock));
@@ -276,9 +324,23 @@ namespace charliesoft
       std::cout << "middle mouse click " << std::endl;
   }
 
+  void Window::startGraph()
+  {
+    getMainWidget()->getModel()->run();
+    vect_QActions[4]->setEnabled(true);
+  }
+  void Window::stopGraph()
+  {
+    getMainWidget()->getModel()->stop();
+    vect_QActions[4]->setEnabled(false);
+  }
+  void Window::switchPause()
+  {
+    getMainWidget()->getModel()->switchPause();
+  }
+
   bool Window::event(QEvent *event)
   {
-    static bool startRun = true;
     if (event->type() == QEvent::KeyPress)
     {
       QKeyEvent *key = dynamic_cast<QKeyEvent *>(event);
@@ -289,23 +351,13 @@ namespace charliesoft
         case Qt::Key_Enter:
         case Qt::Key_Return:
           //Enter or return was pressed
-          startRun = false;
-          GraphOfProcess::pauseProcess = false;
-          getMainWidget()->getModel()->run();
+          startGraph();
           break;
         case Qt::Key_End:
-          startRun = true;
-          GraphOfProcess::pauseProcess = false;
-          getMainWidget()->getModel()->stop();
+          stopGraph();
           break;
         case Qt::Key_Space:
-          if (startRun)
-          {
-            startRun = false;
-            getMainWidget()->getModel()->run();
-          }
-          else
-            getMainWidget()->getModel()->switchPause();
+          switchPause();
           break;
         case Qt::Key_Delete:
           dynamic_cast<GraphLayout*>(getMainWidget()->layout())->removeSelectedLinks();

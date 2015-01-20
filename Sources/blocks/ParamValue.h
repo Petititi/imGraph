@@ -156,6 +156,16 @@ namespace charliesoft
 
     void validate(const ParamValue& other) const;
     void addValidator(std::initializer_list<ParamValidator*> list);
+    template <class T>
+    bool containValidator() const
+    {
+      for (auto& val : _validators)
+      {
+        if (dynamic_cast<T*>(val) != NULL)
+          return true;
+      }
+      return false;
+    };
 
     std::string getName() const { return _name; };
     const ParamDefinition* getDefinition() const { return _definition; }
@@ -163,7 +173,7 @@ namespace charliesoft
 
     bool isNew() const
     {
-      return _newValue && !isDefaultValue();
+      return _newValue;
     }
     void setNew(bool isNew){ _newValue = isNew; };
     bool isDefaultValue() const;

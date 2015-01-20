@@ -35,10 +35,9 @@ using boost::lock_guard;
 
 namespace charliesoft
 {
-  bool GraphOfProcess::pauseProcess = false;
-
   GraphOfProcess::GraphOfProcess(GraphOfProcess* parent)
   {
+    _pauseProcess = false;
     _parent = parent;
   };
 
@@ -138,9 +137,10 @@ namespace charliesoft
         ParamValue* other = it->second.get<ParamValue*>(false);
         while (!it->second.isNew())
         {//we have to wait for any update!
-          //std::cout << "---  " << _STR(process->getName()) << " (" << process->_timestamp << ") Wait " << _STR(it->second.getName()) << endl;
+          std::cout << "---  " << _STR(process->getName()) << " -> Wait " << _STR(it->second.getName()) << endl;
           process->setState(Block::waitingChild);
           other->getBlock()->waitProducers(lock);//wait for parameter update!
+          std::cout << "---  " << _STR(process->getName()) << " <- unblock " << _STR(it->second.getName()) << endl;
         }
       }
     }//ok, every ancestor have produced a value!
@@ -188,9 +188,11 @@ namespace charliesoft
   {
     boost::unique_lock<boost::mutex> lock(_mtx);
     if (fullyRendered)
-      std::cout << "   " << _STR(process->getName()) << " Produced!" << endl;
+      std::cout << " \t\t\t  " << _STR(process->getName()) << " Produced!" << endl;
     else
-      std::cout << "   " << _STR(process->getName()) << " partially rendered!" << endl;
+      std::cout << " \t\t\t  " << _STR(process->getName()) << " partially rendered!" << endl;
+    //wake up linked output blocks
+    process->notifyProduction();
     if (fullyRendered)
     {
       //remove this block for every waiting thread:
@@ -209,8 +211,12 @@ namespace charliesoft
       return _parent->stop();
     for (auto& it = _runningThread.begin(); it != _runningThread.end(); it++)
     {
-      it->second.interrupt();
-      it->second.join();//wait for the end...
+      if (it->first->getState() != Block::stopped)
+      {
+        it->second.interrupt();
+        if (!it->second.try_join_for(boost::chrono::seconds(5)))//wait 5s max...
+          it->second.interrupt();//try to interrupt it again (but probably without success)
+      }
     }
     _runningThread.clear();
   }
@@ -228,6 +234,7 @@ namespace charliesoft
     if (_parent != NULL && delegateParent)
       return _parent->run(singleShot);
     stop(delegateParent);//just in case...
+    _pauseProcess = false;
     bool res = true;
     for (auto it = _vertices.begin();
       it != _vertices.end(); it++)
@@ -239,18 +246,19 @@ namespace charliesoft
     return res;
   }
 
-  void GraphOfProcess::switchPause(bool delegateParent)
+  bool GraphOfProcess::switchPause(bool delegateParent)
   {
     if (_parent != NULL && delegateParent)
       return _parent->switchPause();
-    pauseProcess = !pauseProcess;
-    if (!pauseProcess)
+    _pauseProcess = !_pauseProcess;
+    if (!_pauseProcess)
     {
       //wake up threads:
       for (auto it = _vertices.begin();
         it != _vertices.end(); it++)
-        (*it)->wakeUpFromConsumers();
+        (*it)->wakeUpFromPause();
     }
+    return _pauseProcess;
   }
 
   void GraphOfProcess::saveGraph(boost::property_tree::ptree& tree) const

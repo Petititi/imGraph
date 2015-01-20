@@ -3,7 +3,7 @@
 
 #ifdef _WIN32
 #pragma warning(push)
-#pragma warning(disable:4996 4251 4275 4800 4503)
+#pragma warning(disable:4996 4244 4251 4275 4800 4503)
 #endif
 #include <QGraphicsView>
 #include <QResizeEvent>
@@ -50,6 +50,12 @@ namespace charliesoft
   {
     Q_OBJECT;
 
+  protected:
+    QVector<QAction*> vect_QActions;
+    QToolBar* _toolbar;
+
+
+    void createToolbar(QToolBar* toolBar);
   public:
     static Window* getInstance();
     static void releaseInstance();
@@ -97,6 +103,9 @@ namespace charliesoft
     void openFile();
     void newProject();
     void saveProject();
+    void startGraph();
+    void stopGraph();
+    void switchPause();
     void saveAsProject();
     void createSubgraph();
     bool quitProg();

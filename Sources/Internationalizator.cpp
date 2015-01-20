@@ -169,6 +169,9 @@ namespace charliesoft
     translations["MATRIX_EDITOR_HELP_LOAD"] = "Load new matrix (CTRL+O)";
     translations["MATRIX_EDITOR_HELP_EDIT"] = "Edit matrix (CTRL+E)";
     translations["MATRIX_EDITOR_HELP_ONTOP"] = "Always on top (CTRL+T)";
+    translations["MATRIX_EDITOR_HELP_START"] = "Run graph (Enter)";
+    translations["MATRIX_EDITOR_HELP_STOP"] = "Stop graph (End)";
+    translations["MATRIX_EDITOR_HELP_PAUSE"] = "Pause graph (Space)";
 
     translations["MENU_HELP_INFO"] = "Info";
     translations["MENU_HELP_HELP"] = "Help";
@@ -204,6 +207,8 @@ namespace charliesoft
     translations["BLOCK__INPUT_IN_FILE_FILTER"] = "media files";
     translations["BLOCK__INPUT_IN_FILE_NOT_FOUND"] = "File \"%1$s\" not found!";
     translations["BLOCK__INPUT_IN_FILE_PROBLEM"] = "File \"%1$s\" can't be loaded!";
+    translations["BLOCK__INPUT_IN_LOOP"] = "loop";
+    translations["BLOCK__INPUT_IN_LOOP_HELP"] = "Loop video file (if <0, infinite loop)";
     translations["BLOCK__INPUT_IN_GREY"] = "grey";
     translations["BLOCK__INPUT_IN_GREY_HELP"] = "Convert image to a grayscale one";
     translations["BLOCK__INPUT_IN_COLOR"] = "color";
@@ -230,6 +235,16 @@ namespace charliesoft
     translations["BLOCK__OUTPUT_IN_WIN_NAME_HELP"] = "Windows title";
     translations["BLOCK__OUTPUT_IN_NORMALIZE"] = "normalize";
     translations["BLOCK__OUTPUT_IN_NORMALIZE_HELP"] = "Normalize image before show";
+
+    translations["BLOCK__WRITE_NAME"] = "Write video";
+    translations["BLOCK__WRITE_IN_IMAGE"] = "image";
+    translations["BLOCK__WRITE_IN_IMAGE_HELP"] = "Image to add to video file";
+    translations["BLOCK__WRITE_IN_FILENAME"] = "Filename";
+    translations["BLOCK__WRITE_IN_FILENAME_HELP"] = "Filename of the video file";
+    translations["BLOCK__WRITE_IN_FPS"] = "FPS";
+    translations["BLOCK__WRITE_IN_FPS_HELP"] = "Frames per second";
+    translations["BLOCK__WRITE_IN_CODEC"] = "codec";
+    translations["BLOCK__WRITE_IN_CODEC_HELP"] = "FOURCC wanted (XVID, X264...).<br/>Empty if you want no compression,<br/>-1 if you want to choose using IHM!";
 
     translations["BLOCK__LINEDRAWER_NAME"] = "Draw lines";
     translations["BLOCK__LINEDRAWER_IN_LINES"] = "lines list";
