@@ -113,41 +113,6 @@ enum {
 
 //end enum
 #define _WINDOW_MATRIX_CREATION_MODE  0x00010000
-void imshow(cv::String name, cv::Mat im);
-MatrixViewer* createWindow(cv::String name, int params = 0);
-
-
-class GuiReceiver : public QObject
-{
-  Q_OBJECT
-
-public:
-  GuiReceiver();
-
-  bool bTimeOut;
-  QTimer* timer;
-
-  public slots:
-  void createWindow(QString name, int flags = 0);
-  void destroyWindow(QString name);
-  void destroyAllWindow();
-  void moveWindow(QString name, int x, int y);
-  void resizeWindow(QString name, int width, int height);
-  void showImage(QString name, cv::Mat arr);
-  void displayInfo(QString name, QString text, int delayms);
-  void timeOut();
-  void toggleFullScreen(QString name, double flags);
-  double isFullScreen(QString name);
-  double getPropWindow(QString name);
-  void setPropWindow(QString name, double flags);
-  void saveWindowParameters(QString name);
-  void loadWindowParameters(QString name);
-  void enablePropertiesButtonEachWindow();
-
-private:
-  int nb_windows;
-  bool doesExternalQAppExist;
-};
 
 class ToolsWindow : public QWidget
 {

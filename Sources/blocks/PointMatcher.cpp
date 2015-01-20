@@ -14,7 +14,7 @@
 #include "Block.h"
 #include "ParamValidator.h"
 #include "OpenCV_filter.h"
-using namespace lsis_org;
+using namespace charliesoft;
 using std::vector;
 using std::string;
 using namespace cv;

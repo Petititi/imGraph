@@ -2,7 +2,7 @@
 #include "Block.h"
 #include <vector>
 
-using namespace lsis_org;
+using namespace charliesoft;
 using boost::recursive_mutex;
 using boost::lock_guard;
 using std::vector;

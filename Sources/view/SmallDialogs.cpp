@@ -1,5 +1,6 @@
 ﻿
 #include "SmallDialogs.h"
+#include "GuiReceiver.h"
 
 #ifdef _WIN32
 #pragma warning(disable:4503)

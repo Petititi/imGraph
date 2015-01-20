@@ -4,7 +4,7 @@
 #include "Block.h"
 #include "view/MatrixViewer.h"
 #include "ParamValidator.h"
-using namespace lsis_org;
+using namespace charliesoft;
 using std::vector;
 using std::string;
 using cv::Mat;

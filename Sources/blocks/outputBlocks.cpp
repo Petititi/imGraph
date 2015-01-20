@@ -4,7 +4,7 @@
 #include <boost/lexical_cast.hpp>
 
 #include "Block.h"
-#include "view/MatrixViewer.h"
+#include "view/GuiReceiver.h"
 #include "ParamValidator.h"
 #include "OpenCV_filter.h"
 using namespace lsis_org;

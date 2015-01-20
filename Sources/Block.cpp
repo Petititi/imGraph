@@ -16,7 +16,7 @@
 #include "blocks/ParamValidator.h"
 #include "ProcessManager.h"
 
-using namespace lsis_org;
+using namespace charliesoft;
 using std::string;
 using std::map;
 using std::vector;
@@ -278,7 +278,7 @@ namespace charliesoft
     nbRendering = 0;
     try
     {
-      init();
+      bool isInit = false;
       while (true)//this will stop when user stop the process...
       {
         while (_processes->isPause())
@@ -293,6 +293,9 @@ namespace charliesoft
             shouldRun= false;
         }
         //now we can run the process:
+        if (!isInit)
+          init();
+        isInit = true;
         if (shouldRun)
         {
           _time_start = microsec_clock::local_time();

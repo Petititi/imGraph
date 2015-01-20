@@ -15,7 +15,7 @@
 #pragma warning(pop)
 #endif
 
-using namespace lsis_org;
+using namespace charliesoft;
 using std::vector;
 using std::string;
 using cv::Mat;

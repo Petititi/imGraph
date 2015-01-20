@@ -49,6 +49,7 @@
 #include "ParameterDock.h"
 #include "SubBlock.h"
 #include "VertexRepresentation.h"
+#include "GuiReceiver.h"
 
 using namespace std;
 using namespace charliesoft;

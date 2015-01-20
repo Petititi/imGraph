@@ -1,6 +1,8 @@
 ﻿#include "ParameterDock.h"
 #include "Internationalizator.h"
 
+#include "GuiReceiver.h"
+
 #ifdef _WIN32
 #pragma warning(disable:4503)
 #pragma warning(push)

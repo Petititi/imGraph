@@ -13,7 +13,7 @@
 #include "ParamValidator.h"
 #include "OpenCV_filter.h"
 #include "MatrixConvertor.h"
-using namespace lsis_org;
+using namespace charliesoft;
 using std::vector;
 using std::string;
 using cv::Mat;

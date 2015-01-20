@@ -3,7 +3,7 @@
 
 #include "Block.h"
 #include "ParamValidator.h"
-using namespace lsis_org;
+using namespace charliesoft;
 using namespace cv;
 using std::vector;
 using std::string;
