@@ -74,8 +74,8 @@ using namespace cv;
 using namespace charliesoft;
 
 //Static and global first
-static GuiReceiver *guiMainThread = NULL;
 static bool multiThreads = false;
+GuiReceiver* GuiReceiver::guiMainThread = NULL;
 
 static MatrixViewer* icvFindWindowByName(QString name)
 {
@@ -127,19 +127,14 @@ static GraphViewer* icvFindGraphViewByName(QString name)
 
 void imshow(cv::String name, cv::Mat im)
 {
-  if (!guiMainThread)
-    guiMainThread = new GuiReceiver;
-  guiMainThread->showImage(QString(name.c_str()), im);
+  GuiReceiver::getInstance()->showImage(QString(name.c_str()), im);
 }
 
 GraphViewer* createGraphView(cv::String name)
 {
-  if (!guiMainThread)
-    guiMainThread = new GuiReceiver;
-
   if (icvFindGraphViewByName(name.c_str()) == NULL)
   {
-    QMetaObject::invokeMethod(guiMainThread,
+    QMetaObject::invokeMethod(GuiReceiver::getInstance(),
       "createGraph",
       Qt::AutoConnection,
       Q_ARG(QString, QString(name.c_str())));
@@ -152,12 +147,9 @@ GraphViewer* createGraphView(cv::String name)
 
 MatrixViewer* createWindow(cv::String name, int params)
 {
-  if (!guiMainThread)
-    guiMainThread = new GuiReceiver;
-
   if (icvFindWindowByName(name.c_str()) == NULL)
   {
-    QMetaObject::invokeMethod(guiMainThread,
+    QMetaObject::invokeMethod(GuiReceiver::getInstance(),
       "createWindow",
       Qt::AutoConnection,
       Q_ARG(QString, QString(name.c_str())),
@@ -171,7 +163,14 @@ MatrixViewer* createWindow(cv::String name, int params)
 
 //////////////////////////////////////////////////////
 // GuiReceiver
-
+boost::recursive_mutex mtx_gui;
+GuiReceiver* GuiReceiver::getInstance()
+{
+  boost::unique_lock<boost::recursive_mutex> guard(mtx_gui);
+  if (guiMainThread==NULL)
+    guiMainThread = new GuiReceiver();
+  return guiMainThread;
+}
 
 GuiReceiver::GuiReceiver() : bTimeOut(false), nb_windows(0)
 {

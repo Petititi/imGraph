@@ -98,11 +98,11 @@ GraphViewer* createGraphView(cv::String name);
 
 class GuiReceiver : public QObject
 {
-  Q_OBJECT
+  Q_OBJECT;
 
-public:
   GuiReceiver();
-
+public:
+  static GuiReceiver* getInstance();
   bool bTimeOut;
   QTimer* timer;
 
@@ -125,7 +125,7 @@ public:
   void enablePropertiesButtonEachWindow();
 
 private:
-  GuiReceiver* guiMainThread;
+  static GuiReceiver* guiMainThread;
   int nb_windows;
   bool doesExternalQAppExist;
 };

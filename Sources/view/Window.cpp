@@ -119,15 +119,14 @@ namespace charliesoft
   Window::Window()
   {
     ptr = this;
+    //create opencv main thread:
+    GuiReceiver::getInstance();
 
     _tabWidget = new QTabWidget(); 
     _tabWidget->setTabsClosable(true);
 
     connect(_tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab_(int)));
-
-    //create opencv main thread:
-    new GuiReceiver();
-
+    
     _toolbar = new QToolBar(this);
     _toolbar->setFloatable(false); //is not a window
     _toolbar->setFixedHeight(28);
