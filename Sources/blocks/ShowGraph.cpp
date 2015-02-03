@@ -30,6 +30,7 @@ namespace charliesoft
   //Add parameters, with following parameters:
   //default visibility, type of parameter, name (key of internationalizor), helper...
   ADD_PARAMETER(true, Matrix, "BLOCK__SHOWGRAPH_IN_VALUES", "BLOCK__SHOWGRAPH_IN_VALUES_HELP");
+  ADD_PARAMETER_FULL(false, String, "BLOCK__SHOWGRAPH_IN_TITLE", "BLOCK__SHOWGRAPH_IN_TITLE_HELP", "GraphShow");
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_OUTPUT_PARAMS(ShowGraph);
@@ -47,7 +48,26 @@ namespace charliesoft
     cv::Mat in = _myInputs["BLOCK__SHOWGRAPH_IN_VALUES"].get<cv::Mat>(true);
 
     if (graphWindow==NULL)
-      graphWindow = createGraphView("ceci est un test...");
+      graphWindow = createGraphView(_myInputs["BLOCK__SHOWGRAPH_IN_TITLE"].get<std::string>(true));
+
+    Mat usrMatrix = in;
+    if (usrMatrix.depth() != CV_64F)
+      in.convertTo(usrMatrix, CV_64F);
+
+
+    vector<Mat> histo_planes;
+    split(usrMatrix, histo_planes);
+
+    size_t nbCurves = histo_planes.size();
+    size_t nbElements = in.rows;
+    for (size_t i = 0; i < nbCurves; i++)
+    {
+      //now add datas:
+      graphWindow->updateCurve(i, histo_planes[i].ptr<double>(0), nbElements);
+    }
+
+    if (graphWindow->isHidden())
+      graphWindow->show();
 
     return true;
   };

@@ -6,7 +6,7 @@
 #ifdef _WIN32
 #pragma warning(disable:4503)
 #pragma warning(push)
-#pragma warning(disable:4996 4251 4275 4800)
+#pragma warning(disable:4996 4250 4251 4275 4800)
 #endif
 #include <qtoolbutton.h>
 #include <QtPrintSupport/qprinter.h>
@@ -25,11 +25,13 @@
 #include <qwt/qwt_symbol.h>
 #include <qwt/qwt_legend.h>
 
+#include <boost/thread/lock_guard.hpp>
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
 
 using namespace charliesoft;
+using boost::lock_guard;
 
 class Zoomer : public QwtPlotZoomer
 {
@@ -52,37 +54,52 @@ public:
 
 
 
-GraphViewer::GraphViewer() :QwtPlot(NULL)
+GraphViewer::GraphViewer()
 {
   setWindowFlags(Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint | Qt::Window);
-  setCanvasBackground(Qt::white);
-  setAxisScale(QwtPlot::yLeft, 0.0, 10.0);
-  insertLegend(new QwtLegend());
 
+  d_plot = new QwtPlot(this);
 
-  /*
-  d_zoomer[0] = new Zoomer(QwtPlot::xBottom, QwtPlot::yLeft, this);
+  const int margin = 5;
+  d_plot->setContentsMargins(margin, margin, margin, 0);
+
+  setContextMenuPolicy(Qt::NoContextMenu);
+
+  d_zoomer[0] = new Zoomer(QwtPlot::xBottom, QwtPlot::yLeft,
+    d_plot->canvas());
   d_zoomer[0]->setRubberBand(QwtPicker::RectRubberBand);
   d_zoomer[0]->setRubberBandPen(QColor(Qt::green));
   d_zoomer[0]->setTrackerMode(QwtPicker::ActiveOnly);
   d_zoomer[0]->setTrackerPen(QColor(Qt::white));
 
-  d_zoomer[1] = new Zoomer(QwtPlot::xTop, QwtPlot::yRight, this);
+  d_zoomer[1] = new Zoomer(QwtPlot::xTop, QwtPlot::yRight,
+    d_plot->canvas());
 
-  d_panner = new QwtPlotPanner(this);
+  d_panner = new QwtPlotPanner(d_plot->canvas());
   d_panner->setMouseButton(Qt::MidButton);
 
   d_picker = new QwtPlotPicker(QwtPlot::xBottom, QwtPlot::yLeft,
-    QwtPlotPicker::CrossRubberBand, QwtPicker::AlwaysOn, this);
+    QwtPlotPicker::CrossRubberBand, QwtPicker::AlwaysOn,
+    d_plot->canvas());
   d_picker->setStateMachine(new QwtPickerDragPointMachine());
   d_picker->setRubberBandPen(QColor(Qt::green));
   d_picker->setRubberBand(QwtPicker::CrossRubberBand);
   d_picker->setTrackerPen(QColor(Qt::white));
 
+
+  myGlobalLayout = new QVBoxLayout();
+  myGlobalLayout->setObjectName(QString::fromUtf8("boxLayout"));
+  myGlobalLayout->setContentsMargins(0, 0, 0, 0);
+  myGlobalLayout->setSpacing(0);
+  myGlobalLayout->setMargin(0);
+
+  setLayout(myGlobalLayout);
+
   QToolBar *toolBar = new QToolBar(this);
 
   QToolButton *btnZoom = new QToolButton(toolBar);
   btnZoom->setText("Zoom");
+  //btnZoom->setIcon(QPixmap(zoom_xpm));
   btnZoom->setCheckable(true);
   btnZoom->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
   toolBar->addWidget(btnZoom);
@@ -91,6 +108,7 @@ GraphViewer::GraphViewer() :QwtPlot(NULL)
 #ifndef QT_NO_PRINTER
   QToolButton *btnPrint = new QToolButton(toolBar);
   btnPrint->setText("Print");
+  //btnPrint->setIcon(QPixmap(print_xpm));
   btnPrint->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
   toolBar->addWidget(btnPrint);
   connect(btnPrint, SIGNAL(clicked()), SLOT(print()));
@@ -98,6 +116,7 @@ GraphViewer::GraphViewer() :QwtPlot(NULL)
 
   QToolButton *btnExport = new QToolButton(toolBar);
   btnExport->setText("Export");
+  //btnExport->setIcon(QPixmap(print_xpm));
   btnExport->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
   toolBar->addWidget(btnExport);
   connect(btnExport, SIGNAL(clicked()), SLOT(exportDocument()));
@@ -120,57 +139,78 @@ GraphViewer::GraphViewer() :QwtPlot(NULL)
   layout->addWidget(cntDamp, 0);
 
   (void)toolBar->addWidget(hBox);
-  
-  addWidget(toolBar);
+
+  myGlobalLayout->addWidget(toolBar);
+  /*
 #ifndef QT_NO_STATUSBAR
   (void)statusBar();
 #endif
+  */
+  myGlobalLayout->addWidget(d_plot);
 
   enableZoomMode(true);
   showInfo();
 
+  connect(cntDamp, SIGNAL(valueChanged(double)),
+    d_plot, SLOT(setDamp(double)));
 
   connect(d_picker, SIGNAL(moved(const QPoint &)),
     SLOT(moved(const QPoint &)));
   connect(d_picker, SIGNAL(selected(const QPolygon &)),
     SLOT(selected(const QPolygon &)));
-    */
-
-
-
-
-
-
-  QwtPlotGrid *grid = new QwtPlotGrid();
-  grid->attach(this);
-
-  QwtPlotCurve *curve = new QwtPlotCurve();
-  curve->setTitle("Some Points");
-  curve->setPen(Qt::blue, 4);
-  curve->setRenderHint(QwtPlotItem::RenderAntialiased, true);
-
-  QwtSymbol *symbol = new QwtSymbol(QwtSymbol::Ellipse,
-    QBrush(Qt::yellow), QPen(Qt::red, 2), QSize(8, 8));
-  curve->setSymbol(symbol);
-
-  QPolygonF points;
-  points << QPointF(0.0, 4.4) << QPointF(1.0, 3.0)
-    << QPointF(2.0, 4.5) << QPointF(3.0, 6.8)
-    << QPointF(4.0, 7.9) << QPointF(5.0, 7.1);
-  curve->setSamples(points);
-
-  setAxisTitle(QwtPlot::xBottom, "X Axis");
-  setAxisTitle(QwtPlot::yLeft, "Y Axis");
-
-  curve->attach(this);
-
-
 
   resize(600, 400);
   show();
-
 }
 
+void GraphViewer::updateCurve(int id, const double *xData, const double *yData, int size)
+{
+  boost::unique_lock<boost::mutex> lock(_mtx_synchro);
+  QwtPlotCurve *curve;
+  bool shouldAttach = false;
+  if (_curves.size() <= static_cast<size_t>(id) || id<0)
+  {
+    shouldAttach = true;
+    curve = new QwtPlotCurve();
+    _curves.push_back(curve);
+  }
+  else
+    curve = _curves[id];
+
+  curve->setTitle("Some Points");
+  Qt::GlobalColor color = Qt::blue;
+  if (id == 1)
+    color = Qt::green;
+  if (id == 2)
+    color = Qt::red;
+  curve->setPen(color, 2);
+  curve->setRenderHint(QwtPlotItem::RenderAntialiased, true);
+  /*
+  QwtSymbol *symbol = new QwtSymbol(QwtSymbol::Ellipse,
+    QBrush(Qt::yellow), QPen(Qt::red, 2), QSize(4, 4));
+  curve->setSymbol(symbol);*/
+
+  curve->setSamples(xData, yData, size);
+
+  if (shouldAttach)
+    curve->attach(d_plot);
+  else
+  {
+    QMetaObject::invokeMethod(d_plot,
+      "replot",
+      Qt::AutoConnection);
+  }
+}
+
+void GraphViewer::updateCurve(int id, const double *yData, int size)
+{
+  double* xData = new double[size];
+  for (int i = 0; i < size; i++)
+    xData[i] = i;
+  updateCurve(id, xData, yData, size);
+  delete xData;
+
+}
 
 #ifndef QT_NO_PRINTER
 
@@ -178,7 +218,7 @@ void GraphViewer::print()
 {
   QPrinter printer(QPrinter::HighResolution);
 
-  QString docName = title().text();
+  QString docName = d_plot->title().text();
   if (!docName.isEmpty())
   {
     docName.replace(QRegExp(QString::fromLatin1("\n")), tr(" -- "));
@@ -201,7 +241,7 @@ void GraphViewer::print()
       renderer.setLayoutFlag(QwtPlotRenderer::FrameWithScales);
     }
 
-    renderer.renderTo(this, printer);
+    renderer.renderTo(d_plot, printer);
   }
 }
 
@@ -210,7 +250,7 @@ void GraphViewer::print()
 void GraphViewer::exportDocument()
 {
   QwtPlotRenderer renderer;
-  renderer.exportTo(this, "bode.pdf");
+  renderer.exportTo(d_plot, "bode.pdf");
 }
 
 void GraphViewer::enableZoomMode(bool on)
@@ -237,16 +277,19 @@ void GraphViewer::showInfo(QString text)
     else
       text = "Zoom: Press mouse button and drag";
   }
-
+  /*
+#ifndef QT_NO_STATUSBAR
+  statusBar()->showMessage(text);
+#endif*/
 }
 
 void GraphViewer::moved(const QPoint &pos)
 {
   QString info;
   info.sprintf("Freq=%g, Ampl=%g, Phase=%g",
-    invTransform(QwtPlot::xBottom, pos.x()),
-    invTransform(QwtPlot::yLeft, pos.y()),
-    invTransform(QwtPlot::yRight, pos.y())
+    d_plot->invTransform(QwtPlot::xBottom, pos.x()),
+    d_plot->invTransform(QwtPlot::yLeft, pos.y()),
+    d_plot->invTransform(QwtPlot::yRight, pos.y())
     );
   showInfo(info);
 }

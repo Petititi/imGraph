@@ -247,6 +247,8 @@ namespace charliesoft
     translations["BLOCK__SHOWGRAPH_NAME"] = "Show graph";
     translations["BLOCK__SHOWGRAPH_IN_VALUES"] = "values";
     translations["BLOCK__SHOWGRAPH_IN_VALUES_HELP"] = "Vector of values to show";
+    translations["BLOCK__SHOWGRAPH_IN_TITLE"] = "title";
+    translations["BLOCK__SHOWGRAPH_IN_TITLE_HELP"] = "Graph title";
 
     translations["BLOCK__WRITE_NAME"] = "Write video";
     translations["BLOCK__WRITE_IN_IMAGE"] = "image";
@@ -351,6 +353,16 @@ namespace charliesoft
     translations["BLOCK__DEINTERLACE_IN_TYPE_HELP"] = "Deinterlacing type wanted|Blend^Bob^Discard^Unfold";
     translations["BLOCK__DEINTERLACE_OUT_IMAGE"] = "image";
     translations["BLOCK__DEINTERLACE_OUT_IMAGE_HELP"] = "Deinterlaced image";
+
+    translations["BLOCK__HISTOGRAM_NAME"] = "Histogram";
+    translations["BLOCK__HISTOGRAM_IN_IMAGE"] = "image";
+    translations["BLOCK__HISTOGRAM_IN_IMAGE_HELP"] = "Input image";
+    translations["BLOCK__HISTOGRAM_IN_BINS"] = "#bins";
+    translations["BLOCK__HISTOGRAM_IN_BINS_HELP"] = "number of bins";
+    translations["BLOCK__HISTOGRAM_IN_ACCUMULATE"] = "accumulate";
+    translations["BLOCK__HISTOGRAM_IN_ACCUMULATE_HELP"] = "This feature enables you to compute a single histogram from several sets of arrays, or to update the histogram in time";
+    translations["BLOCK__HISTOGRAM_OUT_HISTO"] = "histo";
+    translations["BLOCK__HISTOGRAM_OUT_HISTO_HELP"] = "Histogram of the input image";
 
     translations["BLOCK__SKIP_FRAME_NAME"] = "Keep only 1 frame every N frame";
     translations["BLOCK__SKIP_FRAME_IN_IMAGE"] = "image";

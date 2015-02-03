@@ -18,7 +18,7 @@
 #include <QGraphicsView>
 #include <QSizePolicy>
 #include <QInputDialog>
-#include <QBoxLayout>
+#include <QVBoxLayout>
 #include <QSettings>
 #include <qtimer.h>
 #include <QtConcurrent/QtConcurrentRun>
@@ -50,6 +50,8 @@
 
 #include <qwt/qwt_plot.h>
 
+#include <vector>
+
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
@@ -57,15 +59,22 @@
 class QwtPlotZoomer;
 class QwtPlotPicker;
 class QwtPlotPanner;
-class Plot;
+class QwtPlotCurve;
+class QwtPlot;
+class QPoint;
 class QPolygon;
 
-class GraphViewer : public QwtPlot
+class GraphViewer : public QWidget
 {
   Q_OBJECT
 
+    boost::mutex _mtx_synchro;
 public:
   GraphViewer();
+
+
+  void updateCurve(int id, const double *xData, const double *yData, int size);
+  void updateCurve(int id, const double *xData, int size);
 
   private Q_SLOTS:
   void moved(const QPoint &);
@@ -77,11 +86,14 @@ public:
 
   void exportDocument();
   void enableZoomMode(bool);
-
 private:
   void showInfo(QString text = QString::null);
 
-  Plot *d_plot;
+  QVBoxLayout* myGlobalLayout;
+
+  std::vector<QwtPlotCurve *> _curves;
+
+  QwtPlot *d_plot;
 
   QwtPlotZoomer *d_zoomer[2];
   QwtPlotPicker *d_picker;

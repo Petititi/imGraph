@@ -706,8 +706,7 @@ namespace charliesoft
     }
     if (!fileName.isEmpty())
     {
-      dialog.selectFile(fileName);
-      string test = fileName.toStdString();
+      //dialog.selectFile(fileName);
 
       if (tmp != NULL)
       {

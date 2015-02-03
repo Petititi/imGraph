@@ -132,7 +132,8 @@ void imshow(cv::String name, cv::Mat im)
 
 GraphViewer* createGraphView(cv::String name)
 {
-  if (icvFindGraphViewByName(name.c_str()) == NULL)
+  GraphViewer* gv = icvFindGraphViewByName(name.c_str());
+  if (gv == NULL)
   {
     QMetaObject::invokeMethod(GuiReceiver::getInstance(),
       "createGraph",
@@ -140,14 +141,16 @@ GraphViewer* createGraphView(cv::String name)
       Q_ARG(QString, QString(name.c_str())));
 
     boost::this_thread::sleep(boost::posix_time::milliseconds(100));//wait for the window creation
+    gv = icvFindGraphViewByName(name.c_str());
   }
 
-  return icvFindGraphViewByName(name.c_str());
+  return gv;
 }
 
 MatrixViewer* createWindow(cv::String name, int params)
 {
-  if (icvFindWindowByName(name.c_str()) == NULL)
+  MatrixViewer* mv = icvFindWindowByName(name.c_str());
+  if (mv == NULL)
   {
     QMetaObject::invokeMethod(GuiReceiver::getInstance(),
       "createWindow",
@@ -156,9 +159,10 @@ MatrixViewer* createWindow(cv::String name, int params)
       Q_ARG(int, params));
 
     boost::this_thread::sleep(boost::posix_time::milliseconds(100));//wait for the window creation
+    mv = icvFindWindowByName(name.c_str());
   }
 
-  return icvFindWindowByName(name.c_str());
+  return mv;
 }
 
 //////////////////////////////////////////////////////
@@ -261,7 +265,6 @@ void GuiReceiver::createGraph(QString name)
 
   nb_windows++;
   GraphViewer* w = new GraphViewer();
-  w->setTitle(name);
   w->setWindowTitle(name);
 }
 
