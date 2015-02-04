@@ -70,7 +70,7 @@ GraphViewer::GraphViewer()
   d_zoomer[0]->setRubberBand(QwtPicker::RectRubberBand);
   d_zoomer[0]->setRubberBandPen(QColor(Qt::green));
   d_zoomer[0]->setTrackerMode(QwtPicker::ActiveOnly);
-  d_zoomer[0]->setTrackerPen(QColor(Qt::white));
+  d_zoomer[0]->setTrackerPen(QColor(Qt::black));
 
   d_zoomer[1] = new Zoomer(QwtPlot::xTop, QwtPlot::yRight,
     d_plot->canvas());
@@ -84,7 +84,7 @@ GraphViewer::GraphViewer()
   d_picker->setStateMachine(new QwtPickerDragPointMachine());
   d_picker->setRubberBandPen(QColor(Qt::green));
   d_picker->setRubberBand(QwtPicker::CrossRubberBand);
-  d_picker->setTrackerPen(QColor(Qt::white));
+  d_picker->setTrackerPen(QColor(Qt::black));
 
 
   myGlobalLayout = new QVBoxLayout();
@@ -125,19 +125,6 @@ GraphViewer::GraphViewer()
 
   QWidget *hBox = new QWidget(toolBar);
 
-  QHBoxLayout *layout = new QHBoxLayout(hBox);
-  layout->setSpacing(0);
-  layout->addWidget(new QWidget(hBox), 10); // spacer
-  layout->addWidget(new QLabel("Damping Factor", hBox), 0);
-  layout->addSpacing(10);
-
-  QwtCounter *cntDamp = new QwtCounter(hBox);
-  cntDamp->setRange(0.0, 5.0);
-  cntDamp->setSingleStep(0.01);
-  cntDamp->setValue(0.0);
-
-  layout->addWidget(cntDamp, 0);
-
   (void)toolBar->addWidget(hBox);
 
   myGlobalLayout->addWidget(toolBar);
@@ -150,9 +137,6 @@ GraphViewer::GraphViewer()
 
   enableZoomMode(true);
   showInfo();
-
-  connect(cntDamp, SIGNAL(valueChanged(double)),
-    d_plot, SLOT(setDamp(double)));
 
   connect(d_picker, SIGNAL(moved(const QPoint &)),
     SLOT(moved(const QPoint &)));
@@ -196,9 +180,19 @@ void GraphViewer::updateCurve(int id, const double *xData, const double *yData, 
     curve->attach(d_plot);
   else
   {
-    QMetaObject::invokeMethod(d_plot,
-      "replot",
-      Qt::AutoConnection);
+    //TODO: use emit...
+    if (QApplication::instance()->thread() == QThread::currentThread())
+    {
+      QMetaObject::invokeMethod(d_plot,
+        "replot",
+        Qt::AutoConnection);
+    }
+    else
+    {
+      QMetaObject::invokeMethod(d_plot,
+        "replot",
+        Qt::BlockingQueuedConnection);
+    }
   }
 }
 

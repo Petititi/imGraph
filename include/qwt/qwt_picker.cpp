@@ -21,6 +21,7 @@
 #include <qpointer.h>
 #include <qpaintengine.h>
 #include <qmath.h>
+#include "view\Window.h"
 
 static inline QRegion qwtMaskRegion( const QRect &r, int penWidth )
 {
@@ -965,6 +966,8 @@ bool QwtPicker::eventFilter( QObject *object, QEvent *event )
                 break;
         }
     }
+
+    charliesoft::Window::getInstance()->event(event);//give event to main window
     return false;
 }
 

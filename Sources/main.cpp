@@ -7,6 +7,7 @@
 #endif
 #include <QApplication>
 #include "opencv2/features2d.hpp"
+#include "qtextstream.h"
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
@@ -23,7 +24,7 @@ int main(int argc, char* argv[])
 }
 
 
-/*! \mainpage Surans
+/*! \mainpage ImGraph
 *
 \section sec1 Dependencies
 <p>The project is primarily developed on Windows, but we seek to make ImGraph a cross-platform project. The majority of the code should already be compatible with Linux and macOS, but it has not been tested...<br/>

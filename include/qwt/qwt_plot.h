@@ -279,6 +279,10 @@ Q_SIGNALS:
     void legendDataChanged( const QVariant &itemInfo, 
         const QList<QwtLegendData> &data );
 
+    /*!
+     When replot ends, this signal is emited!
+     */
+    void replotFinished();
 public Q_SLOTS:
     virtual void replot();
     void autoRefresh();
