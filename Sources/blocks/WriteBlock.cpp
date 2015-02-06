@@ -32,7 +32,7 @@ namespace charliesoft
   BEGIN_BLOCK_SUBPARAMS_DEF(WriteVideo);
   END_BLOCK_PARAMS();
 
-  WriteVideo::WriteVideo() :Block("BLOCK__WRITE_NAME"){
+  WriteVideo::WriteVideo() :Block("BLOCK__WRITE_NAME", true){
     _myInputs["BLOCK__WRITE_IN_IMAGE"].addValidator({ new ValNeeded() });
     _myInputs["BLOCK__WRITE_IN_FILENAME"].addValidator({ new ValNeeded() });
   };
@@ -59,7 +59,6 @@ namespace charliesoft
     }
     vr.write(out);
 
-    paramsFullyProcessed();
     return true;
   };
 };

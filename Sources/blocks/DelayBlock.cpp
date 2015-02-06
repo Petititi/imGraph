@@ -29,7 +29,7 @@ namespace charliesoft
   BEGIN_BLOCK_SUBPARAMS_DEF(DelayBlock);
   END_BLOCK_PARAMS();
 
-  DelayBlock::DelayBlock() :Block("BLOCK__DELAY_VIDEO_NAME"){
+  DelayBlock::DelayBlock() :Block("BLOCK__DELAY_VIDEO_NAME", true){
     _myInputs["BLOCK__DELAY_VIDEO_IN_IMAGE"].addValidator({ new ValNeeded() });
     _myInputs["BLOCK__DELAY_VIDEO_IN_DELAY"].addValidator({ new ValNeeded(), new ValPositiv(true) });
   };
@@ -43,7 +43,6 @@ namespace charliesoft
       imgs.pop();
     _myOutputs["BLOCK__DELAY_VIDEO_OUT_IMAGE"] = out;
 
-    paramsFullyProcessed();
     return true;
   };
 };

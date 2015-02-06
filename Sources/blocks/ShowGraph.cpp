@@ -39,7 +39,7 @@ namespace charliesoft
   BEGIN_BLOCK_SUBPARAMS_DEF(ShowGraph);
   END_BLOCK_PARAMS();
 
-  ShowGraph::ShowGraph() :Block("BLOCK__SHOWGRAPH_NAME"){
+  ShowGraph::ShowGraph() :Block("BLOCK__SHOWGRAPH_NAME", true){
     _myInputs["BLOCK__SHOWGRAPH_IN_VALUES"].addValidator({ new ValNeeded() });
     graphWindow = NULL;
   };
@@ -69,8 +69,6 @@ namespace charliesoft
     if (graphWindow->isHidden())
       graphWindow->show();
 
-
-    paramsFullyProcessed();
     return true;
   };
 };

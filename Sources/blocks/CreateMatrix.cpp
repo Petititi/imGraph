@@ -49,7 +49,7 @@ public:
   ADD_PARAMETER_FULL(false, Float, "BLOCK__CREATEMATRIX_IN_INIT.random gaussian.std dev", "std dev", 128.);
   END_BLOCK_PARAMS();
 
-  CreateMatrix::CreateMatrix() :Block("BLOCK__CREATEMATRIX_NAME"){
+  CreateMatrix::CreateMatrix() :Block("BLOCK__CREATEMATRIX_NAME", true){
     _myInputs["BLOCK__CREATEMATRIX_IN_TYPE"].addValidator({ new ValNeeded(), new ValRange(0, 6) });
     _myInputs["BLOCK__CREATEMATRIX_IN_WIDTH"].addValidator({ new ValNeeded(), new ValPositiv(true) });
     _myInputs["BLOCK__CREATEMATRIX_IN_HEIGHT"].addValidator({ new ValNeeded(), new ValPositiv(true) });
@@ -111,7 +111,6 @@ public:
     }
     _myOutputs["BLOCK__CREATEMATRIX_OUT_IMAGE"] = newMatrix;
 
-    paramsFullyProcessed();
     return true;
   };
 };

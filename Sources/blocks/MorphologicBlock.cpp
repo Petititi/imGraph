@@ -38,7 +38,7 @@ namespace charliesoft
   BEGIN_BLOCK_SUBPARAMS_DEF(MorphoBlock);
   END_BLOCK_PARAMS();
 
-  MorphoBlock::MorphoBlock() :Block("BLOCK__MORPHOLOGIC_NAME"){
+  MorphoBlock::MorphoBlock() :Block("BLOCK__MORPHOLOGIC_NAME", true){
     _myInputs["BLOCK__MORPHOLOGIC_IN_IMAGE"].addValidator({ new ValNeeded() });
     _myInputs["BLOCK__MORPHOLOGIC_ELEMENT"].addValidator({ new ValNeeded() });
     _myInputs["BLOCK__MORPHOLOGIC_OPERATOR"].addValidator({ new ValNeeded(), new ValRange(0, 4) });
@@ -60,8 +60,6 @@ namespace charliesoft
       cv::morphologyEx(mat, tmp, operation, element, cv::Point(-1, -1), iter);
       _myOutputs["BLOCK__MORPHOLOGIC_OUT_IMAGE"] = tmp;
     }
-
-    paramsFullyProcessed();
     return true;
   };
 };

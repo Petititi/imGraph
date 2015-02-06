@@ -46,7 +46,7 @@ namespace charliesoft
   BEGIN_BLOCK_SUBPARAMS_DEF(OpticFlowBlock);
   END_BLOCK_PARAMS();
 
-  OpticFlowBlock::OpticFlowBlock() :Block("BLOCK__OPTICFLOW_NAME"){
+  OpticFlowBlock::OpticFlowBlock() :Block("BLOCK__OPTICFLOW_NAME", true){
     _myInputs["BLOCK__OPTICFLOW_IN_IMAGE1"].addValidator({ new ValNeeded() });
     _myInputs["BLOCK__OPTICFLOW_IN_IMAGE2"].addValidator({ new ValNeeded(), new ValPositiv(true) });
     _myInputs["BLOCK__OPTICFLOW_IN_METHOD"].addValidator({ new ValNeeded(), new ValRange(0, 2) });
@@ -150,7 +150,6 @@ namespace charliesoft
       finalFlow = computeCPU(src, dest, method);
     _myOutputs["BLOCK__OPTICFLOW_OUT_IMAGE"] = finalFlow;
 
-    paramsFullyProcessed();
     return true;
   };
 };

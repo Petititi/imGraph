@@ -38,7 +38,7 @@ namespace charliesoft
   BEGIN_BLOCK_SUBPARAMS_DEF(MergingBlock);
   END_BLOCK_PARAMS();
 
-  MergingBlock::MergingBlock() :Block("BLOCK__MERGING_NAME"){
+  MergingBlock::MergingBlock() :Block("BLOCK__MERGING_NAME", true){
     _myInputs["BLOCK__MERGING_IN_IMAGE1"].addValidator({ new ValNeeded() });
     _myInputs["BLOCK__MERGING_IN_IMAGE2"].addValidator({ new ValNeeded() });
   };
@@ -185,8 +185,6 @@ namespace charliesoft
       break;
     }
 
-
-    paramsFullyProcessed();
     return true;
   };
 };

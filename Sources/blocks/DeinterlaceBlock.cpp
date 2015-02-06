@@ -40,7 +40,7 @@ namespace charliesoft
   BEGIN_BLOCK_SUBPARAMS_DEF(DeinterlaceBlock);
   END_BLOCK_PARAMS();
 
-  DeinterlaceBlock::DeinterlaceBlock() :Block("BLOCK__DEINTERLACE_NAME"){
+  DeinterlaceBlock::DeinterlaceBlock() :Block("BLOCK__DEINTERLACE_NAME", false){
     _myInputs["BLOCK__DEINTERLACE_IN_IMAGE"].addValidator({ new ValNeeded() });
   };
   
@@ -89,7 +89,7 @@ namespace charliesoft
   BEGIN_BLOCK_SUBPARAMS_DEF(InterlaceBlock);
   END_BLOCK_PARAMS();
 
-  InterlaceBlock::InterlaceBlock() :Block("BLOCK__SKIP_FRAME_NAME"){
+  InterlaceBlock::InterlaceBlock() :Block("BLOCK__SKIP_FRAME_NAME", true){
     _myInputs["BLOCK__SKIP_FRAME_IN_IMAGE"].addValidator({ new ValNeeded() });
   };
 

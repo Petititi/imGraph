@@ -31,7 +31,7 @@ namespace charliesoft
   SubBlock::SubBlock() :SubBlock("SUBBLOCK__"){
   };
 
-  SubBlock::SubBlock(string name) :Block(name){
+  SubBlock::SubBlock(string name) :Block(name, false){
     _subGraph = new GraphOfProcess();
   };
 

@@ -33,7 +33,7 @@ namespace charliesoft
   BEGIN_BLOCK_SUBPARAMS_DEF(BlockShow);
   END_BLOCK_PARAMS();
 
-  BlockShow::BlockShow() :Block("BLOCK__OUTPUT_NAME"){
+  BlockShow::BlockShow() :Block("BLOCK__OUTPUT_NAME", true){
     _myInputs["BLOCK__OUTPUT_IN_IMAGE"].addValidator({ new ValNeeded() });
   };
   
@@ -49,7 +49,6 @@ namespace charliesoft
       imshow(_myInputs["BLOCK__OUTPUT_IN_WIN_NAME"].get<string>(), mat);
     }
 
-    paramsFullyProcessed();
     return true;
   };
 };

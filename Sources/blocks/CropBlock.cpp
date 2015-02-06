@@ -35,7 +35,7 @@ namespace charliesoft
   BEGIN_BLOCK_SUBPARAMS_DEF(BlockCrop);
   END_BLOCK_PARAMS();
 
-  BlockCrop::BlockCrop() :Block("BLOCK__CROP_NAME"){
+  BlockCrop::BlockCrop() :Block("BLOCK__CROP_NAME", true){
     _myInputs["BLOCK__CROP_IN_IMAGE"].addValidator({ new ValNeeded() });
   };
 
@@ -62,8 +62,6 @@ namespace charliesoft
       _myOutputs["BLOCK__CROP_WIDTH"] = imgTmp.cols;
       _myOutputs["BLOCK__CROP_HEIGHT"] = imgTmp.rows;
     }
-
-    paramsFullyProcessed();
     return true;
   };
 };

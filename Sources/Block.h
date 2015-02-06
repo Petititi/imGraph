@@ -240,8 +240,15 @@ namespace charliesoft
     virtual bool run(bool oneShot = false) = 0;
     bool _executeOnlyOnce;
     bool _newData;
+    bool _isOneShot;
   public:
-    Block(std::string name, BlockType typeExec = synchrone);
+    /**
+    Used to create a block...
+    @param name block name, can be a label from Internationalizator
+    @param isOneShot if the block is simple (that is the block is state-free), set this value to true.
+    @param typeExec used to know the type of execution this bloc should have...
+    */
+    Block(std::string name, bool isOneShot, BlockType typeExec = synchrone);
     ~Block();
     std::string getName(){
       return _name;

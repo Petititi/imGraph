@@ -29,7 +29,7 @@ namespace charliesoft
   BEGIN_BLOCK_SUBPARAMS_DEF(BlockNormalize);
   END_BLOCK_PARAMS();
 
-  BlockNormalize::BlockNormalize() :Block("BLOCK__NORMALIZ_NAME"){
+  BlockNormalize::BlockNormalize() :Block("BLOCK__NORMALIZ_NAME", true){
     _myInputs["BLOCK__NORMALIZ_IN_IMAGE"].addValidator({ new ValNeeded() });
   };
   
@@ -40,7 +40,6 @@ namespace charliesoft
     if (!mat.empty())
       _myOutputs["BLOCK__NORMALIZ_OUT_IMAGE"] = filter.process(mat);
 
-    paramsFullyProcessed();
     return true;
   };
 };

@@ -29,7 +29,7 @@ namespace charliesoft
   BEGIN_BLOCK_SUBPARAMS_DEF(AccuBlock);
   END_BLOCK_PARAMS();
 
-  AccuBlock::AccuBlock() :Block("BLOCK__ACCUMULATOR_NAME"), filter(15){
+  AccuBlock::AccuBlock() :Block("BLOCK__ACCUMULATOR_NAME", true), filter(15){
     _myInputs["BLOCK__ACCUMULATOR_IN_IMAGE"].addValidator({ new ValNeeded() });
     _myInputs["BLOCK__ACCUMULATOR_IN_NB_HISTORY"].addValidator({ new ValNeeded(), new ValPositiv(true) });
   };
@@ -44,7 +44,6 @@ namespace charliesoft
     if (!mat.empty())
       _myOutputs["BLOCK__ACCUMULATOR_OUT_IMAGE"] = filter.process(mat);
 
-    paramsFullyProcessed();
     return true;
   };
 };

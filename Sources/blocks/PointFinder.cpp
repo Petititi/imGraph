@@ -110,7 +110,7 @@ public:
   }
   END_BLOCK_PARAMS();
 
-  PointFinderBlock::PointFinderBlock() :Block("BLOCK__POINT_FINDER_NAME"){
+  PointFinderBlock::PointFinderBlock() :Block("BLOCK__POINT_FINDER_NAME", true){
     _myInputs["BLOCK__POINT_FINDER_IN_IMAGE"].addValidator({ new ValNeeded() });
     _myInputs["BLOCK__POINT_FINDER_IN_DETECTOR"].addValidator({ new ValNeeded() });
     _myInputs["BLOCK__POINT_FINDER_IN_EXTRACTOR"].addValidator({ new ValNeeded() });
@@ -217,7 +217,6 @@ public:
       _myOutputs["BLOCK__POINT_FINDER_OUT_DESC"] = desc;
     }
 
-    paramsFullyProcessed();
     return true;
   };
 };

@@ -43,7 +43,7 @@ public:
   BEGIN_BLOCK_SUBPARAMS_DEF(HistogramBlock);
   END_BLOCK_PARAMS();
 
-  HistogramBlock::HistogramBlock() :Block("BLOCK__HISTOGRAM_NAME"){
+  HistogramBlock::HistogramBlock() :Block("BLOCK__HISTOGRAM_NAME", true){
     _myInputs["BLOCK__HISTOGRAM_IN_IMAGE"].addValidator({ new ValNeeded() });
   };
 
@@ -82,8 +82,6 @@ public:
 
     _myOutputs["BLOCK__HISTOGRAM_OUT_HISTO"] = outHisto;
 
-
-    paramsFullyProcessed();
     return true;
   };
 };

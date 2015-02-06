@@ -31,7 +31,7 @@ namespace charliesoft
   BEGIN_BLOCK_SUBPARAMS_DEF(LineDrawer);
   END_BLOCK_PARAMS();
 
-  LineDrawer::LineDrawer() :Block("BLOCK__LINEDRAWER_NAME"){
+  LineDrawer::LineDrawer() :Block("BLOCK__LINEDRAWER_NAME", true){
     _myInputs["BLOCK__LINEDRAWER_IN_LINES"].addValidator({ new ValNeeded() });
     _myInputs["BLOCK__LINEDRAWER_IN_IMAGE"].addValidator({ new ValNeeded() });
     _myInputs["BLOCK__LINEDRAWER_IN_SIZE"].addValidator({ new ValPositiv(true) });
@@ -88,7 +88,6 @@ namespace charliesoft
 
     _myOutputs["BLOCK__LINEDRAWER_OUT_IMAGE"] = out;
 
-    paramsFullyProcessed();
     return true;
   };
   BLOCK_BEGIN_INSTANTIATION(PointDrawer);
@@ -111,7 +110,7 @@ namespace charliesoft
   BEGIN_BLOCK_SUBPARAMS_DEF(PointDrawer);
   END_BLOCK_PARAMS();
 
-  PointDrawer::PointDrawer() :Block("BLOCK__POINTDRAWER_NAME"){
+  PointDrawer::PointDrawer() :Block("BLOCK__POINTDRAWER_NAME", true){
     _myInputs["BLOCK__POINTDRAWER_IN_POINTS"].addValidator({ new ValNeeded() });
     _myInputs["BLOCK__POINTDRAWER_IN_IMAGE"].addValidator({ new ValNeeded() });
   };
@@ -169,7 +168,6 @@ namespace charliesoft
 
     _myOutputs["BLOCK__POINTDRAWER_OUT_IMAGE"] = out;
 
-    paramsFullyProcessed();
     return true;
   };
 };

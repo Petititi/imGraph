@@ -43,7 +43,7 @@ public:
   END_BLOCK_PARAMS();
 
 
-  PointMatcherBlock::PointMatcherBlock() :Block("BLOCK__POINT_MATCHER_NAME"){
+  PointMatcherBlock::PointMatcherBlock() :Block("BLOCK__POINT_MATCHER_NAME", true){
     _myInputs["BLOCK__POINT_MATCHER_IN_PT_DESC1"].addValidator({ new ValNeeded() });
     _myInputs["BLOCK__POINT_MATCHER_IN_PT_DESC2"].addValidator({ new ValNeeded() });
   };
@@ -53,7 +53,7 @@ public:
     cv::Mat pt2 = _myInputs["BLOCK__POINT_MATCHER_IN_PT_DESC2"].get<cv::Mat>();
     throw "todo!";
 
-    paramsFullyProcessed();
+
     return true;
   };
 };

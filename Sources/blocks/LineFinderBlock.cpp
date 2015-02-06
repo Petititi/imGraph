@@ -29,7 +29,7 @@ namespace charliesoft
   BEGIN_BLOCK_SUBPARAMS_DEF(LineFinerBlock);
   END_BLOCK_PARAMS();
 
-  LineFinerBlock::LineFinerBlock() :Block("BLOCK__LINE_FINDER_NAME"){
+  LineFinerBlock::LineFinerBlock() :Block("BLOCK__LINE_FINDER_NAME", true){
     _myInputs["BLOCK__LINE_FINDER_IN_IMAGE"].addValidator({ new ValNeeded() });
   };
   
@@ -40,7 +40,6 @@ namespace charliesoft
     if (!mat.empty())
       _myOutputs["BLOCK__LINE_FINDER_OUT_IMAGE"] = filter.process(mat);
 
-    paramsFullyProcessed();
     return true;
   };
 };

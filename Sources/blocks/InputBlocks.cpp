@@ -55,7 +55,7 @@ protected:
   ADD_PARAMETER_FULL(false, Int, "BLOCK__INPUT_IN_INPUT_TYPE.Webcam.webcam index", "webcam index", 0);
   END_BLOCK_PARAMS();
 
-  BlockLoader::BlockLoader() :Block("BLOCK__INPUT_NAME"){
+  BlockLoader::BlockLoader() :Block("BLOCK__INPUT_NAME", false){
     _mySubParams["BLOCK__INPUT_IN_INPUT_TYPE.Video file.input file"].addValidator({ new ValFileExist() });
     _mySubParams["BLOCK__INPUT_IN_INPUT_TYPE.Folder.input folder"].addValidator({ new ValFileExist() });
     _myInputs["BLOCK__INPUT_INOUT_WIDTH"].addValidator({ new ValPositiv(true) });
@@ -220,8 +220,7 @@ protected:
     }
 
     //get current frame from stream:
-    cv::Mat frame = processor_.getFrame();
-    if (frame.empty())//either end of file or problem with file...
+    if (!processor_.isOpened())//either end of file or problem with file...
     {
       loopCount++;
       if (!oneShot && !_myInputs["BLOCK__INPUT_IN_LOOP"].isDefaultValue())
@@ -236,10 +235,14 @@ protected:
       openInput();
       if (!processor_.isOpened())
         return false;//error
-      frame = processor_.getFrame();
-      if (frame.empty())//either end of file or problem with file...
-        return false;//error
     }
+
+    cv::Mat frame = processor_.getFrame();
+    if (frame.empty())//either end of file or problem with file...
+    {
+      return false;//error
+    }
+
     //now set outputs:
     _myOutputs["BLOCK__INPUT_OUT_IMAGE"] = frame;
     _myOutputs["BLOCK__INPUT_OUT_FRAMERATE"] = fps;
@@ -255,7 +258,10 @@ protected:
       boost::this_thread::sleep(boost::posix_time::milliseconds((1. / fps)*1000.));
 
     if (processor_.isEndOfFile())
+    {
+      release();
       paramsFullyProcessed();
+    }
     return true;
   };
 

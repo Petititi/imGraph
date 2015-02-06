@@ -258,7 +258,8 @@ namespace charliesoft
     _wait_processed.notify_all();
   }
 
-  Block::Block(std::string name, BlockType typeExec){
+  Block::Block(std::string name, bool isOneShot, BlockType typeExec){
+    _isOneShot = isOneShot;
     _state = stopped;
     _threadID = boost::thread::id();
     _exec_type = typeExec;
@@ -298,12 +299,14 @@ namespace charliesoft
         isInit = true;
         if (shouldRun)
         {
-          while (_state == consumingParams && !_executeOnlyOnce)
+          do
           {
             _time_start = microsec_clock::local_time();
             run(_executeOnlyOnce);
+            if (_isOneShot)
+              paramsFullyProcessed();
             newProducedData();//tell to scheduler we produced some datas...
-          }
+          } while (_state == consumingParams && !_executeOnlyOnce);
         }
 
         nbRendering++;
