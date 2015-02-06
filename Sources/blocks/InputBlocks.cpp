@@ -16,6 +16,7 @@ namespace charliesoft
 {
   BLOCK_BEGIN_INSTANTIATION(BlockLoader);
   //You can add methods, attributs, reimplement needed functions...
+  void openInput();
 public:
   virtual void init();
   virtual void release();
@@ -66,6 +67,82 @@ protected:
     _myInputs["BLOCK__INPUT_OUT_FRAMERATE"].addValidator({ new ValPositiv(true) });
   };
 
+  void BlockLoader::openInput()
+  {
+    int inputType = _myInputs["BLOCK__INPUT_IN_INPUT_TYPE"].get<int>();
+    switch (inputType)
+    {
+    case 0://webcam
+    {
+      int IdWebcam = _mySubParams["BLOCK__INPUT_IN_INPUT_TYPE.Webcam.webcam index"].get<int>();
+      if (!processor_.setInputSource(IdWebcam))
+      {
+        _error_msg = (my_format(_STR("BLOCK__INPUT_IN_FILE_PROBLEM")) % "WebCam").str();
+      }
+    }
+    break;
+    case 2://folder
+    {
+      string fileName = _mySubParams["BLOCK__INPUT_IN_INPUT_TYPE.Folder.input folder"].get<string>();
+      if (!processor_.setInputSource(fileName))
+      {
+        _error_msg = (my_format(_STR("BLOCK__INPUT_IN_FILE_PROBLEM")) % fileName).str();
+      }
+    }
+    break;
+    default://video
+    {
+      string fileName = _mySubParams["BLOCK__INPUT_IN_INPUT_TYPE.Video file.input file"].get<string>();
+      if (!processor_.setInputSource(fileName))
+      {
+        _error_msg = (my_format(_STR("BLOCK__INPUT_IN_FILE_PROBLEM")) % fileName).str();
+      }
+    }
+    }
+
+    ParamValue& tmpParam = _myInputs["BLOCK__INPUT_IN_GREY"];
+    tmpParam.markAsUsed();
+    if (!tmpParam.isDefaultValue())
+      if (tmpParam.get<bool>())
+        processor_.setProperty(cv::CAP_PROP_CONVERT_RGB, 0);
+
+    tmpParam = _myInputs["BLOCK__INPUT_IN_COLOR"];
+    tmpParam.markAsUsed();
+    if (!tmpParam.isDefaultValue())
+      if (tmpParam.get<bool>())
+        processor_.setProperty(cv::CAP_PROP_CONVERT_RGB, 1);
+
+    tmpParam = _myInputs["BLOCK__INPUT_INOUT_WIDTH"];
+    tmpParam.markAsUsed();
+    if (!tmpParam.isDefaultValue())
+      processor_.setProperty(cv::CAP_PROP_FRAME_WIDTH,
+        tmpParam.get<int>());
+
+    tmpParam = _myInputs["BLOCK__INPUT_INOUT_HEIGHT"];
+    tmpParam.markAsUsed();
+    if (!tmpParam.isDefaultValue())
+      processor_.setProperty(cv::CAP_PROP_FRAME_HEIGHT,
+        tmpParam.get<int>());
+
+    tmpParam = _myInputs["BLOCK__INPUT_INOUT_POS_FRAMES"];
+    tmpParam.markAsUsed();
+    if (!tmpParam.isDefaultValue())
+      processor_.setProperty(cv::CAP_PROP_POS_FRAMES,
+        tmpParam.get<double>());
+
+    tmpParam = _myInputs["BLOCK__INPUT_INOUT_POS_RATIO"];
+    tmpParam.markAsUsed();
+    if (!tmpParam.isDefaultValue())
+      processor_.setProperty(cv::CAP_PROP_POS_AVI_RATIO,
+        tmpParam.get<double>());
+
+    double fps = -1;// MAX(1, processor_.getProperty(cv::CAP_PROP_FPS));
+    tmpParam = _myInputs["BLOCK__INPUT_OUT_FRAMERATE"];
+    tmpParam.markAsUsed();
+    if (!tmpParam.isDefaultValue())
+      fps = tmpParam.get<double>();
+  }
+
   void BlockLoader::init()
   {
     loopCount = -1;
@@ -77,100 +154,108 @@ protected:
   }
 
   bool BlockLoader::run(bool oneShot){
-    loopCount++;
-    int inputType = _myInputs["BLOCK__INPUT_IN_INPUT_TYPE"].get<int>(true);
-    switch (inputType)
+
+
+    ParamValue& tmpParam = _myInputs["BLOCK__INPUT_IN_GREY"];
+    if (tmpParam.isNew())
     {
-    case 0://webcam
-    {
-      int IdWebcam = _mySubParams["BLOCK__INPUT_IN_INPUT_TYPE.Webcam.webcam index"].get<int>(true);
-      if (!processor_.setInputSource(IdWebcam))
-      {
-        _error_msg = (my_format(_STR("BLOCK__INPUT_IN_FILE_PROBLEM")) % "WebCam").str();
-        return false;
-      }
-    }
-      break;
-    case 2://folder
-    {
-      string fileName = _mySubParams["BLOCK__INPUT_IN_INPUT_TYPE.Folder.input folder"].get<string>(true);
-      if (!processor_.setInputSource(fileName))
-      {
-        _error_msg = (my_format(_STR("BLOCK__INPUT_IN_FILE_PROBLEM")) % fileName).str();
-        return false;
-      }
-    }
-      break;
-    default://video
-    {
-      string fileName = _mySubParams["BLOCK__INPUT_IN_INPUT_TYPE.Video file.input file"].get<string>(true);
-      if (!processor_.setInputSource(fileName))
-      {
-        _error_msg = (my_format(_STR("BLOCK__INPUT_IN_FILE_PROBLEM")) % fileName).str();
-        return false;
-      }
-    }
-    }
-    
-    if (!oneShot && !_myInputs["BLOCK__INPUT_IN_LOOP"].isDefaultValue())
-    {
-      int wantedLoop = _myInputs["BLOCK__INPUT_IN_LOOP"].get<int>(true);
-      if (wantedLoop >= 0)
-      {
-        if (wantedLoop<=loopCount)
-          throw boost::thread_interrupted();//want to stop this rendering!
-      }
+      tmpParam.markAsUsed();
+      if (!tmpParam.isDefaultValue())
+        if (tmpParam.get<bool>())
+          processor_.setProperty(cv::CAP_PROP_CONVERT_RGB, 0);
     }
 
-    if (!_myInputs["BLOCK__INPUT_IN_GREY"].isDefaultValue())
-      if (_myInputs["BLOCK__INPUT_IN_GREY"].get<bool>(true))
-        processor_.setProperty(cv::CAP_PROP_CONVERT_RGB, 0);
+    tmpParam = _myInputs["BLOCK__INPUT_IN_COLOR"];
+    if (tmpParam.isNew())
+    {
+      tmpParam.markAsUsed();
+      if (!tmpParam.isDefaultValue())
+        if (tmpParam.get<bool>())
+          processor_.setProperty(cv::CAP_PROP_CONVERT_RGB, 1);
+    }
 
-    if (!_myInputs["BLOCK__INPUT_IN_COLOR"].isDefaultValue())
-      if (_myInputs["BLOCK__INPUT_IN_COLOR"].get<bool>(true))
-        processor_.setProperty(cv::CAP_PROP_CONVERT_RGB, 1);
+    tmpParam = _myInputs["BLOCK__INPUT_INOUT_WIDTH"];
+    if (tmpParam.isNew())
+    {
+      tmpParam.markAsUsed();
+      if (!tmpParam.isDefaultValue())
+        processor_.setProperty(cv::CAP_PROP_FRAME_WIDTH,
+          tmpParam.get<int>());
+    }
 
-    if (!_myInputs["BLOCK__INPUT_INOUT_WIDTH"].isDefaultValue())
-      processor_.setProperty(cv::CAP_PROP_FRAME_WIDTH, 
-      _myInputs["BLOCK__INPUT_INOUT_WIDTH"].get<int>(true));
+    tmpParam = _myInputs["BLOCK__INPUT_INOUT_HEIGHT"];
+    if (tmpParam.isNew())
+    {
+      tmpParam.markAsUsed();
+      if (!tmpParam.isDefaultValue())
+        processor_.setProperty(cv::CAP_PROP_FRAME_HEIGHT,
+          tmpParam.get<int>());
+    }
 
-    if (!_myInputs["BLOCK__INPUT_INOUT_HEIGHT"].isDefaultValue())
-      processor_.setProperty(cv::CAP_PROP_FRAME_WIDTH, 
-      _myInputs["BLOCK__INPUT_INOUT_HEIGHT"].get<int>(true));
+    tmpParam = _myInputs["BLOCK__INPUT_INOUT_POS_FRAMES"];
+    if (tmpParam.isNew())
+    {
+      tmpParam.markAsUsed();
+      if (!tmpParam.isDefaultValue())
+        processor_.setProperty(cv::CAP_PROP_POS_FRAMES,
+          tmpParam.get<double>());
+    }
 
-    if (!_myInputs["BLOCK__INPUT_INOUT_POS_FRAMES"].isDefaultValue())
-      processor_.setProperty(cv::CAP_PROP_POS_FRAMES, 
-      _myInputs["BLOCK__INPUT_INOUT_POS_FRAMES"].get<double>(true));
+    tmpParam = _myInputs["BLOCK__INPUT_INOUT_POS_RATIO"];
+    if (tmpParam.isNew())
+    {
+      tmpParam.markAsUsed();
+      if (!tmpParam.isDefaultValue())
+        processor_.setProperty(cv::CAP_PROP_POS_AVI_RATIO,
+          tmpParam.get<double>());
+    }
 
-    if (!_myInputs["BLOCK__INPUT_INOUT_POS_RATIO"].isDefaultValue())
-      processor_.setProperty(cv::CAP_PROP_POS_AVI_RATIO, 
-      _myInputs["BLOCK__INPUT_INOUT_POS_RATIO"].get<double>(true));
-
-    //now set outputs:
-    cv::Mat frame = processor_.getFrame();
     double fps = -1;// MAX(1, processor_.getProperty(cv::CAP_PROP_FPS));
-    if (!_myInputs["BLOCK__INPUT_OUT_FRAMERATE"].isDefaultValue())
-      fps = _myInputs["BLOCK__INPUT_OUT_FRAMERATE"].get<double>(true);
-    while (!frame.empty())
+    tmpParam = _myInputs["BLOCK__INPUT_OUT_FRAMERATE"];
+    if (tmpParam.isNew())
     {
-      _myOutputs["BLOCK__INPUT_OUT_IMAGE"] = frame;
-      _myOutputs["BLOCK__INPUT_OUT_FRAMERATE"] = fps;
-      _myOutputs["BLOCK__INPUT_INOUT_WIDTH"] = frame.cols;
-      _myOutputs["BLOCK__INPUT_INOUT_HEIGHT"] = frame.rows;
-      _myOutputs["BLOCK__INPUT_INOUT_POS_FRAMES"] = processor_.getProperty(cv::CAP_PROP_POS_FRAMES);
-      _myOutputs["BLOCK__INPUT_INOUT_POS_RATIO"] = processor_.getProperty(cv::CAP_PROP_POS_AVI_RATIO);
-      _myOutputs["BLOCK__INPUT_OUT_FORMAT"] = frame.type();
-
-
-      if (oneShot)
-        return true;
-
-      //wait corresponding ms in order to keep fps:
-      if (fps>0)
-        boost::this_thread::sleep(boost::posix_time::milliseconds((1. / fps)*1000.));
-      frame = processor_.getFrame();
-      newProducedData(false);
+      tmpParam.markAsUsed();
+      if (!tmpParam.isDefaultValue())
+        fps = tmpParam.get<double>();
     }
+
+    //get current frame from stream:
+    cv::Mat frame = processor_.getFrame();
+    if (frame.empty())//either end of file or problem with file...
+    {
+      loopCount++;
+      if (!oneShot && !_myInputs["BLOCK__INPUT_IN_LOOP"].isDefaultValue())
+      {
+        int wantedLoop = _myInputs["BLOCK__INPUT_IN_LOOP"].get<int>();
+        if (wantedLoop >= 0)
+        {
+          if (wantedLoop <= loopCount)
+            throw boost::thread_interrupted();//want to stop this rendering!
+        }
+      }
+      openInput();
+      if (!processor_.isOpened())
+        return false;//error
+      frame = processor_.getFrame();
+      if (frame.empty())//either end of file or problem with file...
+        return false;//error
+    }
+    //now set outputs:
+    _myOutputs["BLOCK__INPUT_OUT_IMAGE"] = frame;
+    _myOutputs["BLOCK__INPUT_OUT_FRAMERATE"] = fps;
+    _myOutputs["BLOCK__INPUT_INOUT_WIDTH"] = frame.cols;
+    _myOutputs["BLOCK__INPUT_INOUT_HEIGHT"] = frame.rows;
+    _myOutputs["BLOCK__INPUT_INOUT_POS_FRAMES"] = processor_.getProperty(cv::CAP_PROP_POS_FRAMES);
+    _myOutputs["BLOCK__INPUT_INOUT_POS_RATIO"] = processor_.getProperty(cv::CAP_PROP_POS_AVI_RATIO);
+    _myOutputs["BLOCK__INPUT_OUT_FORMAT"] = frame.type();
+
+
+    //wait corresponding ms in order to keep fps:
+    if (fps>0)
+      boost::this_thread::sleep(boost::posix_time::milliseconds((1. / fps)*1000.));
+
+    if (processor_.isEndOfFile())
+      paramsFullyProcessed();
     return true;
   };
 

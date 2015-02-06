@@ -36,9 +36,11 @@ namespace charliesoft
   bool BlockNormalize::run(bool oneShot){
     if (_myInputs["BLOCK__NORMALIZ_IN_IMAGE"].isDefaultValue())
       return false;
-    cv::Mat mat = _myInputs["BLOCK__NORMALIZ_IN_IMAGE"].get<cv::Mat>(true);
+    cv::Mat mat = _myInputs["BLOCK__NORMALIZ_IN_IMAGE"].get<cv::Mat>();
     if (!mat.empty())
       _myOutputs["BLOCK__NORMALIZ_OUT_IMAGE"] = filter.process(mat);
+
+    paramsFullyProcessed();
     return true;
   };
 };

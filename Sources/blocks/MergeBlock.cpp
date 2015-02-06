@@ -56,23 +56,23 @@ namespace charliesoft
     {
     case Int:
     {
-      int param1 = _myInputs["BLOCK__MERGING_IN_IMAGE1"].get<int>(true);
+      int param1 = _myInputs["BLOCK__MERGING_IN_IMAGE1"].get<int>();
       switch (type2)
       {
       case Int:
-        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<int>(true);
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<int>();
         break;
       case Float:
-        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<double>(true);
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<double>();
         break;
       case Color:
       {
         cv::Scalar tmp(param1, param1, param1, param1);
-        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = tmp + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<cv::Scalar>(true);
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = tmp + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<cv::Scalar>();
         break;
       }
       case Matrix:
-        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<cv::Mat>(true);
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<cv::Mat>();
         break;
       default:
         return false;//nothing to do as we don't support this type of operation
@@ -82,23 +82,23 @@ namespace charliesoft
     }
     case Float:
     {
-      double param1 = _myInputs["BLOCK__MERGING_IN_IMAGE1"].get<double>(true);
+      double param1 = _myInputs["BLOCK__MERGING_IN_IMAGE1"].get<double>();
       switch (type2)
       {
       case Int:
-        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<int>(true);
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<int>();
         break;
       case Float:
-        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<double>(true);
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<double>();
         break;
       case Color:
       {
         cv::Scalar tmp(param1, param1, param1, param1);
-        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = tmp + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<cv::Scalar>(true);
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = tmp + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<cv::Scalar>();
         break;
       }
       case Matrix:
-        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<cv::Mat>(true);
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<cv::Mat>();
         break;
       default:
         return false;//nothing to do as we don't support this type of operation
@@ -108,30 +108,30 @@ namespace charliesoft
     }
     case Color:
     {
-      cv::Scalar param1 = _myInputs["BLOCK__MERGING_IN_IMAGE1"].get<cv::Scalar>(true);
+      cv::Scalar param1 = _myInputs["BLOCK__MERGING_IN_IMAGE1"].get<cv::Scalar>();
       switch (type2)
       {
       case Int:
       {
-        int param2 = _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<int>(true);
+        int param2 = _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<int>();
         cv::Scalar tmp(param2, param2, param2, param2);
         _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + tmp;
         break;
       }
       case Float:
       {
-        double param2 = _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<double>(true);
+        double param2 = _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<double>();
         cv::Scalar tmp(param2, param2, param2, param2);
         _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + tmp;
         break;
       }
       case Color:
       {
-        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<cv::Scalar>(true);
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<cv::Scalar>();
         break;
       }
       case Matrix:
-        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<cv::Mat>(true);
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<cv::Mat>();
         break;
       default:
         return false;//nothing to do as we don't support this type of operation
@@ -141,23 +141,23 @@ namespace charliesoft
     }
     case Matrix:
     {
-      cv::Mat param1 = _myInputs["BLOCK__MERGING_IN_IMAGE1"].get<cv::Mat>(true);
+      cv::Mat param1 = _myInputs["BLOCK__MERGING_IN_IMAGE1"].get<cv::Mat>();
       switch (type2)
       {
       case Int:
-        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<int>(true);
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<int>();
         break;
       case Float:
-        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<double>(true);
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<double>();
         break;
       case Color:
       {
-        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<cv::Scalar>(true);
+        _myOutputs["BLOCK__MERGING_OUT_IMAGE"] = param1 + _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<cv::Scalar>();
         break;
       }
       case Matrix:
       {
-        cv::Mat param2 = _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<cv::Mat>(true);
+        cv::Mat param2 = _myInputs["BLOCK__MERGING_IN_IMAGE2"].get<cv::Mat>();
         int outputType = param1.type();
         if (param1.channels() != param2.channels())
         {
@@ -185,6 +185,8 @@ namespace charliesoft
       break;
     }
 
+
+    paramsFullyProcessed();
     return true;
   };
 };

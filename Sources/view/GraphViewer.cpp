@@ -53,7 +53,6 @@ public:
 };
 
 
-
 GraphViewer::GraphViewer()
 {
   setWindowFlags(Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint | Qt::Window);

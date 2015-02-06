@@ -185,7 +185,7 @@ namespace charliesoft
 
   BlockLink ParamValue::toBlockLink() const
   {
-    ParamValue* other = get<ParamValue*>(false);
+    ParamValue* other = get<ParamValue*>();
     return BlockLink(other->_block, _block, other->_name, _name);
   }
 

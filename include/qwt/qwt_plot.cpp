@@ -569,7 +569,6 @@ void QwtPlot::replot()
     }
 
     setAutoReplot( doAutoReplot );
-    emit replotFinished();
 }
 
 /*!

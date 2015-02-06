@@ -49,9 +49,11 @@ public:
   };
 
   bool PointMatcherBlock::run(bool oneShot){
-    cv::Mat pt1 = _myInputs["BLOCK__POINT_MATCHER_IN_PT_DESC1"].get<cv::Mat>(true);
-    cv::Mat pt2 = _myInputs["BLOCK__POINT_MATCHER_IN_PT_DESC2"].get<cv::Mat>(true);
+    cv::Mat pt1 = _myInputs["BLOCK__POINT_MATCHER_IN_PT_DESC1"].get<cv::Mat>();
+    cv::Mat pt2 = _myInputs["BLOCK__POINT_MATCHER_IN_PT_DESC2"].get<cv::Mat>();
     throw "todo!";
+
+    paramsFullyProcessed();
     return true;
   };
 };

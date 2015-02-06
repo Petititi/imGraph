@@ -201,7 +201,8 @@ namespace charliesoft
     enum BlockState
     {
       waitingChild = 0,
-      running,
+      consumingParams,
+      consumedParams,
       waitingConsumers,
       stopped
     };
@@ -233,7 +234,8 @@ namespace charliesoft
     void initParameters(const std::vector<ParamDefinition>& inParam,
       const std::vector<ParamDefinition>& outParam);
 
-    void newProducedData(bool fullyRendered);
+    void newProducedData();
+    void paramsFullyProcessed();
 
     virtual bool run(bool oneShot = false) = 0;
     bool _executeOnlyOnce;

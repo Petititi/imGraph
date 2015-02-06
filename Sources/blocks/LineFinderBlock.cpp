@@ -36,9 +36,11 @@ namespace charliesoft
   bool LineFinerBlock::run(bool oneShot){
     if (_myInputs["BLOCK__LINE_FINDER_IN_IMAGE"].isDefaultValue())
       return false;
-    cv::Mat mat = _myInputs["BLOCK__LINE_FINDER_IN_IMAGE"].get<cv::Mat>(true);
+    cv::Mat mat = _myInputs["BLOCK__LINE_FINDER_IN_IMAGE"].get<cv::Mat>();
     if (!mat.empty())
       _myOutputs["BLOCK__LINE_FINDER_OUT_IMAGE"] = filter.process(mat);
+
+    paramsFullyProcessed();
     return true;
   };
 };

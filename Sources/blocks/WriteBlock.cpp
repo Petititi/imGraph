@@ -14,6 +14,7 @@ namespace charliesoft
   BLOCK_BEGIN_INSTANTIATION(WriteVideo);
   //You can add methods, re implement needed functions...
   cv::VideoWriter vr;
+  //TODO: add init and release functions
   BLOCK_END_INSTANTIATION(WriteVideo, AlgoType::output, BLOCK__WRITE_NAME);
 
   BEGIN_BLOCK_INPUT_PARAMS(WriteVideo);
@@ -37,7 +38,7 @@ namespace charliesoft
   };
 
   bool WriteVideo::run(bool oneShot){
-    cv::Mat out = _myInputs["BLOCK__WRITE_IN_IMAGE"].get<cv::Mat>(true);
+    cv::Mat out = _myInputs["BLOCK__WRITE_IN_IMAGE"].get<cv::Mat>();
     if (out.empty())
       return false;
     if (!vr.isOpened() 
@@ -47,17 +48,18 @@ namespace charliesoft
     {
       if (vr.isOpened())
         vr.release();
-      string filename = _myInputs["BLOCK__WRITE_IN_FILENAME"].get<std::string>(true);
-      string codecName = _myInputs["BLOCK__WRITE_IN_CODEC"].get<std::string>(true);
+      string filename = _myInputs["BLOCK__WRITE_IN_FILENAME"].get<std::string>();
+      string codecName = _myInputs["BLOCK__WRITE_IN_CODEC"].get<std::string>();
       int codecCode = -1;
       if (codecName.length() == 4)
         codecCode = cv::VideoWriter::fourcc(codecName[0], codecName[1], codecName[2], codecName[3]);
       if (codecName.empty())
         codecCode = 0;
-      vr.open(filename, codecCode, _myInputs["BLOCK__WRITE_IN_FPS"].get<double>(true), out.size());
+      vr.open(filename, codecCode, _myInputs["BLOCK__WRITE_IN_FPS"].get<double>(), out.size());
     }
     vr.write(out);
 
+    paramsFullyProcessed();
     return true;
   };
 };

@@ -487,7 +487,7 @@ namespace charliesoft
       {
         if (param.second.isLinked())
         {
-          ParamValue* otherParam = param.second.get<ParamValue*>(false);
+          ParamValue* otherParam = param.second.get<ParamValue*>();
           if (selectedBlocks.find(otherParam->getBlock()) == selectedBlocks.end())
           {
             externBlocksInput.push_back(BlockLink(otherParam->getBlock(), param.second.getBlock(),

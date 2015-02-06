@@ -79,11 +79,11 @@ namespace charliesoft
     if (!opt_value_left.isLinked())
       tree.put("Value_left", opt_value_left.toString());
     else
-      tree.put("Value_left", (unsigned int)opt_value_left.get<ParamValue*>(false));
+      tree.put("Value_left", (unsigned int)opt_value_left.get<ParamValue*>());
     if (!opt_value_right.isLinked())
       tree.put("Value_right", opt_value_right.toString());
     else
-      tree.put("Value_right", (unsigned int)opt_value_right.get<ParamValue*>(false));
+      tree.put("Value_right", (unsigned int)opt_value_right.get<ParamValue*>());
     return tree;
   }
 
@@ -147,7 +147,7 @@ namespace charliesoft
     {
     case 1://Output of block
     {
-      ParamValue* tmp = opt_value_left.get<ParamValue*>(false);
+      ParamValue* tmp = opt_value_left.get<ParamValue*>();
       if (tmp != NULL)
         left = *tmp;
       break;
@@ -165,7 +165,7 @@ namespace charliesoft
     {
     case 1://Output of block
     {
-      ParamValue* tmp = opt_value_right.get<ParamValue*>(false);
+      ParamValue* tmp = opt_value_right.get<ParamValue*>();
       if (tmp != NULL)
         right = *tmp;
       break;
@@ -285,7 +285,7 @@ namespace charliesoft
           _cond_pause.wait(lock);//wait for play
 
         _processes->shouldWaitAncestors(this);//ask to scheduler if we have to wait...
-        _state = running;
+        _state = consumingParams;
         bool shouldRun = true;
         for (ConditionOfRendering& condition : _conditions)
         {
@@ -298,9 +298,12 @@ namespace charliesoft
         isInit = true;
         if (shouldRun)
         {
-          _time_start = microsec_clock::local_time();
-          run(_executeOnlyOnce);
-          newProducedData(true);//tell to scheduler we produced some datas...
+          while (_state == consumingParams && !_executeOnlyOnce)
+          {
+            _time_start = microsec_clock::local_time();
+            run(_executeOnlyOnce);
+            newProducedData();//tell to scheduler we produced some datas...
+          }
         }
 
         nbRendering++;
@@ -342,7 +345,19 @@ namespace charliesoft
     }
   }
 
-  void Block::newProducedData(bool fullyRendered)
+  void Block::paramsFullyProcessed()
+  {
+    boost::unique_lock<boost::mutex> guard(_mtx_timestamp_inc);
+    //each params is marked as not new...
+    for (auto it = _myInputs.begin(); it != _myInputs.end(); it++)
+    {
+      if (it->second.isLinked())
+        it->second.markAsUsed();
+    }
+    _state = consumedParams;
+  }
+
+  void Block::newProducedData()
   {
     ptime time_end(microsec_clock::local_time());
     time_duration duration(time_end - _time_start);
@@ -350,14 +365,12 @@ namespace charliesoft
 
     {
       boost::unique_lock<boost::mutex> guard(_mtx_timestamp_inc);
-      _processes->blockProduced(this, fullyRendered);//tell to scheduler we produced some datas...
+      _processes->blockProduced(this, _state == consumedParams);//tell to scheduler we produced some datas...
     }
     if (_exec_type == asynchrone) return;//no need to wait
     //we have to wait entire chain of rendering to process our data:
     _processes->shouldWaitConsumers(this);//ask to scheduler if we have to wait...
 
-    if (!fullyRendered)
-      _time_start = microsec_clock::local_time();
   }
 
   bool Block::isAncestor(Block* other)
@@ -368,7 +381,7 @@ namespace charliesoft
     {
       if (it->second.isLinked())
       {
-        ParamValue* otherParam = it->second.get<ParamValue*>(false);
+        ParamValue* otherParam = it->second.get<ParamValue*>();
         if (otherParam->getBlock() == other)
           return true;
         if (otherParam->getBlock()->isAncestor(other))
@@ -431,7 +444,7 @@ namespace charliesoft
       {
         if (it->second.isLinked())
         {
-          ParamValue* other = it->second.get<ParamValue*>(false);
+          ParamValue* other = it->second.get<ParamValue*>();
           if (realCheck)
           {
             it->second.validate(*other);
@@ -650,7 +663,7 @@ namespace charliesoft
       if (!it->second.isLinked())
         paramTree.put("Value", it->second.toString());
       else
-        paramTree.put("Value", (unsigned int)it->second.get<ParamValue*>(false));
+        paramTree.put("Value", (unsigned int)it->second.get<ParamValue*>());
 
       tree.add_child("Input", paramTree);
 
@@ -690,7 +703,7 @@ namespace charliesoft
         if (!it->second.isLinked())
           paramTree.put("Value", it->second.toString());
         else
-          paramTree.put("Value", (unsigned int)it->second.get<ParamValue*>(false));
+          paramTree.put("Value", (unsigned int)it->second.get<ParamValue*>());
 
         tree.add_child("SubParam", paramTree);
       }

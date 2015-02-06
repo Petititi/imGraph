@@ -113,7 +113,7 @@ namespace charliesoft
     //Is there old parameters? -> if yes, we wait for update, else we process the block right now:
     for (auto it = process->_myInputs.begin(); it != process->_myInputs.end(); it++)
     {
-      ParamValue* linkedBlock = it->second.get<ParamValue*>(false);
+      ParamValue* linkedBlock = it->second.get<ParamValue*>();
       if (linkedBlock!=NULL)
       {
         //we have an ancestor! We ask for an update:
@@ -134,7 +134,7 @@ namespace charliesoft
     {
       if (it->second.isLinked())
       {
-        ParamValue* other = it->second.get<ParamValue*>(false);
+        ParamValue* other = it->second.get<ParamValue*>();
         while (!it->second.isNew())
         {//we have to wait for any update!
           std::cout << "---  " << _STR(process->getName()) << " -> Wait " << _STR(it->second.getName()) << endl;
@@ -347,12 +347,12 @@ namespace charliesoft
       {
         if (cond->getCategory_left() == 1)//output of block:
         {
-          unsigned int addr = static_cast<unsigned int>(cond->getOpt_value_left().get<double>(false) + 0.5);
+          unsigned int addr = static_cast<unsigned int>(cond->getOpt_value_left().get<double>() + 0.5);
           cond->setValue(true, addressesMap[addr]);
         }
         if (cond->getCategory_right() == 1)//output of block:
         {
-          unsigned int addr = static_cast<unsigned int>(cond->getOpt_value_right().get<double>(false) + 0.5);
+          unsigned int addr = static_cast<unsigned int>(cond->getOpt_value_right().get<double>() + 0.5);
           cond->setValue(false, addressesMap[addr]);
         }
       }

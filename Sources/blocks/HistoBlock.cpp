@@ -54,14 +54,14 @@ public:
 
 
   bool HistogramBlock::run(bool oneShot){
-    cv::Mat in = _myInputs["BLOCK__HISTOGRAM_IN_IMAGE"].get<cv::Mat>(true);
+    cv::Mat in = _myInputs["BLOCK__HISTOGRAM_IN_IMAGE"].get<cv::Mat>();
 
     /// Establish the number of bins
-    int histSize = _myInputs["BLOCK__HISTOGRAM_IN_BINS"].get<int>(true);
+    int histSize = _myInputs["BLOCK__HISTOGRAM_IN_BINS"].get<int>();
 
     bool accu = false;
     if (!_myInputs["BLOCK__HISTOGRAM_IN_ACCUMULATE"].isDefaultValue())
-      accu = _myInputs["BLOCK__HISTOGRAM_IN_ACCUMULATE"].get<bool>(true);
+      accu = _myInputs["BLOCK__HISTOGRAM_IN_ACCUMULATE"].get<bool>();
 
     vector<Mat> bgr_planes;
     split(in, bgr_planes);
@@ -82,6 +82,8 @@ public:
 
     _myOutputs["BLOCK__HISTOGRAM_OUT_HISTO"] = outHisto;
 
+
+    paramsFullyProcessed();
     return true;
   };
 };

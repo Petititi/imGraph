@@ -234,7 +234,7 @@ namespace charliesoft
         matEditor->setEnabled(false);
       else
       {
-        _paramMatrix[p] = p->getParamValue()->get<cv::Mat>(false);
+        _paramMatrix[p] = p->getParamValue()->get<cv::Mat>();
         connect(matEditor, SIGNAL(clicked()), this, SLOT(matrixEditor()));
       }
     }
@@ -316,7 +316,7 @@ namespace charliesoft
     }
     case Int:
     {
-      QLineEdit* lineEdit = new QLineEdit(lexical_cast<string>(param->get<int>(false)).c_str());
+      QLineEdit* lineEdit = new QLineEdit(lexical_cast<string>(param->get<int>()).c_str());
       if (p->isVisible())
         lineEdit->setEnabled(false);
       _inputValue12[p] = lineEdit;
@@ -338,12 +338,12 @@ namespace charliesoft
       _inputValue12[p] = combo;
       _inputValue21[combo] = p;
 
-      combo->setCurrentIndex(param->get<int>(false));
+      combo->setCurrentIndex(param->get<int>());
       break;
     }
     case Float:
     {
-      QLineEdit* lineEdit = new QLineEdit(lexical_cast<string>(param->get<double>(false)).c_str());
+      QLineEdit* lineEdit = new QLineEdit(lexical_cast<string>(param->get<double>()).c_str());
       if (p->isVisible())
         lineEdit->setEnabled(false);
       _inputValue12[p] = lineEdit;
@@ -361,7 +361,7 @@ namespace charliesoft
       _inputValue21[colorEditor] = p;
       if (!p->getParamValue()->isDefaultValue())
       {
-        cv::Scalar tmpColor = p->getParamValue()->get<cv::Scalar>(false);
+        cv::Scalar tmpColor = p->getParamValue()->get<cv::Scalar>();
         _paramColor[p] = tmpColor;
       }
 
@@ -376,7 +376,7 @@ namespace charliesoft
       _inputValue21[matEditor] = p;
       if (!p->getParamValue()->isDefaultValue())
       {
-        Mat img = p->getParamValue()->get<cv::Mat>(false);
+        Mat img = p->getParamValue()->get<cv::Mat>();
         if (!img.empty())
           _paramMatrix[p] = img;
       }
@@ -433,7 +433,7 @@ namespace charliesoft
       _inputValue12[p] = combo;
       _inputValue21[combo] = p;
 
-      combo->setCurrentIndex(param->get<int>(false));
+      combo->setCurrentIndex(param->get<int>());
       break;
     }
     }
@@ -564,7 +564,7 @@ namespace charliesoft
       ParamValue* paramVal = param->getParamValue();
       if (paramVal->getType() == ListBox)
       {
-        size_t value = paramVal->get<int>(false);
+        size_t value = paramVal->get<int>();
         std::vector<std::string>& paramsList = param->getParamListChoice();
         if (paramsList.size() > value)
         {
@@ -978,9 +978,9 @@ namespace charliesoft
       _condition_right->setCurrentIndex(c.getCategory_right());
       _condition_type->setCurrentIndex(c.getCondition());
       if (c.getCategory_left() > 1)
-        _value_left->setText(lexical_cast<string>(c.getOpt_value_left().get<double>(false)).c_str());
+        _value_left->setText(lexical_cast<string>(c.getOpt_value_left().get<double>()).c_str());
       if (c.getCategory_right() > 1)
-        _value_right->setText(lexical_cast<string>(c.getOpt_value_right().get<double>(false)).c_str());
+        _value_right->setText(lexical_cast<string>(c.getOpt_value_right().get<double>()).c_str());
     }
 
     connect(this, SIGNAL(askSynchro()), vertex, SLOT(reshape()));

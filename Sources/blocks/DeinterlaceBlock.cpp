@@ -47,30 +47,25 @@ namespace charliesoft
   bool DeinterlaceBlock::run(bool oneShot){
     if (_myInputs["BLOCK__DEINTERLACE_IN_IMAGE"].isDefaultValue())
       return false;
-    cv::Mat mat = _myInputs["BLOCK__DEINTERLACE_IN_IMAGE"].get<cv::Mat>(true);
 
-    int type = _myInputs["BLOCK__DEINTERLACE_IN_TYPE"].get<int>(true);
-
-    filter.set("type", 1);
-
-    if (!mat.empty())
+    if (_myInputs["BLOCK__DEINTERLACE_IN_TYPE"].isNew())
     {
-      _myOutputs["BLOCK__DEINTERLACE_OUT_IMAGE"] = filter.process(mat);
-
-      if (oneShot)
-        return true;
-
-      newProducedData(false);
-
-      mat = filter.getProducedFrame();//get an other img?
-      
-      while (!mat.empty())
-      {
-        _myOutputs["BLOCK__DEINTERLACE_OUT_IMAGE"] = mat;
-        newProducedData(false);
-        mat = filter.getProducedFrame();
-      }
+      _myInputs["BLOCK__DEINTERLACE_IN_TYPE"].markAsUsed();
+      int type = _myInputs["BLOCK__DEINTERLACE_IN_TYPE"].get<int>();
+      filter.set("type", type);
     }
+
+    cv::Mat mat;
+    if (filter.canProduceFrame())
+      mat = filter.getProducedFrame();
+    else
+      mat = filter.process(_myInputs["BLOCK__DEINTERLACE_IN_IMAGE"].get<cv::Mat>());
+
+    _myOutputs["BLOCK__DEINTERLACE_OUT_IMAGE"] = mat;
+
+    if (!filter.canProduceFrame())
+      paramsFullyProcessed();
+
 
     return true;
   };
@@ -102,7 +97,7 @@ namespace charliesoft
     if (_myInputs["BLOCK__SKIP_FRAME_IN_IMAGE"].isDefaultValue())
       return false;
 
-    int nbSkip = _myInputs["BLOCK__SKIP_FRAME_IN_TYPE"].get<int>(true);
+    int nbSkip = _myInputs["BLOCK__SKIP_FRAME_IN_TYPE"].get<int>();
     int nbFrame = 0;
     if (!oneShot)
     {
@@ -113,7 +108,7 @@ namespace charliesoft
       }
     }
 
-    cv::Mat mat = _myInputs["BLOCK__SKIP_FRAME_IN_IMAGE"].get<cv::Mat>(true);
+    cv::Mat mat = _myInputs["BLOCK__SKIP_FRAME_IN_IMAGE"].get<cv::Mat>();
     if (!mat.empty())
     {
       _myOutputs["BLOCK__SKIP_FRAME_OUT_IMAGE"] = mat;

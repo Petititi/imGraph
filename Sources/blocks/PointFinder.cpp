@@ -140,33 +140,33 @@ public:
 
     switch (algo->paramType(subParamName)){
     case cv::Param::BOOLEAN:
-      algo->set(subParamName, _mySubParams[paramName + "." + subParamName].get<bool>(true));
+      algo->set(subParamName, _mySubParams[paramName + "." + subParamName].get<bool>());
       break;
     case cv::Param::UNSIGNED_INT: 
     case cv::Param::UINT64: 
     case cv::Param::UCHAR: 
     case cv::Param::INT:
-      algo->set(subParamName, _mySubParams[paramName + "." + subParamName].get<int>(true));
+      algo->set(subParamName, _mySubParams[paramName + "." + subParamName].get<int>());
       break;
     case cv::Param::REAL: 
     case cv::Param::FLOAT:
-      algo->set(subParamName, _mySubParams[paramName + "." + subParamName].get<double>(true));
+      algo->set(subParamName, _mySubParams[paramName + "." + subParamName].get<double>());
       break;
     case cv::Param::STRING:
-      algo->set(subParamName, _mySubParams[paramName + "." + subParamName].get<std::string>(true));
+      algo->set(subParamName, _mySubParams[paramName + "." + subParamName].get<std::string>());
       break;
     case cv::Param::MAT:
-      algo->set(subParamName, _mySubParams[paramName + "." + subParamName].get<cv::Mat>(true));
+      algo->set(subParamName, _mySubParams[paramName + "." + subParamName].get<cv::Mat>());
       break;
     } 
   }
 
   bool PointFinderBlock::run(bool oneShot){
-    cv::Mat mat = _myInputs["BLOCK__POINT_FINDER_IN_IMAGE"].get<cv::Mat>(true),
+    cv::Mat mat = _myInputs["BLOCK__POINT_FINDER_IN_IMAGE"].get<cv::Mat>(),
       desc;
 
     std::vector<cv::KeyPoint> points;
-    int methodDetect = _myInputs["BLOCK__POINT_FINDER_IN_DETECTOR"].get<int>(true);
+    int methodDetect = _myInputs["BLOCK__POINT_FINDER_IN_DETECTOR"].get<int>();
 
     cv::Ptr<FeatureDetector> detect = FeatureDetector::create(detectorList[methodDetect]);
 
@@ -180,7 +180,7 @@ public:
     string modificator = "";
     if (!_myInputs["BLOCK__POINT_FINDER_IN_MODIFICATOR"].isDefaultValue())
     {
-      int idxModificator = _myInputs["BLOCK__POINT_FINDER_IN_MODIFICATOR"].get<int>(true);
+      int idxModificator = _myInputs["BLOCK__POINT_FINDER_IN_MODIFICATOR"].get<int>();
       modificator = modificatorList[idxModificator];
       if (modificator.compare("Grid")==0)
       {
@@ -202,7 +202,7 @@ public:
     _myOutputs["BLOCK__POINT_FINDER_OUT_POINTS"] = ((cv::Mat)points).clone();
     if (_myOutputs["BLOCK__POINT_FINDER_OUT_DESC"].isNeeded())
     {
-      int methodExtract = _myInputs["BLOCK__POINT_FINDER_IN_EXTRACTOR"].get<int>(true);
+      int methodExtract = _myInputs["BLOCK__POINT_FINDER_IN_EXTRACTOR"].get<int>();
       cv::Ptr<DescriptorExtractor> extract = DescriptorExtractor::create(extractorList[methodExtract].c_str());
 
       //set sub params values:
@@ -216,6 +216,8 @@ public:
 
       _myOutputs["BLOCK__POINT_FINDER_OUT_DESC"] = desc;
     }
+
+    paramsFullyProcessed();
     return true;
   };
 };

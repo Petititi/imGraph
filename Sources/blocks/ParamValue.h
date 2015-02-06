@@ -189,19 +189,17 @@ namespace charliesoft
 
     std::string getValFromList();
 
-    ///Param useData, when true indicate that algorithm will process this data, so it can
-    ///be marked as _isNew=false...
+    void markAsUsed(){ _newValue = false; };
+
     template<typename T>
-    T get(bool useData) const
+    T get() const
     {
       boost::unique_lock<boost::recursive_mutex> lock(_mtx);
-      if (useData)
-        _newValue = false;
       if (isLinked())
       {
         if (typeid(T) == typeid(ParamValue*))
           return boost::get<T>(value_);
-        return boost::get<ParamValue*>(value_)->get<T>(false);
+        return boost::get<ParamValue*>(value_)->get<T>();
       }
       if (value_.type() == typeid(Not_A_Value))
       {
@@ -223,27 +221,27 @@ namespace charliesoft
       notifyRemove();
       _newValue = true;
       if (value->isLinked())
-        value = value->get<ParamValue*>(false);
+        value = value->get<ParamValue*>();
       switch (value->getType())
       {
       case Boolean:
-        value_ = value->get<bool>(false);
+        value_ = value->get<bool>();
         break;
       case Int:
-        value_ = value->get<int>(false);
+        value_ = value->get<int>();
         break;
       case Float:
-        value_ = value->get<double>(false);
+        value_ = value->get<double>();
         break;
       case String:
       case FilePath:
-        value_ = value->get<std::string>(false);
+        value_ = value->get<std::string>();
         break;
       case Color:
-        value_ = value->get<cv::Scalar>(false);
+        value_ = value->get<cv::Scalar>();
         break;
       default:
-        value_ = value->get<cv::Mat>(false);
+        value_ = value->get<cv::Mat>();
         break;
       }
       notifyUpdate(_newValue);

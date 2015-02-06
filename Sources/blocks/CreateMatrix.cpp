@@ -59,15 +59,15 @@ public:
   
   bool CreateMatrix::run(bool oneShot){
     //todo: verify that type index correspond to constant!
-    int nbChannels = _myInputs["BLOCK__CREATEMATRIX_IN_NBCHANNEL"].get<int>(true);
-    int wantedType = CV_MAKETYPE(_myInputs["BLOCK__CREATEMATRIX_IN_TYPE"].get<int>(true), nbChannels);
-    int wantedRow = _myInputs["BLOCK__CREATEMATRIX_IN_HEIGHT"].get<int>(true);
-    int wantedCol = _myInputs["BLOCK__CREATEMATRIX_IN_WIDTH"].get<int>(true);
+    int nbChannels = _myInputs["BLOCK__CREATEMATRIX_IN_NBCHANNEL"].get<int>();
+    int wantedType = CV_MAKETYPE(_myInputs["BLOCK__CREATEMATRIX_IN_TYPE"].get<int>(), nbChannels);
+    int wantedRow = _myInputs["BLOCK__CREATEMATRIX_IN_HEIGHT"].get<int>();
+    int wantedCol = _myInputs["BLOCK__CREATEMATRIX_IN_WIDTH"].get<int>();
 
     static RNG rng(cv::getTickCount());
 
     cv::Mat newMatrix;
-    switch (_myInputs["BLOCK__CREATEMATRIX_IN_INIT"].get<int>(true))
+    switch (_myInputs["BLOCK__CREATEMATRIX_IN_INIT"].get<int>())
     {
     case 1:
       newMatrix = cv::Mat::ones(wantedRow, wantedCol, wantedType) * 128;
@@ -90,8 +90,8 @@ public:
     case 6:
     {
       newMatrix = cv::Mat(wantedRow * wantedCol, 1, wantedType);
-      double a = _mySubParams["BLOCK__CREATEMATRIX_IN_INIT.random uniform.minValue"].get<double>(true);
-      double b = _mySubParams["BLOCK__CREATEMATRIX_IN_INIT.random uniform.maxValue"].get<double>(true);
+      double a = _mySubParams["BLOCK__CREATEMATRIX_IN_INIT.random uniform.minValue"].get<double>();
+      double b = _mySubParams["BLOCK__CREATEMATRIX_IN_INIT.random uniform.maxValue"].get<double>();
       rng.fill(newMatrix, RNG::UNIFORM, a, b);
       newMatrix = newMatrix.reshape(nbChannels, wantedRow);
       break;
@@ -99,8 +99,8 @@ public:
     case 7:
     {
       newMatrix = cv::Mat(wantedRow * wantedCol, 1, wantedType);
-      double a = _mySubParams["BLOCK__CREATEMATRIX_IN_INIT.random gaussian.mean"].get<double>(true);
-      double b = _mySubParams["BLOCK__CREATEMATRIX_IN_INIT.random gaussian.std dev"].get<double>(true);
+      double a = _mySubParams["BLOCK__CREATEMATRIX_IN_INIT.random gaussian.mean"].get<double>();
+      double b = _mySubParams["BLOCK__CREATEMATRIX_IN_INIT.random gaussian.std dev"].get<double>();
       rng.fill(newMatrix, RNG::NORMAL, a, b);
       newMatrix = newMatrix.reshape(nbChannels, wantedRow);
       break;
@@ -110,6 +110,8 @@ public:
       break;
     }
     _myOutputs["BLOCK__CREATEMATRIX_OUT_IMAGE"] = newMatrix;
+
+    paramsFullyProcessed();
     return true;
   };
 };

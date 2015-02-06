@@ -45,10 +45,10 @@ namespace charliesoft
   };
 
   bool ShowGraph::run(bool oneShot){
-    cv::Mat in = _myInputs["BLOCK__SHOWGRAPH_IN_VALUES"].get<cv::Mat>(true);
+    cv::Mat in = _myInputs["BLOCK__SHOWGRAPH_IN_VALUES"].get<cv::Mat>();
 
     if (graphWindow==NULL)
-      graphWindow = createGraphView(_myInputs["BLOCK__SHOWGRAPH_IN_TITLE"].get<std::string>(true));
+      graphWindow = createGraphView(_myInputs["BLOCK__SHOWGRAPH_IN_TITLE"].get<std::string>());
 
     Mat usrMatrix = in;
     if (usrMatrix.depth() != CV_64F)
@@ -69,6 +69,8 @@ namespace charliesoft
     if (graphWindow->isHidden())
       graphWindow->show();
 
+
+    paramsFullyProcessed();
     return true;
   };
 };

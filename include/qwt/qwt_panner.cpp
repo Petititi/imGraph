@@ -367,7 +367,12 @@ bool QwtPanner::eventFilter( QObject *object, QEvent *event )
         default:;
     }
 
-    charliesoft::Window::getInstance()->event(event);//give event to main window
+    switch (event->type())
+    {
+    case QEvent::KeyPress:
+    case QEvent::KeyRelease:
+      charliesoft::Window::getInstance()->event(event);//give event to main window
+    }
     return false;
 }
 

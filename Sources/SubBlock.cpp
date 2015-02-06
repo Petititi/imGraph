@@ -35,7 +35,7 @@ namespace charliesoft
     _subGraph = new GraphOfProcess();
   };
 
-  bool SubBlock::run(bool oneShot){
+  bool SubBlock::run(bool oneShot){//TODO: not the correct way to handle this!
     boost::unique_lock<boost::mutex> lock(_mtx_1);
     //first set input values:
     for (auto link : externBlocksInput)
@@ -56,7 +56,7 @@ namespace charliesoft
       }
     }
     _subGraph->run(true, false);
-    //wait for ouput updates:
+    //wait for output updates:
     for (auto link : externBlocksOutput)
     {
       link._from->waitProducers(lock);
@@ -64,6 +64,8 @@ namespace charliesoft
       _myOutputs[link._toParam].setValue(value);
     }
     _subGraph->waitUntilEnd();
+
+    paramsFullyProcessed();
     return true;
   };
 
@@ -258,7 +260,7 @@ namespace charliesoft
       if (!it->second.isLinked())
         paramTree.put("Value", it->second.toString());
       else
-        paramTree.put("Value", (unsigned int)it->second.get<ParamValue*>(false));
+        paramTree.put("Value", (unsigned int)it->second.get<ParamValue*>());
 
       tree.add_child("Input", paramTree);
     }

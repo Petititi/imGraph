@@ -112,7 +112,7 @@ namespace charliesoft
       if (!it->second.isLinked())
         paramTree.put("Value", it->second.toString());
       else
-        paramTree.put("Value", (unsigned int)it->second.get<ParamValue*>(false));
+        paramTree.put("Value", (unsigned int)it->second.get<ParamValue*>());
 
       tree.add_child("Input", paramTree);
     }

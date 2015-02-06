@@ -325,7 +325,7 @@ namespace charliesoft
     {
       ParamValue* param = link->first._to->getParam(link->first._toParam, true);
       if (param == NULL || !param->isLinked() ||
-        param->get<ParamValue*>(false)->getBlock() != link->first._from)
+        param->get<ParamValue*>()->getBlock() != link->first._from)
       {
         delete link->second;
         auto tmpLink = link;

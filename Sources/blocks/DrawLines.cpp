@@ -38,16 +38,16 @@ namespace charliesoft
   };
 
   bool LineDrawer::run(bool oneShot){
-    cv::Mat out = _myInputs["BLOCK__LINEDRAWER_IN_IMAGE"].get<cv::Mat>(true).clone();
+    cv::Mat out = _myInputs["BLOCK__LINEDRAWER_IN_IMAGE"].get<cv::Mat>().clone();
     int size = 1;
     cv::Scalar color = cv::Scalar(255, 255, 255);
 
     if (!_myInputs["BLOCK__LINEDRAWER_IN_SIZE"].isDefaultValue())
-      size = _myInputs["BLOCK__LINEDRAWER_IN_SIZE"].get<int>(true);
+      size = _myInputs["BLOCK__LINEDRAWER_IN_SIZE"].get<int>();
     if (!_myInputs["BLOCK__LINEDRAWER_IN_COLOR"].isDefaultValue())
-      color = _myInputs["BLOCK__LINEDRAWER_IN_COLOR"].get<cv::Scalar>(true);
+      color = _myInputs["BLOCK__LINEDRAWER_IN_COLOR"].get<cv::Scalar>();
 
-    cv::Mat lines = _myInputs["BLOCK__LINEDRAWER_IN_LINES"].get<cv::Mat>(true);
+    cv::Mat lines = _myInputs["BLOCK__LINEDRAWER_IN_LINES"].get<cv::Mat>();
     int nbChanels = lines.channels();
     if (nbChanels != 1)
       lines = lines.reshape(1, lines.rows);
@@ -87,6 +87,8 @@ namespace charliesoft
     }
 
     _myOutputs["BLOCK__LINEDRAWER_OUT_IMAGE"] = out;
+
+    paramsFullyProcessed();
     return true;
   };
   BLOCK_BEGIN_INSTANTIATION(PointDrawer);
@@ -115,16 +117,16 @@ namespace charliesoft
   };
 
   bool PointDrawer::run(bool oneShot){
-    cv::Mat out = _myInputs["BLOCK__POINTDRAWER_IN_IMAGE"].get<cv::Mat>(true).clone();
+    cv::Mat out = _myInputs["BLOCK__POINTDRAWER_IN_IMAGE"].get<cv::Mat>().clone();
     int size = 1;
     cv::Scalar color = cv::Scalar(255, 255, 255);
 
     if (!_myInputs["BLOCK__POINTDRAWER_IN_SIZE"].isDefaultValue())
-      size = _myInputs["BLOCK__POINTDRAWER_IN_SIZE"].get<int>(true);
+      size = _myInputs["BLOCK__POINTDRAWER_IN_SIZE"].get<int>();
     if (!_myInputs["BLOCK__POINTDRAWER_IN_COLOR"].isDefaultValue())
-      color = _myInputs["BLOCK__POINTDRAWER_IN_COLOR"].get<cv::Scalar>(true);
+      color = _myInputs["BLOCK__POINTDRAWER_IN_COLOR"].get<cv::Scalar>();
 
-    cv::Mat points = _myInputs["BLOCK__POINTDRAWER_IN_POINTS"].get<cv::Mat>(true);
+    cv::Mat points = _myInputs["BLOCK__POINTDRAWER_IN_POINTS"].get<cv::Mat>();
     int nbChanels = points.channels();
     if (nbChanels != 1)
       points = points.reshape(1, points.rows);
@@ -166,6 +168,8 @@ namespace charliesoft
     }
 
     _myOutputs["BLOCK__POINTDRAWER_OUT_IMAGE"] = out;
+
+    paramsFullyProcessed();
     return true;
   };
 };
