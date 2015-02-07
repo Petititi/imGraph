@@ -104,14 +104,12 @@ GraphViewer::GraphViewer()
   toolBar->addWidget(btnZoom);
   connect(btnZoom, SIGNAL(toggled(bool)), SLOT(enableZoomMode(bool)));
 
-#ifndef QT_NO_PRINTER
   QToolButton *btnPrint = new QToolButton(toolBar);
   btnPrint->setText("Print");
   //btnPrint->setIcon(QPixmap(print_xpm));
   btnPrint->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
   toolBar->addWidget(btnPrint);
   connect(btnPrint, SIGNAL(clicked()), SLOT(print()));
-#endif
 
   QToolButton *btnExport = new QToolButton(toolBar);
   btnExport->setText("Export");
@@ -179,15 +177,11 @@ void GraphViewer::updateCurve(int id, const double *xData, const double *yData, 
     curve->attach(d_plot);
   else
   {
-    //TODO: use emit...
-    if (QApplication::instance()->thread() == QThread::currentThread())
-    {
-      QMetaObject::invokeMethod(d_plot,
-        "replot",
-        Qt::AutoConnection);
-    }
+    if (d_plot->thread() == QThread::currentThread())
+      d_plot->replot();
     else
     {
+      //TODO: use emit...
       QMetaObject::invokeMethod(d_plot,
         "replot",
         Qt::BlockingQueuedConnection);
@@ -201,7 +195,7 @@ void GraphViewer::updateCurve(int id, const double *yData, int size)
   for (int i = 0; i < size; i++)
     xData[i] = i;
   updateCurve(id, xData, yData, size);
-  delete xData;
+  delete [] xData;
 
 }
 

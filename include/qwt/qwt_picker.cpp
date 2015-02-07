@@ -966,13 +966,6 @@ bool QwtPicker::eventFilter( QObject *object, QEvent *event )
                 break;
         }
     }
-
-    switch (event->type())
-    {
-    case QEvent::KeyPress:
-    case QEvent::KeyRelease:
-      charliesoft::Window::getInstance()->event(event);//give event to main window
-    }
     return false;
 }
 

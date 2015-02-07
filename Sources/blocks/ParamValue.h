@@ -82,6 +82,8 @@ namespace charliesoft
     ParamValue(double v) :ParamValue(){
       value_ = v;
     };
+    ParamValue(char* v) :ParamValue(std::string(v)){
+    };
     ParamValue(std::string v) :ParamValue(){
       value_ = v;
     };
