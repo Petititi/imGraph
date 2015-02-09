@@ -707,7 +707,6 @@ namespace charliesoft
     if (!fileName.isEmpty())
     {
       //dialog.selectFile(fileName);
-
       if (tmp != NULL)
       {
         QString prevTxt = tmp->text();
@@ -782,7 +781,7 @@ namespace charliesoft
       QLineEdit* value = dynamic_cast<QLineEdit*>(_inputValue12.at(paramRep));
       if (value != NULL)
       {
-        ParamValue& val = ParamValue::fromString(param->getType(), value->text().toStdString());
+        ParamValue& val = ParamValue::fromString(param->getType(), value->text().toLocal8Bit().toStdString());
         try
         {
           param->valid_and_set(val);
