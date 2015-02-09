@@ -191,8 +191,6 @@ namespace charliesoft
 
     std::string getValFromList();
 
-    void markAsUsed(){ _newValue = false; };
-
     template<typename T>
     T get() const
     {

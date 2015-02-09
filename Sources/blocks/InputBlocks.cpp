@@ -101,44 +101,44 @@ protected:
     }
 
     ParamValue& tmpParam = _myInputs["BLOCK__INPUT_IN_GREY"];
-    tmpParam.markAsUsed();
+    tmpParam.setNew(false);
     if (!tmpParam.isDefaultValue())
       if (tmpParam.get<bool>())
         processor_.setProperty(cv::CAP_PROP_CONVERT_RGB, 0);
 
     tmpParam = _myInputs["BLOCK__INPUT_IN_COLOR"];
-    tmpParam.markAsUsed();
+    tmpParam.setNew(false);
     if (!tmpParam.isDefaultValue())
       if (tmpParam.get<bool>())
         processor_.setProperty(cv::CAP_PROP_CONVERT_RGB, 1);
 
     tmpParam = _myInputs["BLOCK__INPUT_INOUT_WIDTH"];
-    tmpParam.markAsUsed();
+    tmpParam.setNew(false);
     if (!tmpParam.isDefaultValue())
       processor_.setProperty(cv::CAP_PROP_FRAME_WIDTH,
         tmpParam.get<int>());
 
     tmpParam = _myInputs["BLOCK__INPUT_INOUT_HEIGHT"];
-    tmpParam.markAsUsed();
+    tmpParam.setNew(false);
     if (!tmpParam.isDefaultValue())
       processor_.setProperty(cv::CAP_PROP_FRAME_HEIGHT,
         tmpParam.get<int>());
 
     tmpParam = _myInputs["BLOCK__INPUT_INOUT_POS_FRAMES"];
-    tmpParam.markAsUsed();
+    tmpParam.setNew(false);
     if (!tmpParam.isDefaultValue())
       processor_.setProperty(cv::CAP_PROP_POS_FRAMES,
         tmpParam.get<double>());
 
     tmpParam = _myInputs["BLOCK__INPUT_INOUT_POS_RATIO"];
-    tmpParam.markAsUsed();
+    tmpParam.setNew(false);
     if (!tmpParam.isDefaultValue())
       processor_.setProperty(cv::CAP_PROP_POS_AVI_RATIO,
         tmpParam.get<double>());
 
     double fps = -1;// MAX(1, processor_.getProperty(cv::CAP_PROP_FPS));
     tmpParam = _myInputs["BLOCK__INPUT_OUT_FRAMERATE"];
-    tmpParam.markAsUsed();
+    tmpParam.setNew(false);
     if (!tmpParam.isDefaultValue())
       fps = tmpParam.get<double>();
   }
@@ -159,7 +159,7 @@ protected:
     ParamValue& tmpParam = _myInputs["BLOCK__INPUT_IN_GREY"];
     if (tmpParam.isNew())
     {
-      tmpParam.markAsUsed();
+      tmpParam.setNew(false);
       if (!tmpParam.isDefaultValue())
         if (tmpParam.get<bool>())
           processor_.setProperty(cv::CAP_PROP_CONVERT_RGB, 0);
@@ -168,7 +168,7 @@ protected:
     tmpParam = _myInputs["BLOCK__INPUT_IN_COLOR"];
     if (tmpParam.isNew())
     {
-      tmpParam.markAsUsed();
+      tmpParam.setNew(false);
       if (!tmpParam.isDefaultValue())
         if (tmpParam.get<bool>())
           processor_.setProperty(cv::CAP_PROP_CONVERT_RGB, 1);
@@ -177,7 +177,7 @@ protected:
     tmpParam = _myInputs["BLOCK__INPUT_INOUT_WIDTH"];
     if (tmpParam.isNew())
     {
-      tmpParam.markAsUsed();
+      tmpParam.setNew(false);
       if (!tmpParam.isDefaultValue())
         processor_.setProperty(cv::CAP_PROP_FRAME_WIDTH,
           tmpParam.get<int>());
@@ -186,7 +186,7 @@ protected:
     tmpParam = _myInputs["BLOCK__INPUT_INOUT_HEIGHT"];
     if (tmpParam.isNew())
     {
-      tmpParam.markAsUsed();
+      tmpParam.setNew(false);
       if (!tmpParam.isDefaultValue())
         processor_.setProperty(cv::CAP_PROP_FRAME_HEIGHT,
           tmpParam.get<int>());
@@ -195,7 +195,7 @@ protected:
     tmpParam = _myInputs["BLOCK__INPUT_INOUT_POS_FRAMES"];
     if (tmpParam.isNew())
     {
-      tmpParam.markAsUsed();
+      tmpParam.setNew(false);
       if (!tmpParam.isDefaultValue())
         processor_.setProperty(cv::CAP_PROP_POS_FRAMES,
           tmpParam.get<double>());
@@ -204,7 +204,7 @@ protected:
     tmpParam = _myInputs["BLOCK__INPUT_INOUT_POS_RATIO"];
     if (tmpParam.isNew())
     {
-      tmpParam.markAsUsed();
+      tmpParam.setNew(false);
       if (!tmpParam.isDefaultValue())
         processor_.setProperty(cv::CAP_PROP_POS_AVI_RATIO,
           tmpParam.get<double>());
@@ -214,7 +214,7 @@ protected:
     tmpParam = _myInputs["BLOCK__INPUT_OUT_FRAMERATE"];
     if (tmpParam.isNew())
     {
-      tmpParam.markAsUsed();
+      tmpParam.setNew(false);
       if (!tmpParam.isDefaultValue())
         fps = tmpParam.get<double>();
     }

@@ -35,37 +35,74 @@ namespace charliesoft
     _subGraph = new GraphOfProcess();
   };
 
-  bool SubBlock::run(bool oneShot){//TODO: not the correct way to handle this!
-    boost::unique_lock<boost::mutex> lock(_mtx_1);
+  void SubBlock::init(){
     //first set input values:
     for (auto link : externBlocksInput)
     {
       try
       {
-        if (!_myInputs[link._fromParam].isDefaultValue())
-        {
-          ParamValue* distVal = link._to->getParam(link._toParam, true);
-          distVal->setValue(&_myInputs[link._fromParam]);
+        ParamValue& myVal = _myInputs[link._fromParam];
+        ParamValue* distVal = link._to->getParam(link._toParam, true);
+        distVal->setNew(false);
+      }
+      catch (...)
+      {
+        //nothing to do...
+      }
+    }
+    //start graph:
+    _subGraph->run(false, false);
 
-          _myInputs[link._fromParam].setNew(false);
-        }
+  };
+  void SubBlock::release(){
+    //stop graph:
+    _subGraph->stop(false);
+  };
+
+
+  bool SubBlock::run(bool oneShot){
+    boost::unique_lock<boost::mutex> lock(_mtx_1);
+
+    //first set input values:
+    for (auto link : externBlocksInput)
+    {
+      try
+      {
+        ParamValue& myVal = _myInputs[link._fromParam];
+        ParamValue* distVal = link._to->getParam(link._toParam, true);
+        if (!myVal.isDefaultValue() && myVal.isNew())
+          distVal->setValue(&myVal);
+        else
+          distVal->setNew(false);
       }
       catch (...)
       {
       	//nothing to do...
       }
     }
-    _subGraph->run(true, false);
-    //wait for output updates:
+    //free waiting threads:
+    _wait_param_update.notify_all();
+
+    setState(Block::waitingChild);
+
+    //wait for every child updates:
+    _subGraph->shouldWaitConsumers();
+
+    bool isFullyProduced = true;
     for (auto link : externBlocksOutput)
     {
-      link._from->waitProducers(lock);
-      ParamValue* value = link._from->getParam(link._fromParam, false);
+      Block *fromParam = link._from;
+      ParamValue* value = fromParam->getParam(link._fromParam, false);
+
+      isFullyProduced = isFullyProduced && !(fromParam->getState() == consumingParams);
       _myOutputs[link._toParam].setValue(value);
     }
-    _subGraph->waitUntilEnd();
 
-    paramsFullyProcessed();
+    for (auto link : externBlocksOutput)
+      link._from->getParam(link._fromParam, false)->setNew(false);
+
+    if (isFullyProduced)
+      paramsFullyProcessed();
     return true;
   };
 
@@ -138,6 +175,11 @@ namespace charliesoft
   };
 
 
+  void SubBlock::waitUpdateParams(boost::unique_lock<boost::mutex>& lock)
+  {
+    _wait_param_update.wait(lock);
+  }
+
   void SubBlock::initFromXML(boost::property_tree::ptree* block,
     std::vector < std::pair<ParamValue*, unsigned int> >& toUpdate,
     std::map<unsigned int, ParamValue*>& addressesMap,
@@ -173,6 +215,7 @@ namespace charliesoft
           }
           catch (...)
           {
+            tmpVal->setNew(false);
           }
         }
         else
@@ -183,9 +226,9 @@ namespace charliesoft
         string nameOut = it1->second.get("Name", "Error");
         string helper = it1->second.get("Helper", nameOut);
         ParamType paramType = static_cast<ParamType>(it1->second.get("ParamType", 0));
-        addNewOutput(ParamDefinition(true, paramType, nameOut, helper));
+        ParamValue* tmpVal = addNewOutput(ParamDefinition(true, paramType, nameOut, helper));
+        tmpVal->setNew(false);
         string val = it1->second.get("ID", "0");
-        ParamValue* tmpVal = getParam(nameOut, false);
         addressesMap[lexical_cast<unsigned int>(val)] = tmpVal;
       }
       if (it1->first.compare("Condition") == 0)
@@ -330,4 +373,5 @@ namespace charliesoft
         return iter->second;
     }
   }
+
 };

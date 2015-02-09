@@ -55,6 +55,8 @@ public:
 
   bool HistogramBlock::run(bool oneShot){
     cv::Mat in = _myInputs["BLOCK__HISTOGRAM_IN_IMAGE"].get<cv::Mat>();
+    if (in.empty())
+      return false;
 
     /// Establish the number of bins
     int histSize = _myInputs["BLOCK__HISTOGRAM_IN_BINS"].get<int>();

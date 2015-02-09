@@ -35,10 +35,13 @@ using boost::lock_guard;
 
 namespace charliesoft
 {
-  GraphOfProcess::GraphOfProcess(GraphOfProcess* parent)
+  bool GraphOfProcess::_pauseProcess = false;
+
+  GraphOfProcess::GraphOfProcess()
   {
     _pauseProcess = false;
-    _parent = parent;
+    _parent = NULL;
+    _subBlock = NULL;
   };
 
   GraphOfProcess::~GraphOfProcess()
@@ -144,6 +147,30 @@ namespace charliesoft
         }
       }
     }//ok, every ancestor have produced a value!
+    if (NULL != _subBlock)
+    {
+      for (auto link : _subBlock->externBlocksInput)
+      {
+        try
+        {
+          if (link._to == process)
+          {
+            ParamValue* distVal = link._to->getParam(link._toParam, true);
+            if (distVal->isDefaultValue() || !distVal->isNew())
+            {
+              std::cout << "---  subBlock_" << _STR(link._to->getName()) << " -> Wait " << _STR(link._fromParam) << endl;
+              process->setState(Block::waitingChild);
+              _subBlock->waitUpdateParams(lock);//wait for parameter update!
+              std::cout << "---  subBlock_" << _STR(link._to->getName()) << " <- unblock " << _STR(link._fromParam) << endl;
+            }
+          }
+        }
+        catch (...)
+        {
+          //nothing to do...
+        }
+      }
+    }
   }
 
   void GraphOfProcess::clearWaitingList(Block* process)
@@ -156,7 +183,7 @@ namespace charliesoft
   {
     boost::unique_lock<boost::mutex> lock(_mtx);
     //should we wait for a process? (depending on the block type)
-    if (process->getTypeExec() == Block::synchrone)
+    if (process!=NULL && process->getTypeExec() == Block::synchrone)
     {
       //wait for the childs of this process. They have to be fully rendered before we rerun this block!
       for (auto it = process->_myOutputs.begin(); it != process->_myOutputs.end(); it++)
@@ -171,14 +198,21 @@ namespace charliesoft
           }
         }
       }
-      if (!_waitingForRendering[process].empty())
-      {
-        process->setState(Block::waitingConsumers);
-        process->waitConsumers(lock);//wait for parameter update! Will be waked up when _waitingForRendering is empty!
-      }
-
-      return;//ok, every child have processed our value!
     }
+    if (process == NULL && _subBlock != NULL)
+    {
+      process = _subBlock;
+      for (auto& threads : _runningThread)
+      {
+        _waitingForRendering[process].insert(threads.first);
+      }
+    }
+    if (process != NULL && !_waitingForRendering[process].empty())
+    {
+      process->setState(Block::waitingConsumers);
+      process->waitConsumers(lock);//wait for parameter update! Will be waked up when _waitingForRendering is empty!
+    }
+
   }
 
   ///TODO:
@@ -193,6 +227,7 @@ namespace charliesoft
       std::cout << " \t\t\t  " << _STR(process->getName()) << " partially rendered!" << endl;
     //wake up linked output blocks
     process->notifyProduction();
+
     if (fullyRendered)
     {
       //remove this block for every waiting thread:
@@ -272,9 +307,15 @@ namespace charliesoft
 
   void GraphOfProcess::initChildDatas(Block* block, std::set<Block*>& listOfRenderedBlocks)
   {
+    if (listOfRenderedBlocks.find(block) != listOfRenderedBlocks.end())
+      return;//nothing to do...
+
     listOfRenderedBlocks.insert(block);
     //take one shot of block to init output:
+    block->init();
+    std::cout << "initData " << _STR(block->getName()) << std::endl;
     block->run(true);
+    block->release();
     //now render every childs.
     set<Block*> renderBlocks;
     for (auto it = block->_myOutputs.begin(); it != block->_myOutputs.end(); it++)

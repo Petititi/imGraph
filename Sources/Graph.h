@@ -22,10 +22,12 @@ If it's an output parameter, the children can be recovered from \ref charliesoft
 
 namespace charliesoft
 {
+  class SubBlock;
   class GraphOfProcess
   {
-    bool _pauseProcess;
+    static bool _pauseProcess;
     GraphOfProcess* _parent;
+    SubBlock *_subBlock;
     std::map< Block*, std::set<Block*> > _waitingForRendering;
     std::map< Block*, boost::thread > _runningThread;
     std::vector<Block*> _vertices;
@@ -33,14 +35,14 @@ namespace charliesoft
     //edges are stored into Block (_myInputs[]->isLinked())
 
   public:
-    GraphOfProcess(GraphOfProcess* parent=NULL);
+    GraphOfProcess();
     ~GraphOfProcess();
 
     void saveGraph(boost::property_tree::ptree& tree) const;
     void fromGraph(boost::property_tree::ptree& tree,
       std::map<unsigned int, ParamValue*>& = std::map<unsigned int, ParamValue*>());
     GraphOfProcess* getParent() const { return _parent; }
-    void setParent(GraphOfProcess* val) { _parent = val; }
+    void setParent(GraphOfProcess* val, SubBlock* block) { _parent = val; _subBlock = block; }
 
     void initChildDatas(Block*, std::set<Block*>& listOfRenderedBlocks);
 
@@ -74,8 +76,9 @@ namespace charliesoft
     void updateAncestors(Block* process);
     /**
     * Will wait for childs to process the data we just produce
+    * If process is NULL, will wait for every process in the graph
     */
-    void shouldWaitConsumers(Block* process);
+    void shouldWaitConsumers(Block* process=NULL);
 
     /**
     * Reset the waiting list of block of the parameter

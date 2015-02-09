@@ -354,8 +354,8 @@ namespace charliesoft
     //each params is marked as not new...
     for (auto it = _myInputs.begin(); it != _myInputs.end(); it++)
     {
-      if (it->second.isLinked())
-        it->second.markAsUsed();
+      //if (it->second.isLinked())
+      it->second.setNew(false);
     }
     _state = consumedParams;
   }
@@ -598,6 +598,7 @@ namespace charliesoft
           }
           catch (...)
           {
+            tmpVal->setNew(false);
           }
         }
         else
@@ -608,6 +609,7 @@ namespace charliesoft
         string nameOut = it1->second.get("Name", "Error");
         string val = it1->second.get("ID", "0");
         ParamValue* tmpVal = getParam(nameOut, false);
+        tmpVal->setNew(false);
         addressesMap[lexical_cast<unsigned int>(val)] = tmpVal;
       }
       if (it1->first.compare("Condition") == 0)

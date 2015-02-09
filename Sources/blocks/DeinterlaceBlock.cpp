@@ -50,7 +50,7 @@ namespace charliesoft
 
     if (_myInputs["BLOCK__DEINTERLACE_IN_TYPE"].isNew())
     {
-      _myInputs["BLOCK__DEINTERLACE_IN_TYPE"].markAsUsed();
+      _myInputs["BLOCK__DEINTERLACE_IN_TYPE"].setNew(false);
       int type = _myInputs["BLOCK__DEINTERLACE_IN_TYPE"].get<int>();
       filter.set("type", type);
     }

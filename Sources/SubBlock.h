@@ -23,6 +23,7 @@ namespace charliesoft
   {
   protected:
     friend class charliesoft::ProcessManager;
+    friend class charliesoft::GraphOfProcess;
 
     //////////////////////////////////////////////////////////////////////////
     //The parameters are only known after instanciation...
@@ -36,6 +37,8 @@ namespace charliesoft
     static bool addedToList;
     boost::mutex _mtx_1;    // explicit mutex declaration
 
+    boost::condition_variable _wait_param_update;  ///< parameter update from subgraph sync condition
+
     std::map<std::string, ParamDefinition> _inputParams;
     std::map<std::string, ParamDefinition> _outputParams;
 
@@ -48,9 +51,12 @@ namespace charliesoft
     SubBlock();
     SubBlock(std::string name);
 
+    virtual void init();
+    virtual void release();
+
     virtual void setGraph(GraphOfProcess* processes){
       _processes = processes;
-      _subGraph->setParent(processes);
+      _subGraph->setParent(processes, this);
     };
 
     ParamValue* addNewInput(ParamDefinition& param);
@@ -73,6 +79,8 @@ namespace charliesoft
     void removeExternLink(const BlockLink& link);
 
     ParamDefinition getDef(std::string name, bool isInput);
+
+    void waitUpdateParams(boost::unique_lock<boost::mutex>& lock);
   };
 
 };

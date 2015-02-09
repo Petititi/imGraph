@@ -46,9 +46,13 @@ namespace charliesoft
 
   bool ShowGraph::run(bool oneShot){
     cv::Mat in = _myInputs["BLOCK__SHOWGRAPH_IN_VALUES"].get<cv::Mat>();
+    if (in.empty())
+      return false;
 
     if (graphWindow==NULL)
       graphWindow = createGraphView(_myInputs["BLOCK__SHOWGRAPH_IN_TITLE"].get<std::string>());
+    if (graphWindow == NULL)
+      return false;
 
     Mat usrMatrix = in;
     if (usrMatrix.depth() != CV_64F)

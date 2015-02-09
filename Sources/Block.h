@@ -5,6 +5,7 @@
 \page BlockSection Block
 \section BlockSection_intro Introduction
 <p>
+!OLD!
 A block (or node, or vertex, or process) represents an operation. This can be of several types (mathematical operation, image processing, loading, ...), as well as several rendering types:
 - The asynchronous rendering. This block will produce the output independently of other blocks. It's useful when you want realtime processing.
 - The "one shot" rendering. This block will produce the output only when input values changes. It's useful to save some CPU.
@@ -193,10 +194,11 @@ namespace charliesoft
 
     /**
     * Four states of blocks:
-    * - Block wait for new input values... Only synchrone block can be in this state.
-    * - Block is active and produce new datas
-    * - Block wait until all its output are consumed.
-    * - Block is not yet started
+    * - waitingChild: Block wait for new input values... Only synchrone block can be in this state.
+    * - consumingParams: Block is active and produce new datas
+    * - consumedParams: Block produced new datas
+    * - waitingConsumers: Block wait until all its output are consumed.
+    * - stopped: Block is not yet started
     */
     enum BlockState
     {
@@ -245,7 +247,7 @@ namespace charliesoft
     /**
     Used to create a block...
     @param name block name, can be a label from Internationalizator
-    @param isOneShot if the block is simple (that is the block is state-free), set this value to true.
+    @param isOneShot if the block is simple (that is, the block is state-free), set this value to true.
     @param typeExec used to know the type of execution this bloc should have...
     */
     Block(std::string name, bool isOneShot, BlockType typeExec = synchrone);
