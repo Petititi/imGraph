@@ -204,7 +204,10 @@ namespace charliesoft
       process = _subBlock;
       for (auto& threads : _runningThread)
       {
-        _waitingForRendering[process].insert(threads.first);
+        if (threads.first->getState() != Block::waitingChild &&
+          threads.first->getState() != Block::waitingConsumers &&
+          threads.first->getState() != Block::stopped)
+          _waitingForRendering[process].insert(threads.first);
       }
     }
     if (process != NULL && !_waitingForRendering[process].empty())
