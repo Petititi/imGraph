@@ -522,6 +522,11 @@ namespace charliesoft
   
   void MainWidget::mouseReleaseEvent(QMouseEvent *)
   {
+    size_t nbSelected = VertexRepresentation::getSelection().size();
+    if (nbSelected == 1)
+      Window::getInstance()->showListAlgoDock(false);
+    else
+      Window::getInstance()->showListAlgoDock(true);
     _creatingLink = _isSelecting = false;
     Window::getInstance()->redraw();
   }

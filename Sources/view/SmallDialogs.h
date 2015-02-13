@@ -38,9 +38,9 @@ namespace charliesoft
     QLineEdit* _name;
     QLineEdit* _helper;
 
-    QLineEdit* _initialValue_text;
-    QPushButton* _initialValue_button_matrix;
-    QPushButton* _initialValue_button_color;
+    QLineEdit* _initial_valuetext;
+    QPushButton* _initial_valuebutton_matrix;
+    QPushButton* _initial_valuebutton_color;
 
     QHBoxLayout* _initValLayout;
     mutable ParamValue _initVal;

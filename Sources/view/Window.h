@@ -77,6 +77,17 @@ namespace charliesoft
     void redraw();
 
     bool event(QEvent *event);
+
+    void showListAlgoDock(bool listOfAlgo)
+    {
+      if (_listOfDock != NULL && _listOfDock->count() > 1)
+      {
+        if (listOfAlgo)
+          _listOfDock->setCurrentIndex(0);
+        else
+          _listOfDock->setCurrentIndex(1);
+      }
+    }
   private:
     static Window* ptr;
 
@@ -87,16 +98,16 @@ namespace charliesoft
     QMenu *menuEdit;
     QMenu *menuAide;
     QTabWidget* _tabWidget;
+    QTabBar* _listOfDock;
 
-    QDockWidget * dock_;
-    QDockWidget * property_dock_;
+    QDockWidget * _dock;
+    QDockWidget * _property_dock;
     DraggableContainer * _dock_content;
     std::vector<QTreeWidgetItem *> dock_categories;
     std::map<QTreeWidgetItem*, std::string> keysName_;
 
     void fillDock(int idDock);
 
-    void mousePressEvent(QMouseEvent *event);
     void closeEvent(QCloseEvent *event);
 
     private slots:

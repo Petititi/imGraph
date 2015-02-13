@@ -45,7 +45,7 @@ Boost is a set of libraries for the C++ programming language. Many of Boost's fo
 We use the 1.55 version (some problem exist with 1.57), you can found some <a href="http://sourceforge.net/projects/boost/files/boost-binaries/1.55.0-build2/">prebuild binaries here</a>.
 \subsection InputLoader
 This is a private library used to easily load/store videos (from webcam, files or folder).\n
-You can <a href="https://synogsm.lsis.univ-tln.fr/indefero/index.php/p/inputloader/source/tree/master/">download it here</a>. You should build and install it before building ImGraph!
+You can <a href="https://synogsm.lsis.univ-tln.fr/indefero/index.php/p/inputloader/source/tree/master/">download it here</a> (using login "guest" and no passwd). You should build and install it before building ImGraph!
 \subsection subsection_doxygen Doxygen (optional)
 Doxygen is used to generate the documentation of imGraph by creating an additionnal cmake target named "doc". Once the documentation is generated, please refer to html/index.html in the BINARY folder. If Doxygen cannot be found, this step is ignored (documentation for imGraph is also available online <a href="http://imgraph.github.io">here</a>).
 \section section_installation Installation

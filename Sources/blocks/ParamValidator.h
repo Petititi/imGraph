@@ -161,7 +161,7 @@ namespace charliesoft
         if (paramToValid_ == NULL)
           throw (ErrorValidator(_STR("ERROR_GENERIC")));
         else
-          throw (ErrorValidator((my_format(_STR("ERROR_PARAM_VALUE_BETWEEN")) %
+          throw (ErrorValidator((my_format(_STR("ERROR_PARAM__valueBETWEEN")) %
           _STR(paramToValid_->getName()) % value.get<double>() % inf_ % sup_).str()));
       }
     }

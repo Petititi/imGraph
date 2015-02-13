@@ -126,7 +126,7 @@ namespace charliesoft
     translations["ERROR_PARAM_ONLY_POSITIF_STRICT"] = "Param \"%1$s\":<br/>only strict positive value are authorized!";
     translations["ERROR_PARAM_ONLY_NEGATIF"] = "Param \"%1$s\":<br/>only negative value are authorized!";
     translations["ERROR_PARAM_ONLY_NEGATIF_STRICT"] = "Param \"%1$s\":<br/>only strict negative value are authorized!";
-    translations["ERROR_PARAM_VALUE_BETWEEN"] = "Param \"%1$s\" (%2$f):<br/>should be between %3$f and %4$f";
+    translations["ERROR_PARAM__valueBETWEEN"] = "Param \"%1$s\" (%2$f):<br/>should be between %3$f and %4$f";
     translations["ERROR_PARAM_FOUND"] = "Error! Could not find property of \"%1$s\"";
 
     translations["MENU_FILE"] = "File";

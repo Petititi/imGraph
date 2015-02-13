@@ -14,7 +14,7 @@ using boost::lexical_cast;
 namespace charliesoft
 {
   ParamValue::ParamValue(Block *algo, const ParamDefinition* def, bool isOutput) :
-    _block(algo), _name(def->_name), _isOutput(isOutput), value_(Not_A_Value()), _definition(def){
+    _block(algo), _name(def->_name), _isOutput(isOutput), _value(Not_A_Value()), _definition(def){
     _newValue = false; _paramNeeded = true;
   };
 
@@ -32,7 +32,7 @@ namespace charliesoft
       boost::split(values, params, boost::is_any_of("^"));
       size_t idx = 0;
       if (!isDefaultValue())
-        idx = static_cast<size_t>(boost::get<int>(value_));
+        idx = static_cast<size_t>(boost::get<int>(_value));
       if (idx >= 0 && idx<values.size())
         return values[idx];
     };
@@ -65,25 +65,25 @@ namespace charliesoft
         (out != AnyType))
       {
         //try to find value type:
-        if (value_.type() == typeid(ParamValue*))
+        if (_value.type() == typeid(ParamValue*))
         {
-          ParamValue* val = boost::get<ParamValue*>(value_);
+          ParamValue* val = boost::get<ParamValue*>(_value);
           if (val == NULL)
             return typeError;
           else
             return val->getType();
         }
-        if (value_.type() == typeid(bool))
+        if (_value.type() == typeid(bool))
           return Boolean;
-        if (value_.type() == typeid(int))
+        if (_value.type() == typeid(int))
           return Int;
-        if (value_.type() == typeid(double))
+        if (_value.type() == typeid(double))
           return Float;
-        if (value_.type() == typeid(std::string))
+        if (_value.type() == typeid(std::string))
           return String;
-        if (value_.type() == typeid(cv::Scalar))
+        if (_value.type() == typeid(cv::Scalar))
           return Color;
-        if (value_.type() == typeid(cv::Mat))
+        if (_value.type() == typeid(cv::Mat))
           return Matrix;
       }
     }
@@ -107,37 +107,37 @@ namespace charliesoft
 
   std::string ParamValue::toString() const
   {
-    if (value_.type() == typeid(ParamValue*))
+    if (_value.type() == typeid(ParamValue*))
     {
-      ParamValue* val = boost::get<ParamValue*>(value_);
+      ParamValue* val = boost::get<ParamValue*>(_value);
       if (val == NULL)
         return "NULL";
       else
-        return boost::get<ParamValue*>(value_)->toString();
+        return boost::get<ParamValue*>(_value)->toString();
     }
-    if (value_.type() == typeid(Not_A_Value))
+    if (_value.type() == typeid(Not_A_Value))
       return _STR("NOT_INITIALIZED");
 
-    if (value_.type() == typeid(bool))
-      return lexical_cast<string>(boost::get<bool>(value_));
-    if (value_.type() == typeid(int))
-      return lexical_cast<string>(boost::get<int>(value_));
-    if (value_.type() == typeid(double))
-      return lexical_cast<string>(boost::get<double>(value_));
-    if (value_.type() == typeid(std::string))
-      return boost::get<std::string>(value_);
-    if (value_.type() == typeid(cv::Scalar))
+    if (_value.type() == typeid(bool))
+      return lexical_cast<string>(boost::get<bool>(_value));
+    if (_value.type() == typeid(int))
+      return lexical_cast<string>(boost::get<int>(_value));
+    if (_value.type() == typeid(double))
+      return lexical_cast<string>(boost::get<double>(_value));
+    if (_value.type() == typeid(std::string))
+      return boost::get<std::string>(_value);
+    if (_value.type() == typeid(cv::Scalar))
     {
       cv::FileStorage fs(".xml", cv::FileStorage::WRITE + cv::FileStorage::MEMORY + cv::FileStorage::FORMAT_YAML);
-      fs << "colorValue" << boost::get<cv::Scalar>(value_);
+      fs << "colorValue" << boost::get<cv::Scalar>(_value);
       string buf = fs.releaseAndGetString();
 
       return buf;
     }
-    if (value_.type() == typeid(cv::Mat))
+    if (_value.type() == typeid(cv::Mat))
     {
       cv::FileStorage fs(".xml", cv::FileStorage::WRITE + cv::FileStorage::MEMORY + cv::FileStorage::FORMAT_YAML);
-      fs << "matrixValue" << boost::get<cv::Mat>(value_);
+      fs << "matrixValue" << boost::get<cv::Mat>(_value);
       string buf = fs.releaseAndGetString();
 
       return buf;
@@ -147,9 +147,9 @@ namespace charliesoft
 
   bool ParamValue::isDefaultValue() const{
     boost::unique_lock<boost::recursive_mutex> lock(_mtx);
-    return (value_.type() == typeid(Not_A_Value)) ||
-      (value_.type() == typeid(cv::Mat) && boost::get<cv::Mat>(value_).empty()) ||
-      (isLinked() && boost::get<ParamValue*>(value_)->isDefaultValue());
+    return (_value.type() == typeid(Not_A_Value)) ||
+      (_value.type() == typeid(cv::Mat) && boost::get<cv::Mat>(_value).empty()) ||
+      (isLinked() && boost::get<ParamValue*>(_value)->isDefaultValue());
   };
 
 
@@ -160,25 +160,25 @@ namespace charliesoft
     if (_isOutput)//the wanted value is the output of this block...
       _block->update();
     else if (isLinked())//the wanted value is the output of the connected block...
-      boost::get<ParamValue*>(value_)->_block->update();
+      boost::get<ParamValue*>(_value)->_block->update();
     //else : nothing to do!
   }
 
   void ParamValue::valid_and_set(const ParamValue& v){
     validate(v);//if not valid throw an error!
-    if (v.value_.type() == typeid(ParamValue *))
+    if (v._value.type() == typeid(ParamValue *))
     {
       if (isLinked())
-        boost::get<ParamValue*>(value_)->_distantListeners.erase(this);
-      ParamValue* vDist = boost::get<ParamValue*>(v.value_);
+        boost::get<ParamValue*>(_value)->_distantListeners.erase(this);
+      ParamValue* vDist = boost::get<ParamValue*>(v._value);
       if (vDist != NULL) vDist->_distantListeners.insert(this);
-      if (vDist->value_.type() != typeid(Not_A_Value))
+      if (vDist->_value.type() != typeid(Not_A_Value))
         _newValue = true;
     }
     else
-      if (*this != v && v.value_.type() != typeid(Not_A_Value))
+      if (*this != v && v._value.type() != typeid(Not_A_Value))
         _newValue = true;
-    value_ = v.value_;
+    _value = v._value;
     notifyUpdate(_newValue);//wake up waiting thread (if any)
   };
 
@@ -225,7 +225,7 @@ namespace charliesoft
   void ParamValue::notifyRemove()
   {
     if (isLinked())
-      boost::get<ParamValue*>(value_)->_distantListeners.erase(this);
+      boost::get<ParamValue*>(_value)->_distantListeners.erase(this);
   }
   void ParamValue::notifyUpdate(bool isNew)
   {
@@ -239,7 +239,7 @@ namespace charliesoft
     if (*this != rhs)
       _newValue = true;
     boost::unique_lock<boost::recursive_mutex> lock(_mtx);
-    value_ = rhs;
+    _value = rhs;
     notifyUpdate(_newValue);
     return *this;
   };
@@ -248,7 +248,7 @@ namespace charliesoft
     if (*this != rhs)
       _newValue = true;
     boost::unique_lock<boost::recursive_mutex> lock(_mtx);
-    value_ = rhs;
+    _value = rhs;
     notifyUpdate(_newValue);
     return *this;
   };
@@ -257,7 +257,7 @@ namespace charliesoft
     if (*this != rhs)
       _newValue = true;
     boost::unique_lock<boost::recursive_mutex> lock(_mtx);
-    value_ = rhs;
+    _value = rhs;
     notifyUpdate(_newValue);
     return *this;
   };
@@ -266,7 +266,7 @@ namespace charliesoft
     if (*this != rhs)
       _newValue = true;
     boost::unique_lock<boost::recursive_mutex> lock(_mtx);
-    value_ = rhs;
+    _value = rhs;
     notifyUpdate(_newValue);
     return *this;
   };
@@ -275,7 +275,7 @@ namespace charliesoft
     if (*this != rhs)
       _newValue = true;
     boost::unique_lock<boost::recursive_mutex> lock(_mtx);
-    value_ = rhs;
+    _value = rhs;
     notifyUpdate(_newValue);
     return *this;
   };
@@ -283,14 +283,14 @@ namespace charliesoft
     boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     notifyRemove();
     _newValue = true;//it's difficult to say if it's the same matrix, so we conclude it's always new...
-    value_ = rhs;
+    _value = rhs;
     notifyUpdate(_newValue);
     return *this;
   };
   ParamValue& ParamValue::operator = (Not_A_Value const &rhs) {
     boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     notifyRemove();
-    value_ = rhs;
+    _value = rhs;
     return *this;
   };
   ParamValue& ParamValue::operator = (ParamValue *vDist) {
@@ -300,7 +300,7 @@ namespace charliesoft
       _definition = vDist->_definition;
     if (vDist != NULL) vDist->_distantListeners.insert(this);
     _newValue = vDist->_newValue;
-    value_ = vDist;
+    _value = vDist;
     notifyUpdate(_newValue);
     return *this;
   };
@@ -311,14 +311,14 @@ namespace charliesoft
       if (_definition == NULL)
         _definition = rhs._definition;
       _newValue = true;
-      value_ = rhs.value_;
+      _value = rhs._value;
       if (rhs._block != NULL)
       {
         _block = rhs._block;
         _name = rhs._name;
         _isOutput = rhs._isOutput;
       }
-      if (value_.type() != typeid(Not_A_Value))
+      if (_value.type() != typeid(Not_A_Value))
         notifyUpdate(_newValue);
     }
     return *this;
@@ -329,56 +329,56 @@ namespace charliesoft
     boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     try
     {
-      if (value_.type() == typeid(Not_A_Value) ||
-        other.value_.type() == typeid(Not_A_Value))
+      if (_value.type() == typeid(Not_A_Value) ||
+        other._value.type() == typeid(Not_A_Value))
         return false;//always different!
 
-      if (value_.type() == typeid(ParamValue*))
+      if (_value.type() == typeid(ParamValue*))
       {//compare addresses
-        ParamValue* val = boost::get<ParamValue*>(value_);
-        ParamValue* val1 = boost::get<ParamValue*>(other.value_);
+        ParamValue* val = boost::get<ParamValue*>(_value);
+        ParamValue* val1 = boost::get<ParamValue*>(other._value);
         return val == val1;
       }
 
-      if (value_.type() == typeid(bool))
+      if (_value.type() == typeid(bool))
       {
-        bool val = boost::get<bool>(value_);
-        bool val1 = boost::get<bool>(other.value_);
+        bool val = boost::get<bool>(_value);
+        bool val1 = boost::get<bool>(other._value);
         return val == val1;
       }
 
-      if (value_.type() == typeid(int))
+      if (_value.type() == typeid(int))
       {
-        int val = boost::get<int>(value_);
-        int val1 = boost::get<int>(other.value_);
+        int val = boost::get<int>(_value);
+        int val1 = boost::get<int>(other._value);
         return val == val1;
       }
 
-      if (value_.type() == typeid(double))
+      if (_value.type() == typeid(double))
       {
-        double val = boost::get<double>(value_);
-        double val1 = boost::get<double>(other.value_);
+        double val = boost::get<double>(_value);
+        double val1 = boost::get<double>(other._value);
         return val == val1;
       }
 
-      if (value_.type() == typeid(std::string))
+      if (_value.type() == typeid(std::string))
       {
-        string val = boost::get<string>(value_);
-        string val1 = boost::get<string>(other.value_);
+        string val = boost::get<string>(_value);
+        string val1 = boost::get<string>(other._value);
         return val.compare(val1) == 0;
       }
 
-      if (value_.type() == typeid(cv::Scalar))
+      if (_value.type() == typeid(cv::Scalar))
       {
-        cv::Scalar val = boost::get<cv::Scalar>(value_);
-        cv::Scalar val1 = boost::get<cv::Scalar>(other.value_);
+        cv::Scalar val = boost::get<cv::Scalar>(_value);
+        cv::Scalar val1 = boost::get<cv::Scalar>(other._value);
         return val == val1;
       }
 
-      if (value_.type() == typeid(cv::Mat))
+      if (_value.type() == typeid(cv::Mat))
       {//compare data adresses
-        cv::Mat val = boost::get<cv::Mat>(value_);
-        cv::Mat val1 = boost::get<cv::Mat>(other.value_);
+        cv::Mat val = boost::get<cv::Mat>(_value);
+        cv::Mat val1 = boost::get<cv::Mat>(other._value);
         return val.ptr<char>() == val1.ptr<char>();
       }
     }
@@ -393,53 +393,53 @@ namespace charliesoft
     boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     try
     {
-      if (value_.type() == typeid(Not_A_Value) ||
-        other.value_.type() == typeid(Not_A_Value))
+      if (_value.type() == typeid(Not_A_Value) ||
+        other._value.type() == typeid(Not_A_Value))
         return false;
 
-      if (value_.type() == typeid(ParamValue*))
+      if (_value.type() == typeid(ParamValue*))
       {//compare addresses
-        ParamValue* val = boost::get<ParamValue*>(value_);
-        ParamValue* val1 = boost::get<ParamValue*>(other.value_);
+        ParamValue* val = boost::get<ParamValue*>(_value);
+        ParamValue* val1 = boost::get<ParamValue*>(other._value);
         return val < val1;
       }
 
-      if (value_.type() == typeid(bool))
+      if (_value.type() == typeid(bool))
       {
-        bool val = boost::get<bool>(value_);
-        bool val1 = boost::get<bool>(other.value_);
+        bool val = boost::get<bool>(_value);
+        bool val1 = boost::get<bool>(other._value);
         return val < val1;
       }
 
-      if (value_.type() == typeid(int))
+      if (_value.type() == typeid(int))
       {
-        int val = boost::get<int>(value_);
-        if (other.value_.type() == typeid(int))
-          return val < boost::get<int>(other.value_);
-        if (other.value_.type() == typeid(double))
-          return val < boost::get<double>(other.value_);
+        int val = boost::get<int>(_value);
+        if (other._value.type() == typeid(int))
+          return val < boost::get<int>(other._value);
+        if (other._value.type() == typeid(double))
+          return val < boost::get<double>(other._value);
       }
 
-      if (value_.type() == typeid(double))
+      if (_value.type() == typeid(double))
       {
-        double val = boost::get<double>(value_);
-        if (other.value_.type() == typeid(int))
-          return val < boost::get<int>(other.value_);
-        if (other.value_.type() == typeid(double))
-          return val < boost::get<double>(other.value_);
+        double val = boost::get<double>(_value);
+        if (other._value.type() == typeid(int))
+          return val < boost::get<int>(other._value);
+        if (other._value.type() == typeid(double))
+          return val < boost::get<double>(other._value);
       }
 
-      if (value_.type() == typeid(std::string))
+      if (_value.type() == typeid(std::string))
       {
-        string val = boost::get<string>(value_);
-        string val1 = boost::get<string>(other.value_);
+        string val = boost::get<string>(_value);
+        string val1 = boost::get<string>(other._value);
         return val.compare(val1) < 0;
       }
 
-      if (value_.type() == typeid(cv::Scalar))
+      if (_value.type() == typeid(cv::Scalar))
       {
-        cv::Scalar val = boost::get<cv::Scalar>(value_);
-        cv::Scalar val1 = boost::get<cv::Scalar>(other.value_);
+        cv::Scalar val = boost::get<cv::Scalar>(_value);
+        cv::Scalar val1 = boost::get<cv::Scalar>(other._value);
         if (val[0] < val1[0])
           return true;
         if (val[0] > val1[0])
@@ -453,10 +453,10 @@ namespace charliesoft
         return false;
       }
 
-      if (value_.type() == typeid(cv::Mat))
+      if (_value.type() == typeid(cv::Mat))
       {//compare data adresses
-        cv::Mat val = boost::get<cv::Mat>(value_);
-        cv::Mat val1 = boost::get<cv::Mat>(other.value_);
+        cv::Mat val = boost::get<cv::Mat>(_value);
+        cv::Mat val1 = boost::get<cv::Mat>(other._value);
         return val.ptr<char>() < val1.ptr<char>();
       }
     }
@@ -469,8 +469,8 @@ namespace charliesoft
   bool ParamValue::operator> (const ParamValue &other) const
   {
     boost::unique_lock<boost::recursive_mutex> lock(_mtx);
-    if (value_.type() == typeid(Not_A_Value) ||
-      other.value_.type() == typeid(Not_A_Value))
+    if (_value.type() == typeid(Not_A_Value) ||
+      other._value.type() == typeid(Not_A_Value))
       return false;//always different!
     return this->operator!=(other) && !this->operator<(other);
   }

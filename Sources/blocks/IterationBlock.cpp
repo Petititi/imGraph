@@ -218,8 +218,8 @@ namespace charliesoft
         int cRight = it1->second.get("category_right", 0);
         int cOperator = it1->second.get("boolean_operator", 0);
 
-        double valLeft = it1->second.get("Value_left", 0.);
-        double valRight = it1->second.get("Value_right", 0.);
+        double valLeft = it1->second.get("_valueleft", 0.);
+        double valRight = it1->second.get("_valueright", 0.);
         addCondition(ConditionOfRendering(cLeft, valLeft, cRight, valRight, cOperator,
           this));
         if (cLeft == 1 || cRight == 1)//output of block...

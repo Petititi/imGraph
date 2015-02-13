@@ -754,25 +754,13 @@ namespace charliesoft
     {
     }
 
+    ParamValue val;
+
     if (param->getType() == Boolean)
     {
       QLabel* value = dynamic_cast<QLabel*>(_inputValue12.at(paramRep));
       if (value != NULL)
-      {
-        try
-        {
-          param->valid_and_set(true);
-        }
-        catch (ErrorValidator& e)
-        {//algo doesn't accept this value!
-          if (QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"),
-            QString(e.errorMsg.c_str()) + "<br/>" + _QT("ERROR_CONFIRM_SET_VALUE"),
-            QMessageBox::Apply | QMessageBox::RestoreDefaults, QMessageBox::Apply) != QMessageBox::Apply)
-            return false;//stop here the validation: should correct the error!
-          else
-            *param = true;//force the value!
-        }
-      }
+        val = true;
     }
 
     if (param->getType() == Int || param->getType() == Float ||
@@ -780,78 +768,36 @@ namespace charliesoft
     {
       QLineEdit* value = dynamic_cast<QLineEdit*>(_inputValue12.at(paramRep));
       if (value != NULL)
-      {
-        ParamValue& val = ParamValue::fromString(param->getType(), value->text().toLocal8Bit().toStdString());
-        try
-        {
-          param->valid_and_set(val);
-        }
-        catch (ErrorValidator& e)
-        {//algo doesn't accept this value!
-          if (QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"),
-            QString(e.errorMsg.c_str()) + "<br/>" + _QT("ERROR_CONFIRM_SET_VALUE"),
-            QMessageBox::Apply | QMessageBox::RestoreDefaults, QMessageBox::Apply) != QMessageBox::Apply)
-            return false;//stop here the validation: should correct the error!
-          else
-            *param = val;//force the value!
-        }
-      }
+        val = ParamValue::fromString(param->getType(), value->text().toLocal8Bit().toStdString());
     }
 
     if (param->getType() == ListBox)
     {
       QComboBox* value = dynamic_cast<QComboBox*>(_inputValue12.at(paramRep));
       if (value != NULL)
-      {
-        ParamValue val = value->currentIndex();
-        try
-        {
-          param->valid_and_set(val);
-        }
-        catch (ErrorValidator& e)
-        {//algo doesn't accept this value!
-          if (QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"),
-            QString(e.errorMsg.c_str()) + "<br/>" + _QT("ERROR_CONFIRM_SET_VALUE"),
-            QMessageBox::Apply | QMessageBox::RestoreDefaults, QMessageBox::Apply) != QMessageBox::Apply)
-            return false;//stop here the validation: should correct the error!
-          else
-            *param = val;//force the value!
-        }
-      }
+        val = value->currentIndex();
     }
     if (param->getType() == Color)
-    {
-      ParamValue val = _paramColor[paramRep];
-      try
-      {
-        param->valid_and_set(val);
-      }
-      catch (ErrorValidator& e)
-      {//algo doesn't accept this value!
-        if (QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"),
-          QString(e.errorMsg.c_str()) + "<br/>" + _QT("ERROR_CONFIRM_SET_VALUE"),
-          QMessageBox::Apply | QMessageBox::RestoreDefaults, QMessageBox::Apply) != QMessageBox::Apply)
-          return false;//stop here the validation: should correct the error!
-        else
-          *param = val;//force the value!
-      }
-    }
+      val = _paramColor[paramRep];
+
     if (param->getType() == Matrix)
+      val = _paramMatrix[paramRep];
+
+    try
     {
-      ParamValue val = _paramMatrix[paramRep];
-      try
-      {
+      if (*param != val)
         param->valid_and_set(val);
-      }
-      catch (ErrorValidator& e)
-      {//algo doesn't accept this value!
-        if (QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"),
-          QString(e.errorMsg.c_str()) + "<br/>" + _QT("ERROR_CONFIRM_SET_VALUE"),
-          QMessageBox::Apply | QMessageBox::RestoreDefaults, QMessageBox::Apply) != QMessageBox::Apply)
-          return false;//stop here the validation: should correct the error!
-        else
-          *param = val;//force the value!
-      }
+      else 
+        return true;
+    }
+    catch (ErrorValidator& e)
+    {//algo doesn't accept this value!
+      if (QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"),
+        QString(e.errorMsg.c_str()) + "<br/>" + _QT("ERROR_CONFIRM_SET_VALUE"),
+        QMessageBox::Apply | QMessageBox::RestoreDefaults, QMessageBox::Apply) != QMessageBox::Apply)
+        return false;//stop here the validation: should correct the error!
+      else
+        *param = val;//force the value!
     }
 
     paramRep->getModel()->getGraph()->initChildDatas(paramRep->getModel(), std::set<Block*>());
@@ -922,17 +868,17 @@ namespace charliesoft
     _condition_type = new QComboBox(this);
     _condition_right = new QComboBox(this);
 
-    _value_left = new QLineEdit(this);
-    _value_left->hide();
-    _value_right = new QLineEdit(this);
-    _value_right->hide();
+    __valueleft = new QLineEdit(this);
+    __valueleft->hide();
+    __valueright = new QLineEdit(this);
+    __valueright->hide();
 
     _comboBoxLayout = new QGridLayout(this);
     _comboBoxLayout->addWidget(_condition_left, 0, 0);
     _comboBoxLayout->addWidget(_condition_type, 0, 1);
     _comboBoxLayout->addWidget(_condition_right, 0, 2);
-    _comboBoxLayout->addWidget(_value_left, 1, 0);
-    _comboBoxLayout->addWidget(_value_right, 1, 2);
+    _comboBoxLayout->addWidget(__valueleft, 1, 0);
+    _comboBoxLayout->addWidget(__valueright, 1, 2);
 
     connect(_condition_left, SIGNAL(currentIndexChanged(int)), this, SLOT(updateLeft(int)));
     connect(_condition_right, SIGNAL(currentIndexChanged(int)), this, SLOT(updateRight(int)));
@@ -977,9 +923,9 @@ namespace charliesoft
       _condition_right->setCurrentIndex(c.getCategory_right());
       _condition_type->setCurrentIndex(c.getCondition());
       if (c.getCategory_left() > 1)
-        _value_left->setText(lexical_cast<string>(c.getOpt_value_left().get<double>()).c_str());
+        __valueleft->setText(lexical_cast<string>(c.getOpt__valueleft().get<double>()).c_str());
       if (c.getCategory_right() > 1)
-        _value_right->setText(lexical_cast<string>(c.getOpt_value_right().get<double>()).c_str());
+        __valueright->setText(lexical_cast<string>(c.getOpt__valueright().get<double>()).c_str());
     }
 
     connect(this, SIGNAL(askSynchro()), vertex, SLOT(reshape()));
@@ -990,10 +936,10 @@ namespace charliesoft
     switch (newIndex)
     {
     case 2://Constante value
-      _value_left->show();
+      __valueleft->show();
       break;
     default:
-      _value_left->hide();
+      __valueleft->hide();
       break;
     }
   };
@@ -1003,10 +949,10 @@ namespace charliesoft
     switch (newIndex)
     {
     case 2://Constante value
-      _value_right->show();
+      __valueright->show();
       break;
     default:
-      _value_right->hide();
+      __valueright->hide();
       break;
     }
   };
@@ -1025,7 +971,7 @@ namespace charliesoft
     {
       try
       {
-        left = lexical_cast<double>(_value_left->text().toStdString());
+        left = lexical_cast<double>(__valueleft->text().toStdString());
       }
       catch (boost::bad_lexical_cast&)
       {
@@ -1035,7 +981,7 @@ namespace charliesoft
     {
       try
       {
-        right = lexical_cast<double>(_value_right->text().toStdString());
+        right = lexical_cast<double>(__valueright->text().toStdString());
       }
       catch (boost::bad_lexical_cast&)
       {

@@ -51,8 +51,8 @@ namespace charliesoft
     QComboBox* _condition_type;
     QComboBox* _condition_right;
 
-    QLineEdit* _value_left;
-    QLineEdit* _value_right;
+    QLineEdit* __valueleft;
+    QLineEdit* __valueright;
 
     QGridLayout* _comboBoxLayout;
   public:

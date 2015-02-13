@@ -42,9 +42,9 @@ namespace charliesoft
     _name = new QLineEdit();
     _helper = new QLineEdit();
 
-    _initialValue_text = new QLineEdit();
-    _initialValue_button_color = new QPushButton();
-    _initialValue_button_matrix = new QPushButton();
+    _initial_valuetext = new QLineEdit();
+    _initial_valuebutton_color = new QPushButton();
+    _initial_valuebutton_matrix = new QPushButton();
 
     //create the layout:
     QVBoxLayout *vbox = new QVBoxLayout();
@@ -70,7 +70,7 @@ namespace charliesoft
     _initValLayout = new QHBoxLayout();
     tmp->setLayout(_initValLayout);
     _initValLayout->addWidget(new QLabel(_QT("CREATE_PARAM_INIT_VAL")));
-    _initValLayout->addWidget(_initialValue_text);
+    _initValLayout->addWidget(_initial_valuetext);
     vbox->addWidget(tmp);
 
     tmp = new QWidget();
@@ -80,8 +80,8 @@ namespace charliesoft
     hbox->addWidget(_cancel);
     vbox->addWidget(tmp);
 
-    connect(_initialValue_button_color, SIGNAL(clicked()), this, SLOT(colorEditor()));
-    connect(_initialValue_button_matrix, SIGNAL(clicked()), this, SLOT(matrixEditor()));
+    connect(_initial_valuebutton_color, SIGNAL(clicked()), this, SLOT(colorEditor()));
+    connect(_initial_valuebutton_matrix, SIGNAL(clicked()), this, SLOT(matrixEditor()));
     connect(_OK, SIGNAL(clicked()), this, SLOT(ok_exit()));
     connect(_cancel, SIGNAL(clicked()), this, SLOT(cancel_exit()));
 
@@ -96,23 +96,23 @@ namespace charliesoft
   {
     if (newIndex == 4)//matrix type:
     {
-      _initValLayout->removeWidget(_initialValue_text);
-      _initValLayout->removeWidget(_initialValue_button_color);
-      _initValLayout->addWidget(_initialValue_button_matrix);
+      _initValLayout->removeWidget(_initial_valuetext);
+      _initValLayout->removeWidget(_initial_valuebutton_color);
+      _initValLayout->addWidget(_initial_valuebutton_matrix);
     }
     else
     {
       if (newIndex == 3)//color type:
       {
-        _initValLayout->removeWidget(_initialValue_text);
-        _initValLayout->removeWidget(_initialValue_button_matrix);
-        _initValLayout->addWidget(_initialValue_button_color);
+        _initValLayout->removeWidget(_initial_valuetext);
+        _initValLayout->removeWidget(_initial_valuebutton_matrix);
+        _initValLayout->addWidget(_initial_valuebutton_color);
       }
       else
       {
-        _initValLayout->removeWidget(_initialValue_button_matrix);
-        _initValLayout->removeWidget(_initialValue_button_color);
-        _initValLayout->addWidget(_initialValue_text);
+        _initValLayout->removeWidget(_initial_valuebutton_matrix);
+        _initValLayout->removeWidget(_initial_valuebutton_color);
+        _initValLayout->addWidget(_initial_valuetext);
       }
     }
   };
@@ -157,11 +157,11 @@ namespace charliesoft
     {
     case 1:
       type = Int;
-      _initVal = _initialValue_text->text().toInt(0);
+      _initVal = _initial_valuetext->text().toInt(0);
       break;
     case 2:
       type = Float;
-      _initVal = _initialValue_text->text().toFloat(0);
+      _initVal = _initial_valuetext->text().toFloat(0);
       break;
     case 3:
       type = Color;
@@ -173,15 +173,15 @@ namespace charliesoft
       break;
     case 5:
       type = String;
-      _initVal = _initialValue_text->text().toStdString();
+      _initVal = _initial_valuetext->text().toStdString();
       break;
     case 6:
       type = FilePath;
-      _initVal = _initialValue_text->text().toStdString();
+      _initVal = _initial_valuetext->text().toStdString();
       break;
     default:
       type = Boolean;
-      _initVal = _initialValue_text->text().toInt(0) != 0;
+      _initVal = _initial_valuetext->text().toInt(0) != 0;
       break;
     }
     return ParamDefinition(true, type, name, help, _initVal);

@@ -107,25 +107,25 @@ namespace charliesoft
   class ConditionOfRendering
   {
     unsigned char category_left;
-    ParamValue opt_value_left;
+    ParamValue opt__valueleft;
     unsigned char category_right;
-    ParamValue opt_value_right;
+    ParamValue opt__valueright;
     unsigned char boolean_operator;
     Block* _father;
   public:
     ConditionOfRendering();
     ConditionOfRendering(unsigned char category_left,
-      ParamValue opt_value_left,
+      ParamValue opt__valueleft,
       unsigned char category_right,
-      ParamValue opt_value_right,
+      ParamValue opt__valueright,
       unsigned char boolean_operator,
       Block* father);
     ConditionOfRendering& operator= (const ConditionOfRendering &b)
     {
       category_left = b.category_left;
-      opt_value_left = b.opt_value_left;
+      opt__valueleft = b.opt__valueleft;
       category_right = b.category_right;
-      opt_value_right = b.opt_value_right;
+      opt__valueright = b.opt__valueright;
       boolean_operator = b.boolean_operator;
       if (b._father != NULL)
         _father = b._father;
@@ -134,8 +134,8 @@ namespace charliesoft
     unsigned char getCondition() const { return boolean_operator; }
     unsigned char getCategory_left() const { return category_left; }
     unsigned char getCategory_right() const { return category_right; }
-    ParamValue getOpt_value_left() const { return opt_value_left; }
-    ParamValue getOpt_value_right() const { return opt_value_right; }
+    ParamValue getOpt__valueleft() const { return opt__valueleft; }
+    ParamValue getOpt__valueright() const { return opt__valueright; }
     Block* getFather() const { return _father; }
 
     std::string toString();
@@ -146,8 +146,8 @@ namespace charliesoft
 
     void setValue(bool left, ParamValue* val);
     void setValue(bool left, ParamValue val) {
-      if (left)opt_value_left = val;
-      else opt_value_right = val;
+      if (left)opt__valueleft = val;
+      else opt__valueright = val;
     }
     void setFather(Block* val) { _father = val; }
   };

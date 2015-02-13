@@ -59,14 +59,14 @@ namespace charliesoft
     _father = 0;
   }
   ConditionOfRendering::ConditionOfRendering(unsigned char category_l,
-    ParamValue opt_value_l,
-    unsigned char category_r, ParamValue opt_value_r,
+    ParamValue opt__valuel,
+    unsigned char category_r, ParamValue opt__valuer,
     unsigned char boolean_op, Block* father) :
-    category_left(category_l), opt_value_left(opt_value_l), category_right(category_r),
-    opt_value_right(opt_value_r), boolean_operator(boolean_op), _father(father)
+    category_left(category_l), opt__valueleft(opt__valuel), category_right(category_r),
+    opt__valueright(opt__valuer), boolean_operator(boolean_op), _father(father)
   {
-    opt_value_left.setBlock(father);
-    opt_value_right.setBlock(father);
+    opt__valueleft.setBlock(father);
+    opt__valueright.setBlock(father);
   }
 
   boost::property_tree::ptree ConditionOfRendering::getXML() const
@@ -76,14 +76,14 @@ namespace charliesoft
     tree.put("category_right", category_right);
     tree.put("boolean_operator", boolean_operator);
 
-    if (!opt_value_left.isLinked())
-      tree.put("Value_left", opt_value_left.toString());
+    if (!opt__valueleft.isLinked())
+      tree.put("_valueleft", opt__valueleft.toString());
     else
-      tree.put("Value_left", (unsigned int)opt_value_left.get<ParamValue*>());
-    if (!opt_value_right.isLinked())
-      tree.put("Value_right", opt_value_right.toString());
+      tree.put("_valueleft", (unsigned int)opt__valueleft.get<ParamValue*>());
+    if (!opt__valueright.isLinked())
+      tree.put("_valueright", opt__valueright.toString());
     else
-      tree.put("Value_right", (unsigned int)opt_value_right.get<ParamValue*>());
+      tree.put("_valueright", (unsigned int)opt__valueright.get<ParamValue*>());
     return tree;
   }
 
@@ -102,7 +102,7 @@ namespace charliesoft
       left = _STR("CONDITION_CARDINAL");
       break;
     default://nothing
-      left = opt_value_left.toString();
+      left = opt__valueleft.toString();
       break;
     }
     switch (category_right)
@@ -113,7 +113,7 @@ namespace charliesoft
     case 3://Is empty
       right = _STR("CONDITION_IS_EMPTY");
     default://nothing
-      right = opt_value_right.toString();
+      right = opt__valueright.toString();
       break;
     }
 
@@ -147,13 +147,13 @@ namespace charliesoft
     {
     case 1://Output of block
     {
-      ParamValue* tmp = opt_value_left.get<ParamValue*>();
+      ParamValue* tmp = opt__valueleft.get<ParamValue*>();
       if (tmp != NULL)
         left = *tmp;
       break;
     }
     case 2://Constante value
-      left = opt_value_left;
+      left = opt__valueleft;
       break;
     case 3://cardinal of block rendering
       left = static_cast<double>(blockTested->getNbRendering());
@@ -165,13 +165,13 @@ namespace charliesoft
     {
     case 1://Output of block
     {
-      ParamValue* tmp = opt_value_right.get<ParamValue*>();
+      ParamValue* tmp = opt__valueright.get<ParamValue*>();
       if (tmp != NULL)
         right = *tmp;
       break;
     }
     case 2://Constante value
-      right = opt_value_right;
+      right = opt__valueright;
       break;
     case 3://Is empty
       if (boolean_operator == 0)
@@ -211,11 +211,11 @@ namespace charliesoft
       {
       case 1://Output of block
       {
-        opt_value_left = param2;
+        opt__valueleft = param2;
         break;
       }
       default://nothing
-        opt_value_left = *param2;
+        opt__valueleft = *param2;
       }
     }
     else
@@ -224,11 +224,11 @@ namespace charliesoft
       {
       case 1://Output of block
       {
-        opt_value_right = param2;
+        opt__valueright = param2;
         break;
       }
       default://nothing
-        opt_value_right = *param2;
+        opt__valueright = *param2;
       }
     }
   }
@@ -618,8 +618,8 @@ namespace charliesoft
         int cRight = it1->second.get("category_right", 0);
         int cOperator = it1->second.get("boolean_operator", 0);
 
-        double valLeft = it1->second.get("Value_left", 0.);
-        double valRight = it1->second.get("Value_right", 0.);
+        double valLeft = it1->second.get("_valueleft", 0.);
+        double valRight = it1->second.get("_valueright", 0.);
         addCondition(ConditionOfRendering(cLeft, valLeft, cRight, valRight, cOperator,
           this));
         if (cLeft == 1 || cRight == 1)//output of block...

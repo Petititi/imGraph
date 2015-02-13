@@ -1,5 +1,5 @@
-#ifndef _BLOCK_PARAM_VALUE_HEADER_
-#define _BLOCK_PARAM_VALUE_HEADER_
+#ifndef _BLOCK_PARAM__valueHEADER_
+#define _BLOCK_PARAM__valueHEADER_
 
 #ifdef _WIN32
 #pragma warning(push)
@@ -63,44 +63,44 @@ namespace charliesoft
     void notifyUpdate(bool isNew);
     void notifyRemove();
   public:
-    VariantClasses value_;
+    VariantClasses _value;
     ParamValue(Block *algo, std::string name, bool isOutput) :
-      _block(algo), _name(name), _isOutput(isOutput), value_(Not_A_Value()){
+      _block(algo), _name(name), _isOutput(isOutput), _value(Not_A_Value()){
       _newValue = false; _paramNeeded = true; _definition = NULL;
     };
     ParamValue() :
-      _block(NULL), _name(""), _isOutput(false), value_(Not_A_Value()){
+      _block(NULL), _name(""), _isOutput(false), _value(Not_A_Value()){
       _newValue = false; _paramNeeded = true; _definition = NULL;
     };
     ParamValue(Block *algo, const ParamDefinition* def, bool isOutput);
     ParamValue(bool v) : ParamValue(){
-      value_ = v;
+      _value = v;
     };
     ParamValue(int v) :ParamValue(){
-      value_ = v;
+      _value = v;
     };
     ParamValue(double v) :ParamValue(){
-      value_ = v;
+      _value = v;
     };
     ParamValue(char* v) :ParamValue(std::string(v)){
     };
     ParamValue(std::string v) :ParamValue(){
-      value_ = v;
+      _value = v;
     };
     ParamValue(cv::Scalar v) :ParamValue(){
-      value_ = v;
+      _value = v;
     };
     ParamValue(cv::Mat v) :ParamValue(){
-      value_ = v;
+      _value = v;
     };
     ParamValue(Not_A_Value v) :ParamValue(){
     };
     ParamValue(ParamValue* v) :ParamValue(){
-      value_ = v;
+      _value = v;
       if (v != NULL) v->_distantListeners.insert(this);
     };
     ParamValue(const ParamValue& va) :
-      _block(va._block), _name(va._name), _isOutput(va._isOutput), value_(va.value_),
+      _block(va._block), _name(va._name), _isOutput(va._isOutput), _value(va._value),
       _validators(va._validators), _distantListeners(va._distantListeners){
       _newValue = false; _paramNeeded = true; _definition = va._definition;
     };
@@ -108,12 +108,12 @@ namespace charliesoft
     ~ParamValue()
     {
       if (isLinked())
-        boost::get<ParamValue*>(value_)->_distantListeners.erase(this);
+        boost::get<ParamValue*>(_value)->_distantListeners.erase(this);
       for (auto it = _distantListeners.begin();
         it != _distantListeners.end(); it++)
       {
         if (*it != NULL)
-          (*it)->value_ = Not_A_Value();
+          (*it)->_value = Not_A_Value();
       }
     }
 
@@ -181,8 +181,8 @@ namespace charliesoft
     bool isDefaultValue() const;
     bool isLinked() const {
       boost::unique_lock<boost::recursive_mutex> lock(_mtx);
-      return (value_.type() == typeid(ParamValue*)) &&
-        boost::get<ParamValue*>(value_) != NULL;
+      return (_value.type() == typeid(ParamValue*)) &&
+        boost::get<ParamValue*>(_value) != NULL;
     };
 
     ParamType getType(bool realType=true) const;
@@ -198,16 +198,16 @@ namespace charliesoft
       if (isLinked())
       {
         if (typeid(T) == typeid(ParamValue*))
-          return boost::get<T>(value_);
-        return boost::get<ParamValue*>(value_)->get<T>();
+          return boost::get<T>(_value);
+        return boost::get<ParamValue*>(_value)->get<T>();
       }
-      if (value_.type() == typeid(Not_A_Value))
+      if (_value.type() == typeid(Not_A_Value))
       {
         return T();
       }
       try
       {
-        return boost::get<T>(value_);
+        return boost::get<T>(_value);
       }
       catch (boost::bad_get&)
       {
@@ -225,23 +225,23 @@ namespace charliesoft
       switch (value->getType())
       {
       case Boolean:
-        value_ = value->get<bool>();
+        _value = value->get<bool>();
         break;
       case Int:
-        value_ = value->get<int>();
+        _value = value->get<int>();
         break;
       case Float:
-        value_ = value->get<double>();
+        _value = value->get<double>();
         break;
       case String:
       case FilePath:
-        value_ = value->get<std::string>();
+        _value = value->get<std::string>();
         break;
       case Color:
-        value_ = value->get<cv::Scalar>();
+        _value = value->get<cv::Scalar>();
         break;
       default:
-        value_ = value->get<cv::Mat>();
+        _value = value->get<cv::Mat>();
         break;
       }
       notifyUpdate(_newValue);

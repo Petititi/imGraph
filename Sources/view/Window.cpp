@@ -183,22 +183,24 @@ namespace charliesoft
 
     statusBar();
 
-    //create dock for block properties:
-    property_dock_ = new QDockWidget(_QT("DOCK_PROPERTY_TITLE"), this);
-    property_dock_->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-    property_dock_->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+    setDockOptions(QMainWindow::ForceTabbedDocks);
 
-    addDockWidget(Qt::RightDockWidgetArea, property_dock_);
+    //create dock for block properties:
+    _property_dock = new QDockWidget(_QT("DOCK_PROPERTY_TITLE"), this);
+    _property_dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    _property_dock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+
+    addDockWidget(Qt::LeftDockWidgetArea, _property_dock);
 
     _dock_content = new DraggableContainer();
     _dock_content->setColumnCount(1);
     _dock_content->setHeaderLabel(_QT("MATRIX_EDITOR_BLOCKS"));
-    dock_ = new QDockWidget(_QT("DOCK_TITLE"), this);
-    dock_->setWidget(_dock_content);
-    addDockWidget(Qt::LeftDockWidgetArea, dock_);
-    dock_->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-    dock_->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+    _dock = new QDockWidget(_QT("DOCK_TITLE"), this);
+    _dock->setWidget(_dock_content);
+    _dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    _dock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
 
+    addDockWidget(Qt::LeftDockWidgetArea, _dock);
     //create the 5 docks:
     for (int i = 0; i < 5; i++)
     {
@@ -224,6 +226,17 @@ namespace charliesoft
       _dock_content->addTopLevelItem(tmp);
       fillDock(i);
     }
+
+    tabifyDockWidget(_dock, _property_dock);
+
+    // Get the tab bar, grab the first one and go to the first tab.
+    QList<QTabBar*> tabBars = findChildren<QTabBar*>();
+    if (tabBars.count())
+      _listOfDock = tabBars.first();
+    else
+      _listOfDock = NULL;
+
+    showListAlgoDock(true);
   }
 
 
@@ -312,16 +325,6 @@ namespace charliesoft
     graph->fromGraph(GlobalConfig::getInstance()->getXML());
 
     synchroMainGraph();
-  }
-
-  void Window::mousePressEvent(QMouseEvent *event)
-  {
-    if (event->button() == Qt::RightButton)
-    {
-      //show a popup menu!
-    }
-    else if (event->button() == Qt::MidButton)
-      std::cout << "middle mouse click " << std::endl;
   }
 
   void Window::startGraph()
@@ -585,10 +588,11 @@ namespace charliesoft
     VertexRepresentation* param = dynamic_cast<VertexRepresentation*>(vertex);
     if (param != NULL)
     {
-      QWidget *prevWidget = property_dock_->widget();
-      property_dock_->setWidget(new ParamsConfigurator(param));
+      QWidget *prevWidget = _property_dock->widget();
+      _property_dock->setWidget(new ParamsConfigurator(param));
       if (prevWidget != NULL)
         delete prevWidget;
+      Window::getInstance()->showListAlgoDock(false);
     }
   }
 

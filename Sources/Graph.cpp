@@ -391,12 +391,12 @@ namespace charliesoft
       {
         if (cond->getCategory_left() == 1)//output of block:
         {
-          unsigned int addr = static_cast<unsigned int>(cond->getOpt_value_left().get<double>() + 0.5);
+          unsigned int addr = static_cast<unsigned int>(cond->getOpt__valueleft().get<double>() + 0.5);
           cond->setValue(true, addressesMap[addr]);
         }
         if (cond->getCategory_right() == 1)//output of block:
         {
-          unsigned int addr = static_cast<unsigned int>(cond->getOpt_value_right().get<double>() + 0.5);
+          unsigned int addr = static_cast<unsigned int>(cond->getOpt__valueright().get<double>() + 0.5);
           cond->setValue(false, addressesMap[addr]);
         }
       }
