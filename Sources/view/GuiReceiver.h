@@ -110,7 +110,6 @@ public:
   void createWindow(QString name, int flags = 0);
   void createGraph(QString name);
   void destroyWindow(QString name);
-  void destroyAllWindow();
   void moveWindow(QString name, int x, int y);
   void resizeWindow(QString name, int width, int height);
   void showImage(QString name, cv::Mat arr);

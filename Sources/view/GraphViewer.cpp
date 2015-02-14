@@ -181,7 +181,6 @@ void GraphViewer::updateCurve(int id, const double *xData, const double *yData, 
       d_plot->replot();
     else
     {
-      //TODO: use emit...
       QMetaObject::invokeMethod(d_plot,
         "replot",
         Qt::BlockingQueuedConnection);

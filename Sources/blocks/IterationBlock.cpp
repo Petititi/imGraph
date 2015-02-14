@@ -167,14 +167,19 @@ namespace charliesoft
     std::map<unsigned int, ParamValue*>& addressesMap,
     std::vector<ConditionOfRendering*>& condToUpdate)
   {
-    string pos = block->get("position", "[0,0]");
+    string pos = block->get("position", "[0.0,0.0]");
     int posSepare = pos.find_first_of(',') + 1;
     string xPos = pos.substr(1, posSepare - 2);
     string yPos = pos.substr(posSepare + 1, pos.size() - posSepare - 2);
 
-    setPosition(
-      static_cast<int>(lexical_cast<float>(xPos)),
-      static_cast<int>(lexical_cast<float>(yPos)));
+    pos = block->get("size_increment", "[0.0,0.0]");
+    posSepare = pos.find_first_of(',') + 1;
+    string xInc = pos.substr(1, posSepare - 2);
+    string yInc = pos.substr(posSepare + 1, pos.size() - posSepare - 2);
+
+    setPosition(lexical_cast<float>(xPos), lexical_cast<float>(yPos),
+      lexical_cast<float>(xInc), lexical_cast<float>(yInc));
+
     for (ptree::iterator it1 = block->begin(); it1 != block->end(); it1++)
     {
       if (it1->first.compare("Input") == 0)

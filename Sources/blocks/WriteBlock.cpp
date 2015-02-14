@@ -14,7 +14,7 @@ namespace charliesoft
   BLOCK_BEGIN_INSTANTIATION(WriteVideo);
   //You can add methods, re implement needed functions...
   cv::VideoWriter vr;
-  //TODO: add init and release functions
+  ///\todo: add init and release functions
   BLOCK_END_INSTANTIATION(WriteVideo, AlgoType::output, BLOCK__WRITE_NAME);
 
   BEGIN_BLOCK_INPUT_PARAMS(WriteVideo);

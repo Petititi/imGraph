@@ -51,7 +51,7 @@ namespace charliesoft
 
   void Internationalizator::setLang(std::string resourceFile)
   {
-    //TODO!
+    ///\todo
   };
 
   std::string Internationalizator::getTranslation(std::string key){

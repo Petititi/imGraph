@@ -227,6 +227,7 @@ namespace charliesoft
     std::string _error_msg;
     std::string _name;
     cv::Point2f _position;
+    cv::Point2f _sizeIncrement;
 
     std::map<std::string, ParamValue> _myOutputs;
     std::map<std::string, ParamValue> _myInputs;
@@ -318,6 +319,7 @@ namespace charliesoft
     std::string getErrorMsg();
 
     const cv::Point2f& getPosition() const { return _position; }
+    const cv::Point2f& getSizeIncrement() const { return _sizeIncrement; }
     void updatePosition(float x, float y) { _position.x = x; _position.y = y; };
     void linkParam(std::string paramName, Block* dest, std::string paramNameDest);
 
@@ -327,7 +329,8 @@ namespace charliesoft
       std::map<unsigned int, ParamValue*>& addressesMap,
       std::vector<ConditionOfRendering*>& condToUpdate);
 
-    void setPosition(int x, int y);
+    void setPosition(int x, int y, float incX, float incY);
+    void setIncrSize(float incX, float incY);
     void removeCondition();
 
     ///Re-run this block. If links exist, this will also render every ancestors.

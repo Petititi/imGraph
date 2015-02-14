@@ -507,7 +507,7 @@ namespace charliesoft
         }
       }
       else
-      {//It's probably a "AnyType" value, so we provide a subCategory input: TODO
+      {///\todo It's probably a "AnyType" value, so we provide a subCategory input:
         switch (newVal)
         {
         case 0://TYPE_DATAS_BOOL

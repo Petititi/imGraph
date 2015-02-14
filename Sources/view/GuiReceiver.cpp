@@ -346,40 +346,6 @@ void GuiReceiver::destroyWindow(QString name)
 }
 
 
-void GuiReceiver::destroyAllWindow()
-{
-  if (!qApp)
-    CV_Error(CV_StsNullPtr, "NULL session handler");
-
-  if (multiThreads)
-  {
-    // WARNING: this could even close windows from an external parent app
-    //#TODO check externalQAppExists and in case it does, close windows carefully,
-    //      i.e. apply the className-check from below...
-    qApp->closeAllWindows();
-  }
-  else
-  {
-    bool isWidgetDeleted = true;
-    while (isWidgetDeleted)
-    {
-      isWidgetDeleted = false;
-      QWidgetList list = QApplication::topLevelWidgets();
-      for (int i = 0; i < list.count(); i++)
-      {
-        QObject *obj = list.at(i);
-        if (obj->metaObject()->className() == QString("CvWindow"))
-        {
-          delete obj;
-          isWidgetDeleted = true;
-          break;
-        }
-      }
-    }
-  }
-}
-
-
 void GuiReceiver::moveWindow(QString name, int x, int y)
 {
   QPointer<MatrixViewer> w = icvFindWindowByName(name);

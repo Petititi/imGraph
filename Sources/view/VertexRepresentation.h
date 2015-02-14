@@ -38,23 +38,58 @@
 
 namespace charliesoft
 {
+  class GroupParamRepresentation;
+  class MainVertexBlock : public QWidget
+  {
+    Q_OBJECT;
+  public:
+    enum MouseState
+    {
+      MouseOut,
+      MouseHorResize,
+      MouseVerResize,
+      MouseDiagResize,
+      MouseDragOpen,
+      MouseDragClose,
+      MouseIn
+    };
+  public:
+    MainVertexBlock(GroupParamRepresentation* parent);
+
+    MouseState getState() const { return _state; };
+
+  protected:
+    void updateMouseState(const QPoint &pos);
+
+    virtual void mouseMoveEvent(QMouseEvent *);
+    virtual void paintEvent(QPaintEvent *);
+
+    virtual void enterEvent(QEvent *);
+    virtual void leaveEvent(QEvent *);
+
+    GroupParamRepresentation* _parent;
+    MouseState _state;
+  };
+
+
   class GroupParamRepresentation :public QWidget
   {
     Q_OBJECT;
   protected:
-    QWidget* _blockRepresentation;
+    MainVertexBlock* _blockRepresentation;
     QWidget* _conditionsRepresentation;
     QFrame* _lineTitle;
     QLabel* _vertexTitle;
     QLabel* _conditionTitle;
     QLabel* _conditionsValues;
 
-    bool _isDragging;
     bool _isMoving;
     bool _hasDynamicParams;
     QPoint startClick_;
     LinkConnexionRepresentation* _paramActiv;
     int heightOfConditions;
+
+    QPoint _sizeIncrement;
 
     std::map<BlockLink, LinkPath*> _links;
     std::vector< std::pair<ConditionOfRendering*, ConditionLinkRepresentation*> > _linksConditions;
@@ -75,6 +110,10 @@ namespace charliesoft
     virtual LinkConnexionRepresentation* addNewOutputParam(ParamDefinition def);
 
     void setParamActiv(LinkConnexionRepresentation*);
+    bool isDragging() const {
+      return _blockRepresentation->getState() == MainVertexBlock::MouseDragOpen ||
+        _blockRepresentation->getState() == MainVertexBlock::MouseDragClose;
+    };
 
     std::map<BlockLink, LinkPath*> getLinks() const { return _links; }
 
@@ -99,6 +138,7 @@ namespace charliesoft
     ConditionLinkRepresentation* getCondition(ConditionOfRendering*, bool isLeft);
 
     virtual void moveDelta(QPoint delta);
+    virtual void updatePosition(){};
     virtual void mousePressEvent(QMouseEvent *);
     virtual void mouseReleaseEvent(QMouseEvent *);
     virtual void mouseDoubleClickEvent(QMouseEvent *);
@@ -131,6 +171,7 @@ namespace charliesoft
   protected:
     virtual void enterEvent(QEvent *);
     void createListParamsFromModel();
+    virtual void updatePosition();
     virtual void moveDelta(QPoint delta);
     virtual void mouseDoubleClickEvent(QMouseEvent *);
 

@@ -100,7 +100,7 @@ namespace charliesoft
     QLayoutItem *output = _items[_orderedBlocks[index]];
     _items.erase(_orderedBlocks[index]);
     _orderedBlocks.erase(_orderedBlocks.begin() + index);
-    //TODO: remove edges!
+    ///\todo: remove edges!
     return output;
   }
 
@@ -539,6 +539,9 @@ namespace charliesoft
     QWidget* childAtEnd = childAt(_endMouse);
     ParamRepresentation* param = dynamic_cast<ParamRepresentation*>(childAtEnd);
     ParamRepresentation* startParam = dynamic_cast<ParamRepresentation*>(_startParam);
+    if (param == startParam)
+      return;//nothing to do, just a click on parameter link...
+
     if (param != NULL && startParam != NULL)
     {
       //we have a candidate!

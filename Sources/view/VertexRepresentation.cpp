@@ -72,6 +72,94 @@ namespace charliesoft
   vector<GroupParamRepresentation*> GroupParamRepresentation::_selectedBlock;
 
 
+  MainVertexBlock::MainVertexBlock(GroupParamRepresentation* parent) :QWidget(parent) {
+    setObjectName("VertexRepresentation");
+    _parent = parent;
+    _state = MouseOut;
+  };
+
+  void MainVertexBlock::updateMouseState(const QPoint &pos)
+  {
+    MouseState newState;
+    QRect prevSize = geometry();
+    if (pos.x() > prevSize.width() - 10 && pos.y() > prevSize.height() - 10)
+      newState = MouseDiagResize;
+    else if (pos.x() > prevSize.width() - 10)
+      newState = MouseHorResize;
+    else if (pos.y() > prevSize.height() - 10)
+      newState = MouseVerResize;
+    else if (pos.y() < 30)
+      newState = MouseDragOpen;
+    else
+      newState = MouseIn;
+
+
+    if (newState != _state)
+    {
+      _state = newState;
+      switch (_state)
+      {
+      case MouseHorResize:
+        _parent->setCursor(Qt::SizeHorCursor);
+        break;
+      case MouseVerResize:
+        _parent->setCursor(Qt::SizeVerCursor);
+        break;
+      case MouseDiagResize:
+        _parent->setCursor(Qt::SizeFDiagCursor);
+        break;
+      case MouseDragOpen:
+        _parent->setCursor(Qt::OpenHandCursor);
+        break;
+      case MouseDragClose:
+        _parent->setCursor(Qt::ClosedHandCursor);
+        break;
+      case MouseOut:
+      case MouseIn:
+      default:
+        _parent->setCursor(Qt::ArrowCursor);
+        break;
+      }
+    }
+  }
+
+
+  void MainVertexBlock::mouseMoveEvent(QMouseEvent *event)
+  {
+    if (event->buttons() == Qt::NoButton)
+      updateMouseState(event->pos());
+
+    event->ignore();
+  }
+
+  void MainVertexBlock::paintEvent(QPaintEvent *e)
+  {
+    QStyleOption o;
+    o.initFrom(this);
+    QPainter painter(this);
+
+    style()->drawPrimitive(
+      QStyle::PE_Widget, &o, &painter, this);
+  }
+
+  void MainVertexBlock::enterEvent(QEvent *e)
+  {
+    QEnterEvent *me = dynamic_cast<QEnterEvent *>(e);
+    if (NULL != me)
+    {
+      _state = MouseIn;
+      setMouseTracking(true);
+      updateMouseState(me->pos());
+    }
+  }
+
+  void MainVertexBlock::leaveEvent(QEvent *)
+  {
+    setMouseTracking(false);
+    _parent->setCursor(Qt::ArrowCursor);
+    _state = MouseOut;
+  }
+
   GroupParamRepresentation::~GroupParamRepresentation()
   {
     for (auto it = _listOfInputChilds.begin(); it != _listOfInputChilds.end(); it++)
@@ -92,15 +180,15 @@ namespace charliesoft
     delete _conditionsRepresentation;
   }
 
-  GroupParamRepresentation::GroupParamRepresentation(std::string title)
+  GroupParamRepresentation::GroupParamRepresentation(std::string title):
+    _sizeIncrement(0,0)
   {
-    _blockRepresentation = new QWidget(this);
+    _blockRepresentation = new MainVertexBlock(this);
     _conditionsRepresentation = new QWidget(this);
 
     _blockRepresentation->setObjectName("GroupParamRepresentation");
     _conditionsRepresentation->setObjectName("CondRepresentation");
     _paramActiv = NULL;
-    _isDragging = false;
 
     _hasDynamicParams = true;
 
@@ -129,6 +217,7 @@ namespace charliesoft
     _blockRepresentation->move(0, 5);
 
     connect(this, SIGNAL(updateProp(GroupParamRepresentation*)), Window::getInstance(), SLOT(updatePropertyDock(GroupParamRepresentation*)));
+    installEventFilter(this);
   }
 
   LinkConnexionRepresentation* GroupParamRepresentation::addNewInputParam(ParamDefinition def)
@@ -171,6 +260,11 @@ namespace charliesoft
   void GroupParamRepresentation::reshape()
   {
     QRect sizeNameVertex = _vertexTitle->fontMetrics().boundingRect(_vertexTitle->text());
+
+    if (_sizeIncrement.x() < 0)
+      _sizeIncrement.setX(0);
+    if (_sizeIncrement.y() < 0)
+      _sizeIncrement.setY(0);
 
     //conditions:
     int heightOfConditions_tmp = 0;
@@ -243,8 +337,9 @@ namespace charliesoft
     }
     maxInputWidth += 10;
     maxOutputWidth += 10;
+
     //now recompute with correct width:
-    int newWidth = maxOutputWidth + maxInputWidth + 10;
+    int newWidth = maxOutputWidth + maxInputWidth + _sizeIncrement.x() + 10;
     if (newWidth < sizeNameVertex.width() + 16)
       newWidth = sizeNameVertex.width() + 16;
 
@@ -285,7 +380,7 @@ namespace charliesoft
     _lineTitle->move(0, sizeNameVertex.height() + 8);//move the name at the top of vertex...
 
 
-    projectedHeight += max(inputHeight, outputHeight);
+    projectedHeight += max(inputHeight, outputHeight) + _sizeIncrement.y();
 
     heightOfConditions = sizeNameVertex.height();
     _blockRepresentation->resize(newWidth, projectedHeight - 20);
@@ -348,7 +443,7 @@ namespace charliesoft
 
     _blockRepresentation->raise();
 
-    resize(newWidth + 10, projectedHeight - 10);
+    resize(newWidth + 10, projectedHeight);
   }
 
   void GroupParamRepresentation::setParamActiv(LinkConnexionRepresentation* param)
@@ -416,19 +511,31 @@ namespace charliesoft
     if (_paramActiv == NULL && mouseE->button() == Qt::LeftButton)
     {
       _isMoving = false;
-      if (mouseP.y() > heightOfConditions + 5)
+      switch (_blockRepresentation->getState())
+      {
+      case MainVertexBlock::MouseOut://not inside block, not a selection...
+        if (!mouseE->modifiers().testFlag(Qt::ControlModifier))
+          resetSelection();
+        break;
+      case MainVertexBlock::MouseHorResize:
+      case MainVertexBlock::MouseVerResize:
+      case MainVertexBlock::MouseDiagResize:
+        startClick_ = mouseE->globalPos();
+        break;
+      case MainVertexBlock::MouseDragOpen:
+      {
+        startClick_ = mouseE->globalPos();
+        setCursor(Qt::ClosedHandCursor); 
+      }
+      case MainVertexBlock::MouseIn:
+      default:
       {
         bool prevProperty = _blockRepresentation->property("selected").toBool();
-        if (!prevProperty)//if not previously selected, we reset the selection list...
+        //if not previously selected, we reset the selection list...
+        if (!prevProperty && !mouseE->modifiers().testFlag(Qt::ControlModifier))
           resetSelection();
         setSelected(true);
-        _isDragging = true;
-        startClick_ = mouseE->globalPos();
       }
-      if (mouseP.y() < heightOfConditions + 5)
-      {
-        resetSelection();
-        _isDragging = false;
       }
     }
     else
@@ -438,7 +545,24 @@ namespace charliesoft
 
   void GroupParamRepresentation::mouseReleaseEvent(QMouseEvent *mouseE)
   {
-    _isDragging = false;
+    switch (_blockRepresentation->getState())
+    {
+    case MainVertexBlock::MouseOut://not inside block, not a selection...
+      if (!mouseE->modifiers().testFlag(Qt::ControlModifier))
+        resetSelection();
+      break;
+    case MainVertexBlock::MouseHorResize:
+    case MainVertexBlock::MouseVerResize:
+    case MainVertexBlock::MouseDiagResize:
+      break;//nothing to do, cursor don't have to change
+    case MainVertexBlock::MouseDragClose:
+    case MainVertexBlock::MouseDragOpen:
+      setCursor(Qt::OpenHandCursor);
+      break;
+    default://in any other case, use the default cursor
+      setCursor(Qt::ArrowCursor);
+      break;
+    }
 
     if (!_isMoving && mouseE->button() == Qt::LeftButton)
       emit updateProp(this);
@@ -453,7 +577,39 @@ namespace charliesoft
 
   void GroupParamRepresentation::mouseMoveEvent(QMouseEvent *mouseE)
   {
-    if (_isDragging)
+    switch (_blockRepresentation->getState())
+    {
+    case MainVertexBlock::MouseHorResize:
+    {
+      QPoint p = mouseE->globalPos();
+      p.setY(startClick_.y());
+      _sizeIncrement = _sizeIncrement + (p - startClick_);
+      startClick_ = p;
+      reshape();
+      Window::getInstance()->redraw();
+    };
+      break;
+    case MainVertexBlock::MouseVerResize:
+    {
+      QPoint p = mouseE->globalPos();
+      p.setX(startClick_.x());
+      _sizeIncrement = _sizeIncrement + (p - startClick_);
+      startClick_ = p;
+      reshape();
+      Window::getInstance()->redraw();
+    };
+      break;
+    case MainVertexBlock::MouseDiagResize:
+    {
+      QPoint p = mouseE->globalPos();
+      _sizeIncrement = _sizeIncrement + (p - startClick_);
+      startClick_ = p;
+      reshape();
+      Window::getInstance()->redraw();
+    };
+      break;
+    case MainVertexBlock::MouseDragClose:
+    case MainVertexBlock::MouseDragOpen:
     {
       QPoint p = mouseE->globalPos();
       QPoint deltaClick_ = p - startClick_;
@@ -461,16 +617,22 @@ namespace charliesoft
       _isMoving = true;
       for (GroupParamRepresentation* vRep : _selectedBlock)
         vRep->moveDelta(deltaClick_);
+    };
+    break;
+    case MainVertexBlock::MouseIn:
+    default://nothing to do
+      break;
     }
-    else
-      mouseE->ignore();
+    updatePosition();
+    mouseE->ignore();
+
   }
 
   void GroupParamRepresentation::mouseDoubleClickEvent(QMouseEvent *mouseE)
   {
   }
-
-  void GroupParamRepresentation::enterEvent(QEvent *)
+  
+  void GroupParamRepresentation::enterEvent(QEvent *e)
   {
     QRect prevSize = geometry();
     setGeometry(QRect(prevSize.x(), prevSize.y() - heightOfConditions, prevSize.width(), prevSize.height() + heightOfConditions));
@@ -502,6 +664,9 @@ namespace charliesoft
 
     createListParamsFromModel();
 
+    _sizeIncrement.setX(model->getSizeIncrement().x);
+    _sizeIncrement.setY(model->getSizeIncrement().y);
+
     reshape();
 
 
@@ -509,19 +674,22 @@ namespace charliesoft
     _blockRepresentation->move(0, 5);
   }
 
-  void VertexRepresentation::enterEvent(QEvent *)
+  void VertexRepresentation::enterEvent(QEvent *e)
   {
     string msg = _STR("PROCESSING_TIME") + lexical_cast<std::string>(_model->getPerf()) + "ms";
     setToolTip(msg.c_str());
-    QRect prevSize = geometry();
-    setGeometry(QRect(prevSize.x(), prevSize.y() - heightOfConditions, prevSize.width(), prevSize.height() + heightOfConditions));
-    _blockRepresentation->move(0, heightOfConditions + 5);
+    GroupParamRepresentation::enterEvent(e);
+  }
+
+  void VertexRepresentation::updatePosition()
+  {
+    _model->setIncrSize(_sizeIncrement.x(), _sizeIncrement.y());
   }
 
   void VertexRepresentation::moveDelta(QPoint delta)
   {
     QPoint newPos = pos() + delta;
-    _model->setPosition(newPos.x(), newPos.y());
+    _model->setPosition(newPos.x(), newPos.y(), _sizeIncrement.x(), _sizeIncrement.y());
     GroupParamRepresentation::moveDelta(delta);
   }
 

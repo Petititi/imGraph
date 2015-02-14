@@ -572,12 +572,18 @@ namespace charliesoft
     std::map<unsigned int, ParamValue*>& addressesMap,
     std::vector<ConditionOfRendering*>& condToUpdate)
   {
-    string pos = block->get("position", "[0,0]");
+    string pos = block->get("position", "[0.0,0.0]");
     int posSepare = pos.find_first_of(',') + 1;
     string xPos = pos.substr(1, posSepare - 2);
     string yPos = pos.substr(posSepare + 1, pos.size() - posSepare - 2);
 
-    setPosition(lexical_cast<float>(xPos), lexical_cast<float>(yPos));
+    pos = block->get("size_increment", "[0.0,0.0]");
+    posSepare = pos.find_first_of(',') + 1;
+    string xInc = pos.substr(1, posSepare - 2);
+    string yInc = pos.substr(posSepare + 1, pos.size() - posSepare - 2);
+
+    setPosition(lexical_cast<float>(xPos), lexical_cast<float>(yPos),
+      lexical_cast<float>(xInc), lexical_cast<float>(yInc));
     for (ptree::iterator it1 = block->begin(); it1 != block->end(); it1++)
     {
       if (it1->first.compare("Input") == 0)
@@ -656,6 +662,7 @@ namespace charliesoft
     ptree tree;
     tree.put("name", _name);
     tree.put("position", _position);
+    tree.put("size_increment", _sizeIncrement);
     vector<string> inputWithSubparams;
 
     for (auto it = _myInputs.begin();
@@ -740,10 +747,18 @@ namespace charliesoft
     dest->setParamValue(paramNameDest, &_myOutputs[paramName]);
   }
 
-  void Block::setPosition(int x, int y)
+  void Block::setIncrSize(float incX, float incY)
+  {
+    _sizeIncrement.x = incX;
+    _sizeIncrement.y = incY;
+  }
+
+  void Block::setPosition(int x, int y, float incX, float incY)
   {
     _position.x = x;
     _position.y = y;
+    _sizeIncrement.x = incX;
+    _sizeIncrement.y = incY;
   }
 
   void Block::removeCondition()

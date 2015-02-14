@@ -194,6 +194,7 @@ namespace charliesoft
     if (parent == NULL) return;//Nothing to do...
     if (_vertex = dynamic_cast<VertexRepresentation*>(parent->parentWidget()))
       _vertex->setParamActiv(this);
+    setCursor(Qt::CrossCursor);
     //get the position of widget inside main widget and send signal of a new link creation:
     emit creationLink(getWorldAnchor());
     e->ignore();
@@ -204,6 +205,7 @@ namespace charliesoft
       _vertex->setParamActiv(NULL);
 
     _vertex = NULL;
+    setCursor(Qt::ArrowCursor);
 
     emit releaseLink(Window::getInstance()->getMainWidget()->mapFromGlobal(e->globalPos()));
   };
