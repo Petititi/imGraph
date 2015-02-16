@@ -81,9 +81,8 @@ static MatrixViewer* icvFindWindowByName(QString name)
 {
   MatrixViewer* window = 0;
 
-  //This is not a very clean way to do the stuff. Indeed, QAction automatically generate toolTil (QLabel)
-  //that can be grabbed here and crash the code at 'w->param_name==name'.
-  foreach(QWidget* widget, QApplication::topLevelWidgets())
+  QWidgetList winList = QApplication::topLevelWidgets();
+  for (auto* widget : winList)
   {
     if (widget->isWindow() && !widget->parentWidget())//is a window without parent
     {

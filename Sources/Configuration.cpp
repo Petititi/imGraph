@@ -93,7 +93,7 @@ namespace charliesoft
         read_xml(contentStreamed, _xmlTree);
         xmlOK = true;
       }
-      catch (boost::property_tree::ptree_bad_path&)
+      catch (std::exception&)
       {
         //nothing to do...
       }

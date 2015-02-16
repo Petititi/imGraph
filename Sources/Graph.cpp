@@ -301,9 +301,7 @@ namespace charliesoft
   {
     for (auto it = _vertices.begin();
       it != _vertices.end(); it++)
-    {
       tree.add_child("GraphOfProcess.Block", (*it)->getXML());
-    }
   }
 
   void GraphOfProcess::initChildDatas(Block* block, std::set<Block*>& listOfRenderedBlocks)

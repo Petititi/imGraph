@@ -155,6 +155,23 @@ protected:
 
   bool BlockLoader::run(bool oneShot){
 
+    //get current frame from stream:
+    if (!processor_.isOpened())//either end of file or problem with file...
+    {
+      loopCount++;
+      if (!oneShot && !_myInputs["BLOCK__INPUT_IN_LOOP"].isDefaultValue())
+      {
+        int wantedLoop = _myInputs["BLOCK__INPUT_IN_LOOP"].get<int>();
+        if (wantedLoop >= 0)
+        {
+          if (wantedLoop <= loopCount)
+            throw boost::thread_interrupted();//want to stop this rendering!
+        }
+      }
+      openInput();
+      if (!processor_.isOpened())
+        return false;//error
+    }
 
     ParamValue& tmpParam = _myInputs["BLOCK__INPUT_IN_GREY"];
     if (tmpParam.isNew())
@@ -218,25 +235,7 @@ protected:
       if (!tmpParam.isDefaultValue())
         fps = tmpParam.get<double>();
     }
-
-    //get current frame from stream:
-    if (!processor_.isOpened())//either end of file or problem with file...
-    {
-      loopCount++;
-      if (!oneShot && !_myInputs["BLOCK__INPUT_IN_LOOP"].isDefaultValue())
-      {
-        int wantedLoop = _myInputs["BLOCK__INPUT_IN_LOOP"].get<int>();
-        if (wantedLoop >= 0)
-        {
-          if (wantedLoop <= loopCount)
-            throw boost::thread_interrupted();//want to stop this rendering!
-        }
-      }
-      openInput();
-      if (!processor_.isOpened())
-        return false;//error
-    }
-
+    
     cv::Mat frame = processor_.getFrame();
     if (frame.empty())//either end of file or problem with file...
     {

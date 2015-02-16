@@ -665,34 +665,42 @@ namespace charliesoft
     tree.put("size_increment", _sizeIncrement);
     vector<string> inputWithSubparams;
 
+    ProcessManager* pm = ProcessManager::getInstance();
     for (auto it = _myInputs.begin();
       it != _myInputs.end(); it++)
     {
-      ptree paramTree;
-      paramTree.put("Name", it->first);
-      paramTree.put("ID", (unsigned int)&it->second);
-      paramTree.put("Link", it->second.isLinked());
-      if (!it->second.isLinked())
-        paramTree.put("Value", it->second.toString());
-      else
-        paramTree.put("Value", (unsigned int)it->second.get<ParamValue*>());
-
-      tree.add_child("Input", paramTree);
-
-      if (it->second.getType()==ListBox)
+      //only export "classical" params: ones known by ProcessManager
+      if (pm->getParamType(_name, it->first, true) != typeError)
       {
-        inputWithSubparams.push_back(it->second.getName() + "." + it->second.getValFromList());
+        ptree paramTree;
+        paramTree.put("Name", it->first);
+        paramTree.put("ID", (unsigned int)&it->second);
+        paramTree.put("Link", it->second.isLinked());
+        if (!it->second.isLinked())
+          paramTree.put("Value", it->second.toString());
+        else
+          paramTree.put("Value", (unsigned int)it->second.get<ParamValue*>());
+
+        tree.add_child("Input", paramTree);
+
+        if (it->second.getType() == ListBox)
+        {
+          inputWithSubparams.push_back(it->second.getName() + "." + it->second.getValFromList());
+        }
       }
     }
 
     for (auto it = _myOutputs.begin();
       it != _myOutputs.end(); it++)
     {
-      ptree paramTree;
-      paramTree.put("Name", it->first);
-      paramTree.put("ID", (unsigned int)&it->second);
+      if (pm->getParamType(_name, it->first, false) != typeError)
+      {
+        ptree paramTree;
+        paramTree.put("Name", it->first);
+        paramTree.put("ID", (unsigned int)&it->second);
 
-      tree.add_child("Output", paramTree);
+        tree.add_child("Output", paramTree);
+      }
     }
 
     for (auto it = _mySubParams.begin();

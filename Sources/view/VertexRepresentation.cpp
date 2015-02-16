@@ -390,13 +390,24 @@ namespace charliesoft
 
     _lineTitle->resize(newWidth, 2);
     _lineTitle->move(0, sizeNameVertex.height() + 8);//move the name at the top of vertex...
-    
+
+    if (_sizeIncrement.y() < 10 && _preview != NULL)
+      _sizeIncrement.setY(10);
     projectedHeight += max(inputHeight, outputHeight) + _sizeIncrement.y();
 
     if (_preview != NULL)
     {
-      _preview->resize(newWidth, projectedHeight - sizeNameVertex.height() - 30);
-      _preview->move(0, sizeNameVertex.height() + 10);//move the name at the top of vertex...
+      QLabel *label = dynamic_cast<QLabel *>(_preview);
+      if (NULL != label)
+      {
+        _preview->resize(newWidth, _preview->height());
+        _preview->move(0, outputHeight);//move the name at the top of vertex...
+      }
+      else
+      {
+        _preview->resize(newWidth, projectedHeight - sizeNameVertex.height() - 30);
+        _preview->move(0, sizeNameVertex.height() + 10);//move the name at the top of vertex...
+      }
     }
 
     heightOfConditions = sizeNameVertex.height();
@@ -556,7 +567,11 @@ namespace charliesoft
       }
     }
     else
+    {
+      if (_paramActiv != NULL)
+        _blockRepresentation->setState(MainVertexBlock::MouseCreateLink);
       mouseE->ignore();
+    }
     raise();
   }
 
@@ -637,6 +652,7 @@ namespace charliesoft
     };
     break;
     case MainVertexBlock::MouseIn:
+    case MainVertexBlock::MouseCreateLink:
     default://nothing to do
       break;
     }

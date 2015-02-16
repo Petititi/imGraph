@@ -185,30 +185,18 @@ namespace charliesoft
     std::map<unsigned int, ParamValue*>& addressesMap,
     std::vector<ConditionOfRendering*>& condToUpdate)
   {
-    string pos = block->get("position", "[0.0,0.0]");
-    int posSepare = pos.find_first_of(',') + 1;
-    string xPos = pos.substr(1, posSepare - 2);
-    string yPos = pos.substr(posSepare + 1, pos.size() - posSepare - 2);
-
-    pos = block->get("size_increment", "[0.0,0.0]");
-    posSepare = pos.find_first_of(',') + 1;
-    string xInc = pos.substr(1, posSepare - 2);
-    string yInc = pos.substr(posSepare + 1, pos.size() - posSepare - 2);
-
-    setPosition(lexical_cast<float>(xPos), lexical_cast<float>(yPos),
-      lexical_cast<float>(xInc), lexical_cast<float>(yInc));
+    Block::initFromXML(block, toUpdate, addressesMap, condToUpdate);
     for (ptree::iterator it1 = block->begin(); it1 != block->end(); it1++)
     {
-      if (it1->first.compare("Input") == 0)
+      if (it1->first.compare("Input_to_create") == 0)
       {
         string nameIn = it1->second.get("Name", "Error");
         string helper = it1->second.get("Helper", nameIn);
+        bool link = it1->second.get("Link", false);
         string val = it1->second.get("Value", "Not initialized...");
         ParamType paramType = static_cast<ParamType>(it1->second.get("ParamType", 0));
         ParamValue& tmpValLoaded = ParamValue::fromString(paramType, val);
         ParamValue* tmpVal=addNewInput(ParamDefinition(true, paramType, nameIn, helper, tmpValLoaded));
-
-        bool link = it1->second.get("Link", false);
 
         if (!link)
         {
@@ -225,7 +213,7 @@ namespace charliesoft
         else
           toUpdate.push_back(std::pair<ParamValue*, unsigned int>(tmpVal, lexical_cast<unsigned int>(val)));
       }
-      if (it1->first.compare("Output") == 0)
+      if (it1->first.compare("Output_to_create") == 0)
       {
         string nameOut = it1->second.get("Name", "Error");
         string helper = it1->second.get("Helper", nameOut);
@@ -235,19 +223,7 @@ namespace charliesoft
         string val = it1->second.get("ID", "0");
         addressesMap[lexical_cast<unsigned int>(val)] = tmpVal;
       }
-      if (it1->first.compare("Condition") == 0)
-      {
-        int cLeft = it1->second.get("category_left", 0);
-        int cRight = it1->second.get("category_right", 0);
-        int cOperator = it1->second.get("boolean_operator", 0);
-
-        double valLeft = it1->second.get("_valueleft", 0.);
-        double valRight = it1->second.get("_valueright", 0.);
-        addCondition(ConditionOfRendering(cLeft, valLeft, cRight, valRight, cOperator,
-          this));
-        if (cLeft == 1 || cRight == 1)//output of block...
-          condToUpdate.push_back(&_conditions.back());
-      }
+      
       if (it1->first.compare("SubGraph") == 0)
         _subGraph->fromGraph(it1->second, addressesMap);
 
@@ -289,10 +265,7 @@ namespace charliesoft
     }
 
 
-    ptree tree;
-    tree.put("name", _name);
-    tree.put("position", _position);
-    tree.put("size_increment", _sizeIncrement);
+    ptree tree = Block::getXML();
 
     for (auto it = _myInputs.begin();
       it != _myInputs.end(); it++)
@@ -310,7 +283,7 @@ namespace charliesoft
       else
         paramTree.put("Value", (unsigned int)it->second.get<ParamValue*>());
 
-      tree.add_child("Input", paramTree);
+      tree.add_child("Input_to_create", paramTree);
     }
 
     for (auto it = _myOutputs.begin();
@@ -324,7 +297,7 @@ namespace charliesoft
       paramTree.put("ParamType", pDef._type);
       paramTree.put("ID", (unsigned int)&it->second);
 
-      tree.add_child("Output", paramTree);
+      tree.add_child("Output_to_create", paramTree);
     }
 
     //create also the subgraph xml:
@@ -351,11 +324,6 @@ namespace charliesoft
 
       tree.add_child("OutputLink", paramTree);
     }
-
-    for (auto it = _conditions.begin();
-      it != _conditions.end(); it++)
-      tree.add_child("Condition", it->getXML());
-
     return tree;
   };
 

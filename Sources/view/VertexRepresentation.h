@@ -53,12 +53,14 @@ namespace charliesoft
       MouseDiagResize,
       MouseDragOpen,
       MouseDragClose,
+      MouseCreateLink,
       MouseIn
     };
   public:
     MainVertexBlock(GroupParamRepresentation* parent);
 
     MouseState getState() const { return _state; };
+    void setState(MouseState newState) { _state = newState; };
 
   protected:
     void updateMouseState(const QPoint &pos);
