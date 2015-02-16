@@ -540,7 +540,14 @@ namespace charliesoft
     ParamRepresentation* param = dynamic_cast<ParamRepresentation*>(childAtEnd);
     ParamRepresentation* startParam = dynamic_cast<ParamRepresentation*>(_startParam);
     if (param == startParam)
-      return;//nothing to do, just a click on parameter link...
+    {
+      //someone want to select this block as preview!
+      VertexRepresentation* paramRep = param->getVertex();
+      if (paramRep != NULL)
+        paramRep->setPreview(param);
+
+      return;
+    }
 
     if (param != NULL && startParam != NULL)
     {

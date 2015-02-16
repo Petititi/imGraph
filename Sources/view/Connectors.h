@@ -48,6 +48,7 @@ namespace charliesoft
   protected:
     bool _isInput;
     bool _shouldShow;
+    VertexRepresentation* _activeVertex;
     VertexRepresentation* _vertex;
     std::string _name;
   public:
@@ -59,6 +60,7 @@ namespace charliesoft
     virtual void mouseMoveEvent(QMouseEvent *);
 
     std::string getName() const { return _name; }
+    VertexRepresentation* getVertex() const { return _vertex; }
 
     bool isInput() const { return _isInput; }
 

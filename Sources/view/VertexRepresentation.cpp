@@ -183,6 +183,9 @@ namespace charliesoft
   GroupParamRepresentation::GroupParamRepresentation(std::string title):
     _sizeIncrement(0,0)
   {
+    _preview = NULL;
+    _previewLink = NULL;
+
     _blockRepresentation = new MainVertexBlock(this);
     _conditionsRepresentation = new QWidget(this);
 
@@ -355,7 +358,10 @@ namespace charliesoft
       tmp->resize(maxInputWidth, tmpSize.height() + 5);
       tmp->move(-2, inputHeight);//move the name at the top of vertex...
       if (tmp->shouldShow())
+      {
         inputHeight += tmpSize.height() + 10;
+        tmp->raise();
+      }
     }
     for (auto tmp : _listOfInputSubParams)
     {
@@ -363,7 +369,10 @@ namespace charliesoft
       tmp.second->resize(maxInputWidth, tmpSize.height() + 5);
       tmp.second->move(-2, inputHeight);//move the name at the top of vertex...
       if (tmp.second->shouldShow())
+      {
         inputHeight += tmpSize.height() + 10;
+        tmp.second->raise();
+      }
     }
     for (auto tmp : _listOfOutputChilds)
     {
@@ -371,16 +380,24 @@ namespace charliesoft
       tmp->resize(maxOutputWidth, tmpSize.height() + 5);
       tmp->move(newWidth - maxOutputWidth + 4, outputHeight);//move the name at the top of vertex...
       if (tmp->shouldShow())
+      {
         outputHeight += tmpSize.height() + 10;
+        tmp->raise();
+      }
     }
 
     _vertexTitle->move((newWidth - sizeNameVertex.width()) / 2, 5);//move the name at the top of vertex...
 
     _lineTitle->resize(newWidth, 2);
     _lineTitle->move(0, sizeNameVertex.height() + 8);//move the name at the top of vertex...
-
-
+    
     projectedHeight += max(inputHeight, outputHeight) + _sizeIncrement.y();
+
+    if (_preview != NULL)
+    {
+      _preview->resize(newWidth, projectedHeight - sizeNameVertex.height() - 30);
+      _preview->move(0, sizeNameVertex.height() + 10);//move the name at the top of vertex...
+    }
 
     heightOfConditions = sizeNameVertex.height();
     _blockRepresentation->resize(newWidth, projectedHeight - 20);
@@ -646,6 +663,104 @@ namespace charliesoft
     _blockRepresentation->move(0, 5);
   }
 
+  void GroupParamRepresentation::updatePreview(ParamValue* val)
+  {
+    if (val != NULL)
+    {
+      bool isNew = false;
+      switch (val->getType(false))
+      {
+      case Boolean:
+        if (_preview == NULL)
+        {
+          isNew = true;
+          _preview = new QLabel(_blockRepresentation);
+        }
+        if (val->get<bool>())
+          ((QLabel*)_preview)->setText(_QT("TRUE"));
+        else
+          ((QLabel*)_preview)->setText(_QT("FALSE"));
+        break;
+      case Int:
+        if (_preview == NULL)
+        {
+          isNew = true;
+          _preview = new QLabel(_blockRepresentation);
+        }
+        ((QLabel*)_preview)->setText(QString::number(val->get<int>()));
+        break;
+      case Float:
+        if (_preview == NULL)
+        {
+          isNew = true;
+          _preview = new QLabel(_blockRepresentation);
+        }
+        ((QLabel*)_preview)->setText(QString::number(val->get<double>()));
+        break;
+      case Matrix:
+      {
+        cv::Mat img = val->get<cv::Mat>();
+        if ((img.cols / (double)img.rows < 0.1) || (img.rows / (double)img.cols < 0.1))
+          break;//nothing to do, not an image, probably a vector...
+        if ((img.cols < 20) || (img.rows < 20))
+          break;//too small image...
+        if (_preview == NULL)
+        {
+          isNew = true;
+          _preview = new ImageViewer(_blockRepresentation);
+        }
+        ((ImageViewer*)_preview)->setImage(img);
+        break;
+      }
+      case String:
+      case FilePath:
+      case Color:
+        if (_preview == NULL)
+        {
+          isNew = true;
+          _preview = new QLabel(_blockRepresentation);
+        }
+        ((QLabel*)_preview)->setText(val->toString().c_str());
+        break;
+      default://nothing to do...
+        break;
+      }
+
+      if (isNew)
+      {
+        QLabel *label = dynamic_cast<QLabel *>(_preview);
+        if (NULL != label)
+          label->setAlignment(Qt::AlignCenter);
+
+        _preview->setVisible(true);
+        reshape();
+      }
+    }
+  }
+  void GroupParamRepresentation::setPreview(LinkConnexionRepresentation* paramSelected)
+  {
+    ParamRepresentation* paramRep= dynamic_cast<ParamRepresentation *>(paramSelected);
+    if (NULL != paramRep)
+    {
+      if (_previewLink!=NULL)
+        disconnect(_previewLink, SIGNAL(paramUpdated()), this, SLOT(paramUpdated()));
+
+      if (_previewLink != paramSelected)
+      {
+        _previewLink = paramSelected;
+        ParamValue* val = paramRep->getParamValue();
+        updatePreview(val);
+        connect(val, SIGNAL(paramUpdated()), SLOT(paramUpdated()));
+      }
+      else
+      {
+        delete _preview;
+        _previewLink = NULL;
+        _preview = NULL;
+      }
+    }
+  }
+
 
   VertexRepresentation::~VertexRepresentation()
   {
@@ -664,11 +779,10 @@ namespace charliesoft
 
     createListParamsFromModel();
 
-    _sizeIncrement.setX(model->getSizeIncrement().x);
-    _sizeIncrement.setY(model->getSizeIncrement().y);
+    _sizeIncrement.setX(static_cast<int>(model->getSizeIncrement().x));
+    _sizeIncrement.setY(static_cast<int>(model->getSizeIncrement().y));
 
     reshape();
-
 
     move((int)model->getPosition().x, (int)model->getPosition().y);
     _blockRepresentation->move(0, 5);
@@ -683,13 +797,15 @@ namespace charliesoft
 
   void VertexRepresentation::updatePosition()
   {
-    _model->setIncrSize(_sizeIncrement.x(), _sizeIncrement.y());
+    _model->setIncrSize(static_cast<float>(_sizeIncrement.x()),
+      static_cast<float>(_sizeIncrement.y()));
   }
 
   void VertexRepresentation::moveDelta(QPoint delta)
   {
     QPoint newPos = pos() + delta;
-    _model->setPosition(newPos.x(), newPos.y(), _sizeIncrement.x(), _sizeIncrement.y());
+    _model->setPosition(newPos.x(), newPos.y(), 
+      static_cast<float>(_sizeIncrement.x()), static_cast<float>(_sizeIncrement.y()));
     GroupParamRepresentation::moveDelta(delta);
   }
 
@@ -770,4 +886,10 @@ namespace charliesoft
     GroupParamRepresentation::reshape();
   }
 
+  void VertexRepresentation::paramUpdated()
+  {
+    ParamValue* val = dynamic_cast<ParamValue*>(sender());
+    if (val != NULL)
+      updatePreview(val);
+  }
 }

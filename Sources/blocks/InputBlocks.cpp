@@ -248,7 +248,7 @@ protected:
     _myOutputs["BLOCK__INPUT_OUT_FRAMERATE"] = fps;
     _myOutputs["BLOCK__INPUT_INOUT_WIDTH"] = frame.cols;
     _myOutputs["BLOCK__INPUT_INOUT_HEIGHT"] = frame.rows;
-    _myOutputs["BLOCK__INPUT_INOUT_POS_FRAMES"] = processor_.getProperty(cv::CAP_PROP_POS_FRAMES);
+    _myOutputs["BLOCK__INPUT_INOUT_POS_FRAMES"] = (int)processor_.getProperty(cv::CAP_PROP_POS_FRAMES);
     _myOutputs["BLOCK__INPUT_INOUT_POS_RATIO"] = processor_.getProperty(cv::CAP_PROP_POS_AVI_RATIO);
     _myOutputs["BLOCK__INPUT_OUT_FORMAT"] = frame.type();
 

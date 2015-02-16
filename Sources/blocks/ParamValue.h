@@ -9,7 +9,9 @@
 #include <opencv2/core/core.hpp>
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
+
 #include <set>
+#include <QWidget>
 #include <QString>
 #ifdef _WIN32
 #pragma warning(pop)
@@ -47,8 +49,10 @@ namespace charliesoft
     ParamValue*,
     Not_A_Value > VariantClasses;
 
-  class ParamValue
+  class ParamValue : public QObject
   {
+    Q_OBJECT;
+
     mutable boost::recursive_mutex _mtx;    //< explicit mutex declaration
     boost::condition_variable _cond_sync;  //< global sync condition
     mutable bool _newValue;  //< is this value not yet processed?
@@ -185,7 +189,7 @@ namespace charliesoft
         boost::get<ParamValue*>(_value) != NULL;
     };
 
-    ParamType getType(bool realType=true) const;
+    ParamType getType(bool allow_AnyType = true) const;
     Block * getBlock() const { return _block; };
     void setBlock(Block *b) { _block=b; };
 
@@ -249,6 +253,7 @@ namespace charliesoft
 
     void valid_and_set(const ParamValue& v);
 
+    Q_SIGNAL void paramUpdated();
   };
 }
 

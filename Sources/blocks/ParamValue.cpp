@@ -39,7 +39,7 @@ namespace charliesoft
     return "";
   }
 
-  ParamType ParamValue::getType(bool realType) const{
+  ParamType ParamValue::getType(bool allow_AnyType) const{
     if (_block == NULL)
       return typeError;
     ParamType out = typeError;
@@ -61,7 +61,7 @@ namespace charliesoft
             return out;
         }
       }
-      if ((out == AnyType && !realType) ||
+      if ((out == AnyType && !allow_AnyType) ||
         (out != AnyType))
       {
         //try to find value type:
@@ -229,6 +229,7 @@ namespace charliesoft
   }
   void ParamValue::notifyUpdate(bool isNew)
   {
+    emit paramUpdated();//for UI
     _newValue = isNew;
     for (auto listener : _distantListeners)
       listener->notifyUpdate(isNew);

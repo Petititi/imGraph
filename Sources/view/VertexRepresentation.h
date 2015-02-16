@@ -30,6 +30,7 @@
 #endif
 
 #include "Block.h"
+#include "ImagePreview.h"
 
 #include <map>
 #include "Window.h"
@@ -39,6 +40,7 @@
 namespace charliesoft
 {
   class GroupParamRepresentation;
+
   class MainVertexBlock : public QWidget
   {
     Q_OBJECT;
@@ -76,6 +78,10 @@ namespace charliesoft
   {
     Q_OBJECT;
   protected:
+
+    LinkConnexionRepresentation* _previewLink;
+    QWidget* _preview;
+
     MainVertexBlock* _blockRepresentation;
     QWidget* _conditionsRepresentation;
     QFrame* _lineTitle;
@@ -130,12 +136,15 @@ namespace charliesoft
       return _selectedBlock;
     };
 
+    void setPreview(LinkConnexionRepresentation* paramSelected);
+
     LinkConnexionRepresentation* getParamRep(std::string paramName, bool input);
     std::vector<LinkConnexionRepresentation*>& getListOfInputChilds() { return _listOfInputChilds; }
     std::map<std::string, LinkConnexionRepresentation*>& getListOfSubParams() { return _listOfInputSubParams; }
     std::vector<LinkConnexionRepresentation*>& getListOfOutputChilds() { return _listOfOutputChilds; }
   protected:
     ConditionLinkRepresentation* getCondition(ConditionOfRendering*, bool isLeft);
+    void updatePreview(ParamValue* val);
 
     virtual void moveDelta(QPoint delta);
     virtual void updatePosition(){};
@@ -167,7 +176,6 @@ namespace charliesoft
 
     virtual LinkConnexionRepresentation* addNewInputParam(ParamDefinition def);
     virtual LinkConnexionRepresentation* addNewOutputParam(ParamDefinition def);
-
   protected:
     virtual void enterEvent(QEvent *);
     void createListParamsFromModel();
@@ -177,6 +185,7 @@ namespace charliesoft
 
     public slots:
     virtual void reshape();
+    virtual void paramUpdated();
   };
 
 }

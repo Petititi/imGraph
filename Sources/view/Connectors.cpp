@@ -112,7 +112,7 @@ namespace charliesoft
     setToolTip("<FONT>" + _QT(param._helper) + "</FONT>");
     if (_vertex != NULL)
     {
-        connect(this, SIGNAL(askSynchro()), _vertex, SLOT(reshape()));
+      connect(this, SIGNAL(askSynchro()), _vertex, SLOT(reshape()));
     }
   };
 
@@ -163,11 +163,12 @@ namespace charliesoft
   LinkConnexionRepresentation::LinkConnexionRepresentation(std::string text, bool isInput, QWidget *father) :
     QLabel(_QT(text), father), _isInput(isInput)
   {
+    QWidget* tmp = father->parentWidget();
     if (father!=NULL)
       _vertex = dynamic_cast<VertexRepresentation*>(father->parentWidget());
     else
       _vertex = NULL;
-
+    _activeVertex = NULL;
     _name = text;
   };
   QPoint LinkConnexionRepresentation::getWorldAnchor()
@@ -190,21 +191,23 @@ namespace charliesoft
 
   void LinkConnexionRepresentation::mousePressEvent(QMouseEvent *e)
   {
-    QWidget* parent = parentWidget();
-    if (parent == NULL) return;//Nothing to do...
-    if (_vertex = dynamic_cast<VertexRepresentation*>(parent->parentWidget()))
-      _vertex->setParamActiv(this);
+    if (_vertex == NULL) return;//Nothing to do...
+
+    _activeVertex = _vertex;
+    _activeVertex->setParamActiv(this);
+
     setCursor(Qt::CrossCursor);
     //get the position of widget inside main widget and send signal of a new link creation:
     emit creationLink(getWorldAnchor());
     e->ignore();
   }
+
   void LinkConnexionRepresentation::mouseReleaseEvent(QMouseEvent *e)
   {
-    if (_vertex!=NULL)
-      _vertex->setParamActiv(NULL);
+    if (_activeVertex != NULL)
+      _activeVertex->setParamActiv(NULL);
 
-    _vertex = NULL;
+    _activeVertex = NULL;
     setCursor(Qt::ArrowCursor);
 
     emit releaseLink(Window::getInstance()->getMainWidget()->mapFromGlobal(e->globalPos()));

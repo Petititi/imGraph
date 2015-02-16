@@ -75,6 +75,9 @@ namespace charliesoft
 
   void Internationalizator::initTranslations()
   {
+    translations["TRUE"] = "True";
+    translations["FALSE"] = "False";
+
     translations["BUTTON_OK"] = "OK";
     translations["BUTTON_CANCEL"] = "Cancel";
     translations["BUTTON_DELETE"] = "Delete";
