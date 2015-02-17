@@ -81,7 +81,7 @@ namespace charliesoft
       QPainter p(this);
       p.drawImage(QRect(0, 0, width(), height()), _img, QRect(0, 0, _img.width(), _img.height()));
     }
-  public:
+  public: 
     ImageViewer(QWidget * parent = 0) : QWidget(parent) {
       setAttribute(Qt::WA_OpaquePaintEvent);
       _converter = new Converter();
@@ -98,6 +98,12 @@ namespace charliesoft
       update();
     }
     Q_SIGNAL void matReady(cv::Mat);
+
+  protected:
+    virtual void mouseMoveEvent(QMouseEvent *event);
+
+    virtual void enterEvent(QEvent *event);
+    virtual void leaveEvent(QEvent *event);
   };
 
 }

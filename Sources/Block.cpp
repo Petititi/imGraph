@@ -354,9 +354,10 @@ namespace charliesoft
     boost::unique_lock<boost::mutex> guard(_mtx_timestamp_inc);
     //each params is marked as not new...
     for (auto it = _myInputs.begin(); it != _myInputs.end(); it++)
-      it->second.setNew(true);
+      if (it->second.isLinked())
+        it->second.setNew(false);
     for (auto it = _myOutputs.begin(); it != _myOutputs.end(); it++)
-      it->second.setNew(true);
+      it->second.setNew(false);
 
     if (_state!=stopped)
       _state = waitingChild;
@@ -367,10 +368,8 @@ namespace charliesoft
     boost::unique_lock<boost::mutex> guard(_mtx_timestamp_inc);
     //each params is marked as not new...
     for (auto it = _myInputs.begin(); it != _myInputs.end(); it++)
-    {
-      //if (it->second.isLinked())
       it->second.setNew(false);
-    }
+
     _state = consumedParams;
   }
 

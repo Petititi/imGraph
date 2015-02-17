@@ -77,6 +77,7 @@ namespace charliesoft
   {
     translations["TRUE"] = "True";
     translations["FALSE"] = "False";
+    translations["ALL_TYPES"] = "All types";
 
     translations["BUTTON_OK"] = "OK";
     translations["BUTTON_CANCEL"] = "Cancel";
@@ -217,6 +218,7 @@ namespace charliesoft
     translations["BLOCK__INPUT_IN_FILE_HELP"] = "File to load.";
     translations["BLOCK__INPUT_IN_FILE_FILTER"] = "media files";
     translations["BLOCK__INPUT_IN_FILE_NOT_FOUND"] = "File \"%1$s\" not found!";
+    translations["BLOCK__INPUT_IN_FILE_NOT_FOLDER"] = "File \"%1$s\" is not a folder!";
     translations["BLOCK__INPUT_IN_FILE_PROBLEM"] = "File \"%1$s\" can't be loaded!";
     translations["BLOCK__INPUT_IN_LOOP"] = "loop";
     translations["BLOCK__INPUT_IN_LOOP_HELP"] = "Loop video file (if <0, infinite loop)";

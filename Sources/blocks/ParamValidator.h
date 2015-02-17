@@ -65,6 +65,31 @@ namespace charliesoft
     }
   };
 
+  class FileIsFolder :public ParamValidator
+  {
+  public:
+    FileIsFolder(){};
+    virtual void validate(const ParamValue& value)
+    {
+      if (value.isDefaultValue())
+        return;//nothing to do as value is not set!
+      if (!boost::filesystem::exists(value.toString()))
+      {
+        if (paramToValid_ == NULL)
+          throw (ErrorValidator(_STR("ERROR_GENERIC")));
+        else
+          throw (ErrorValidator((my_format(_STR("BLOCK__INPUT_IN_FILE_NOT_FOUND")) % value.toString()).str()));
+      }
+      if (!boost::filesystem::is_directory(value.toString()))
+      {
+        if (paramToValid_ == NULL)
+          throw (ErrorValidator(_STR("ERROR_GENERIC")));
+        else
+          throw (ErrorValidator((my_format(_STR("BLOCK__INPUT_IN_FILE_NOT_FOLDER")) % value.toString()).str()));
+      }
+    }
+  };
+
   class ValPositiv :public ParamValidator
   {
     bool isStrict_;

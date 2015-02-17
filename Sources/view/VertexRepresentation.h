@@ -62,8 +62,8 @@ namespace charliesoft
     MouseState getState() const { return _state; };
     void setState(MouseState newState) { _state = newState; };
 
-  protected:
     void updateMouseState(const QPoint &pos);
+  protected:
 
     virtual void mouseMoveEvent(QMouseEvent *);
     virtual void paintEvent(QPaintEvent *);

@@ -57,7 +57,7 @@ protected:
 
   BlockLoader::BlockLoader() :Block("BLOCK__INPUT_NAME", false){
     _mySubParams["BLOCK__INPUT_IN_INPUT_TYPE.Video file.input file"].addValidator({ new ValFileExist() });
-    _mySubParams["BLOCK__INPUT_IN_INPUT_TYPE.Folder.input folder"].addValidator({ new ValFileExist() });
+    _mySubParams["BLOCK__INPUT_IN_INPUT_TYPE.Folder.input folder"].addValidator({ new FileIsFolder() });
     _myInputs["BLOCK__INPUT_INOUT_WIDTH"].addValidator({ new ValPositiv(true) });
     _myInputs["BLOCK__INPUT_INOUT_HEIGHT"].addValidator({ new ValPositiv(true) });
     _myInputs["BLOCK__INPUT_INOUT_POS_FRAMES"].addValidator({ new ValPositiv(false) });

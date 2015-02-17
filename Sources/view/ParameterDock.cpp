@@ -694,11 +694,18 @@ namespace charliesoft
     ParamRepresentation* paramRep = _inputValue21[tmp];
     QFileDialog dialog(this, _QT(paramRep->getParamHelper()), tmp->text());
     QString fileName;
-    if (paramRep->getParamValue()->containValidator<ValFileExist>())
+    ParamValue* val = paramRep->getParamValue();
+    if (val->containValidator<ValFileExist>())
     {
       fileName = QFileDialog::getOpenFileName(this, _QT(paramRep->getParamHelper()), tmp->text(),
         _QT("BLOCK__INPUT_IN_FILE_FILTER") +
-        " (*.bmp *.pbm *.pgm *.ppm *.sr *.ras *.jpeg *.jpg *.jpe *.jp2 *.tiff *.tif *.png *.avi *.mov *.mxf *.wmv *.asf)");
+        " (*.bmp *.pbm *.pgm *.ppm *.sr *.ras *.jpeg *.jpg *.jpe *.jp2 *.tiff *.tif *.png *.avi *.mov *.mxf *.wmv *.asf);;" +
+        _QT("ALL_TYPES") + " (*.*)");
+    }
+    else if (val->containValidator<FileIsFolder>())
+    {
+      fileName = QFileDialog::getExistingDirectory(this, _QT(paramRep->getParamHelper()), tmp->text(),
+        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     }
     else
     {

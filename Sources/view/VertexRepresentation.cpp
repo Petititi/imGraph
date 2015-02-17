@@ -93,7 +93,6 @@ namespace charliesoft
     else
       newState = MouseIn;
 
-
     if (newState != _state)
     {
       _state = newState;
@@ -145,7 +144,7 @@ namespace charliesoft
   void MainVertexBlock::enterEvent(QEvent *e)
   {
     QEnterEvent *me = dynamic_cast<QEnterEvent *>(e);
-    if (NULL != me)
+    if (NULL != me)//to have access to pos()...
     {
       _state = MouseIn;
       setMouseTracking(true);
