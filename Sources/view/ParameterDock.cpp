@@ -775,7 +775,10 @@ namespace charliesoft
     {
       QLineEdit* value = dynamic_cast<QLineEdit*>(_inputValue12.at(paramRep));
       if (value != NULL)
-        val = ParamValue::fromString(param->getType(), value->text().toLocal8Bit().toStdString());
+      {
+        QByteArray valUTF8 = value->text().toLocal8Bit();
+        val = ParamValue::fromString(param->getType(), std::string(valUTF8.constData(), valUTF8.length()));
+      }
     }
 
     if (param->getType() == ListBox)
