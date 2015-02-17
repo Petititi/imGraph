@@ -264,6 +264,9 @@ namespace charliesoft
     virtual void init(){};
     virtual void release(){};
 
+    ///Use this function to reset state of process (mark every input/output as old)
+    void markAsUnprocessed();
+
     int getPerf() const { return _perfCounter.getMeanPerf(); }
 
     virtual void setGraph(GraphOfProcess* processes){

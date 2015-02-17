@@ -140,10 +140,10 @@ namespace charliesoft
         ParamValue* other = it->second.get<ParamValue*>();
         while (!it->second.isNew())
         {//we have to wait for any update!
-          std::cout << "---  " << _STR(process->getName()) << " -> Wait " << _STR(it->second.getName()) << endl;
+          //std::cout << "---  " << _STR(process->getName()) << " -> Wait " << _STR(it->second.getName()) << endl;
           process->setState(Block::waitingChild);
           other->getBlock()->waitProducers(lock);//wait for parameter update!
-          std::cout << "---  " << _STR(process->getName()) << " <- unblock " << _STR(it->second.getName()) << endl;
+          //std::cout << "---  " << _STR(process->getName()) << " <- unblock " << _STR(it->second.getName()) << endl;
         }
       }
     }//ok, every ancestor have produced a value!
@@ -158,10 +158,10 @@ namespace charliesoft
             ParamValue* distVal = link._to->getParam(link._toParam, true);
             if (distVal->isDefaultValue() || !distVal->isNew())
             {
-              std::cout << "---  subBlock_" << _STR(link._to->getName()) << " -> Wait " << _STR(link._fromParam) << endl;
+              //std::cout << "---  subBlock_" << _STR(link._to->getName()) << " -> Wait " << _STR(link._fromParam) << endl;
               process->setState(Block::waitingChild);
               _subBlock->waitUpdateParams(lock);//wait for parameter update!
-              std::cout << "---  subBlock_" << _STR(link._to->getName()) << " <- unblock " << _STR(link._fromParam) << endl;
+              //std::cout << "---  subBlock_" << _STR(link._to->getName()) << " <- unblock " << _STR(link._fromParam) << endl;
             }
           }
         }
@@ -177,6 +177,7 @@ namespace charliesoft
   {
     boost::unique_lock<boost::mutex> lock(_mtx);
     _waitingForRendering[process].clear();
+    cout << "___clearWaitingList___" << endl;
   }
 
   void GraphOfProcess::shouldWaitConsumers(Block* process)
@@ -221,11 +222,11 @@ namespace charliesoft
 
   void GraphOfProcess::blockProduced(Block* process, bool fullyRendered)
   {
-    boost::unique_lock<boost::mutex> lock(_mtx);
+    boost::unique_lock<boost::mutex> lock(_mtx);/*
     if (fullyRendered)
       std::cout << " \t\t\t  " << _STR(process->getName()) << " Produced!" << endl;
     else
-      std::cout << " \t\t\t  " << _STR(process->getName()) << " partially rendered!" << endl;
+      std::cout << " \t\t\t  " << _STR(process->getName()) << " partially rendered!" << endl;*/
     //wake up linked output blocks
     process->notifyProduction();
 
@@ -234,9 +235,12 @@ namespace charliesoft
       //remove this block for every waiting thread:
       for (auto& waitThread : _waitingForRendering)
       {
-        waitThread.second.erase(process);
-        if (waitThread.second.empty())
-          waitThread.first->wakeUpFromConsumers();
+        if (waitThread.first != process)
+        {
+          waitThread.second.erase(process);
+          if (waitThread.second.empty())
+            waitThread.first->wakeUpFromConsumers();
+        }
       }
     }
   }
@@ -275,6 +279,7 @@ namespace charliesoft
     for (auto it = _vertices.begin();
       it != _vertices.end(); it++)
     {
+      (*it)->markAsUnprocessed();
       (*it)->setExecuteOnlyOnce(singleShot);
       _runningThread[*it] = boost::thread(boost::ref(**it));
     }

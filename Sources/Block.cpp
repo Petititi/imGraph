@@ -269,6 +269,7 @@ namespace charliesoft
     _executeOnlyOnce = false;
   };
 
+
   void Block::operator()()
   {
     boost::unique_lock<boost::mutex> lock(_mtx);
@@ -346,6 +347,19 @@ namespace charliesoft
       //and we should be processing the value...
       _wait_processed.wait(lock);//wait the update!
     }
+  }
+
+  void Block::markAsUnprocessed()
+  {
+    boost::unique_lock<boost::mutex> guard(_mtx_timestamp_inc);
+    //each params is marked as not new...
+    for (auto it = _myInputs.begin(); it != _myInputs.end(); it++)
+      it->second.setNew(true);
+    for (auto it = _myOutputs.begin(); it != _myOutputs.end(); it++)
+      it->second.setNew(true);
+
+    if (_state!=stopped)
+      _state = waitingChild;
   }
 
   void Block::paramsFullyProcessed()
