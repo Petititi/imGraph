@@ -58,6 +58,7 @@ namespace charliesoft
     virtual void mouseReleaseEvent(QMouseEvent *);
     virtual void mouseDoubleClickEvent(QMouseEvent *);
     virtual void mouseMoveEvent(QMouseEvent *);
+    virtual void enterEvent(QEvent *);
 
     std::string getName() const { return _name; }
     VertexRepresentation* getVertex() const { return _vertex; }
@@ -66,12 +67,14 @@ namespace charliesoft
 
     virtual bool shouldShow() const { return _shouldShow; }
     virtual void setVisibility(bool visible);
+    void changeStyleProperty(const char* propertyName, QVariant val);
 
     QPoint getWorldAnchor();
   signals:
     void creationLink(QPoint startPos);
     void releaseLink(QPoint endPos);
     void askSynchro();
+
   };
 
   class ConditionLinkRepresentation :public LinkConnexionRepresentation

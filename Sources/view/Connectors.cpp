@@ -189,6 +189,14 @@ namespace charliesoft
     emit askSynchro();
   }
 
+  void LinkConnexionRepresentation::changeStyleProperty(const char* propertyName, QVariant val)
+  {
+    setProperty(propertyName, val);
+    style()->unpolish(this);
+    style()->polish(this);
+    update();
+  }
+
   void LinkConnexionRepresentation::mousePressEvent(QMouseEvent *e)
   {
     if (_vertex == NULL) return;//Nothing to do...
@@ -220,4 +228,10 @@ namespace charliesoft
   {
     me->ignore();
   };
+
+  void LinkConnexionRepresentation::enterEvent(QEvent *)
+  {
+    setCursor(Qt::CrossCursor);
+  }
+
 }

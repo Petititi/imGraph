@@ -138,7 +138,7 @@ namespace charliesoft
       return _selectedBlock;
     };
 
-    void setPreview(LinkConnexionRepresentation* paramSelected);
+    void setPreview(LinkConnexionRepresentation* paramSelected, bool force = false);
 
     LinkConnexionRepresentation* getParamRep(std::string paramName, bool input);
     std::vector<LinkConnexionRepresentation*>& getListOfInputChilds() { return _listOfInputChilds; }
@@ -146,7 +146,7 @@ namespace charliesoft
     std::vector<LinkConnexionRepresentation*>& getListOfOutputChilds() { return _listOfOutputChilds; }
   protected:
     ConditionLinkRepresentation* getCondition(ConditionOfRendering*, bool isLeft);
-    void updatePreview(ParamValue* val);
+    bool updatePreview(ParamValue* val);
 
     virtual void moveDelta(QPoint delta);
     virtual void updatePosition(){};

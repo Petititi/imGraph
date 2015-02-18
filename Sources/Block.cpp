@@ -259,6 +259,7 @@ namespace charliesoft
   }
 
   Block::Block(std::string name, bool isOneShot, BlockType typeExec){
+    _currentPreview = "None";
     _isOneShot = isOneShot;
     _state = stopped;
     _threadID = boost::thread::id();
@@ -597,6 +598,9 @@ namespace charliesoft
 
     setPosition(lexical_cast<float>(xPos), lexical_cast<float>(yPos),
       lexical_cast<float>(xInc), lexical_cast<float>(yInc));
+
+    _currentPreview = block->get("preview_active", "None");
+
     for (ptree::iterator it1 = block->begin(); it1 != block->end(); it1++)
     {
       if (it1->first.compare("Input") == 0)
@@ -676,6 +680,7 @@ namespace charliesoft
     tree.put("name", _name);
     tree.put("position", _position);
     tree.put("size_increment", _sizeIncrement);
+    tree.put("preview_active", _currentPreview);
     vector<string> inputWithSubparams;
 
     ProcessManager* pm = ProcessManager::getInstance();

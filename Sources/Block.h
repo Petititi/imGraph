@@ -229,6 +229,8 @@ namespace charliesoft
     cv::Point2f _position;
     cv::Point2f _sizeIncrement;
 
+    std::string _currentPreview;
+
     std::map<std::string, ParamValue> _myOutputs;
     std::map<std::string, ParamValue> _myInputs;
     std::map<std::string, ParamValue> _mySubParams;
@@ -266,6 +268,9 @@ namespace charliesoft
 
     ///Use this function to reset state of process (mark every input/output as old)
     void markAsUnprocessed();
+
+    std::string getCurrentPreview() const { return _currentPreview; }
+    void setCurrentPreview(std::string val) { _currentPreview = val; }
 
     int getPerf() const { return _perfCounter.getMeanPerf(); }
 

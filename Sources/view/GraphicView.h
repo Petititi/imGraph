@@ -103,7 +103,7 @@ namespace charliesoft
     virtual QSize sizeHint() const;
     virtual QSize minimumSizeHint() const;
 
-    charliesoft::GraphOfProcess *getModel() const {return _model;};
+    charliesoft::GraphOfProcess *getModel() const { return _model; };
 
     public slots:
     void initLinkCreation(QPoint start);

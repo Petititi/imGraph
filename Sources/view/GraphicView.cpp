@@ -289,6 +289,18 @@ namespace charliesoft
           found = true;
       }
 
+      //activate preview:
+      VertexRepresentation *vr = dynamic_cast<VertexRepresentation *>(it_->second->widget());
+      if (NULL != vr && it_->first->getCurrentPreview().compare("None")==string::npos)
+      {
+        //get link representation:
+        LinkConnexionRepresentation* tmpRep = vr->getParamRep(it_->first->getCurrentPreview(), false);
+        if (tmpRep==NULL)
+          tmpRep = vr->getParamRep(it_->first->getCurrentPreview(), true);
+        if (tmpRep != NULL)
+          vr->setPreview(tmpRep);
+      }
+
       if (!found)//remove this block from view:
       {
         int pos = indexOf(it_->first);

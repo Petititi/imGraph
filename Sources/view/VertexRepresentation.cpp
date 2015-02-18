@@ -678,7 +678,7 @@ namespace charliesoft
     _blockRepresentation->move(0, 5);
   }
 
-  void GroupParamRepresentation::updatePreview(ParamValue* val)
+  bool GroupParamRepresentation::updatePreview(ParamValue* val)
   {
     if (val != NULL)
     {
@@ -716,9 +716,9 @@ namespace charliesoft
       {
         cv::Mat img = val->get<cv::Mat>();
         if ((img.cols / (double)img.rows < 0.1) || (img.rows / (double)img.cols < 0.1))
-          break;//nothing to do, not an image, probably a vector...
+          return false;//nothing to do, not an image, probably a vector...
         if ((img.cols < 20) || (img.rows < 20))
-          break;//too small image...
+          return false;//too small image...
         if (_preview == NULL)
         {
           isNew = true;
@@ -750,25 +750,43 @@ namespace charliesoft
         _preview->setVisible(true);
         reshape();
       }
+      return true;
     }
+    return false;
   }
-  void GroupParamRepresentation::setPreview(LinkConnexionRepresentation* paramSelected)
+  void GroupParamRepresentation::setPreview(LinkConnexionRepresentation* paramSelected, bool force)
   {
     ParamRepresentation* paramRep= dynamic_cast<ParamRepresentation *>(paramSelected);
     if (NULL != paramRep)
     {
-      if (_previewLink!=NULL)
-        disconnect(_previewLink, SIGNAL(paramUpdated()), this, SLOT(paramUpdated()));
+      ParamRepresentation* prevRep = dynamic_cast<ParamRepresentation *>(_previewLink);
+      
+      bool isBadParam = true;
+      ParamValue* val = paramRep->getParamValue();
+      if (_previewLink != paramSelected || force)
+      {
+        isBadParam = false;
+        if (prevRep != NULL)
+        {
+          disconnect(prevRep->getParamValue(), SIGNAL(paramUpdated()), this, SLOT(paramUpdated()));
+          prevRep->changeStyleProperty("previewed", false);
+        }
 
-      if (_previewLink != paramSelected)
-      {
         _previewLink = paramSelected;
-        ParamValue* val = paramRep->getParamValue();
-        updatePreview(val);
-        connect(val, SIGNAL(paramUpdated()), SLOT(paramUpdated()));
+        _previewLink->changeStyleProperty("previewed", true);
+        val->getBlock()->setCurrentPreview(val->getName());
+
+        isBadParam = !updatePreview(val);//if we can't set preview, it's not a previewable output...
+
+        connect(val, SIGNAL(paramUpdated()), this, SLOT(paramUpdated()));
+        prevRep = paramRep;
       }
-      else
+      if (isBadParam)
       {
+        QObject::disconnect(prevRep->getParamValue(), SIGNAL(paramUpdated()), this, SLOT(paramUpdated()));
+        prevRep->changeStyleProperty("previewed", false);
+
+        val->getBlock()->setCurrentPreview("None");
         delete _preview;
         _previewLink = NULL;
         _preview = NULL;
