@@ -298,7 +298,7 @@ namespace charliesoft
         if (tmpRep==NULL)
           tmpRep = vr->getParamRep(it_->first->getCurrentPreview(), true);
         if (tmpRep != NULL)
-          vr->setPreview(tmpRep);
+          vr->setPreview(tmpRep, true);
       }
 
       if (!found)//remove this block from view:

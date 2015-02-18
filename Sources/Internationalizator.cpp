@@ -116,7 +116,20 @@ namespace charliesoft
 
     translations["BLOCK_OUTPUT"] = "output";
     translations["BLOCK_INPUT"] = "input";
-    translations["BLOCK_OUTPUT"] = "output";
+    translations["BLOCK_TITLE_INPUT"] = "Input";
+    translations["BLOCK_TITLE_IMG_PROCESS"] = "2D processing";
+    translations["BLOCK_TITLE_SIGNAL"] = "Video processing";
+    translations["BLOCK_TITLE_MATH"] = "Math op.";
+    translations["BLOCK_TITLE_OUTPUT"] = "Output";
+    translations["BLOCK_TITLE_INFOS"] = "Infos";
+    translations["BLOCK_INFOS"] = 
+      "<h1>Statistics</h1>"
+      "<table><tr><td>Mean processing time:</td><td>%1$s ms</td></tr>"
+      "<tr><td>Max processing time:</td><td>%2$s ms</td></tr>"
+      "<tr><td>Min processing time:</td><td>%3$s ms</td></tr>"
+      "<tr><td>Nb rendering:</td><td>%4$s</td></tr></table>"
+      "<h1>Errors</h1>"
+      "<p>%5$s</p>";
 
     translations["ERROR_GENERIC"] = "Error undefined!";
     translations["ERROR_GENERIC_TITLE"] = "Error!";
@@ -205,12 +218,6 @@ namespace charliesoft
     translations["FOR_BLOCK_ENDVAL_HELP"] = "Final value of counter";
     translations["FOR_BLOCK_STEPVAL"] = "step";
     translations["FOR_BLOCK_STEPVAL_HELP"] = "Step value of counter";
-
-    translations["BLOCK_TITLE_INPUT"] = "Input";
-    translations["BLOCK_TITLE_IMG_PROCESS"] = "2D processing";
-    translations["BLOCK_TITLE_SIGNAL"] = "Video processing";
-    translations["BLOCK_TITLE_MATH"] = "Math op.";
-    translations["BLOCK_TITLE_OUTPUT"] = "Output";
 
     translations["BLOCK__INPUT_NAME"] = "File Loader";
     translations["BLOCK__INPUT_IN_INPUT_TYPE"] = "input";

@@ -22,6 +22,7 @@
 #include <QCheckBox>
 #include <QPainterPath>
 #include <QGroupBox>
+#include <QBasicTimer>
 
 #include <boost/bimap.hpp>
 
@@ -72,6 +73,9 @@ namespace charliesoft
   {
     Q_OBJECT;
 
+    QLabel* _statLabel;
+    QBasicTimer _timer;
+
     std::map<QObject*, QLineEdit*> openFiles_;
     std::map<ParamRepresentation*, cv::Mat> _paramMatrix;
     std::map<ParamRepresentation*, cv::Scalar> _paramColor;
@@ -103,14 +107,19 @@ namespace charliesoft
     bool updateParamModel(ParamRepresentation* param);
 
     void addParam(ParamDefinition& param, bool input);
+
+    void updateInfoTab();
   public:
     ParamsConfigurator(VertexRepresentation* vertex);
+
+    void timerEvent(QTimerEvent * ev);
 
   signals:
     void changeVisibility(bool isVisible);
     void askSynchro();
 
     public slots:
+    void changeTab(int);
     void changeSynchro();
     void textChanged();
     void switchEnable(int);

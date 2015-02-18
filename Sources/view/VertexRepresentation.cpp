@@ -823,7 +823,7 @@ namespace charliesoft
 
   void VertexRepresentation::enterEvent(QEvent *e)
   {
-    string msg = _STR("PROCESSING_TIME") + lexical_cast<std::string>(_model->getPerf()) + "ms";
+    string msg = _STR("PROCESSING_TIME") + lexical_cast<std::string>(_model->getPerf().getMeanPerf()) + "ms";
     setToolTip(msg.c_str());
     GroupParamRepresentation::enterEvent(e);
   }

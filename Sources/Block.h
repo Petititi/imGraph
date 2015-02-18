@@ -170,10 +170,14 @@ namespace charliesoft
   class AlgoPerformance 
   {
     boost::posix_time::time_duration totalTime;
+    boost::posix_time::time_duration _maxTime;
+    boost::posix_time::time_duration _minTime;
     int nbMeasures;
   public:
     AlgoPerformance();
     int getMeanPerf() const;
+    int getMaxPerf() const{ return nbMeasures == 0 ? 0 : static_cast<int>(_maxTime.total_milliseconds()); };
+    int getMinPerf() const{ return nbMeasures == 0 ? 0 : static_cast<int>(_minTime.total_milliseconds()); };
     void addNewPerf(boost::posix_time::time_duration newTime);
   };
 
@@ -272,7 +276,7 @@ namespace charliesoft
     std::string getCurrentPreview() const { return _currentPreview; }
     void setCurrentPreview(std::string val) { _currentPreview = val; }
 
-    int getPerf() const { return _perfCounter.getMeanPerf(); }
+    const AlgoPerformance& getPerf() const { return _perfCounter; }
 
     virtual void setGraph(GraphOfProcess* processes){
       _processes = processes;

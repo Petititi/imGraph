@@ -115,7 +115,7 @@ namespace charliesoft
   };
 
   ParamsConfigurator::ParamsConfigurator(VertexRepresentation* vertex) :
-    QDialog(vertex), _vertex(vertex), 
+    QDialog(vertex), _vertex(vertex),
     _in_param(vertex->getListOfInputChilds()),
     _sub_param(vertex->getListOfSubParams()),
     _out_param(vertex->getListOfOutputChilds())
@@ -159,6 +159,7 @@ namespace charliesoft
     scrollarea->setWidgetResizable(true);
     tabs_content_.push_back(new QVBoxLayout(scrollarea));//input tab
     tabs_content_.push_back(new QVBoxLayout());//output tab
+    tabs_content_.push_back(new QVBoxLayout());//infos tab
 
     tmpWidget = new QWidget(scrollarea);
     tmpWidget->setLayout(tabs_content_[0]);
@@ -168,6 +169,13 @@ namespace charliesoft
     tmpWidget = new QWidget(this);
     tmpWidget->setLayout(tabs_content_[1]);
     tabWidget_->addTab(tmpWidget, _QT("BLOCK_TITLE_OUTPUT"));
+
+    tmpWidget = new QWidget(this);
+    tmpWidget->setLayout(tabs_content_[2]);
+    tabWidget_->addTab(tmpWidget, _QT("BLOCK_TITLE_INFOS"));
+
+    _statLabel = new QLabel("EMPTY");
+    tabs_content_[2]->addWidget(_statLabel);
 
     //fill input parameters:
     for (auto& it : _in_param)
@@ -180,7 +188,7 @@ namespace charliesoft
     for (auto& it : _out_param)
     {
       ParamRepresentation* param = dynamic_cast<ParamRepresentation*>(it);
-      if (param!=NULL)
+      if (param != NULL)
         addParamOut(param);
     }
 
@@ -197,13 +205,40 @@ namespace charliesoft
 
     QWidget* empty = new QWidget();
     empty->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    tabs_content_[0]->addWidget(empty); 
+    tabs_content_[0]->addWidget(empty);
     empty = new QWidget();
     empty->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     tabs_content_[1]->addWidget(empty);
+    empty = new QWidget();
+    empty->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    tabs_content_[2]->addWidget(empty);
 
     connect(this, SIGNAL(askSynchro()), vertex, SLOT(reshape()));
+    connect(tabWidget_, SIGNAL(currentChanged(int)), this, SLOT(changeTab(int)));
   };
+
+  void ParamsConfigurator::updateInfoTab()
+  {
+    Block* model = _vertex->getModel();
+    const AlgoPerformance& algoPerf = model->getPerf();
+    string msg = (my_format(_STR("BLOCK_INFOS")) % algoPerf.getMeanPerf() % algoPerf.getMaxPerf() % algoPerf.getMinPerf() %
+      model->getNbRendering() % model->getErrorMsg()).str();
+    _statLabel->setText(msg.c_str());
+  }
+
+  void ParamsConfigurator::timerEvent(QTimerEvent * ev) {
+    if (ev->timerId() == _timer.timerId())
+      updateInfoTab();
+  }
+
+  void ParamsConfigurator::changeTab(int newTab)
+  {
+    if (newTab == 2)
+    {
+      if (!_timer.isActive()) _timer.start(1000, this);
+      updateInfoTab();
+    }
+  }
 
   void ParamsConfigurator::addParamOut(ParamRepresentation  *p)
   {
@@ -382,7 +417,7 @@ namespace charliesoft
       }
       if (p->isVisible())
         matEditor->setEnabled(false);
-      
+
       connect(matEditor, SIGNAL(clicked()), this, SLOT(matrixEditor()));
       break;
     }
@@ -454,7 +489,7 @@ namespace charliesoft
     //find GroupBox:
     QGroupBox* groupParams = NULL;
     auto it = inputGroup_.begin();
-    while ((it != inputGroup_.end()) && groupParams==NULL)
+    while ((it != inputGroup_.end()) && groupParams == NULL)
     {
       if (it->second == value)
         groupParams = it->first;
@@ -690,7 +725,7 @@ namespace charliesoft
   {
     if (openFiles_.find(sender()) == openFiles_.end())
       return;//nothing to do...
-    QLineEdit* tmp = openFiles_[sender()]; 
+    QLineEdit* tmp = openFiles_[sender()];
     ParamRepresentation* paramRep = _inputValue21[tmp];
     QFileDialog dialog(this, _QT(paramRep->getParamHelper()), tmp->text());
     QString fileName;
@@ -737,10 +772,10 @@ namespace charliesoft
       }
       catch (ErrorValidator& e)
       {//algo doesn't accept this value!
-        if(QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"),
+        if (QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"),
           QString(e.errorMsg.c_str()) + "<br/>" + _QT("ERROR_CONFIRM_SET_VALUE"),
           QMessageBox::Apply | QMessageBox::RestoreDefaults, QMessageBox::Apply) != QMessageBox::Apply)
-        return false;//stop here the validation: should correct the error!
+          return false;//stop here the validation: should correct the error!
       }
       paramRep->setVisibility(false);
       return true;//nothing left to do as we don't use val...
@@ -797,7 +832,7 @@ namespace charliesoft
     {
       if (*param != val)
         param->valid_and_set(val);
-      else 
+      else
         return true;
     }
     catch (ErrorValidator& e)

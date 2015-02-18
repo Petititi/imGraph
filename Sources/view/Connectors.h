@@ -56,7 +56,6 @@ namespace charliesoft
 
     virtual void mousePressEvent(QMouseEvent *);
     virtual void mouseReleaseEvent(QMouseEvent *);
-    virtual void mouseDoubleClickEvent(QMouseEvent *);
     virtual void mouseMoveEvent(QMouseEvent *);
     virtual void enterEvent(QEvent *);
 

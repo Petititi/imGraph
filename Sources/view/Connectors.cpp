@@ -220,10 +220,6 @@ namespace charliesoft
 
     emit releaseLink(Window::getInstance()->getMainWidget()->mapFromGlobal(e->globalPos()));
   };
-  void LinkConnexionRepresentation::mouseDoubleClickEvent(QMouseEvent *)
-  {
-
-  };
   void LinkConnexionRepresentation::mouseMoveEvent(QMouseEvent *me)
   {
     me->ignore();

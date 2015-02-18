@@ -237,6 +237,8 @@ namespace charliesoft
   AlgoPerformance::AlgoPerformance()
   {
     nbMeasures = 0;
+    _maxTime = boost::posix_time::min_date_time;
+    _minTime = boost::posix_time::max_date_time;
   }
   int AlgoPerformance::getMeanPerf() const
   {
@@ -246,6 +248,10 @@ namespace charliesoft
   };
   void AlgoPerformance::addNewPerf(time_duration newTime)
   {
+    if (newTime > _maxTime)
+      _maxTime = newTime;
+    if (newTime < _minTime)
+      _minTime = newTime;
     totalTime += newTime;
     nbMeasures++;
   };
@@ -305,7 +311,7 @@ namespace charliesoft
           {
             _time_start = microsec_clock::local_time();
             run(_executeOnlyOnce);
-            if (_isOneShot)
+            if (_isOneShot )//&& !_executeOnlyOnce)
               paramsFullyProcessed();
             newProducedData();//tell to scheduler we produced some datas...
           } while (_state == consumingParams && !_executeOnlyOnce);
