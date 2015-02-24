@@ -289,18 +289,6 @@ namespace charliesoft
           found = true;
       }
 
-      //activate preview:
-      VertexRepresentation *vr = dynamic_cast<VertexRepresentation *>(it_->second->widget());
-      if (NULL != vr && it_->first->getCurrentPreview().compare("None")==string::npos)
-      {
-        //get link representation:
-        LinkConnexionRepresentation* tmpRep = vr->getParamRep(it_->first->getCurrentPreview(), false);
-        if (tmpRep==NULL)
-          tmpRep = vr->getParamRep(it_->first->getCurrentPreview(), true);
-        if (tmpRep != NULL)
-          vr->setPreview(tmpRep, true);
-      }
-
       if (!found)//remove this block from view:
       {
         int pos = indexOf(it_->first);
@@ -328,7 +316,20 @@ namespace charliesoft
         it_ = _items.begin();//restart iteration (we can't presume for iterator position)
       }
       else
+      {
+        //activate preview:
+        VertexRepresentation *vr = dynamic_cast<VertexRepresentation *>(it_->second->widget());
+        if (NULL != vr && it_->first->getCurrentPreview().compare("None") == string::npos)
+        {
+          //get link representation:
+          LinkConnexionRepresentation* tmpRep = vr->getParamRep(it_->first->getCurrentPreview(), false);
+          if (tmpRep == NULL)
+            tmpRep = vr->getParamRep(it_->first->getCurrentPreview(), true);
+          if (tmpRep != NULL)
+            vr->setPreview(tmpRep, true);
+        }
         it_++;
+      }
     }
 
     //test if link still exist:
