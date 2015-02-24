@@ -620,6 +620,11 @@ namespace charliesoft
         else
           Window::synchroMainGraph();
       }
+      else
+      {
+        ParamValue* paramVal = param->getParamValue();
+        paramVal->setDefaultValue();
+      }
     }
     catch (std::out_of_range&)
     {

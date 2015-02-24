@@ -145,6 +145,11 @@ namespace charliesoft
     return "";
   }
 
+  void ParamValue::setDefaultValue(){
+    boost::unique_lock<boost::recursive_mutex> lock(_mtx);
+    _value = Not_A_Value();
+  };
+
   bool ParamValue::isDefaultValue() const{
     boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     return (_value.type() == typeid(Not_A_Value)) ||

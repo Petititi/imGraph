@@ -183,6 +183,7 @@ namespace charliesoft
     }
     void setNew(bool isNew){ _newValue = isNew; };
     bool isDefaultValue() const;
+    void setDefaultValue();
     bool isLinked() const {
       boost::unique_lock<boost::recursive_mutex> lock(_mtx);
       return (_value.type() == typeid(ParamValue*)) &&
