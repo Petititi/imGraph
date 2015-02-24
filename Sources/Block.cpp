@@ -291,7 +291,12 @@ namespace charliesoft
       while (true)//this will stop when user stop the process...
       {
         while (_processes->isPause())
+        {
+          BlockState oldState = _state;
+          _state = paused;
           _cond_pause.wait(lock);//wait for play
+          _state = oldState;
+        }
 
         _processes->shouldWaitAncestors(this);//ask to scheduler if we have to wait...
         _state = consumingParams;

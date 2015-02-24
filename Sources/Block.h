@@ -210,7 +210,8 @@ namespace charliesoft
       consumingParams,
       consumedParams,
       waitingConsumers,
-      stopped
+      stopped,
+      paused
     };
   protected:
     boost::thread::id _threadID;

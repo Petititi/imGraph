@@ -314,10 +314,12 @@ namespace charliesoft
     if (listOfRenderedBlocks.find(block) != listOfRenderedBlocks.end())
       return;//nothing to do...
 
+    if (block->getState() != Block::stopped && block->getState() != Block::paused)
+      return;//block is running, the value will be updated automatically!
+
     listOfRenderedBlocks.insert(block);
     //take one shot of block to init output:
     block->init();
-    std::cout << "initData " << _STR(block->getName()) << std::endl;
     block->run(true);
     block->release();
     //now render every childs.
