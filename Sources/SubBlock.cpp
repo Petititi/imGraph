@@ -141,7 +141,7 @@ namespace charliesoft
 
   ParamValue* SubBlock::addNewInput(ParamDefinition& param)
   {
-    _inputParams[param._name] = param;
+    _algorithmInParams.push_back(param);
 
     ParamValue& t = _myInputs[param._name] = ParamValue(this, param._name, false);
     t.isNeeded(true);//always needed!
@@ -151,29 +151,13 @@ namespace charliesoft
 
   ParamValue* SubBlock::addNewOutput(ParamDefinition& param)
   {
-    _outputParams[param._name] = param;
+    _algorithmOutParams.push_back(param);
 
     ParamValue& t = _myOutputs[param._name] = ParamValue(this, param._name, true);
     t.isNeeded(true);//always needed!
     t = param._initVal;
     return &t;
   };
-
-  vector<ParamDefinition> SubBlock::getInParams() const
-  {
-    vector<ParamDefinition> tmp = Block::getInParams();
-    for (auto it : _inputParams)
-      tmp.push_back(it.second);
-    return tmp;
-  };
-  vector<ParamDefinition> SubBlock::getOutParams() const
-  {
-    vector<ParamDefinition> tmp = Block::getOutParams();
-    for (auto it : _outputParams)
-      tmp.push_back(it.second);
-    return tmp;
-  };
-
 
   void SubBlock::waitUpdateParams(boost::unique_lock<boost::mutex>& lock)
   {
@@ -271,11 +255,12 @@ namespace charliesoft
       it != _myInputs.end(); it++)
     {
       ptree paramTree;
-      const ParamDefinition pDef = _inputParams.at(it->first);
+      ParamDefinition& pDef = getParamDefinition(it->first, true);
 
       paramTree.put("Name", pDef._name);
       paramTree.put("Helper", pDef._helper);
       paramTree.put("ParamType", pDef._type);
+      paramTree.put("IsVisible", pDef._show);
 
       paramTree.put("Link", it->second.isLinked());
       if (!it->second.isLinked())
@@ -289,7 +274,7 @@ namespace charliesoft
     for (auto it = _myOutputs.begin();
       it != _myOutputs.end(); it++)
     {
-      const ParamDefinition pDef = _outputParams.at(it->first);
+      ParamDefinition& pDef = getParamDefinition(it->first, false);
 
       ptree paramTree;
       paramTree.put("Name", pDef._name);
@@ -329,22 +314,7 @@ namespace charliesoft
 
   ParamDefinition SubBlock::getDef(std::string name, bool isInput)
   {
-    if (isInput)
-    {
-      auto iter = _inputParams.find(name);
-      if (iter == _inputParams.end())
-        return ParamDefinition();
-      else
-        return iter->second;
-    }
-    else
-    {
-      auto iter = _outputParams.find(name);
-      if (iter == _outputParams.end())
-        return ParamDefinition();
-      else
-        return iter->second;
-    }
+    return getParamDefinition(name, true);
   }
 
 };

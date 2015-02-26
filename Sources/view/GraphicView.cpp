@@ -69,6 +69,10 @@ using cv::Mat;
 
 namespace charliesoft
 {
+  GraphLayout::GraphLayout()
+  {
+    connect(this, SIGNAL(updateDock(GroupParamRepresentation*)), Window::getInstance(), SLOT(updatePropertyDock(GroupParamRepresentation*)));
+  }
 
   void GraphLayout::addItem(QLayoutItem * item)
   {
@@ -271,13 +275,18 @@ namespace charliesoft
     MainWidget* parent = dynamic_cast<MainWidget*>(parentWidget());
     if (parent == NULL)
       return;
+
     //for each vertex, we look for the corresponding representation:
     std::vector<Block*> blocks = parent->getModel()->getVertices();
     for (auto it = blocks.begin(); it != blocks.end(); it++)
     {
       if (_items.find(*it) == _items.end())//add this vertex to view:
-        addWidget(new VertexRepresentation(*it));
+      {
+        VertexRepresentation* blockRep = new VertexRepresentation(*it);
+        addWidget(blockRep);
+      }
     }
+    GroupParamRepresentation* dockingBlock = Window::getInstance()->getParamDock();
     //test if block still exist:
     auto it_ = _items.begin();
     while (it_ != _items.end())
@@ -310,6 +319,9 @@ namespace charliesoft
         
         //remove widget from representation
         auto representation = takeAt(pos);
+        if (dockingBlock == representation->widget())
+          emit updateDock(NULL);
+
         delete representation->widget();
         delete representation;
 
@@ -429,6 +441,7 @@ namespace charliesoft
       event->mimeData()->text().toStdString());
     _model->addNewProcess(block);
     block->updatePosition((float)event->pos().x(), (float)event->pos().y());
+
     Window::synchroMainGraph();//as we updated the model, we ask the layout to redraw itself...
   }
   
@@ -595,6 +608,7 @@ namespace charliesoft
         messageBox.critical(0, _STR("ERROR_GENERIC_TITLE").c_str(), e.errorMsg.c_str());
         return;
       }
+      param->getModel()->getGraph()->initChildDatas(param->getModel(), std::set<Block*>());
     }
 
     //if one is ConditionLinkRepresentation, other is ParamRepresentation:

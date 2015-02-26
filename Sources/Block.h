@@ -236,6 +236,10 @@ namespace charliesoft
 
     std::string _currentPreview;
 
+    std::vector<ParamDefinition> _algorithmInParams;
+    std::vector<ParamDefinition> _algorithmSubParams;
+    std::vector<ParamDefinition> _algorithmOutParams;
+
     std::map<std::string, ParamValue> _myOutputs;
     std::map<std::string, ParamValue> _myInputs;
     std::map<std::string, ParamValue> _mySubParams;
@@ -246,6 +250,9 @@ namespace charliesoft
 
     void newProducedData();
     void paramsFullyProcessed();
+
+    ParamDefinition& getParamDefinition(std::string nameOfParam, bool isInput);
+    bool paramDefinitionExist(std::string nameOfParam, bool isInput);
 
     virtual bool run(bool oneShot = false) = 0;
     bool _executeOnlyOnce;
@@ -351,8 +358,8 @@ namespace charliesoft
     bool shouldExecuteOnlyOnce() const { return _executeOnlyOnce; }
     void setExecuteOnlyOnce(bool val) { _executeOnlyOnce = val; }
 
-    virtual std::vector<ParamDefinition> getInParams() const;
-    virtual std::vector<ParamDefinition> getOutParams() const;
+    std::vector<ParamDefinition>& getInParams();
+    std::vector<ParamDefinition>& getOutParams();
     std::map<std::string, ParamValue>const & getInputsVals() const { return _myInputs; }
     std::map<std::string, ParamValue>const & getOutputsVals() const { return _myOutputs; }
   };

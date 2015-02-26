@@ -13,7 +13,7 @@ using boost::lexical_cast;
 
 namespace charliesoft
 {
-  ParamValue::ParamValue(Block *algo, const ParamDefinition* def, bool isOutput) :
+  ParamValue::ParamValue(Block *algo, ParamDefinition* def, bool isOutput) :
     _block(algo), _name(def->_name), _isOutput(isOutput), _value(Not_A_Value()), _definition(def){
     _newValue = false; _paramNeeded = true;
   };

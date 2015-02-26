@@ -80,9 +80,10 @@ namespace charliesoft
     std::map<ParamRepresentation*, cv::Mat> _paramMatrix;
     std::map<ParamRepresentation*, cv::Scalar> _paramColor;
 
-    std::map<QGroupBox*, ParamRepresentation*> inputGroup_;
-    std::map<QWidget*, std::vector<ParamRepresentation*>> subparamGroup_;
-    std::map<QGroupBox*, ParamRepresentation*> outputGroup_;
+    std::map<QGroupBox*, ParamRepresentation*> _inputGroup;
+    std::map<QWidget*, std::vector<ParamRepresentation*>> _subparamGroup;
+    std::map<ParamRepresentation*, std::vector<QWidget*>> _anyTypeValues;
+    std::map<QGroupBox*, ParamRepresentation*> _outputGroup;
 
     std::map<QCheckBox*, ParamRepresentation* > _inputModificator12;
     std::map<ParamRepresentation*, QCheckBox*> _inputModificator21;
@@ -104,7 +105,7 @@ namespace charliesoft
 
     void addParamOut(ParamRepresentation  *p);
     void addParamIn(ParamRepresentation  *p, ParamRepresentation* parent = NULL);
-    bool updateParamModel(ParamRepresentation* param);
+    bool updateParamModel(ParamRepresentation* param, bool withAlert = true);
 
     void addParam(ParamDefinition& param, bool input);
 
@@ -113,7 +114,20 @@ namespace charliesoft
     ParamsConfigurator(VertexRepresentation* vertex);
 
     void timerEvent(QTimerEvent * ev);
-
+    cv::Scalar getColor(ParamRepresentation* rep) const{
+      auto iter = _paramColor.find(rep);
+      return iter != _paramColor.end() ? iter->second : cv::Scalar();
+    };
+    void setColor(ParamRepresentation* rep, cv::Scalar val){
+      _paramColor[rep] = val;
+    };
+    cv::Mat getMatrix(ParamRepresentation* rep) const{
+      auto iter = _paramMatrix.find(rep);
+      return iter != _paramMatrix.end() ? iter->second : cv::Mat();
+    };
+    void setMatrix(ParamRepresentation* rep, cv::Mat val){
+      _paramMatrix[rep] = val;
+    };
   signals:
     void changeVisibility(bool isVisible);
     void askSynchro();
@@ -134,6 +148,25 @@ namespace charliesoft
     void addNewParamOut();
   };
 
+
+  class AnyTypeWidget : public QWidget
+  {
+    Q_OBJECT;
+
+    std::vector<QWidget*> _widgets;
+    ParamsConfigurator* _configurator;
+    ParamRepresentation* _paramRep;
+    QComboBox* _combo;
+    QVBoxLayout* _vbox;
+    int _oldIndex;
+
+  public:
+    AnyTypeWidget(ParamsConfigurator* configurator, ParamRepresentation* param);
+
+    ParamValue getValue();
+    public slots:
+    void anyTypeChange(int);
+  };
 }
 
 

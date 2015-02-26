@@ -78,16 +78,9 @@ namespace charliesoft
 
     bool event(QEvent *event);
 
-    void showListAlgoDock(bool listOfAlgo)
-    {
-      if (_listOfDock != NULL && _listOfDock->count() > 1)
-      {
-        if (listOfAlgo)
-          _listOfDock->setCurrentIndex(0);
-        else
-          _listOfDock->setCurrentIndex(1);
-      }
-    }
+    void showListAlgoDock(bool listOfAlgo);
+
+    GroupParamRepresentation* getParamDock();
   private:
     static Window* ptr;
 

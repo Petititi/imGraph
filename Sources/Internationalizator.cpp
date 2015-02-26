@@ -133,7 +133,7 @@ namespace charliesoft
 
     translations["ERROR_GENERIC"] = "Error undefined!";
     translations["ERROR_GENERIC_TITLE"] = "Error!";
-    translations["ERROR_CONFIRM_SET_VALUE"] = "Are you sure you want to set this value?";
+    translations["ERROR_CONFIRM_SET_VALUE"] = "Wrong input, are you sure you want to set this value?";
     translations["ERROR_TYPE"] = "The type of \"%1$s.%2$s\" (%3$s) doesn't correspond to \"%4$s.%5$s\" (%6$s)";
     translations["ERROR_LINK_WRONG_INPUT_OUTPUT"] = "You can't link %1$s to %2$s : same type (%3$s)!";
     translations["ERROR_LINK_SAME_BLOCK"] = "You can't link the same block!";
@@ -392,13 +392,13 @@ namespace charliesoft
     translations["BLOCK__DELAY_VIDEO_OUT_IMAGE"] = "image";
     translations["BLOCK__DELAY_VIDEO_OUT_IMAGE_HELP"] = "N-th old image";
 
-    translations["BLOCK__MERGING_NAME"] = "Add";
-    translations["BLOCK__MERGING_IN_IMAGE1"] = "input1";
-    translations["BLOCK__MERGING_IN_IMAGE1_HELP"] = "First input (Matrix, number...)";
-    translations["BLOCK__MERGING_IN_IMAGE2"] = "input2";
-    translations["BLOCK__MERGING_IN_IMAGE2_HELP"] = "Second input (Matrix, number...)";
-    translations["BLOCK__MERGING_OUT_IMAGE"] = "sum";
-    translations["BLOCK__MERGING_OUT_IMAGE_HELP"] = "Output sum of the two matrix";
+    translations["BLOCK__ADD_NAME"] = "Add";
+    translations["BLOCK__ADD_IN_PARAM1"] = "input1";
+    translations["BLOCK__ADD_IN_PARAM1_HELP"] = "First input (Matrix, number...)";
+    translations["BLOCK__ADD_IN_PARAM2"] = "input2";
+    translations["BLOCK__ADD_IN_PARAM2_HELP"] = "Second input (Matrix, number...)";
+    translations["BLOCK__ADD_OUTPUT"] = "sum";
+    translations["BLOCK__ADD_OUTPUT_HELP"] = "Output sum of the two input (concatenate in case of string)";
 
     translations["BLOCK__CROP_NAME"] = "Crop image";
     translations["BLOCK__CROP_IN_IMAGE"] = "image";

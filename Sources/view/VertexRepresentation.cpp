@@ -530,6 +530,7 @@ namespace charliesoft
     for (auto selection : _selectedBlock)
       selection->changeStyleProperty("selected", false);
     _selectedBlock.clear();
+    Window::getInstance()->showListAlgoDock(true);
   }
 
   void GroupParamRepresentation::mousePressEvent(QMouseEvent *mouseE)
@@ -857,19 +858,19 @@ namespace charliesoft
   void VertexRepresentation::createListParamsFromModel()
   {
     //for each input and output create buttons:
-    const vector<ParamDefinition>& inputParams = _model->getInParams();
+    vector<ParamDefinition>& inputParams = _model->getInParams();
     QRect tmpSize;
     int showIn = 0, showOut = 0;
     for (size_t i = 0; i < inputParams.size(); i++)
       addNewInputParam(inputParams[i]);
 
-    const vector<ParamDefinition>& outputParams = _model->getOutParams();
+    vector<ParamDefinition>& outputParams = _model->getOutParams();
     for (size_t i = 0; i < outputParams.size(); i++)
       addNewOutputParam(outputParams[i]);
   }
 
 
-  LinkConnexionRepresentation* VertexRepresentation::addNewInputParam(ParamDefinition def)
+  LinkConnexionRepresentation* VertexRepresentation::addNewInputParam(ParamDefinition& def)
   {
     ParamRepresentation  *tmp = new ParamRepresentation(_model, def, true, _blockRepresentation);
     connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
@@ -888,10 +889,10 @@ namespace charliesoft
           ParamValue* param = _model->getParam(fullSubName, true);
           if (param != NULL)
           {
-            const ParamDefinition* tmpDef = param->getDefinition();
+            ParamDefinition* tmpDef = param->getDefinition();
             ParamRepresentation *tmp = new ParamRepresentation(_model, *tmpDef, true, _blockRepresentation);
             tmp->setVisibility(false);
-            tmp->isSubParam(true);
+            tmp->setSubParam(true);
             connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
             connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
             _listOfInputSubParams[tmpDef->_name] = tmp;
@@ -902,7 +903,7 @@ namespace charliesoft
     return tmp;
   }
 
-  LinkConnexionRepresentation* VertexRepresentation::addNewOutputParam(ParamDefinition def)
+  LinkConnexionRepresentation* VertexRepresentation::addNewOutputParam(ParamDefinition& def)
   {
     ParamRepresentation  *tmp = new ParamRepresentation(_model, def, false, _blockRepresentation);
     connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));

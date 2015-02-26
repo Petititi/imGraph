@@ -59,7 +59,7 @@ namespace charliesoft
     std::vector<ParamValidator*> _validators;
     std::set<ParamValue*> _distantListeners;
     Block *_block;
-    const ParamDefinition* _definition;
+    ParamDefinition* _definition;
     std::string _name;
     bool _isOutput;
     bool _paramNeeded;
@@ -76,7 +76,7 @@ namespace charliesoft
       _block(NULL), _name(""), _isOutput(false), _value(Not_A_Value()){
       _newValue = false; _paramNeeded = true; _definition = NULL;
     };
-    ParamValue(Block *algo, const ParamDefinition* def, bool isOutput);
+    ParamValue(Block *algo, ParamDefinition* def, bool isOutput);
     ParamValue(bool v) : ParamValue(){
       _value = v;
     };
@@ -174,7 +174,7 @@ namespace charliesoft
     };
 
     std::string getName() const { return _name; };
-    const ParamDefinition* getDefinition() const { return _definition; }
+    ParamDefinition* getDefinition() const { return _definition; }
     void setName(std::string val) { _name = val; }
 
     bool isNew() const

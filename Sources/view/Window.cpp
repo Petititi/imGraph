@@ -97,6 +97,22 @@ namespace charliesoft
     }
   }
 
+  void Window::showListAlgoDock(bool listOfAlgo)
+  {
+    if (_listOfDock != NULL && _listOfDock->count() > 1)
+    {
+      if (listOfAlgo)
+      {
+        _listOfDock->setCurrentIndex(0);
+        QWidget *prevWidget = _property_dock->widget();
+        if (prevWidget != NULL)
+          delete prevWidget;
+      }
+      else
+        _listOfDock->setCurrentIndex(1);
+    }
+  }
+
   void Window::redraw()
   {
     MainWidget* tmp = getMainWidget();
@@ -309,15 +325,8 @@ namespace charliesoft
     //first load config file:
     GlobalConfig::getInstance()->loadConfig();
 
-    
-    if (GlobalConfig::getInstance()->isMaximized)
-      showMaximized();
-    else
-    {
-      resize(GlobalConfig::getInstance()->lastPosition.size());
-      move(GlobalConfig::getInstance()->lastPosition.topLeft());
-      QMainWindow::show();
-    }
+
+    QMainWindow::show();
     
     setStyleSheet(GlobalConfig::getInstance()->styleSheet_.c_str());
 
@@ -325,6 +334,14 @@ namespace charliesoft
     graph->fromGraph(GlobalConfig::getInstance()->getXML());
 
     synchroMainGraph();
+
+    if (GlobalConfig::getInstance()->isMaximized)
+      showMaximized();
+    else
+    {
+      resize(GlobalConfig::getInstance()->lastPosition.size());
+      move(GlobalConfig::getInstance()->lastPosition.topLeft());
+    }
   }
 
   void Window::startGraph()
@@ -583,6 +600,11 @@ namespace charliesoft
 
   }
 
+  GroupParamRepresentation* Window::getParamDock()
+  {
+    return dynamic_cast<GroupParamRepresentation*>(_property_dock->widget());
+  };
+
   void Window::updatePropertyDock(GroupParamRepresentation* vertex)
   {
     VertexRepresentation* param = dynamic_cast<VertexRepresentation*>(vertex);
@@ -593,6 +615,13 @@ namespace charliesoft
       if (prevWidget != NULL)
         delete prevWidget;
       Window::getInstance()->showListAlgoDock(false);
+    }
+    else
+    {
+      QWidget *prevWidget = _property_dock->widget();
+      if (prevWidget != NULL)
+        delete prevWidget;
+      Window::getInstance()->showListAlgoDock(true);
     }
   }
 

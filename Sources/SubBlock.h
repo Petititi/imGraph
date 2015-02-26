@@ -39,9 +39,6 @@ namespace charliesoft
 
     boost::condition_variable _wait_param_update;  ///< parameter update from subgraph sync condition
 
-    std::map<std::string, ParamDefinition> _inputParams;
-    std::map<std::string, ParamDefinition> _outputParams;
-
     std::vector<BlockLink> externBlocksInput;
     std::vector<BlockLink> externBlocksOutput;
 
@@ -61,9 +58,6 @@ namespace charliesoft
 
     ParamValue* addNewInput(ParamDefinition& param);
     ParamValue* addNewOutput(ParamDefinition& param);
-
-    virtual std::vector<ParamDefinition> getInParams() const;
-    virtual std::vector<ParamDefinition> getOutParams() const;
 
     virtual boost::property_tree::ptree getXML();
     virtual void initFromXML(boost::property_tree::ptree* tree,

@@ -51,6 +51,7 @@ namespace charliesoft
     VertexRepresentation* _activeVertex;
     VertexRepresentation* _vertex;
     std::string _name;
+    QWidget *_father;
   public:
     LinkConnexionRepresentation(std::string text, bool isInput, QWidget *father);
 
@@ -73,7 +74,6 @@ namespace charliesoft
     void creationLink(QPoint startPos);
     void releaseLink(QPoint endPos);
     void askSynchro();
-
   };
 
   class ConditionLinkRepresentation :public LinkConnexionRepresentation
@@ -109,25 +109,30 @@ namespace charliesoft
     Q_OBJECT;
 
     Block* _model;
-    ParamDefinition _param;
+    ParamDefinition& _param;
+    ParamType _paramType;
     bool _isSubParam;
+    std::string _subName;
     bool _defaultValue;
   public:
-    ParamRepresentation(Block* model, ParamDefinition param, bool isInput, QWidget *father);
+    ParamRepresentation(Block* model, ParamDefinition& param, bool isInput, QWidget *father);
+    ParamRepresentation(ParamRepresentation* other);
 
     virtual bool shouldShow() const { return _param._show; }
     virtual void setVisibility(bool visible);
 
     bool isDefaultVal() const { return _defaultValue; }
     void useDefault(bool defaultVal){ _defaultValue = defaultVal; };
-    std::string getParamName() const { return _param._name; }
+    std::string getParamName() const { return _subName.empty() ? _param._name : _subName; }
     ParamValue* getParamValue() const { 
       if (_model != NULL)return _model->getParam(_param._name, _isInput); else return NULL;
     }
     std::string getParamHelper() const;
     std::vector<std::string> getParamListChoice() const;
     Block* getModel() const { return _model; };
-    void isSubParam(bool param1);
+    void setSubParam(bool param1);
+    bool isSubParam() const { return _isSubParam; };
+    void redefineParam(std::string fullSubName, ParamType newType);
   };
 
 }

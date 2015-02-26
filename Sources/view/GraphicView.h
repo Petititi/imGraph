@@ -52,6 +52,7 @@ namespace charliesoft
     std::map<BlockLink, LinkPath*> _sublinks;
     std::vector<Block*> _orderedBlocks;
   public:
+    GraphLayout();
 
     void removeLinks(VertexRepresentation* vertex);
     void removeSelectedLinks();
@@ -75,6 +76,9 @@ namespace charliesoft
 
     public slots:
     void synchronize();
+
+  signals:
+    void updateDock(GroupParamRepresentation*);
   };
 
   class MainWidget :public QWidget

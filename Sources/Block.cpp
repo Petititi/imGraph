@@ -536,22 +536,24 @@ namespace charliesoft
   void Block::initParameters(const std::vector<ParamDefinition>& inParam,
     const std::vector<ParamDefinition>& outParam)
   {
+    _algorithmInParams = inParam;
     //add empty parameters:
-    for (const auto& it : inParam)
+    for (auto& it : _algorithmInParams)
     {
       ParamValue& t = _myInputs[it._name] = ParamValue(this, &it, false);
       t.isNeeded(it._show);
       t = it._initVal;
     }
-    for (const auto& it : outParam)
+    _algorithmOutParams = outParam;
+    for (auto& it : _algorithmOutParams)
     {
       ParamValue& t = _myOutputs[it._name] = ParamValue(this, &it, true);
       t.isNeeded(it._show);
       t = it._initVal;
     }
-    const std::vector<ParamDefinition>& subParams = _PROCESS_MANAGER->getAlgo_SubParams(_name);
+    _algorithmSubParams = _PROCESS_MANAGER->getAlgo_SubParams(_name);
     //test if param is an algo:
-    for (const auto& val : subParams)
+    for (auto& val : _algorithmSubParams)
     {
       ParamValue& t = _mySubParams[val._name] = ParamValue(this, &val, false);
       t = val._initVal;
@@ -592,6 +594,32 @@ namespace charliesoft
     return out;
   }
 
+  bool Block::paramDefinitionExist(std::string nameOfParam, bool isInput)
+  {
+    vector<ParamDefinition>& vectOfDef = _algorithmInParams;
+    if (!isInput)
+      vectOfDef = _algorithmOutParams;
+    for (ParamDefinition& def : vectOfDef)
+    {
+      if (def._name.compare(nameOfParam) == 0)
+        return true;
+    }
+    return false;
+  }
+
+  ParamDefinition& Block::getParamDefinition(std::string nameOfParam, bool isInput)
+  {
+    vector<ParamDefinition>& vectOfDef = _algorithmInParams;
+    if (!isInput)
+      vectOfDef = _algorithmOutParams;
+    for (ParamDefinition& def : vectOfDef)
+    {
+      if (def._name.compare(nameOfParam) == 0)
+        return def;
+    }
+    return vectOfDef.front();
+  }
+
   void Block::initFromXML(boost::property_tree::ptree* block,
     std::vector < std::pair<ParamValue*, unsigned int> >& toUpdate,
     std::map<unsigned int, ParamValue*>& addressesMap,
@@ -623,12 +651,17 @@ namespace charliesoft
         string valID = it1->second.get("ID", "0");
         addressesMap[lexical_cast<unsigned int>(valID)] = tmpVal;
 
+        ParamDefinition& def = getParamDefinition(nameIn, true);
+        def._show = it1->second.get("IsVisible", def._show);
+
+        ParamType typeOfVal = ParamType(it1->second.get("SubType", (int)tmpVal->getType()));
+
         if (!link)
         {
           try
           {
             if (tmpVal != NULL)
-              tmpVal->valid_and_set(tmpVal->fromString(tmpVal->getType(), val));
+              tmpVal->valid_and_set(tmpVal->fromString(typeOfVal, val));
           }
           catch (...)
           {
@@ -710,12 +743,16 @@ namespace charliesoft
         else
           paramTree.put("Value", (unsigned int)it->second.get<ParamValue*>());
 
+        if (it->second.getType() == AnyType)
+          paramTree.put("SubType", it->second.getType(false));
+
+        ParamDefinition& def = getParamDefinition(it->first, true);
+        paramTree.put("IsVisible", def._show);
+
         tree.add_child("Input", paramTree);
 
         if (it->second.getType() == ListBox)
-        {
           inputWithSubparams.push_back(it->second.getName() + "." + it->second.getValFromList());
-        }
       }
     }
 
@@ -803,12 +840,12 @@ namespace charliesoft
     _conditions.pop_back();
   }
 
-  vector<ParamDefinition> Block::getInParams() const
+  vector<ParamDefinition>& Block::getInParams()
   {
-    return ProcessManager::getInstance()->getAlgo_InParams(_name);
+    return _algorithmInParams;
   };
-  vector<ParamDefinition> Block::getOutParams() const
+  vector<ParamDefinition>& Block::getOutParams()
   {
-    return ProcessManager::getInstance()->getAlgo_OutParams(_name);
+    return _algorithmOutParams;
   };
 }

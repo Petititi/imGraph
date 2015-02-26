@@ -102,7 +102,7 @@ namespace charliesoft
       it != _myInputs.end(); it++)
     {
       ptree paramTree;
-      const ParamDefinition pDef = _inputParams.at(it->first);
+      ParamDefinition pDef = getParamDefinition(it->first, true);
 
       paramTree.put("Name", pDef._name);
       paramTree.put("Helper", pDef._helper);
@@ -120,7 +120,7 @@ namespace charliesoft
     for (auto it = _myOutputs.begin();
       it != _myOutputs.end(); it++)
     {
-      const ParamDefinition pDef = _outputParams.at(it->first);
+      ParamDefinition pDef = getParamDefinition(it->first, false);
 
       ptree paramTree;
       paramTree.put("Name", pDef._name);

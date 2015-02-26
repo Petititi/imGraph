@@ -250,9 +250,9 @@ namespace charliesoft
     group->setChecked(p->isVisible());
 
     ParamValue* param = p->getParamValue();
-    outputGroup_[group] = p;
+    _outputGroup[group] = p;
     vbox->addWidget(new QLabel(_QT(p->getParamHelper())));
-    if (param->getType() != ParamType::Matrix)
+    if (param->getType(false) != ParamType::Matrix)//we want the true type here!
     {
       QLineEdit* tmp = new QLineEdit();
       tmp->setEnabled(false);
@@ -307,13 +307,17 @@ namespace charliesoft
       msgBox.exec();
       return;
     }
+
+    ParamType tmpType = param->getType();
+    bool subParamAnyType = p->isSubParam() && tmpType == AnyType;
+
     if (isSubParam)
     {
-      subparamGroup_[subWidget_[parent]].push_back(p);
+      _subparamGroup[subWidget_[parent]].push_back(p);
     }
     else
     {
-      inputGroup_[group] = p;
+      _inputGroup[group] = p;
 
       if (param->getType() != Boolean)
         vbox->addWidget(new QLabel(_QT(p->getParamHelper())));
@@ -325,20 +329,50 @@ namespace charliesoft
     QHBoxLayout* layout = new QHBoxLayout();
     layout->setAlignment(Qt::AlignLeft);
     subContent->setLayout(layout);
+
     QCheckBox* checkGraph = new QCheckBox();
-    layout->addWidget(checkGraph);
-    _inputModificator12[checkGraph] = p;
-    _inputModificator21[p] = checkGraph;
+    if (!subParamAnyType)
+    {
+      layout->addWidget(checkGraph);
+      _inputModificator12[checkGraph] = p;
+      _inputModificator21[p] = checkGraph;
 
-    if (isSubParam && param->getType() != Boolean)
-      layout->addWidget(new QLabel(p->getParamHelper().c_str()));
+      if (isSubParam && param->getType() != Boolean)
+        layout->addWidget(new QLabel(p->getParamHelper().c_str()));
 
-    if (!p->isVisible())
-      checkGraph->setCheckState(Qt::Checked);
-    else
-      checkGraph->setCheckState(Qt::Unchecked);
+      if (!p->isVisible())
+        checkGraph->setCheckState(Qt::Checked);
+      else
+        checkGraph->setCheckState(Qt::Unchecked);
+    }
 
-    switch (param->getType())
+
+    if (subParamAnyType)
+    {
+      //get wanted type:
+      string fullName = p->getParamName();
+      size_t pos = fullName.find_last_of('.');
+      if (pos != string::npos)
+      {
+        string typeName = fullName.substr(pos + 1);
+        if (typeName.compare("BOOLEAN") == 0)
+          tmpType = Boolean;
+        else if (typeName.compare("INT") == 0)
+          tmpType = Int;
+        else if (typeName.compare("FLOAT") == 0)
+          tmpType = Float;
+        else if (typeName.compare("COLOR") == 0)
+          tmpType = Color;
+        else if (typeName.compare("MATRIX") == 0)
+          tmpType = Matrix;
+        else if (typeName.compare("STRING") == 0)
+          tmpType = String;
+        else if (typeName.compare("FILE") == 0)
+          tmpType = FilePath;
+      }
+    }
+
+    switch (tmpType)
     {
     case Boolean:
     {
@@ -367,13 +401,20 @@ namespace charliesoft
       std::vector<std::string>& paramsList = p->getParamListChoice();
       for (std::string paramVal : paramsList)
         combo->addItem(paramVal.c_str());
-      combo->setCurrentIndex(-1);//that way, next setCurrentIndex will throw signal, even if it's index 0!
+      if (p->isVisible())
+        combo->setCurrentIndex(-1);//that way, next setCurrentIndex will throw signal, even if it's index 0!
+      else
+      {
+        combo->setCurrentIndex(param->get<int>());
+        combo->setEnabled(false);
+      }
       connect(combo, SIGNAL(currentIndexChanged(int)), this, SLOT(subParamChange(int)));
       layout->addWidget(combo);
       _inputValue12[p] = combo;
       _inputValue21[combo] = p;
 
-      combo->setCurrentIndex(param->get<int>());
+      if (p->isVisible())
+        combo->setCurrentIndex(param->get<int>());
       break;
     }
     case Float:
@@ -451,32 +492,197 @@ namespace charliesoft
       layout->addWidget(button);
       connect(lineEdit, SIGNAL(editingFinished()), this, SLOT(textChanged()));
       break;
-    }
-    default://probably AnyType
+    };
+    case AnyType:
     {
-      QComboBox* combo = new QComboBox();
-      combo->addItem(_QT("TYPE_DATAS_BOOL"));
-      combo->addItem(_QT("TYPE_DATAS_INT"));
-      combo->addItem(_QT("TYPE_DATAS_FLOAT"));
-      combo->addItem(_QT("TYPE_DATAS_COLOR"));
-      combo->addItem(_QT("TYPE_DATAS_MATRIX"));
-      combo->addItem(_QT("TYPE_DATAS_STRING"));
-      combo->addItem(_QT("TYPE_DATAS_FILE"));
-      combo->setCurrentIndex(-1);//that way, next setCurrentIndex will throw signal, even if it's index 0!
-      connect(combo, SIGNAL(currentIndexChanged(int)), this, SLOT(subParamChange(int)));
-      layout->addWidget(combo);
-      _inputValue12[p] = combo;
-      _inputValue21[combo] = p;
+      AnyTypeWidget* anyWidget = new AnyTypeWidget(this, p);
+      layout->addWidget(anyWidget);
+      _inputValue12[p] = anyWidget;
+      _inputValue21[anyWidget] = p;
 
-      combo->setCurrentIndex(param->get<int>());
+
+      if (p->isVisible())
+        anyWidget->setEnabled(false);
+
       break;
     }
+    default://nothing to do
+      break;
     }
 
-    connect(checkGraph, SIGNAL(stateChanged(int)), this, SLOT(switchEnable(int)));
+    if (!subParamAnyType)
+      connect(checkGraph, SIGNAL(stateChanged(int)), this, SLOT(switchEnable(int)));
 
     if (!isSubParam)
       connect(group, SIGNAL(toggled(bool)), this, SLOT(switchParamUse(bool)));
+  }
+
+  AnyTypeWidget::AnyTypeWidget(ParamsConfigurator* configurator, ParamRepresentation* paramRep)
+  {
+    ParamValue* param = paramRep->getParamValue();
+    _configurator = configurator;
+    _paramRep = paramRep;
+    _vbox = new QVBoxLayout();
+    setLayout(_vbox);
+
+    ///\todo: filetype is now yet working!
+    //construct vector of values:
+    _widgets.push_back(new QCheckBox(this));//for boolean
+    _widgets.push_back(new QLineEdit(this));//for int, float and string...
+    connect(_widgets.back(), SIGNAL(editingFinished()), _configurator, SLOT(textChanged()));
+    _widgets.push_back(new QPushButton(_QT("BUTTON_COLOR"), this));//for color
+    connect(_widgets.back(), SIGNAL(clicked()), _configurator, SLOT(colorEditor()));
+    _widgets.push_back(new QPushButton(_QT("BUTTON_MATRIX"), this));//for Matrix
+    connect(_widgets.back(), SIGNAL(clicked()), _configurator, SLOT(matrixEditor()));
+    //_widgets.push_back(new QPushButton(_QT("BUTTON_BROWSE")));//for FileType
+
+    for (QWidget* widget : _widgets)
+      widget->setVisible(false);//for now, no visibility...
+
+    _combo = new QComboBox();
+    _oldIndex = -1;
+    _combo->addItem(_QT("TYPE_DATAS_BOOL"));
+    _combo->addItem(_QT("TYPE_DATAS_INT"));
+    _combo->addItem(_QT("TYPE_DATAS_FLOAT"));
+    _combo->addItem(_QT("TYPE_DATAS_COLOR"));
+    _combo->addItem(_QT("TYPE_DATAS_MATRIX"));
+    _combo->addItem(_QT("TYPE_DATAS_STRING"));
+    _combo->addItem(_QT("TYPE_DATAS_FILE"));
+    _combo->setCurrentIndex(_oldIndex);//that way, next setCurrentIndex will throw signal, even if it's index 0!
+    connect(_combo, SIGNAL(currentIndexChanged(int)), this, SLOT(anyTypeChange(int)));
+
+    _vbox->addWidget(_combo);
+    _vbox->addWidget(_widgets[0]);
+
+    ParamType realType = param->getType(false);
+    switch (realType)
+    {
+    case Boolean:
+      _combo->setCurrentIndex(0);
+      break;
+    case Int:
+      _combo->setCurrentIndex(1);
+      break;
+    case Float:
+      _combo->setCurrentIndex(2);
+      break;
+    case Color:
+      _combo->setCurrentIndex(3);
+      break;
+    case Matrix:
+      _combo->setCurrentIndex(4);
+      break;
+    case String:
+      _combo->setCurrentIndex(5);
+      break;
+    case FilePath:
+      _combo->setCurrentIndex(6);
+      break;
+    default:
+      break;
+    }
+  }
+
+  void AnyTypeWidget::anyTypeChange(int newVal)
+  {
+    switch (_oldIndex)
+    {
+    case 0://bool
+      _vbox->removeWidget(_widgets[0]);
+      _widgets[0]->setVisible(false);
+      break;
+    case 1://int
+    case 2://float
+    case 5://string
+      _vbox->removeWidget(_widgets[1]);
+      _widgets[1]->setVisible(false);
+      break;
+    case 3://color
+      _vbox->removeWidget(_widgets[2]);
+      _widgets[2]->setVisible(false);
+      break;
+    case 4://Matrix
+      _vbox->removeWidget(_widgets[3]);
+      _widgets[3]->setVisible(false);
+      break;
+    case 6://FileType
+      break;
+    default:
+      break;
+    }
+    _oldIndex = newVal;
+    ParamValue* param = _paramRep->getParamValue();
+    ParamType realType = param->getType(false);
+    switch (newVal)
+    {
+    case 0://bool
+      _vbox->addWidget(_widgets[0]);
+      _widgets[0]->setVisible(true);
+      if (realType == Boolean)
+        ((QCheckBox*)_widgets[0])->setChecked(param->get<bool>());
+      break;
+    case 1://int
+    case 2://float
+    case 5://string
+    case 6://FileType
+      _vbox->addWidget(_widgets[1]);
+      _widgets[1]->setVisible(true);
+      if (realType != Matrix)//if it'a an image, it would be too big!
+        ((QLineEdit*)_widgets[1])->setText(param->toString().c_str());
+      break;
+    case 3://color
+      _vbox->addWidget(_widgets[2]);
+      _widgets[2]->setVisible(true);
+      if (realType == Color)
+        _configurator->setColor(_paramRep, param->get<cv::Scalar>());
+      break;
+    case 4://Matrix
+      _vbox->addWidget(_widgets[3]);
+      _widgets[3]->setVisible(true);
+      if (realType == Matrix)
+        _configurator->setMatrix(_paramRep, param->get<cv::Mat>());
+      break;
+    default:
+      break;
+    }
+  }
+
+  ParamValue AnyTypeWidget::getValue()
+  {
+    switch (_oldIndex)
+    {
+    case 0://bool
+      return ((QCheckBox*)_widgets[0])->isChecked();
+      break;
+    case 1://int
+    case 2://float
+    case 5://string
+    case 6://FileType
+    {
+      QByteArray valUTF8 = ((QLineEdit*)_widgets[1])->text().toLocal8Bit();
+      switch (_oldIndex)
+      {
+      case 1://int
+        return ParamValue::fromString(Int, std::string(valUTF8.constData(), valUTF8.length()));
+      case 2://float
+        return ParamValue::fromString(Float, std::string(valUTF8.constData(), valUTF8.length()));
+      case 5://string
+        return ParamValue::fromString(String, std::string(valUTF8.constData(), valUTF8.length()));
+      case 6://FileType
+        return ParamValue::fromString(FilePath, std::string(valUTF8.constData(), valUTF8.length()));
+      }
+    }
+      break;
+    case 3://color
+      return _configurator->getColor(_paramRep);
+      break;
+    case 4://Matrix
+      return _configurator->getMatrix(_paramRep);
+      break;
+    default:
+      break;
+    }
+    return Not_A_Value();
   }
 
   void ParamsConfigurator::subParamChange(int newVal)
@@ -488,8 +694,8 @@ namespace charliesoft
 
     //find GroupBox:
     QGroupBox* groupParams = NULL;
-    auto it = inputGroup_.begin();
-    while ((it != inputGroup_.end()) && groupParams == NULL)
+    auto it = _inputGroup.begin();
+    while ((it != _inputGroup.end()) && groupParams == NULL)
     {
       if (it->second == value)
         groupParams = it->first;
@@ -498,7 +704,7 @@ namespace charliesoft
     if (groupParams != NULL)
     {
       //remove the subParams:
-      std::vector<ParamRepresentation*>& paramsRep = subparamGroup_[subWidget_[value]];
+      std::vector<ParamRepresentation*>& paramsRep = _subparamGroup[subWidget_[value]];
       for (ParamRepresentation* p : paramsRep)
       {
         _inputValue21.erase(_inputValue12[p]);
@@ -506,28 +712,27 @@ namespace charliesoft
         _inputModificator12.erase(_inputModificator21[p]);
         _inputModificator21.erase(p);
       }
+      //try to add this param:
+      if (groupParams->isChecked())
+      {//but only if the group is used!
+        if (!updateParamModel(value))
+          return;
+      }
+
+      QVBoxLayout *vbox = dynamic_cast<QVBoxLayout*>(groupParams->layout());
+      vbox->removeWidget(subWidget_[value]);
+      delete subWidget_[value];
+      subWidget_.erase(value);
+
+      _subparamGroup[value].clear();
+
+      //reconstruct the subParams group:
+      subWidget_[value] = new QWidget();
+      vbox->addWidget(subWidget_[value]);
+      subWidget_[value]->setLayout(new QVBoxLayout());
+
       if (value->getParamValue()->getType() == ListBox)
       {//This is a listBox, so we set the value, and add subParams if needed:
-        //try to add this param:
-        if (groupParams->isChecked())
-        {//but only if the group is used!
-          if (!updateParamModel(value))
-            return;
-        }
-
-        QVBoxLayout *vbox = dynamic_cast<QVBoxLayout*>(groupParams->layout());
-        vbox->removeWidget(subWidget_[value]);
-        delete subWidget_[value];
-        subWidget_.erase(value);
-
-
-        subparamGroup_[value].clear();
-
-        //reconstruct the subParams group:
-        subWidget_[value] = new QWidget();
-        vbox->addWidget(subWidget_[value]);
-        subWidget_[value]->setLayout(new QVBoxLayout());
-
         //now add also subparameters, if any:
         Block* model = value->getModel();
         string paramValName = src->currentText().toStdString();
@@ -542,35 +747,41 @@ namespace charliesoft
         }
       }
       else
-      {///\todo It's probably a "AnyType" value, so we provide a subCategory input:
-        switch (newVal)
+      {/// It's probably a "AnyType" value, so we provide a subCategory input, only if param is active!
+        ParamValue* param = value->getParamValue();
+        if (param != NULL)
         {
-        case 0://TYPE_DATAS_BOOL
-        {
-          break;
-        }
-        case 1://TYPE_DATAS_INT
-        {
-          break;
-        }
-        case 2://TYPE_DATAS_FLOAT
-        {
-          break;
-        }
-        case 3://TYPE_DATAS_COLOR
-        {
-          break;
-        }
-        case 4://TYPE_DATAS_MATRIX
-        {
-          break;
-        }
-        case 5://TYPE_DATAS_STRING
-        {
-          break;
-        }
-        default://TYPE_DATAS_FILE
-          break;
+          ParamRepresentation *tmp = new ParamRepresentation(value);
+          string fullSubName;
+          switch (newVal)
+          {
+          case 0://TYPE_DATAS_BOOL
+            tmp->redefineParam(value->getParamName() + ".BOOLEAN", Boolean);
+            break;
+          case 1://TYPE_DATAS_INT
+            tmp->redefineParam(value->getParamName() + ".INT", Int);
+            break;
+          case 2://TYPE_DATAS_FLOAT
+            tmp->redefineParam(value->getParamName() + ".FLOAT", Float);
+            break;
+          case 3://TYPE_DATAS_COLOR
+            tmp->redefineParam(value->getParamName() + ".COLOR", Color);
+            break;
+          case 4://TYPE_DATAS_MATRIX
+            tmp->redefineParam(value->getParamName() + ".MATRIX", Matrix);
+            break;
+          case 5://TYPE_DATAS_STRING
+            tmp->redefineParam(value->getParamName() + ".STRING", String);
+            break;
+          case 6://TYPE_DATAS_FILE
+            tmp->redefineParam(value->getParamName() + ".FILE", FilePath);
+            break;
+          default://TYPE_ERROR
+            break;
+          }
+          tmp->hide();
+
+          addParamIn(tmp, value);
         }
       }
     }
@@ -581,15 +792,15 @@ namespace charliesoft
     QGroupBox* src = dynamic_cast<QGroupBox*>(sender());
     if (src == NULL) return;
 
-    if (outputGroup_.find(src) != outputGroup_.end())
+    if (_outputGroup.find(src) != _outputGroup.end())
     {
-      outputGroup_.at(src)->setVisibility(state);
+      _outputGroup.at(src)->setVisibility(state);
       Window::synchroMainGraph();
       return;
     }
     ParamRepresentation* param;
-    if (inputGroup_.find(src) != inputGroup_.end())
-      param = inputGroup_.at(src);
+    if (_inputGroup.find(src) != _inputGroup.end())
+      param = _inputGroup.at(src);
     if (param == NULL) return;
     try
     {
@@ -622,6 +833,7 @@ namespace charliesoft
       }
       else
       {
+        param->setVisibility(false);
         ParamValue* paramVal = param->getParamValue();
         paramVal->setDefaultValue();
       }
@@ -666,7 +878,7 @@ namespace charliesoft
       }
       inputWidget->setEnabled(newState == Qt::Checked);
 
-      updateParamModel(p);
+      updateParamModel(p, false);//don't want the annoying message!
 
       Window::synchroMainGraph();
     }
@@ -691,7 +903,14 @@ namespace charliesoft
       Window::getInstance()->getMainWidget()->setFocus();
     else
     {
-      ParamRepresentation* p = dynamic_cast<ParamRepresentation*>(_inputValue21[send]);
+      ParamRepresentation* p = NULL;
+
+      AnyTypeWidget *valAnyType = dynamic_cast<AnyTypeWidget *>(send->parentWidget());
+      if (NULL != valAnyType)
+        p = dynamic_cast<ParamRepresentation*>(_inputValue21[valAnyType]);
+      else
+        p = dynamic_cast<ParamRepresentation*>(_inputValue21[send]);
+
       if (p == NULL)
         return;//nothing to do...
       if (!updateParamModel(p))
@@ -764,11 +983,12 @@ namespace charliesoft
     }
   }
 
-  bool ParamsConfigurator::updateParamModel(ParamRepresentation* paramRep)
+  bool ParamsConfigurator::updateParamModel(ParamRepresentation* paramRep, bool withAlert)
   {
     if (paramRep == NULL)
       return false;
     ParamValue* param = paramRep->getParamValue();
+    Block* model = param->getBlock();
     if (paramRep->isDefaultVal())
     {
       try
@@ -802,16 +1022,17 @@ namespace charliesoft
     }
 
     ParamValue val;
+    ParamType myType = param->getType();
 
-    if (param->getType() == Boolean)
+    if (myType == Boolean)
     {
       QLabel* value = dynamic_cast<QLabel*>(_inputValue12.at(paramRep));
       if (value != NULL)
         val = true;
     }
 
-    if (param->getType() == Int || param->getType() == Float ||
-      param->getType() == String || param->getType() == FilePath)
+    if (myType == Int || myType == Float ||
+      myType == String || myType == FilePath)
     {
       QLineEdit* value = dynamic_cast<QLineEdit*>(_inputValue12.at(paramRep));
       if (value != NULL)
@@ -821,17 +1042,24 @@ namespace charliesoft
       }
     }
 
-    if (param->getType() == ListBox)
+    if (myType == ListBox)
     {
       QComboBox* value = dynamic_cast<QComboBox*>(_inputValue12.at(paramRep));
       if (value != NULL)
         val = value->currentIndex();
     }
-    if (param->getType() == Color)
+    if (myType == Color)
       val = _paramColor[paramRep];
 
-    if (param->getType() == Matrix)
+    if (myType == Matrix)
       val = _paramMatrix[paramRep];
+
+    if (myType == AnyType)
+    {
+      AnyTypeWidget* value = dynamic_cast<AnyTypeWidget*>(_inputValue12.at(paramRep));
+      if (value != NULL)
+        val = value->getValue();
+    }
 
     try
     {
@@ -842,12 +1070,14 @@ namespace charliesoft
     }
     catch (ErrorValidator& e)
     {//algo doesn't accept this value!
-      if (QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"),
-        QString(e.errorMsg.c_str()) + "<br/>" + _QT("ERROR_CONFIRM_SET_VALUE"),
-        QMessageBox::Apply | QMessageBox::RestoreDefaults, QMessageBox::Apply) != QMessageBox::Apply)
-        return false;//stop here the validation: should correct the error!
-      else
-        *param = val;//force the value!
+      if (withAlert)
+      {
+        if (QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"),
+          QString(e.errorMsg.c_str()) + "<br/>" + _QT("ERROR_CONFIRM_SET_VALUE"),
+          QMessageBox::Apply | QMessageBox::RestoreDefaults, QMessageBox::Apply) != QMessageBox::Apply)
+          return false;//stop here the validation: should correct the error!
+      }
+      *param = val;//force the value!
     }
 
     paramRep->getModel()->getGraph()->initChildDatas(paramRep->getModel(), std::set<Block*>());
@@ -857,11 +1087,23 @@ namespace charliesoft
 
   void ParamsConfigurator::colorEditor()
   {
-    auto param = _inputValue21.find(sender());
+    QPushButton* send = dynamic_cast<QPushButton*>(sender());
+    auto param = _inputValue21.find(send);
+    ParamRepresentation* paramRep = NULL;
     if (param == _inputValue21.end())
-      return;//param src not found...
+    {
+      AnyTypeWidget *valAnyType = dynamic_cast<AnyTypeWidget *>(send->parentWidget());
+      if (NULL != valAnyType)
+        paramRep = dynamic_cast<ParamRepresentation*>(_inputValue21[valAnyType]);
+      else
+        return;///\todo send error message (param src not found...)
+      _paramMatrix[paramRep] = valAnyType->getValue().get<cv::Scalar>();
+    }
+    else
+      paramRep = param->second;
+
     QColor src;
-    cv::Scalar tmpScal = _paramColor[param->second];
+    cv::Scalar tmpScal = _paramColor[paramRep];
     src.setBlue((int)tmpScal[0]);
     src.setGreen((int)tmpScal[1]);
     src.setRed((int)tmpScal[2]);
@@ -874,30 +1116,42 @@ namespace charliesoft
       color[1] = tmpColor.green();
       color[2] = tmpColor.red();
       color[3] = tmpColor.alpha();
-      _paramColor[param->second] = color;
+      _paramColor[paramRep] = color;
 
-      if (!updateParamModel(param->second))
-        _paramColor[param->second] = tmpScal;//set previous color...
+      if (!updateParamModel(paramRep))
+        _paramColor[paramRep] = tmpScal;//set previous color...
     }
   }
 
   void ParamsConfigurator::matrixEditor()
   {
-    auto param = _inputValue21.find(sender());
+    QPushButton* send = dynamic_cast<QPushButton*>(sender());
+    auto param = _inputValue21.find(send);
+    ParamRepresentation* paramRep = NULL;
     if (param == _inputValue21.end())
-      return;//param src not found...
+    {
+      AnyTypeWidget *valAnyType = dynamic_cast<AnyTypeWidget *>(send->parentWidget());
+      if (NULL != valAnyType)
+        paramRep = dynamic_cast<ParamRepresentation*>(_inputValue21[valAnyType]);
+      else
+        return;///\todo send error message (param src not found...)
+      _paramMatrix[paramRep] = valAnyType->getValue().get<cv::Mat>();
+    }
+    else
+      paramRep = param->second;
+
     MatrixViewer* win = createWindow(_STR("BUTTON_MATRIX"), _WINDOW_MATRIX_CREATION_MODE);
     win->setParent(this, Qt::Tool);
 
-    if (!_paramMatrix[param->second].empty())
-      win->updateImage(_paramMatrix[param->second]);
+    if (!_paramMatrix[paramRep].empty())
+      win->updateImage(_paramMatrix[paramRep]);
 
     if (win->exec() == QDialog::Accepted)//now try to get matrix:
     {
-      Mat tmp = _paramMatrix[param->second];
-      _paramMatrix[param->second] = win->getMatrix();
-      if (!updateParamModel(param->second))
-        _paramMatrix[param->second] = tmp;//set previous matrix...
+      Mat tmp = _paramMatrix[paramRep];
+      _paramMatrix[paramRep] = win->getMatrix();
+      if (!updateParamModel(paramRep))
+        _paramMatrix[paramRep] = tmp;//set previous matrix...
     }
     delete win;
   }

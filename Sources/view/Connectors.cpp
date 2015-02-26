@@ -103,17 +103,22 @@ namespace charliesoft
     connect(this, SIGNAL(askSynchro()), (VertexRepresentation*)father->parentWidget(), SLOT(reshape()));
   }
 
-  ParamRepresentation::ParamRepresentation(Block* model, ParamDefinition param, bool isInput, QWidget *father) :
-    LinkConnexionRepresentation(param._name, isInput, father), _model(model), _param(param){
 
+  ParamRepresentation::ParamRepresentation(ParamRepresentation* other) :
+    ParamRepresentation(other->_model, other->_param, other->_isInput, other->_father)
+  {
+    _defaultValue = other->_defaultValue;
+    _isSubParam = other->_isSubParam;
+  }
+
+  ParamRepresentation::ParamRepresentation(Block* model, ParamDefinition& param, bool isInput, QWidget *father) :
+    LinkConnexionRepresentation(param._name, isInput, father), _model(model), _param(param), _paramType(_param._type){
     _defaultValue = _isSubParam = false;
     setObjectName("ParamRepresentation");
     if (!param._show) this->hide();
     setToolTip("<FONT>" + _QT(param._helper) + "</FONT>");
     if (_vertex != NULL)
-    {
       connect(this, SIGNAL(askSynchro()), _vertex, SLOT(reshape()));
-    }
   };
 
   SubGraphParamRepresentation::SubGraphParamRepresentation(SubBlock* model, const ParamDefinition& def, bool isInput, QWidget *father) :
@@ -151,18 +156,26 @@ namespace charliesoft
     emit askSynchro();
   }
 
-  void ParamRepresentation::isSubParam(bool param1)
+  void ParamRepresentation::setSubParam(bool param1)
   {
-    _isSubParam = param1;
+    _isSubParam = param1;///\todo something is wrong here...
     if (_isSubParam)
       setText(_param._helper.c_str());
     else
       setText(_param._helper.c_str());
   }
 
+  void ParamRepresentation::redefineParam(std::string fullSubName, ParamType newType)
+  {
+    _isSubParam = true;
+    _subName = fullSubName;
+    _paramType = newType;
+  }
+
   LinkConnexionRepresentation::LinkConnexionRepresentation(std::string text, bool isInput, QWidget *father) :
     QLabel(_QT(text), father), _isInput(isInput)
   {
+    _father = father;
     QWidget* tmp = father->parentWidget();
     if (father!=NULL)
       _vertex = dynamic_cast<VertexRepresentation*>(father->parentWidget());
