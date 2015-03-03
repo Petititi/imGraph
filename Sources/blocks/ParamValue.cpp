@@ -242,78 +242,73 @@ namespace charliesoft
 
   ParamValue& ParamValue::operator = (bool const &rhs) {
     notifyRemove();
-    if (*this != rhs)
-      _newValue = true;
     boost::unique_lock<boost::recursive_mutex> lock(_mtx);
+    _newValue = true;
     _value = rhs;
     notifyUpdate(_newValue);
     return *this;
   };
   ParamValue& ParamValue::operator = (int const &rhs) {
     notifyRemove();
-    if (*this != rhs)
-      _newValue = true;
     boost::unique_lock<boost::recursive_mutex> lock(_mtx);
+    _newValue = true;
     _value = rhs;
     notifyUpdate(_newValue);
     return *this;
   };
   ParamValue& ParamValue::operator = (double const &rhs) {
     notifyRemove();
-    if (*this != rhs)
-      _newValue = true;
     boost::unique_lock<boost::recursive_mutex> lock(_mtx);
+    _newValue = true;
     _value = rhs;
     notifyUpdate(_newValue);
     return *this;
   };
   ParamValue& ParamValue::operator = (std::string const &rhs) {
     notifyRemove();
-    if (*this != rhs)
-      _newValue = true;
     boost::unique_lock<boost::recursive_mutex> lock(_mtx);
+    _newValue = true;
     _value = rhs;
     notifyUpdate(_newValue);
     return *this;
   };
   ParamValue& ParamValue::operator = (cv::Scalar const &rhs) {
     notifyRemove();
-    if (*this != rhs)
-      _newValue = true;
     boost::unique_lock<boost::recursive_mutex> lock(_mtx);
+    _newValue = true;
     _value = rhs;
     notifyUpdate(_newValue);
     return *this;
   };
   ParamValue& ParamValue::operator = (cv::Mat const &rhs) {
-    boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     notifyRemove();
-    _newValue = true;//it's difficult to say if it's the same matrix, so we conclude it's always new...
+    boost::unique_lock<boost::recursive_mutex> lock(_mtx);
+    _newValue = true;
     _value = rhs;
     notifyUpdate(_newValue);
     return *this;
   };
   ParamValue& ParamValue::operator = (Not_A_Value const &rhs) {
-    boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     notifyRemove();
+    boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     _value = rhs;
     return *this;
   };
   ParamValue& ParamValue::operator = (ParamValue *vDist) {
-    boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     notifyRemove();
+    boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     if (_definition == NULL)
       _definition = vDist->_definition;
     if (vDist != NULL) vDist->_distantListeners.insert(this);
-    _newValue = vDist->_newValue;
+    _newValue = true;
     _value = vDist;
     notifyUpdate(_newValue);
     return *this;
   };
   ParamValue& ParamValue::operator = (ParamValue const &rhs) {
     if (this != &rhs) {
-      boost::unique_lock<boost::recursive_mutex> lock(_mtx);
       notifyRemove();
+      boost::unique_lock<boost::recursive_mutex> lock(_mtx);
       if (_definition == NULL)
         _definition = rhs._definition;
       _newValue = true;
