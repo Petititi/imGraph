@@ -207,7 +207,7 @@ public:
 
       //set sub params values:
       vector<cv::String> subValuesExtractor;
-      detect->getParams(subValuesExtractor);
+      extract->getParams(subValuesExtractor);
       for (cv::String subParam : subValuesExtractor)
         setParamOpencv(extract, "BLOCK__POINT_FINDER_IN_EXTRACTOR." + extractorList[methodExtract], subParam);
 

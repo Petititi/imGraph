@@ -13,7 +13,7 @@
 #include "Block.h"
 #include "ParamValidator.h"
 #include "OpenCV_filter.h"
-#include "MatrixConvertor.h"
+#include "Convertor.h"
 using namespace charliesoft;
 using std::vector;
 using boost::lexical_cast;

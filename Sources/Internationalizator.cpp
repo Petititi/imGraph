@@ -255,13 +255,19 @@ namespace charliesoft
     translations["BLOCK__OUTPUT_IN_WIN_NAME_HELP"] = "Windows title";
     translations["BLOCK__OUTPUT_IN_NORMALIZE"] = "normalize";
     translations["BLOCK__OUTPUT_IN_NORMALIZE_HELP"] = "Normalize image before show";
-    
+
     translations["BLOCK__SHOWGRAPH_NAME"] = "Show graph";
     translations["BLOCK__SHOWGRAPH_IN_VALUES"] = "values";
     translations["BLOCK__SHOWGRAPH_IN_VALUES_HELP"] = "Vector of values to show";
     translations["BLOCK__SHOWGRAPH_IN_TITLE"] = "title";
     translations["BLOCK__SHOWGRAPH_IN_TITLE_HELP"] = "Graph title";
 
+    translations["BLOCK__STRING_CREATION_NAME"] = "String creation";
+    translations["BLOCK__STRING_CREATION_IN_REGEX"] = "pattern";
+    translations["BLOCK__STRING_CREATION_IN_REGEX_HELP"] = "Pattern name <br/>(use %i% for input i : <br/>\"img%1%.jpg\"<br/> will concatenate first input<br/> with the pattern...)";
+    translations["BLOCK__STRING_CREATION_OUT"] = "output";
+    translations["BLOCK__STRING_CREATION_OUT_HELP"] = "Constructed string";
+    
     translations["BLOCK__WRITE_NAME"] = "Write video";
     translations["BLOCK__WRITE_IN_IMAGE"] = "image";
     translations["BLOCK__WRITE_IN_IMAGE_HELP"] = "Image to add to video file";

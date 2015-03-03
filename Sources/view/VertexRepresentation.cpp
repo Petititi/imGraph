@@ -298,8 +298,8 @@ namespace charliesoft
       tmp->setMinimumWidth(5);
       tmp->move(-2, inputHeight);//move the name at the top of vertex...
       tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
-      tmp->setVisible(tmp->shouldShow());
-      if (tmp->shouldShow())
+      tmp->setVisible(tmp->shouldShow() == toBeLinked);
+      if (tmp->shouldShow() == toBeLinked)
       {
         showIn++;
         inputHeight += tmpSize.height() + 10;
@@ -313,8 +313,8 @@ namespace charliesoft
       subPara.second->setMinimumWidth(5);
       subPara.second->move(-2, inputHeight);//move the name at the top of vertex...
       tmpSize = subPara.second->fontMetrics().boundingRect(subPara.second->text());
-      subPara.second->setVisible(subPara.second->shouldShow());
-      if (subPara.second->shouldShow())
+      subPara.second->setVisible(subPara.second->shouldShow() == toBeLinked);
+      if (subPara.second->shouldShow() == toBeLinked)
       {
         showIn++;
         inputHeight += tmpSize.height() + 10;
@@ -328,8 +328,8 @@ namespace charliesoft
       tmp->setMinimumWidth(5);
       tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
       tmp->move(sizeNameVertex.width() + 16 - tmpSize.width() - 8, outputHeight);//move the name at the top of vertex...
-      tmp->setVisible(tmp->shouldShow());
-      if (tmp->shouldShow())
+      tmp->setVisible(tmp->shouldShow() == toBeLinked);
+      if (tmp->shouldShow() == toBeLinked)
       {
         showOut++;
         outputHeight += tmpSize.height() + 10;
@@ -356,7 +356,7 @@ namespace charliesoft
       QRect tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
       tmp->resize(maxInputWidth, tmpSize.height() + 5);
       tmp->move(-2, inputHeight);//move the name at the top of vertex...
-      if (tmp->shouldShow())
+      if (tmp->shouldShow() == toBeLinked)
       {
         inputHeight += tmpSize.height() + 10;
         tmp->raise();
@@ -367,7 +367,7 @@ namespace charliesoft
       QRect tmpSize = tmp.second->fontMetrics().boundingRect(tmp.second->text());
       tmp.second->resize(maxInputWidth, tmpSize.height() + 5);
       tmp.second->move(-2, inputHeight);//move the name at the top of vertex...
-      if (tmp.second->shouldShow())
+      if (tmp.second->shouldShow() == toBeLinked)
       {
         inputHeight += tmpSize.height() + 10;
         tmp.second->raise();
@@ -378,7 +378,7 @@ namespace charliesoft
       QRect tmpSize = tmp->fontMetrics().boundingRect(tmp->text());
       tmp->resize(maxOutputWidth, tmpSize.height() + 5);
       tmp->move(newWidth - maxOutputWidth + 4, outputHeight);//move the name at the top of vertex...
-      if (tmp->shouldShow())
+      if (tmp->shouldShow() == toBeLinked)
       {
         outputHeight += tmpSize.height() + 10;
         tmp->raise();
@@ -808,7 +808,7 @@ namespace charliesoft
   {
     _blockRepresentation->setObjectName("VertexRepresentation");
 
-    _hasDynamicParams = dynamic_cast<SubBlock*>(model) != NULL;
+    _hasDynamicParams = model->hasDynamicParams();
     _model = model;
 
     createListParamsFromModel();
@@ -858,40 +858,40 @@ namespace charliesoft
   void VertexRepresentation::createListParamsFromModel()
   {
     //for each input and output create buttons:
-    vector<ParamDefinition>& inputParams = _model->getInParams();
+    vector<ParamDefinition*>& inputParams = _model->getInParams();
     QRect tmpSize;
     int showIn = 0, showOut = 0;
     for (size_t i = 0; i < inputParams.size(); i++)
       addNewInputParam(inputParams[i]);
 
-    vector<ParamDefinition>& outputParams = _model->getOutParams();
+    vector<ParamDefinition*>& outputParams = _model->getOutParams();
     for (size_t i = 0; i < outputParams.size(); i++)
       addNewOutputParam(outputParams[i]);
   }
 
 
-  LinkConnexionRepresentation* VertexRepresentation::addNewInputParam(ParamDefinition& def)
+  LinkConnexionRepresentation* VertexRepresentation::addNewInputParam(ParamDefinition* def)
   {
     ParamRepresentation  *tmp = new ParamRepresentation(_model, def, true, _blockRepresentation);
     connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
     connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
     _listOfInputChilds.push_back(tmp);
-    if (def._type == ListBox)
+    if (def->_type == ListBox)
     {
       std::vector<string> paramChoices = tmp->getParamListChoice();
       string paramValName = _STR(tmp->getParamName());
       for (size_t idSubParam = 0; idSubParam < paramChoices.size(); idSubParam++)
       {
-        vector<cv::String> subParams = _model->getSubParams(def._name + "." + paramChoices[idSubParam]);
+        vector<cv::String> subParams = _model->getSubParams(def->_name + "." + paramChoices[idSubParam]);
         for (cv::String subParam : subParams)
         {
-          string fullSubName = def._name + "." + paramChoices[idSubParam] + "." + subParam;
+          string fullSubName = def->_name + "." + paramChoices[idSubParam] + "." + subParam;
           ParamValue* param = _model->getParam(fullSubName, true);
           if (param != NULL)
           {
             ParamDefinition* tmpDef = param->getDefinition();
-            ParamRepresentation *tmp = new ParamRepresentation(_model, *tmpDef, true, _blockRepresentation);
-            tmp->setVisibility(false);
+            ParamRepresentation *tmp = new ParamRepresentation(_model, tmpDef, true, _blockRepresentation);
+            tmp->setVisibility(userConstant);
             tmp->setSubParam(true);
             connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));
             connect(tmp, SIGNAL(releaseLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(endLinkCreation(QPoint)));
@@ -903,7 +903,7 @@ namespace charliesoft
     return tmp;
   }
 
-  LinkConnexionRepresentation* VertexRepresentation::addNewOutputParam(ParamDefinition& def)
+  LinkConnexionRepresentation* VertexRepresentation::addNewOutputParam(ParamDefinition* def)
   {
     ParamRepresentation  *tmp = new ParamRepresentation(_model, def, false, _blockRepresentation);
     connect(tmp, SIGNAL(creationLink(QPoint)), Window::getInstance()->getMainWidget(), SLOT(initLinkCreation(QPoint)));

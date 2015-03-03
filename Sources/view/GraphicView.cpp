@@ -700,13 +700,13 @@ namespace charliesoft
     _subModel = model;
     //add input/output parameters:
 
-    const vector<ParamDefinition>& inputParams = model->getInParams();
+    const vector<ParamDefinition*>& inputParams = model->getInParams();
     QRect tmpSize;
     int showIn = 0, showOut = 0;
     for (size_t i = 0; i < inputParams.size(); i++)
       addParameter(new SubGraphParamRepresentation(_subModel, inputParams[i], false, this));
 
-    const vector<ParamDefinition>& outputParams = _subModel->getOutParams();
+    const vector<ParamDefinition*>& outputParams = _subModel->getOutParams();
     for (size_t i = 0; i < outputParams.size(); i++)
       addParameter(new SubGraphParamRepresentation(_subModel, outputParams[i], true, this));
   };

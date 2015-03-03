@@ -71,9 +71,9 @@ using cv::Mat;
 
 namespace charliesoft
 {
-  void ParamsConfigurator::addParam(ParamDefinition& def, bool input)
+  void ParamsConfigurator::addParam(ParamDefinition* def, bool input)
   {
-    SubBlock* model = dynamic_cast<SubBlock*>(_vertex->getModel());
+    Block* model = _vertex->getModel();
     if (model == NULL)
       return;
 
@@ -82,14 +82,12 @@ namespace charliesoft
     {
       model->addNewInput(def);
       param = dynamic_cast<ParamRepresentation*>(_vertex->addNewInputParam(def));
-      _in_param.push_back(param);
       addParamIn(param);
     }
     else
     {
       model->addNewOutput(def);
       param = dynamic_cast<ParamRepresentation*>(_vertex->addNewOutputParam(def));
-      _out_param.push_back(param);
       addParamOut(param);
     }
   }
@@ -98,20 +96,14 @@ namespace charliesoft
   {
     CreateParamWindow test;
     if (test.exec() == QDialog::Accepted)
-    {
-      ParamDefinition def = test.getParamDef();
-      addParam(def, true);
-    }
+      addParam(new ParamDefinition(test.getParamDef()), true);
   };
 
   void ParamsConfigurator::addNewParamOut()
   {
     CreateParamWindow test;
     if (test.exec() == QDialog::Accepted)
-    {
-      ParamDefinition def = test.getParamDef();
-      addParam(def, false);
-    }
+      addParam(new ParamDefinition(test.getParamDef()), false);
   };
 
   ParamsConfigurator::ParamsConfigurator(VertexRepresentation* vertex) :
@@ -321,8 +313,7 @@ namespace charliesoft
 
       if (param->getType() != Boolean)
         vbox->addWidget(new QLabel(_QT(p->getParamHelper())));
-      if (param->isDefaultValue() && !p->isVisible())
-        group->setChecked(false);
+      group->setChecked(p->shouldShow() != notUsed);
     }
     QWidget* subContent = new QWidget();
     vbox->addWidget(subContent);
@@ -340,7 +331,7 @@ namespace charliesoft
       if (isSubParam && param->getType() != Boolean)
         layout->addWidget(new QLabel(p->getParamHelper().c_str()));
 
-      if (!p->isVisible())
+      if (p->shouldShow() == userConstant)
         checkGraph->setCheckState(Qt::Checked);
       else
         checkGraph->setCheckState(Qt::Unchecked);
@@ -792,13 +783,14 @@ namespace charliesoft
     QGroupBox* src = dynamic_cast<QGroupBox*>(sender());
     if (src == NULL) return;
 
+    ParamRepresentation* param;
     if (_outputGroup.find(src) != _outputGroup.end())
     {
-      _outputGroup.at(src)->setVisibility(state);
+      param = _outputGroup.at(src);
+      param->setVisibility(state ? toBeLinked : notUsed);
       Window::synchroMainGraph();
       return;
     }
-    ParamRepresentation* param;
     if (_inputGroup.find(src) != _inputGroup.end())
       param = _inputGroup.at(src);
     if (param == NULL) return;
@@ -833,7 +825,7 @@ namespace charliesoft
       }
       else
       {
-        param->setVisibility(false);
+        param->setVisibility(notUsed);
         ParamValue* paramVal = param->getParamValue();
         paramVal->setDefaultValue();
       }
@@ -1002,20 +994,20 @@ namespace charliesoft
           QMessageBox::Apply | QMessageBox::RestoreDefaults, QMessageBox::Apply) != QMessageBox::Apply)
           return false;//stop here the validation: should correct the error!
       }
-      paramRep->setVisibility(false);
+      paramRep->setVisibility(notUsed);
       return true;//nothing left to do as we don't use val...
     }
     try
     {
       if (!_inputModificator21.at(paramRep)->isChecked())
       {
-        paramRep->setVisibility(true);
+        paramRep->setVisibility(toBeLinked);
         paramRep->show();
         paramRep->getModel()->getGraph()->initChildDatas(paramRep->getModel(), std::set<Block*>());
         return true;//nothing left to do as we will set value using graph
       }
       else
-        paramRep->setVisibility(false);
+        paramRep->setVisibility(userConstant);
     }
     catch (std::out_of_range&)
     {

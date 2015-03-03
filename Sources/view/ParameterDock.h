@@ -107,7 +107,7 @@ namespace charliesoft
     void addParamIn(ParamRepresentation  *p, ParamRepresentation* parent = NULL);
     bool updateParamModel(ParamRepresentation* param, bool withAlert = true);
 
-    void addParam(ParamDefinition& param, bool input);
+    void addParam(ParamDefinition* param, bool input);
 
     void updateInfoTab();
   public:

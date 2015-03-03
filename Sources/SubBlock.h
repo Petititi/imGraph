@@ -37,10 +37,11 @@ namespace charliesoft
     static bool addedToList;
     boost::mutex _mtx_1;    // explicit mutex declaration
 
-    boost::condition_variable _wait_param_update;  ///< parameter update from subgraph sync condition
 
-    std::vector<BlockLink> externBlocksInput;
-    std::vector<BlockLink> externBlocksOutput;
+    std::vector<BlockLink> externBlocksInput;///<input parameters the user had added to block
+    std::vector<BlockLink> externBlocksOutput;///<output parameters the user had added to block
+
+    boost::condition_variable _wait_param_update;  ///< parameter update from subgraph sync condition
 
     GraphOfProcess* _subGraph;
     virtual bool run(bool oneShot = false);
@@ -56,25 +57,20 @@ namespace charliesoft
       _subGraph->setParent(processes, this);
     };
 
-    ParamValue* addNewInput(ParamDefinition& param);
-    ParamValue* addNewOutput(ParamDefinition& param);
-
     virtual boost::property_tree::ptree getXML();
     virtual void initFromXML(boost::property_tree::ptree* tree,
       std::vector < std::pair<ParamValue*, unsigned int> >& toUpdate,
       std::map<unsigned int, ParamValue*>& addressesMap,
       std::vector<ConditionOfRendering*>& condToUpdate);
 
-    const std::vector<BlockLink>& getExternBlocksInput() const { return externBlocksInput; }
-    const std::vector<BlockLink>& getExternBlocksOutput() const { return externBlocksOutput; }
-
     GraphOfProcess* getSubGraph() const { return _subGraph; };
     void addExternLink(const BlockLink& link, bool isInput);
     void removeExternLink(const BlockLink& link);
 
-    ParamDefinition getDef(std::string name, bool isInput);
-
     void waitUpdateParams(boost::unique_lock<boost::mutex>& lock);
+
+    const std::vector<BlockLink>& getExternBlocksInput() const { return externBlocksInput; }
+    const std::vector<BlockLink>& getExternBlocksOutput() const { return externBlocksOutput; }
   };
 
 };

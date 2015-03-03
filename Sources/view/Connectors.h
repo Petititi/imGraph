@@ -65,7 +65,7 @@ namespace charliesoft
 
     bool isInput() const { return _isInput; }
 
-    virtual bool shouldShow() const { return _shouldShow; }
+    virtual ParamVisibility shouldShow() const { return _shouldShow ? notUsed : toBeLinked; }
     virtual void setVisibility(bool visible);
     void changeStyleProperty(const char* propertyName, QVariant val);
 
@@ -98,7 +98,7 @@ namespace charliesoft
     ParamDefinition _param;
     bool _isLeftCond;
   public:
-    SubGraphParamRepresentation(SubBlock* model, const ParamDefinition& def, bool isInput, QWidget *father);
+    SubGraphParamRepresentation(SubBlock* model, const ParamDefinition* def, bool isInput, QWidget *father);
 
     const ParamDefinition& getDefinition() const{ return _param; };
     SubBlock* getModel() const { return _model; }
@@ -109,23 +109,23 @@ namespace charliesoft
     Q_OBJECT;
 
     Block* _model;
-    ParamDefinition& _param;
+    ParamDefinition* _param;
     ParamType _paramType;
     bool _isSubParam;
     std::string _subName;
     bool _defaultValue;
   public:
-    ParamRepresentation(Block* model, ParamDefinition& param, bool isInput, QWidget *father);
+    ParamRepresentation(Block* model, ParamDefinition* param, bool isInput, QWidget *father);
     ParamRepresentation(ParamRepresentation* other);
 
-    virtual bool shouldShow() const { return _param._show; }
-    virtual void setVisibility(bool visible);
+    virtual ParamVisibility shouldShow() const { return _param->_show; }
+    virtual void setVisibility(ParamVisibility visible);
 
     bool isDefaultVal() const { return _defaultValue; }
-    void useDefault(bool defaultVal){ _defaultValue = defaultVal; };
-    std::string getParamName() const { return _subName.empty() ? _param._name : _subName; }
+    void useDefault(bool defaultVal) { _defaultValue = defaultVal; };
+    std::string getParamName() const { return _subName.empty() ? _param->_name : _subName; }
     ParamValue* getParamValue() const { 
-      if (_model != NULL)return _model->getParam(_param._name, _isInput); else return NULL;
+      if (_model != NULL) return _model->getParam(_param->_name, _isInput); else return NULL;
     }
     std::string getParamHelper() const;
     std::vector<std::string> getParamListChoice() const;

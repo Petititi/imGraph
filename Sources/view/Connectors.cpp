@@ -111,48 +111,48 @@ namespace charliesoft
     _isSubParam = other->_isSubParam;
   }
 
-  ParamRepresentation::ParamRepresentation(Block* model, ParamDefinition& param, bool isInput, QWidget *father) :
-    LinkConnexionRepresentation(param._name, isInput, father), _model(model), _param(param), _paramType(_param._type){
+  ParamRepresentation::ParamRepresentation(Block* model, ParamDefinition* param, bool isInput, QWidget *father) :
+    LinkConnexionRepresentation(param->_name, isInput, father), _model(model), _param(param), _paramType(_param->_type){
     _defaultValue = _isSubParam = false;
     setObjectName("ParamRepresentation");
-    if (!param._show) this->hide();
-    setToolTip("<FONT>" + _QT(param._helper) + "</FONT>");
+    if (!param->_show) this->hide();
+    setToolTip("<FONT>" + _QT(param->_helper) + "</FONT>");
     if (_vertex != NULL)
       connect(this, SIGNAL(askSynchro()), _vertex, SLOT(reshape()));
   };
 
-  SubGraphParamRepresentation::SubGraphParamRepresentation(SubBlock* model, const ParamDefinition& def, bool isInput, QWidget *father) :
-    LinkConnexionRepresentation(def._name, isInput, father), _model(model), _param(def){
+  SubGraphParamRepresentation::SubGraphParamRepresentation(SubBlock* model, const ParamDefinition* def, bool isInput, QWidget *father) :
+    LinkConnexionRepresentation(def->_name, isInput, father), _model(model), _param(*def){
     setObjectName("SubGraphParamRepresentation");
-    setToolTip("<FONT>" + _QT(def._helper) + "</FONT>");
+    setToolTip("<FONT>" + _QT(def->_helper) + "</FONT>");
     setAlignment(Qt::AlignCenter);
   }
 
   std::string ParamRepresentation::getParamHelper() const {
-    size_t pos = _STR(_param._helper).find_first_of('|');
+    size_t pos = _STR(_param->_helper).find_first_of('|');
     if (pos == std::string::npos)
-      return _param._helper;
+      return _param->_helper;
     else
-      return _STR(_param._helper).substr(0, pos);
+      return _STR(_param->_helper).substr(0, pos);
   }
 
   std::vector<std::string> ParamRepresentation::getParamListChoice() const
   {
     std::vector<std::string> out;
-    size_t pos = _STR(_param._helper).find_first_of('|');
+    size_t pos = _STR(_param->_helper).find_first_of('|');
     if (pos == std::string::npos)
       return out;
-    std::string params = _STR(_param._helper).substr(pos+1);
+    std::string params = _STR(_param->_helper).substr(pos+1);
     boost::split(out, params, boost::is_any_of("^"));
     return out;
   }
 
-  void ParamRepresentation::setVisibility(bool visible)
+  void ParamRepresentation::setVisibility(ParamVisibility visible)
   {
-    if (_param._show == visible)
+    if (_param->_show == visible)
       return;//Nothing to do...
 
-    _param._show = visible;
+    _param->_show = visible;
     emit askSynchro();
   }
 
@@ -160,9 +160,9 @@ namespace charliesoft
   {
     _isSubParam = param1;///\todo something is wrong here...
     if (_isSubParam)
-      setText(_param._helper.c_str());
+      setText(_param->_helper.c_str());
     else
-      setText(_param._helper.c_str());
+      setText(_param->_helper.c_str());
   }
 
   void ParamRepresentation::redefineParam(std::string fullSubName, ParamType newType)

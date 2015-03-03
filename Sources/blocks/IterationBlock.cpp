@@ -62,18 +62,16 @@ namespace charliesoft
 
   ForBlock::ForBlock() :SubBlock("FOR_BLOCK_")
   {
-    ParamDefinition for_params;
-    for_params._name = "FOR_BLOCK_INITVAL";
-    for_params._helper = "FOR_BLOCK_INITVAL_HELP";
-    for_params._initVal = 0;
-    for_params._type = Float;
+    ParamDefinition* for_params = new ParamDefinition(
+      true, Float, "FOR_BLOCK_INITVAL", "FOR_BLOCK_INITVAL_HELP");
+    for_params->_initVal = 0;
+    addNewInput(for_params); 
+    for_params = new ParamDefinition(
+      true, Float, "FOR_BLOCK_ENDVAL", "FOR_BLOCK_ENDVAL_HELP");
+    for_params->_initVal = 1;
     addNewInput(for_params);
-    for_params._name = "FOR_BLOCK_ENDVAL";
-    for_params._helper = "FOR_BLOCK_ENDVAL_HELP";
-    for_params._initVal = 1;
-    addNewInput(for_params);
-    for_params._name = "FOR_BLOCK_STEPVAL";
-    for_params._helper = "FOR_BLOCK_STEPVAL_HELP";
+    for_params = new ParamDefinition(
+      true, Float, "FOR_BLOCK_STEPVAL", "FOR_BLOCK_STEPVAL_HELP");
     addNewInput(for_params);
   }
 
@@ -102,7 +100,7 @@ namespace charliesoft
       it != _myInputs.end(); it++)
     {
       ptree paramTree;
-      ParamDefinition pDef = getParamDefinition(it->first, true);
+      ParamDefinition& pDef = *getParamDefinition(it->first, true);
 
       paramTree.put("Name", pDef._name);
       paramTree.put("Helper", pDef._helper);
@@ -120,7 +118,7 @@ namespace charliesoft
     for (auto it = _myOutputs.begin();
       it != _myOutputs.end(); it++)
     {
-      ParamDefinition pDef = getParamDefinition(it->first, false);
+      ParamDefinition& pDef = *getParamDefinition(it->first, false);
 
       ptree paramTree;
       paramTree.put("Name", pDef._name);
@@ -189,7 +187,7 @@ namespace charliesoft
         string val = it1->second.get("Value", "Not initialized...");
         ParamType paramType = static_cast<ParamType>(it1->second.get("ParamType", 0));
         ParamValue& tmpValLoaded = ParamValue::fromString(paramType, val);
-        ParamValue* tmpVal = addNewInput(ParamDefinition(true, paramType, nameIn, helper, tmpValLoaded));
+        ParamValue* tmpVal = addNewInput(new ParamDefinition(true, paramType, nameIn, helper, tmpValLoaded));
 
         bool link = it1->second.get("Link", false);
 
@@ -212,7 +210,7 @@ namespace charliesoft
         string nameOut = it1->second.get("Name", "Error");
         string helper = it1->second.get("Helper", nameOut);
         ParamType paramType = static_cast<ParamType>(it1->second.get("ParamType", 0));
-        addNewOutput(ParamDefinition(true, paramType, nameOut, helper));
+        addNewOutput(new ParamDefinition(true, paramType, nameOut, helper));
         string val = it1->second.get("ID", "0");
         ParamValue* tmpVal = getParam(nameOut, false);
         addressesMap[lexical_cast<unsigned int>(val)] = tmpVal;

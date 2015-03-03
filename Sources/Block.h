@@ -152,19 +152,31 @@ namespace charliesoft
     void setFather(Block* val) { _father = val; }
   };
 
+  enum ParamVisibility
+  {
+    notUsed = 0,
+    toBeLinked,
+    userConstant
+  };
+
   struct ParamDefinition
   {
-    bool _show;
+    ParamVisibility _show;
     ParamType _type;
     std::string _name;
     std::string _helper;
     ParamValue _initVal;
     ParamDefinition() :
-      _show(false), _type(typeError), _name("_"), _helper("_"), _initVal(Not_A_Value()){};
-    ParamDefinition(bool show, ParamType type, std::string name, std::string helper) :
+      _show(notUsed), _type(typeError), _name("_"), _helper("_"), _initVal(Not_A_Value()){};
+    ParamDefinition(ParamVisibility show, ParamType type, std::string name, std::string helper) :
       _show(show), _type(type), _name(name), _helper(helper), _initVal(Not_A_Value()){};
-    ParamDefinition(bool show, ParamType type, std::string name, std::string helper, ParamValue initVal) :
+    ParamDefinition(ParamVisibility show, ParamType type, std::string name, std::string helper, ParamValue initVal) :
       _show(show), _type(type), _name(name), _helper(helper), _initVal(initVal){};
+
+    ParamDefinition(bool show, ParamType type, std::string name, std::string helper) :
+      ParamDefinition(show ? toBeLinked : userConstant, type, name, helper){};
+    ParamDefinition(bool show, ParamType type, std::string name, std::string helper, ParamValue initVal) :
+      ParamDefinition(show ? toBeLinked : userConstant, type, name, helper, initVal){};
   };
 
   class AlgoPerformance 
@@ -197,12 +209,13 @@ namespace charliesoft
     };
 
     /**
-    * Four states of blocks:
+    * Five states of blocks:
     * - waitingChild: Block wait for new input values... Only synchrone block can be in this state.
     * - consumingParams: Block is active and produce new datas
     * - consumedParams: Block produced new datas
     * - waitingConsumers: Block wait until all its output are consumed.
     * - stopped: Block is not yet started
+    * - paused: Block wait until user start again the graph
     */
     enum BlockState
     {
@@ -236,28 +249,30 @@ namespace charliesoft
 
     std::string _currentPreview;
 
-    std::vector<ParamDefinition> _algorithmInParams;
-    std::vector<ParamDefinition> _algorithmSubParams;
-    std::vector<ParamDefinition> _algorithmOutParams;
+    std::vector<ParamDefinition*> _algorithmInParams;///<definition of each input parameters
+    std::vector<ParamDefinition*> _algorithmSubParams;///<definition of each input sub-parameters
+    std::vector<ParamDefinition*> _algorithmOutParams;///<definition of each output parameters
 
-    std::map<std::string, ParamValue> _myOutputs;
-    std::map<std::string, ParamValue> _myInputs;
-    std::map<std::string, ParamValue> _mySubParams;
-    std::vector<ConditionOfRendering> _conditions;
 
+    std::map<std::string, ParamValue> _myOutputs;///<output value and name of parameters
+    std::map<std::string, ParamValue> _myInputs;///<input value and name of parameters
+    std::map<std::string, ParamValue> _mySubParams;///<sub-params value and name of parameters
+    std::vector<ConditionOfRendering> _conditions;///<Conditions needed for block rendering
+
+    /**
+    * This function is used by ProcessManager to init block with default values...
+    */
     void initParameters(const std::vector<ParamDefinition>& inParam,
       const std::vector<ParamDefinition>& outParam);
 
     void newProducedData();
     void paramsFullyProcessed();
 
-    ParamDefinition& getParamDefinition(std::string nameOfParam, bool isInput);
-    bool paramDefinitionExist(std::string nameOfParam, bool isInput);
-
     virtual bool run(bool oneShot = false) = 0;
     bool _executeOnlyOnce;
     bool _newData;
     bool _isOneShot;
+    bool _addInputParam;
   public:
     /**
     Used to create a block...
@@ -265,7 +280,7 @@ namespace charliesoft
     @param isOneShot if the block is simple (that is, the block is state-free), set this value to true.
     @param typeExec used to know the type of execution this bloc should have...
     */
-    Block(std::string name, bool isOneShot, BlockType typeExec = synchrone);
+    Block(std::string name, bool isOneShot, BlockType typeExec = synchrone, bool addInputParam = false);
     ~Block();
     std::string getName(){
       return _name;
@@ -275,11 +290,27 @@ namespace charliesoft
     };
     void operator()();
 
+    bool hasDynamicParams() const { return _addInputParam; };
+    /**
+    Used to add a new parameter...
+    @param param definition of the new input parameter
+    */
+    ParamValue* addNewInput(ParamDefinition* param);
+    /**
+    Used to add a new output...
+    @param param definition of the new output value
+    */
+    ParamValue* addNewOutput(ParamDefinition* param);
+
     virtual void init(){};
     virtual void release(){};
 
     ///Use this function to reset state of process (mark every input/output as old)
     void markAsUnprocessed();
+
+    ParamDefinition* getParamDefinition(std::string nameOfParam, bool isInput);
+    const ParamDefinition* getParamDefinition(std::string nameOfParam, bool isInput) const;
+    bool paramDefinitionExist(std::string nameOfParam, bool isInput);
 
     std::string getCurrentPreview() const { return _currentPreview; }
     void setCurrentPreview(std::string val) { _currentPreview = val; }
@@ -358,10 +389,12 @@ namespace charliesoft
     bool shouldExecuteOnlyOnce() const { return _executeOnlyOnce; }
     void setExecuteOnlyOnce(bool val) { _executeOnlyOnce = val; }
 
-    std::vector<ParamDefinition>& getInParams();
-    std::vector<ParamDefinition>& getOutParams();
+    std::vector<ParamDefinition*>& getInParams();
+    std::vector<ParamDefinition*>& getOutParams();
     std::map<std::string, ParamValue>const & getInputsVals() const { return _myInputs; }
     std::map<std::string, ParamValue>const & getOutputsVals() const { return _myOutputs; }
+
+    ParamDefinition getDef(std::string name, bool isInput) const;
   };
 
   struct BlockLink

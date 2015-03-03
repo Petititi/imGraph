@@ -540,7 +540,7 @@ namespace charliesoft
       ParamValue* val = link._from->getParam(link._fromParam, false);
       string newName = _STR(link._fromParam) + lexical_cast<string>(idx++);
       ParamValue* newVal = subBlock->addNewInput(
-        ParamDefinition(true, val->getType(), newName, link._fromParam));
+        new ParamDefinition(true, val->getType(), newName, link._fromParam));
       graph->removeLink(link);
       *newVal = val;//create link!
       link._to->getParam(link._toParam, true)->setValue(val);
@@ -552,7 +552,7 @@ namespace charliesoft
       ParamValue* val = link._to->getParam(link._toParam, true);
       string newName = _STR(link._toParam) + lexical_cast<string>(idx++);
       ParamValue* newVal = subBlock->addNewOutput(
-        ParamDefinition(true, val->getType(), newName, link._toParam));
+        new ParamDefinition(true, val->getType(), newName, link._toParam));
       graph->removeLink(link);
       *val = newVal;//create link!
       link._toParam = newName;

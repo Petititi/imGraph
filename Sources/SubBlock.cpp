@@ -31,7 +31,7 @@ namespace charliesoft
   SubBlock::SubBlock() :SubBlock("SUBBLOCK__"){
   };
 
-  SubBlock::SubBlock(string name) :Block(name, false){
+  SubBlock::SubBlock(string name) :Block(name, false, synchrone, true){
     _subGraph = new GraphOfProcess();
   };
 
@@ -138,27 +138,7 @@ namespace charliesoft
     else
       externBlocksOutput.push_back(link);
   }
-
-  ParamValue* SubBlock::addNewInput(ParamDefinition& param)
-  {
-    _algorithmInParams.push_back(param);
-
-    ParamValue& t = _myInputs[param._name] = ParamValue(this, param._name, false);
-    t.isNeeded(true);//always needed!
-    t = param._initVal;
-    return &t;
-  };
-
-  ParamValue* SubBlock::addNewOutput(ParamDefinition& param)
-  {
-    _algorithmOutParams.push_back(param);
-
-    ParamValue& t = _myOutputs[param._name] = ParamValue(this, param._name, true);
-    t.isNeeded(true);//always needed!
-    t = param._initVal;
-    return &t;
-  };
-
+  
   void SubBlock::waitUpdateParams(boost::unique_lock<boost::mutex>& lock)
   {
     _wait_param_update.wait(lock);
@@ -172,42 +152,6 @@ namespace charliesoft
     Block::initFromXML(block, toUpdate, addressesMap, condToUpdate);
     for (ptree::iterator it1 = block->begin(); it1 != block->end(); it1++)
     {
-      if (it1->first.compare("Input_to_create") == 0)
-      {
-        string nameIn = it1->second.get("Name", "Error");
-        string helper = it1->second.get("Helper", nameIn);
-        bool link = it1->second.get("Link", false);
-        string val = it1->second.get("Value", "Not initialized...");
-        ParamType paramType = static_cast<ParamType>(it1->second.get("ParamType", 0));
-        ParamValue& tmpValLoaded = ParamValue::fromString(paramType, val);
-        ParamValue* tmpVal=addNewInput(ParamDefinition(true, paramType, nameIn, helper, tmpValLoaded));
-
-        if (!link)
-        {
-          try
-          {
-            if (tmpVal != NULL)
-              tmpVal->valid_and_set(tmpVal->fromString(tmpVal->getType(), val));
-          }
-          catch (...)
-          {
-            tmpVal->setNew(false);
-          }
-        }
-        else
-          toUpdate.push_back(std::pair<ParamValue*, unsigned int>(tmpVal, lexical_cast<unsigned int>(val)));
-      }
-      if (it1->first.compare("Output_to_create") == 0)
-      {
-        string nameOut = it1->second.get("Name", "Error");
-        string helper = it1->second.get("Helper", nameOut);
-        ParamType paramType = static_cast<ParamType>(it1->second.get("ParamType", 0));
-        ParamValue* tmpVal = addNewOutput(ParamDefinition(true, paramType, nameOut, helper));
-        tmpVal->setNew(false);
-        string val = it1->second.get("ID", "0");
-        addressesMap[lexical_cast<unsigned int>(val)] = tmpVal;
-      }
-      
       if (it1->first.compare("SubGraph") == 0)
         _subGraph->fromGraph(it1->second, addressesMap);
 
@@ -240,7 +184,7 @@ namespace charliesoft
     {
       try
       {
-          link._to->getParam(link._toParam, true)->setValue(&fakeValue);
+        link._to->getParam(link._toParam, true)->setValue(&fakeValue);
       }
       catch (...)
       {
@@ -250,41 +194,7 @@ namespace charliesoft
 
 
     ptree tree = Block::getXML();
-
-    for (auto it = _myInputs.begin();
-      it != _myInputs.end(); it++)
-    {
-      ptree paramTree;
-      ParamDefinition& pDef = getParamDefinition(it->first, true);
-
-      paramTree.put("Name", pDef._name);
-      paramTree.put("Helper", pDef._helper);
-      paramTree.put("ParamType", pDef._type);
-      paramTree.put("IsVisible", pDef._show);
-
-      paramTree.put("Link", it->second.isLinked());
-      if (!it->second.isLinked())
-        paramTree.put("Value", it->second.toString());
-      else
-        paramTree.put("Value", (unsigned int)it->second.get<ParamValue*>());
-
-      tree.add_child("Input_to_create", paramTree);
-    }
-
-    for (auto it = _myOutputs.begin();
-      it != _myOutputs.end(); it++)
-    {
-      ParamDefinition& pDef = getParamDefinition(it->first, false);
-
-      ptree paramTree;
-      paramTree.put("Name", pDef._name);
-      paramTree.put("Helper", pDef._helper);
-      paramTree.put("ParamType", pDef._type);
-      paramTree.put("ID", (unsigned int)&it->second);
-
-      tree.add_child("Output_to_create", paramTree);
-    }
-
+    
     //create also the subgraph xml:
     ptree subgraphTree;
     _subGraph->saveGraph(subgraphTree);
@@ -311,10 +221,5 @@ namespace charliesoft
     }
     return tree;
   };
-
-  ParamDefinition SubBlock::getDef(std::string name, bool isInput)
-  {
-    return getParamDefinition(name, true);
-  }
 
 };

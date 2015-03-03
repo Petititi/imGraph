@@ -262,9 +262,23 @@ namespace charliesoft
     wakeUpFromPause();
     wakeUpFromConsumers();
     _wait_processed.notify_all();
+
+    //delete definitions:
+
+    for (auto def : _algorithmInParams)
+      delete def;
+    _algorithmInParams.clear();
+    for (auto def : _algorithmSubParams)
+      delete def;
+    _algorithmSubParams.clear();
+    for (auto def : _algorithmOutParams)
+      delete def;
+    _algorithmOutParams.clear();
+
   }
 
-  Block::Block(std::string name, bool isOneShot, BlockType typeExec){
+  Block::Block(std::string name, bool isOneShot, BlockType typeExec, bool addInputParam){
+    _addInputParam = addInputParam;
     _currentPreview = "None";
     _isOneShot = isOneShot;
     _state = stopped;
@@ -434,6 +448,26 @@ namespace charliesoft
     return out;
   }
 
+  ParamValue* Block::addNewInput(ParamDefinition* param)
+  {
+    _algorithmInParams.push_back(param);
+
+    ParamValue& t = _myInputs[param->_name] = ParamValue(this, param->_name, false);
+    t.isNeeded(true);//always needed!
+    t = param->_initVal;
+    return &t;
+  };
+
+  ParamValue* Block::addNewOutput(ParamDefinition* param)
+  {
+    _algorithmOutParams.push_back(param);
+
+    ParamValue& t = _myOutputs[param->_name] = ParamValue(this, param->_name, true);
+    t.isNeeded(true);//always needed!
+    t = param->_initVal;
+    return &t;
+  };
+
   bool Block::isStartingBlock()
   {
     if (ProcessManager::getInstance()->getAlgoType(_name) != input)
@@ -536,26 +570,33 @@ namespace charliesoft
   void Block::initParameters(const std::vector<ParamDefinition>& inParam,
     const std::vector<ParamDefinition>& outParam)
   {
-    _algorithmInParams = inParam;
+    //copy of param definitions:
+    for (auto& it : inParam)
+      _algorithmInParams.push_back(new ParamDefinition(it));
+    for (auto& it : outParam)
+      _algorithmOutParams.push_back(new ParamDefinition(it));
+
     //add empty parameters:
     for (auto& it : _algorithmInParams)
     {
-      ParamValue& t = _myInputs[it._name] = ParamValue(this, &it, false);
-      t.isNeeded(it._show);
-      t = it._initVal;
+      ParamValue& t = _myInputs[it->_name] = ParamValue(this, it, false);
+      t.isNeeded(it->_show == toBeLinked);
+      t = it->_initVal;
     }
-    _algorithmOutParams = outParam;
+
     for (auto& it : _algorithmOutParams)
     {
-      ParamValue& t = _myOutputs[it._name] = ParamValue(this, &it, true);
-      t.isNeeded(it._show);
-      t = it._initVal;
+      ParamValue& t = _myOutputs[it->_name] = ParamValue(this, it, true);
+      t.isNeeded(it->_show == toBeLinked);
+      t = it->_initVal;
     }
-    _algorithmSubParams = _PROCESS_MANAGER->getAlgo_SubParams(_name);
+    std::vector<ParamDefinition> subParams = _PROCESS_MANAGER->getAlgo_SubParams(_name);
     //test if param is an algo:
-    for (auto& val : _algorithmSubParams)
+    for (auto& val : subParams)
     {
-      ParamValue& t = _mySubParams[val._name] = ParamValue(this, &val, false);
+      ParamDefinition* def = new ParamDefinition(val);
+      _algorithmSubParams.push_back(def);
+      ParamValue& t = _mySubParams[val._name] = ParamValue(this, def, false);
       t = val._initVal;
       t.isNeeded(false);
     }
@@ -596,28 +637,41 @@ namespace charliesoft
 
   bool Block::paramDefinitionExist(std::string nameOfParam, bool isInput)
   {
-    vector<ParamDefinition>& vectOfDef = _algorithmInParams;
+    vector<ParamDefinition*>& vectOfDef = _algorithmInParams;
     if (!isInput)
       vectOfDef = _algorithmOutParams;
-    for (ParamDefinition& def : vectOfDef)
+    for (ParamDefinition* def : vectOfDef)
     {
-      if (def._name.compare(nameOfParam) == 0)
+      if (def->_name.compare(nameOfParam) == 0)
         return true;
     }
     return false;
   }
 
-  ParamDefinition& Block::getParamDefinition(std::string nameOfParam, bool isInput)
+  const ParamDefinition* Block::getParamDefinition(std::string nameOfParam, bool isInput) const
   {
-    vector<ParamDefinition>& vectOfDef = _algorithmInParams;
+    const vector<ParamDefinition*>* vectOfDef = &_algorithmInParams;
     if (!isInput)
-      vectOfDef = _algorithmOutParams;
-    for (ParamDefinition& def : vectOfDef)
+      vectOfDef = &_algorithmOutParams;
+    for (const ParamDefinition* def : *vectOfDef)
     {
-      if (def._name.compare(nameOfParam) == 0)
+      if (def->_name.compare(nameOfParam) == 0)
         return def;
     }
-    return vectOfDef.front();
+    return NULL;
+  }
+
+  ParamDefinition* Block::getParamDefinition(std::string nameOfParam, bool isInput)
+  {
+    vector<ParamDefinition*>& vectOfDef = _algorithmInParams;
+    if (!isInput)
+      vectOfDef = _algorithmOutParams;
+    for (ParamDefinition* def : vectOfDef)
+    {
+      if (def->_name.compare(nameOfParam) == 0)
+        return def;
+    }
+    return NULL;
   }
 
   void Block::initFromXML(boost::property_tree::ptree* block,
@@ -651,8 +705,8 @@ namespace charliesoft
         string valID = it1->second.get("ID", "0");
         addressesMap[lexical_cast<unsigned int>(valID)] = tmpVal;
 
-        ParamDefinition& def = getParamDefinition(nameIn, true);
-        def._show = it1->second.get("IsVisible", def._show);
+        ParamDefinition* def = getParamDefinition(nameIn, true);
+        def->_show = ParamVisibility(it1->second.get("IsVisible", (int)def->_show));
 
         ParamType typeOfVal = ParamType(it1->second.get("SubType", (int)tmpVal->getType()));
 
@@ -679,6 +733,44 @@ namespace charliesoft
         tmpVal->setNew(false);
         addressesMap[lexical_cast<unsigned int>(val)] = tmpVal;
       }
+
+      if (it1->first.compare("Input_to_create") == 0)
+      {
+        string nameIn = it1->second.get("Name", "Error");
+        string helper = it1->second.get("Helper", nameIn);
+        bool link = it1->second.get("Link", false);
+        string val = it1->second.get("Value", "Not initialized...");
+        ParamType paramType = static_cast<ParamType>(it1->second.get("ParamType", 0));
+        ParamValue& tmpValLoaded = ParamValue::fromString(paramType, val);
+        ParamVisibility show = ParamVisibility(it1->second.get("IsVisible", 1));
+        ParamValue* tmpVal = addNewInput(new ParamDefinition(show, paramType, nameIn, helper, tmpValLoaded));
+
+        if (!link)
+        {
+          try
+          {
+            if (tmpVal != NULL)
+              tmpVal->valid_and_set(tmpVal->fromString(tmpVal->getType(), val));
+          }
+          catch (...)
+          {
+            tmpVal->setNew(false);
+          }
+        }
+        else
+          toUpdate.push_back(std::pair<ParamValue*, unsigned int>(tmpVal, lexical_cast<unsigned int>(val)));
+      }
+      if (it1->first.compare("Output_to_create") == 0)
+      {
+        string nameOut = it1->second.get("Name", "Error");
+        string helper = it1->second.get("Helper", nameOut);
+        ParamType paramType = static_cast<ParamType>(it1->second.get("ParamType", 0));
+        ParamValue* tmpVal = addNewOutput( new ParamDefinition(true, paramType, nameOut, helper));
+        tmpVal->setNew(false);
+        string val = it1->second.get("ID", "0");
+        addressesMap[lexical_cast<unsigned int>(val)] = tmpVal;
+      }
+      
       if (it1->first.compare("Condition") == 0)
       {
         int cLeft = it1->second.get("category_left", 0);
@@ -731,10 +823,10 @@ namespace charliesoft
     for (auto it = _myInputs.begin();
       it != _myInputs.end(); it++)
     {
-      //only export "classical" params: ones known by ProcessManager
+      ptree paramTree;
+      //if the parameter is known by ProcessManager, it's a classic parameter
       if (pm->getParamType(_name, it->first, true) != typeError)
       {
-        ptree paramTree;
         paramTree.put("Name", it->first);
         paramTree.put("ID", (unsigned int)&it->second);
         paramTree.put("Link", it->second.isLinked());
@@ -746,26 +838,55 @@ namespace charliesoft
         if (it->second.getType() == AnyType)
           paramTree.put("SubType", it->second.getType(false));
 
-        ParamDefinition& def = getParamDefinition(it->first, true);
-        paramTree.put("IsVisible", def._show);
+        ParamDefinition* def = getParamDefinition(it->first, true);
+        paramTree.put("IsVisible", (int)def->_show);
 
         tree.add_child("Input", paramTree);
 
         if (it->second.getType() == ListBox)
           inputWithSubparams.push_back(it->second.getName() + "." + it->second.getValFromList());
       }
+      else
+      {
+        ParamDefinition& pDef = *getParamDefinition(it->first, true);
+
+        paramTree.put("Name", pDef._name);
+        paramTree.put("Helper", pDef._helper);
+        paramTree.put("ParamType", pDef._type);
+        paramTree.put("IsVisible", (int)pDef._show);
+
+        paramTree.put("Link", it->second.isLinked());
+        if (!it->second.isLinked())
+          paramTree.put("Value", it->second.toString());
+        else
+          paramTree.put("Value", (unsigned int)it->second.get<ParamValue*>());
+
+        tree.add_child("Input_to_create", paramTree);
+      }
     }
 
     for (auto it = _myOutputs.begin();
       it != _myOutputs.end(); it++)
     {
+      ptree paramTree;
       if (pm->getParamType(_name, it->first, false) != typeError)
       {
-        ptree paramTree;
         paramTree.put("Name", it->first);
         paramTree.put("ID", (unsigned int)&it->second);
 
         tree.add_child("Output", paramTree);
+      }
+      else
+      {
+        ParamDefinition& pDef = *getParamDefinition(it->first, false);
+
+        ptree paramTree;
+        paramTree.put("Name", pDef._name);
+        paramTree.put("Helper", pDef._helper);
+        paramTree.put("ParamType", pDef._type);
+        paramTree.put("ID", (unsigned int)&it->second);
+
+        tree.add_child("Output_to_create", paramTree);
       }
     }
 
@@ -801,6 +922,12 @@ namespace charliesoft
 
     return tree;
   };
+
+  ParamDefinition Block::getDef(std::string name, bool isInput) const
+  {
+    const ParamDefinition* def = getParamDefinition(name, isInput);
+    return *def;
+  }
 
   void Block::linkParam(std::string paramName, Block* dest, std::string paramNameDest)
   {
@@ -840,11 +967,11 @@ namespace charliesoft
     _conditions.pop_back();
   }
 
-  vector<ParamDefinition>& Block::getInParams()
+  vector<ParamDefinition*>& Block::getInParams()
   {
     return _algorithmInParams;
   };
-  vector<ParamDefinition>& Block::getOutParams()
+  vector<ParamDefinition*>& Block::getOutParams()
   {
     return _algorithmOutParams;
   };

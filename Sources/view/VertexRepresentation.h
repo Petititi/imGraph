@@ -176,8 +176,8 @@ namespace charliesoft
     Block* getModel() const { return _model; }
 
 
-    virtual LinkConnexionRepresentation* addNewInputParam(ParamDefinition& def);
-    virtual LinkConnexionRepresentation* addNewOutputParam(ParamDefinition& def);
+    virtual LinkConnexionRepresentation* addNewInputParam(ParamDefinition* def);
+    virtual LinkConnexionRepresentation* addNewOutputParam(ParamDefinition* def);
   protected:
     virtual void enterEvent(QEvent *);
     void createListParamsFromModel();

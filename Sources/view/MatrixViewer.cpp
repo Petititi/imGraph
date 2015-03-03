@@ -43,7 +43,7 @@
 
 #include "GuiReceiver.h"
 #include "MatrixViewer.h"
-#include "MatrixConvertor.h"
+#include "Convertor.h"
 
 #ifdef _WIN32
 #pragma warning(disable:4503)

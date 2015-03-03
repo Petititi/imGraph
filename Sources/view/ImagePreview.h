@@ -25,7 +25,7 @@
 #include <opencv2/imgproc.hpp>
 
 #include <iostream>
-#include "MatrixConvertor.h"
+#include "Convertor.h"
 #ifdef _WIN32
 #pragma warning(pop)
 #endif

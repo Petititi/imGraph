@@ -1,4 +1,4 @@
-#include "MatrixConvertor.h"
+#include "Convertor.h"
 
 #ifdef _WIN32
 #pragma warning(push)
@@ -7,11 +7,14 @@
 
 #include <opencv2/imgproc.hpp>
 
+#include <boost/lexical_cast.hpp>
+
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
 
 using namespace cv;
+using namespace boost;
 
 namespace charliesoft
 {
@@ -188,4 +191,55 @@ namespace charliesoft
       return 0;
     }
   }
+
+  namespace StringConvertor
+  {
+    std::string regExExpend(std::string input, std::initializer_list<ParamValue*> list)
+    {
+      std::vector<ParamValue*> tmpList;
+
+      for (auto elem : list) tmpList.push_back(elem);
+
+      return regExExpend(input, tmpList);
+    }
+    std::string regExExpend(std::string input, std::vector<ParamValue*> tmpList)
+    {
+      //first replace each %1%,¨%2%, ... %n% with corresponding value:
+      size_t p = input.find_first_of('%');
+      size_t prevPos = 0;
+      std::string finalString = "";
+      while (p != std::string::npos)
+      {
+        finalString += input.substr(prevPos, (p - prevPos));
+        bool isParameter = true;
+        if (p > 0)
+          isParameter = input[p - 1] != '\\';
+
+        prevPos = p + 1;
+        if (isParameter)
+        {
+          p = input.find_first_of('%', prevPos);
+          std::string number = input.substr(prevPos, (p - prevPos));
+          try
+          {
+            size_t convNum = lexical_cast<int>(number);
+            if (tmpList.size() >= convNum && convNum > 0)
+            {
+              std::string newValue = tmpList[convNum - 1]->toString();
+              finalString += newValue;
+            }
+            prevPos = p + 1;
+          }
+          catch (bad_lexical_cast &)
+          {
+          }
+        }
+        else
+          finalString += input[p];
+        p = input.find_first_of('%', prevPos);
+      }
+      finalString += input.substr(prevPos);
+      return finalString;
+    }
+  };
 }

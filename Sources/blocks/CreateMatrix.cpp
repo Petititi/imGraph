@@ -3,7 +3,7 @@
 
 #include "Block.h"
 #include "view/MatrixViewer.h"
-#include "MatrixConvertor.h"
+#include "Convertor.h"
 #include "ParamValidator.h"
 
 #ifdef _WIN32
