@@ -41,7 +41,7 @@ namespace charliesoft
     cv::Mat out = _myInputs["BLOCK__WRITE_IN_IMAGE"].get<cv::Mat>();
     if (out.empty())
       return false;
-    if (!vr.isOpened() 
+    if (!vr.isOpened()
       || _myInputs["BLOCK__WRITE_IN_FILENAME"].isNew()
       || _myInputs["BLOCK__WRITE_IN_CODEC"].isNew()
       || _myInputs["BLOCK__WRITE_IN_FPS"].isNew())
@@ -59,6 +59,73 @@ namespace charliesoft
     }
     vr.write(out);
 
+    return true;
+  };
+
+  BLOCK_BEGIN_INSTANTIATION(WriteImage);
+  //You can add methods, re implement needed functions...
+  cv::VideoWriter vr;
+  ///\todo: add init and release functions
+  BLOCK_END_INSTANTIATION(WriteImage, AlgoType::output, BLOCK__IMWRITE_NAME);
+
+  BEGIN_BLOCK_INPUT_PARAMS(WriteImage);
+  //Add parameters, with following parameters:
+  //default visibility, type of parameter, name (key of internationalizor), helper...
+  ADD_PARAMETER(true, Matrix, "BLOCK__IMWRITE_IN_IMAGE", "BLOCK__IMWRITE_IN_IMAGE_HELP");
+  ADD_PARAMETER(false, FilePath, "BLOCK__IMWRITE_IN_FILENAME", "BLOCK__IMWRITE_IN_FILENAME_HELP");
+  ADD_PARAMETER_FULL(false, Int, "BLOCK__IMWRITE_IN_QUALITY", "BLOCK__IMWRITE_IN_QUALITY_HELP", 95);
+  END_BLOCK_PARAMS();
+
+  BEGIN_BLOCK_OUTPUT_PARAMS(WriteImage);
+  END_BLOCK_PARAMS();
+
+  BEGIN_BLOCK_SUBPARAMS_DEF(WriteImage);
+  END_BLOCK_PARAMS();
+
+  WriteImage::WriteImage() :Block("BLOCK__IMWRITE_NAME", true){
+    _myInputs["BLOCK__IMWRITE_IN_IMAGE"].addValidator({ new ValNeeded() });
+    _myInputs["BLOCK__IMWRITE_IN_FILENAME"].addValidator({ new ValNeeded() });
+    _myInputs["BLOCK__IMWRITE_IN_QUALITY"].addValidator({ new ValRange(0, 100) });
+  };
+
+  bool WriteImage::run(bool oneShot){
+    cv::Mat out = _myInputs["BLOCK__IMWRITE_IN_IMAGE"].get<cv::Mat>();
+    if (out.empty())
+      return false;
+    if (_myInputs["BLOCK__IMWRITE_IN_FILENAME"].isDefaultValue())
+      return false;
+    QString filename = _myInputs["BLOCK__IMWRITE_IN_FILENAME"].get<std::string>().c_str();
+    int codec = 0;//no compression...
+    vector<int> params;
+    if (!_myInputs["BLOCK__IMWRITE_IN_QUALITY"].isDefaultValue())
+    {
+      int valQuality = _myInputs["BLOCK__IMWRITE_IN_QUALITY"].get<int>();
+      if (filename.endsWith(".jpg", Qt::CaseInsensitive))
+      {
+        params.push_back(CV_IMWRITE_JPEG_QUALITY);
+        params.push_back(valQuality);
+      }
+      else if (filename.endsWith(".png", Qt::CaseInsensitive))
+      {
+        params.push_back(CV_IMWRITE_PNG_COMPRESSION);
+        params.push_back((100-valQuality) / 10);
+      }
+      else if (filename.endsWith(".ppm", Qt::CaseInsensitive) ||
+        filename.endsWith(".pgm", Qt::CaseInsensitive) ||
+        filename.endsWith(".pbm", Qt::CaseInsensitive))
+      {
+        params.push_back(CV_IMWRITE_PXM_BINARY);
+        params.push_back(valQuality>50?1:0);
+      }
+    }
+    try
+    {
+      imwrite(filename.toStdString(), out, params);
+    }
+    catch (cv::Exception&)
+    {
+      return false;
+    }
     return true;
   };
 };

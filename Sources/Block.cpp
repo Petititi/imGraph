@@ -939,13 +939,19 @@ namespace charliesoft
 
     ParamValue& valOut = _myOutputs[paramName];
     //first test type of input:
-    if (valIn.getType() != AnyType && valIn.getType() != valOut.getType())
+    ParamType type1 = valIn.getType(false);
+    ParamType type2 = valOut.getType(false);
+    if (type1 == FilePath)
+      type1 = String;
+    if (type2 == FilePath)
+      type2 = String;
+    if (valIn.getType() != AnyType &&  type1 != type2)
     {
       throw (ErrorValidator((my_format(_STR("ERROR_TYPE")) %
         _STR(getName()) % _STR(valOut.getName()) % typeName(valOut.getType()) %
         _STR(dest->getName()) % _STR(valIn.getName()) % typeName(valIn.getType())).str()));
     }
-    dest->setParamValue(paramNameDest, &_myOutputs[paramName]);
+    dest->setParamValue(paramNameDest, &valOut);
   }
 
   void Block::setIncrSize(float incX, float incY)

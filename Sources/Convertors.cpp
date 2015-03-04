@@ -8,6 +8,7 @@
 #include <opencv2/imgproc.hpp>
 
 #include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string/replace.hpp>
 
 #ifdef _WIN32
 #pragma warning(pop)
@@ -202,7 +203,9 @@ namespace charliesoft
 
       return regExExpend(input, tmpList);
     }
-    std::string regExExpend(std::string input, std::vector<ParamValue*> tmpList)
+
+    std::string regExExpend(std::string input, std::vector<ParamValue*> tmpList,
+      std::map<std::string, ParamValue*> valuesToMatch)
     {
       //first replace each %1%,¨%2%, ... %n% with corresponding value:
       size_t p = input.find_first_of('%');
@@ -219,19 +222,23 @@ namespace charliesoft
         if (isParameter)
         {
           p = input.find_first_of('%', prevPos);
-          std::string number = input.substr(prevPos, (p - prevPos));
-          try
+          if (p != std::string::npos)
           {
-            size_t convNum = lexical_cast<int>(number);
-            if (tmpList.size() >= convNum && convNum > 0)
+            std::string number = input.substr(prevPos, (p - prevPos));
+            try
             {
-              std::string newValue = tmpList[convNum - 1]->toString();
-              finalString += newValue;
+              size_t convNum = lexical_cast<int>(number);
+              if (tmpList.size() >= convNum && convNum > 0)
+              {
+                std::string newValue = tmpList[convNum - 1]->toString();
+                finalString += newValue;
+              }
+            }
+            catch (bad_lexical_cast &)
+            {
+              finalString += "%" + number + "%";//we keep the bad val
             }
             prevPos = p + 1;
-          }
-          catch (bad_lexical_cast &)
-          {
           }
         }
         else
@@ -239,6 +246,16 @@ namespace charliesoft
         p = input.find_first_of('%', prevPos);
       }
       finalString += input.substr(prevPos);
+
+      //now replace every valuesToMatch found:
+      for (auto& valToMatch : valuesToMatch)
+      {
+        std::string toFind = valToMatch.first;
+        std::string toReplace = "";
+        if (valToMatch.second != NULL)
+          toReplace = valToMatch.second->toString();
+        boost::algorithm::replace_all(finalString, toFind, toReplace);
+      }
       return finalString;
     }
   };

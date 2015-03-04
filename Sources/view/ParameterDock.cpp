@@ -392,20 +392,17 @@ namespace charliesoft
       std::vector<std::string>& paramsList = p->getParamListChoice();
       for (std::string paramVal : paramsList)
         combo->addItem(paramVal.c_str());
-      if (p->isVisible())
-        combo->setCurrentIndex(-1);//that way, next setCurrentIndex will throw signal, even if it's index 0!
-      else
-      {
-        combo->setCurrentIndex(param->get<int>());
+      combo->setCurrentIndex(param->get<int>());
+      if (!p->isVisible())
         combo->setEnabled(false);
-      }
+
       connect(combo, SIGNAL(currentIndexChanged(int)), this, SLOT(subParamChange(int)));
       layout->addWidget(combo);
       _inputValue12[p] = combo;
       _inputValue21[combo] = p;
 
-      if (p->isVisible())
-        combo->setCurrentIndex(param->get<int>());
+
+      changeSubParam(param->get<int>(), false);
       break;
     }
     case Float:
@@ -676,7 +673,7 @@ namespace charliesoft
     return Not_A_Value();
   }
 
-  void ParamsConfigurator::subParamChange(int newVal)
+  void ParamsConfigurator::changeSubParam(int newVal, bool updateBlock)
   {
     if (newVal < 0)
       return;
@@ -704,7 +701,7 @@ namespace charliesoft
         _inputModificator21.erase(p);
       }
       //try to add this param:
-      if (groupParams->isChecked())
+      if (groupParams->isChecked() && updateBlock)
       {//but only if the group is used!
         if (!updateParamModel(value))
           return;
@@ -776,6 +773,10 @@ namespace charliesoft
         }
       }
     }
+  }
+  void ParamsConfigurator::subParamChange(int newVal)
+  {
+    changeSubParam(newVal);
   }
 
   void ParamsConfigurator::switchParamUse(bool state)

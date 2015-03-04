@@ -228,7 +228,7 @@ namespace charliesoft
     translations["BLOCK__INPUT_IN_FILE_NOT_FOLDER"] = "File \"%1$s\" is not a folder!";
     translations["BLOCK__INPUT_IN_FILE_PROBLEM"] = "File \"%1$s\" can't be loaded!";
     translations["BLOCK__INPUT_IN_LOOP"] = "loop";
-    translations["BLOCK__INPUT_IN_LOOP_HELP"] = "Loop video file (if <0, infinite loop)";
+    translations["BLOCK__INPUT_IN_LOOP_HELP"] = "Loop video file (if <=0, infinite loop)";
     translations["BLOCK__INPUT_IN_GREY"] = "grey";
     translations["BLOCK__INPUT_IN_GREY_HELP"] = "Convert image to a grayscale one";
     translations["BLOCK__INPUT_IN_COLOR"] = "color";
@@ -264,10 +264,10 @@ namespace charliesoft
 
     translations["BLOCK__STRING_CREATION_NAME"] = "String creation";
     translations["BLOCK__STRING_CREATION_IN_REGEX"] = "pattern";
-    translations["BLOCK__STRING_CREATION_IN_REGEX_HELP"] = "Pattern name <br/>(use %i% for input i : <br/>\"img%1%.jpg\"<br/> will concatenate first input<br/> with the pattern...)";
+    translations["BLOCK__STRING_CREATION_IN_REGEX_HELP"] = "Pattern name <br/>(use %i% for input i : <br/>\"img%1%.jpg\"<br/> will concatenate first input<br/> with the pattern...)<br/>%n% can also be used:<br/>it's the number of current frame";
     translations["BLOCK__STRING_CREATION_OUT"] = "output";
     translations["BLOCK__STRING_CREATION_OUT_HELP"] = "Constructed string";
-    
+
     translations["BLOCK__WRITE_NAME"] = "Write video";
     translations["BLOCK__WRITE_IN_IMAGE"] = "image";
     translations["BLOCK__WRITE_IN_IMAGE_HELP"] = "Image to add to video file";
@@ -277,6 +277,14 @@ namespace charliesoft
     translations["BLOCK__WRITE_IN_FPS_HELP"] = "Frames per second";
     translations["BLOCK__WRITE_IN_CODEC"] = "codec";
     translations["BLOCK__WRITE_IN_CODEC_HELP"] = "FOURCC wanted (XVID, X264...).<br/>Empty if you want no compression,<br/>-1 if you want to choose using IHM!";
+
+    translations["BLOCK__IMWRITE_NAME"] = "Write image";
+    translations["BLOCK__IMWRITE_IN_IMAGE"] = "image";
+    translations["BLOCK__IMWRITE_IN_IMAGE_HELP"] = "Image to save";
+    translations["BLOCK__IMWRITE_IN_FILENAME"] = "Filename";
+    translations["BLOCK__IMWRITE_IN_FILENAME_HELP"] = "Filename of the file";
+    translations["BLOCK__IMWRITE_IN_QUALITY"] = "Quality";
+    translations["BLOCK__IMWRITE_IN_QUALITY_HELP"] = "Quality of the output img (0->highest compression, 100->highest quality)";
 
     translations["BLOCK__LINEDRAWER_NAME"] = "Draw lines";
     translations["BLOCK__LINEDRAWER_IN_LINES"] = "lines list";

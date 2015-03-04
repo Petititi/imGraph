@@ -29,7 +29,7 @@ protected:
   //Add parameters, with following parameters:
   //default visibility, type of parameter, name (key of internationalizor), helper...
   ADD_PARAMETER_FULL(false, ListBox, "BLOCK__INPUT_IN_INPUT_TYPE", "BLOCK__INPUT_IN_INPUT_TYPE_HELP", 0);
-  ADD_PARAMETER_FULL(false, Int, "BLOCK__INPUT_IN_LOOP", "BLOCK__INPUT_IN_LOOP_HELP", -1);
+  ADD_PARAMETER_FULL(false, Int, "BLOCK__INPUT_IN_LOOP", "BLOCK__INPUT_IN_LOOP_HELP", 0);
   ADD_PARAMETER(false, Boolean, "BLOCK__INPUT_IN_GREY", "BLOCK__INPUT_IN_GREY_HELP");
   ADD_PARAMETER(false, Boolean, "BLOCK__INPUT_IN_COLOR",        "BLOCK__INPUT_IN_COLOR_HELP");
   ADD_PARAMETER(false, Int,     "BLOCK__INPUT_INOUT_WIDTH",     "BLOCK__INPUT_INOUT_WIDTH_HELP");
@@ -159,10 +159,12 @@ protected:
     if (!processor_.isOpened())//either end of file or problem with file...
     {
       loopCount++;
-      if (!oneShot && !_myInputs["BLOCK__INPUT_IN_LOOP"].isDefaultValue())
+      if (!oneShot)
       {
-        int wantedLoop = _myInputs["BLOCK__INPUT_IN_LOOP"].get<int>();
-        if (wantedLoop >= 0)
+        int wantedLoop = 0;
+        if (!_myInputs["BLOCK__INPUT_IN_LOOP"].isDefaultValue())
+          wantedLoop = _myInputs["BLOCK__INPUT_IN_LOOP"].get<int>();
+        if (wantedLoop > 0)
         {
           if (wantedLoop <= loopCount)
             throw boost::thread_interrupted();//want to stop this rendering!

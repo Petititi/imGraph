@@ -26,7 +26,8 @@ namespace charliesoft
   namespace StringConvertor
   {
     std::string regExExpend(std::string input, std::initializer_list<ParamValue*> list = {});
-    std::string regExExpend(std::string input, std::vector<ParamValue*> list = {});
+    std::string regExExpend(std::string input, std::vector<ParamValue*> list = {},
+      std::map<std::string, ParamValue*> valuesToMatch = std::map<std::string, ParamValue*>());
   };
 }
 

@@ -14,6 +14,8 @@ namespace charliesoft
 {
   BLOCK_BEGIN_INSTANTIATION(StringCreationBlock);
   //You can add methods, re implement needed functions... 
+  std::map<std::string, ParamValue*> valToReplace;
+  virtual void init();
   BLOCK_END_INSTANTIATION(StringCreationBlock, AlgoType::imgProcess, BLOCK__STRING_CREATION_NAME);
   BEGIN_BLOCK_INPUT_PARAMS(StringCreationBlock);
   //Add parameters, with following parameters:
@@ -31,10 +33,18 @@ namespace charliesoft
   StringCreationBlock::StringCreationBlock() :
     Block("BLOCK__STRING_CREATION_NAME", true, synchrone, true){
     _myInputs["BLOCK__STRING_CREATION_IN_REGEX"].addValidator({ new ValNeeded() });
+    valToReplace["%n%"] = new ParamValue(0);
   };
-  
+
+  void StringCreationBlock::init()
+  {
+    *valToReplace["%n%"] = 0;
+  }
+
   bool StringCreationBlock::run(bool oneShot){
     std::string myVal = _myInputs["BLOCK__STRING_CREATION_IN_REGEX"].get<std::string>();
+
+    (*valToReplace["%n%"]) = valToReplace["%n%"]->get<int>() + 1;
 
     std::vector<ParamValue*> otherParams;
     for (auto& it = _myInputs.begin();
@@ -42,7 +52,7 @@ namespace charliesoft
       if (it->first.compare("BLOCK__STRING_CREATION_IN_REGEX") != 0)
         otherParams.push_back(&(it->second));
 
-    std::string finalVal = StringConvertor::regExExpend(myVal, otherParams);
+    std::string finalVal = StringConvertor::regExExpend(myVal, otherParams, valToReplace);
     _myOutputs["BLOCK__STRING_CREATION_OUT"] = finalVal;
     return true;
   };
