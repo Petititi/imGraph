@@ -110,7 +110,7 @@ namespace charliesoft
     void addParam(ParamDefinition* param, bool input);
 
     void updateInfoTab();
-    void changeSubParam(int newIndex, bool updateBlock = true);
+    void changeSubParam(int newIndex, QComboBox* src, bool updateBlock = true);
   public:
     ParamsConfigurator(VertexRepresentation* vertex);
 

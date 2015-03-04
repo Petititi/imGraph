@@ -90,6 +90,7 @@ namespace charliesoft
       param = dynamic_cast<ParamRepresentation*>(_vertex->addNewOutputParam(def));
       addParamOut(param);
     }
+    emit askSynchro();
   }
 
   void ParamsConfigurator::addNewParamIn()
@@ -377,7 +378,7 @@ namespace charliesoft
     case Int:
     {
       QLineEdit* lineEdit = new QLineEdit(lexical_cast<string>(param->get<int>()).c_str());
-      if (p->isVisible())
+      if (p->shouldShow() == toBeLinked)
         lineEdit->setEnabled(false);
       _inputValue12[p] = lineEdit;
       _inputValue21[lineEdit] = p;
@@ -393,7 +394,7 @@ namespace charliesoft
       for (std::string paramVal : paramsList)
         combo->addItem(paramVal.c_str());
       combo->setCurrentIndex(param->get<int>());
-      if (!p->isVisible())
+      if (p->shouldShow() == toBeLinked)
         combo->setEnabled(false);
 
       connect(combo, SIGNAL(currentIndexChanged(int)), this, SLOT(subParamChange(int)));
@@ -402,13 +403,13 @@ namespace charliesoft
       _inputValue21[combo] = p;
 
 
-      changeSubParam(param->get<int>(), false);
+      changeSubParam(param->get<int>(), combo, false);
       break;
     }
     case Float:
     {
       QLineEdit* lineEdit = new QLineEdit(lexical_cast<string>(param->get<double>()).c_str());
-      if (p->isVisible())
+      if (p->shouldShow() == toBeLinked)
         lineEdit->setEnabled(false);
       _inputValue12[p] = lineEdit;
       _inputValue21[lineEdit] = p;
@@ -428,6 +429,8 @@ namespace charliesoft
         cv::Scalar tmpColor = p->getParamValue()->get<cv::Scalar>();
         _paramColor[p] = tmpColor;
       }
+      if (p->shouldShow() == toBeLinked)
+        colorEditor->setEnabled(false);
 
       connect(colorEditor, SIGNAL(clicked()), this, SLOT(colorEditor()));
       break;
@@ -444,7 +447,7 @@ namespace charliesoft
         if (!img.empty())
           _paramMatrix[p] = img;
       }
-      if (p->isVisible())
+      if (p->shouldShow() == toBeLinked)
         matEditor->setEnabled(false);
 
       connect(matEditor, SIGNAL(clicked()), this, SLOT(matrixEditor()));
@@ -453,7 +456,7 @@ namespace charliesoft
     case String:
     {
       QLineEdit* lineEdit = new QLineEdit(param->toString().c_str());
-      if (p->isVisible())
+      if (p->shouldShow() == toBeLinked)
         lineEdit->setEnabled(false);
       layout->addWidget(lineEdit);
       _inputValue12[p] = lineEdit;
@@ -469,7 +472,7 @@ namespace charliesoft
       _inputValue12[p] = lineEdit;
       _inputValue21[lineEdit] = p;
       openFiles_[button] = lineEdit;
-      if (p->isVisible())
+      if (p->shouldShow() == toBeLinked)
       {
         button->setEnabled(false);
         lineEdit->setEnabled(false);
@@ -489,7 +492,7 @@ namespace charliesoft
       _inputValue21[anyWidget] = p;
 
 
-      if (p->isVisible())
+      if (p->shouldShow() == toBeLinked)
         anyWidget->setEnabled(false);
 
       break;
@@ -673,11 +676,10 @@ namespace charliesoft
     return Not_A_Value();
   }
 
-  void ParamsConfigurator::changeSubParam(int newVal, bool updateBlock)
+  void ParamsConfigurator::changeSubParam(int newVal, QComboBox* src, bool updateBlock)
   {
     if (newVal < 0)
       return;
-    QComboBox* src = dynamic_cast<QComboBox*>(sender());
     ParamRepresentation* value = dynamic_cast<ParamRepresentation*>(_inputValue21[src]);
 
     //find GroupBox:
@@ -776,7 +778,8 @@ namespace charliesoft
   }
   void ParamsConfigurator::subParamChange(int newVal)
   {
-    changeSubParam(newVal);
+    QComboBox* src = dynamic_cast<QComboBox*>(sender());
+    changeSubParam(newVal, src);
   }
 
   void ParamsConfigurator::switchParamUse(bool state)
