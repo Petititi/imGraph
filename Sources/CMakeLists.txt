@@ -1,6 +1,8 @@
 file(GLOB_RECURSE files_QWT_headers "../include/qwt/*.h*")
-QT5_ADD_RESOURCES(_RCC_OUTFILES view/MatrixViewer.qrc)
-QT5_WRAP_CPP(HEADERS_MOC "blocks/ParamValue.h" "view/Window.h" "view/GraphicView.h" "view/GuiReceiver.h" "view/GraphViewer.h" "view/ImagePreview.h" "view/MatrixViewer.h" "view/Connectors.h" "view/ParameterDock.h" "view/SmallDialogs.h" "view/VertexRepresentation.h" ${files_QWT_headers})
+include_directories( "${CMAKE_SOURCE_DIR}/Sources" )
 
-new_executable( imGraph )
+QT5_ADD_RESOURCES(_RCC_OUTFILES view/MatrixViewer.qrc)
+QT5_WRAP_CPP(HEADERS_MOC "blocks/ParamValue.h" "view/GuiReceiver.h" "view/GraphViewer.h" "view/MatrixViewer.h" "view/SmallDialogs.h")
+
+new_library( imGraph QWT )
 qt5_use_modules(imGraph Core Gui OpenGL Network Widgets Test PrintSupport Svg)

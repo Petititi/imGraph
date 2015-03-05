@@ -1,18 +1,10 @@
 
 #include <vector>
 
-#include <qwt/qwt_plot.h>
-#include <qwt/qwt_plot_curve.h>
-#include <qwt/qwt_plot_grid.h>
-#include <qwt/qwt_symbol.h>
-#include <qwt/qwt_legend.h>
-
-
 #include "Block.h"
+#include "ParamValidator.h"
 #include "view/GraphViewer.h"
 #include "view/GuiReceiver.h"
-#include "ParamValidator.h"
-#include "view/Window.h"
 
 using namespace charliesoft;
 using std::vector;

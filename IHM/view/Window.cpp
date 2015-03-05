@@ -43,13 +43,13 @@
 #endif
 
 #include "Graph.h"
-#include "MatrixViewer.h"
+#include "view/MatrixViewer.h"
 #include "GraphicView.h"
 #include "ProcessManager.h"
 #include "ParameterDock.h"
 #include "SubBlock.h"
 #include "VertexRepresentation.h"
-#include "GuiReceiver.h"
+#include "view/GuiReceiver.h"
 
 using namespace std;
 using namespace charliesoft;
@@ -135,6 +135,8 @@ namespace charliesoft
   Window::Window()
   {
     ptr = this;
+    qApp->installEventFilter(this);
+
     //create opencv main thread:
     GuiReceiver::getInstance();
 
@@ -359,7 +361,17 @@ namespace charliesoft
     getMainWidget()->getModel()->switchPause();
   }
 
-  bool Window::event(QEvent *event)
+  bool Window::eventFilter(QObject *obj, QEvent *evnt)
+  {
+    if (evnt->type() == QEvent::KeyPress)
+    {
+      if (consumeEvent(evnt))
+        return true;
+    }
+    return QObject::eventFilter(obj, evnt);
+  }
+
+  bool Window::consumeEvent(QEvent *event)
   {
     if (event->type() == QEvent::KeyPress)
     {
@@ -391,12 +403,20 @@ namespace charliesoft
           synchroMainGraph();
           break;
         default:
-          return QMainWindow::event(event);
+          return false;
         }
         return true;
       }
     }
-    return QMainWindow::event(event);
+    return false;
+  }
+
+  bool Window::event(QEvent *evnt)
+  {
+    if (consumeEvent(evnt))
+      return true;
+    else
+      return QMainWindow::event(evnt);
   }
 
 
@@ -458,7 +478,7 @@ namespace charliesoft
   void Window::saveProject()
   {
     if (GlobalConfig::getInstance()->lastProject_.empty() || getMainWidget()->getModel() == NULL)
-      GlobalConfig::getInstance()->saveConfig();
+      GlobalConfig::getInstance()->saveConfig(getMainWidget()->getModel());
     else
     {
       ptree localElement;
@@ -590,7 +610,7 @@ namespace charliesoft
     GlobalConfig::getInstance()->isMaximized = isMaximized();
     if (!GlobalConfig::getInstance()->isMaximized)
       GlobalConfig::getInstance()->lastPosition = QRect(pos(), size());
-    GlobalConfig::getInstance()->saveConfig();
+    GlobalConfig::getInstance()->saveConfig(getMainWidget()->getModel());
     QApplication::quit();
     return true;
   }

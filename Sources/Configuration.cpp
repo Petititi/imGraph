@@ -18,8 +18,6 @@
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
-#include "view/Window.h"
-#include "view/GraphicView.h"
 
 #include "SubBlock.h"
 #include "Graph.h"
@@ -54,7 +52,7 @@ namespace charliesoft
     _ptr = NULL;
   }
 
-  void GlobalConfig::saveConfig()
+  void GlobalConfig::saveConfig(GraphOfProcess* graph)
   {
     ptree localElement;
     localElement.put("GlobConfig.LastProject", lastProject_);
@@ -67,7 +65,6 @@ namespace charliesoft
     localElement.put("GlobConfig.lastPosition.height", lastPosition.height());
     localElement.put("GlobConfig.processSync", processSync_);
 
-    charliesoft::GraphOfProcess* graph = Window::getInstance()->getMainWidget()->getModel();
     while (graph->getParent() != NULL)
       graph = graph->getParent();
 

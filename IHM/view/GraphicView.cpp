@@ -51,7 +51,7 @@
 #include "Graph.h"
 
 
-#include "MatrixViewer.h"
+#include "view/MatrixViewer.h"
 
 #include "ProcessManager.h"
 #include "blocks/ParamValidator.h"

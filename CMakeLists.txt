@@ -8,6 +8,8 @@ project ( imGraph )
 
 if( MSVC )
     set( CMAKE_USE_RELATIVE_PATHS ON CACHE INTERNAL "" FORCE )
+else( MSVC )
+    SET(CMAKE_CXX_FLAGS "-std=c++0x")
 endif( )
 
 
@@ -20,7 +22,6 @@ string( REGEX MATCHALL "[ 0-9 ]+" ImGRAPH_VERS_PARTS "${ImGRAPH_VERSION}" )
 list( GET ImGRAPH_VERS_PARTS 0 ImGRAPH_VERS_MAJOR )
 list( GET ImGRAPH_VERS_PARTS 1 ImGRAPH_VERS_MINOR )
 list( GET ImGRAPH_VERS_PARTS 2 ImGRAPH_VERS_PATCH )
-
 
 # Alternatively you could simply include version.rc in another rc file
 # if there already is one in one of the files in ${SOURCES}
@@ -65,7 +66,6 @@ endif( )
 set( DETECT_LINKER_LIBS "${OpenCV_LIBS}")
 
 find_package(OpencvInput REQUIRED)
-MESSAGE(STATUS "OPENCVINPUT_INCLUDE_DIRS : ${OPENCVINPUT_INCLUDE_DIRS}")
 
 set( DIR_ADD_INCLUDE "${CMAKE_SOURCE_DIR}/include" ${Boost_INCLUDE_DIR} ${QT_QTOPENGL_INCLUDE_DIR} ${OPENCVINPUT_INCLUDE_DIRS})
 MESSAGE(STATUS "DIR_ADD_INCLUDE : ${DIR_ADD_INCLUDE}")
@@ -76,7 +76,9 @@ set( ADD_LIBRARIES
     "debug;glew32sd.lib;optimized;glew32s.lib"
     ${OPENCVINPUT_LIBRARIES} )
 
+add_subdirectory( include/qwt )
 add_subdirectory( Sources )
+add_subdirectory( IHM )
 
 # ----------------------------------------------------------------------------
 #  Copy required OpenCV and QT5 dlls into output path (Windows only)

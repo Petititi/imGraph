@@ -15,7 +15,6 @@
 #include <qevent.h>
 #include <qcursor.h>
 #include <qbitmap.h>
-#include "view\Window.h"
 
 static QVector<QwtPicker *> qwtActivePickers( QWidget *w )
 {

@@ -25,8 +25,6 @@
 #pragma warning(pop)
 #endif
 
-#include "Block.h"
-
 #include <map>
 
 namespace charliesoft
@@ -54,6 +52,7 @@ namespace charliesoft
     QVector<QAction*> vect_QActions;
     QToolBar* _toolbar;
 
+    bool eventFilter(QObject *obj, QEvent *event);
 
     void createToolbar(QToolBar* toolBar);
   public:
@@ -77,6 +76,8 @@ namespace charliesoft
     void redraw();
 
     bool event(QEvent *event);
+
+    bool consumeEvent(QEvent *event);
 
     void showListAlgoDock(bool listOfAlgo);
 

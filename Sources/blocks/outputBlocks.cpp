@@ -3,8 +3,8 @@
 #include <sstream>
 #include <boost/lexical_cast.hpp>
 
-#include "Block.h"
 #include "view/GuiReceiver.h"
+#include "Block.h"
 #include "ParamValidator.h"
 #include "OpenCV_filter.h"
 using namespace lsis_org;
@@ -46,7 +46,7 @@ namespace charliesoft
       if (_myInputs["BLOCK__OUTPUT_IN_NORMALIZE"].get<bool>())
         mat = filter.process(mat);
 
-      imshow(_myInputs["BLOCK__OUTPUT_IN_WIN_NAME"].get<string>(), mat);
+      ::imshow(_myInputs["BLOCK__OUTPUT_IN_WIN_NAME"].get<string>(), mat);
     }
 
     return true;

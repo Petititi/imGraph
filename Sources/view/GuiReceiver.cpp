@@ -43,7 +43,7 @@
 
 #include "GuiReceiver.h"
 #include "GraphViewer.h"
-#include "MatrixViewer.h"
+#include "view/MatrixViewer.h"
 #include "Convertor.h"
 
 #ifdef _WIN32
@@ -58,7 +58,6 @@
 #include <opencv2/highgui.hpp>
 #include <QString>
 #include <QDialogButtonBox>
-#include <view/Window.h>
 
 #ifdef _WIN32
 #pragma warning(disable:4503)

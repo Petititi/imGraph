@@ -14,7 +14,7 @@ namespace charliesoft
   BLOCK_BEGIN_INSTANTIATION(AccuBlock);
   //You can add methods, re implement needed functions... 
   Accumul_Filter filter;
-  BLOCK_END_INSTANTIATION(AccuBlock, AlgoType::imgProcess, BLOCK__ACCUMULATOR_NAME);
+  BLOCK_END_INSTANTIATION(AccuBlock, AlgoType::imgProcess, BLOCK__ACCUMULATOR_NAME); 
   BEGIN_BLOCK_INPUT_PARAMS(AccuBlock);
   //Add parameters, with following parameters:
   //default visibility, type of parameter, name (key of internationalizor), helper...

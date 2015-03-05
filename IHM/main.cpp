@@ -1,9 +1,10 @@
 #include "view/GraphicView.h"
 
 #ifdef _WIN32
-#pragma warning(disable:4503)
+#pragma warning(disable:4503)//deactivated globally (without push)
 #pragma warning(push)
 #pragma warning(disable:4996 4251 4275 4800)
+#include "listOfBlocks.h"
 #endif
 #include <QApplication>
 #include "opencv2/features2d.hpp"
@@ -15,6 +16,7 @@
 using namespace charliesoft;
 using namespace std;
 using namespace cv;
+
 
 int main(int argc, char* argv[])
 {

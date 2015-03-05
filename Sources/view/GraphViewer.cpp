@@ -1,6 +1,5 @@
 
 #include "GraphViewer.h"
-#include "Window.h"
 
 
 #ifdef _WIN32
@@ -30,7 +29,6 @@
 #pragma warning(pop)
 #endif
 
-using namespace charliesoft;
 using boost::lock_guard;
 
 class Zoomer : public QwtPlotZoomer

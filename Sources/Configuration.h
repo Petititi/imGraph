@@ -16,6 +16,8 @@
 
 namespace charliesoft
 {
+  class GraphOfProcess;
+
   class GlobalConfig
   {
     GlobalConfig(){};
@@ -27,7 +29,7 @@ namespace charliesoft
     static GlobalConfig* getInstance();
     static void release();
     void loadConfig();
-    void saveConfig();
+    void saveConfig(GraphOfProcess* graph);
 
     boost::property_tree::ptree getXML() const { return _xmlTree; }
 

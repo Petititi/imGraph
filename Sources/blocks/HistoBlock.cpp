@@ -1,18 +1,18 @@
 
 #include <vector>
 
-#include <qwt/qwt_plot.h>
-#include <qwt/qwt_plot_curve.h>
-#include <qwt/qwt_plot_grid.h>
-#include <qwt/qwt_symbol.h>
-#include <qwt/qwt_legend.h>
+#ifdef _WIN32
+#pragma warning(push)
+#pragma warning(disable:4996 4251 4275 4800)
+#endif
+#include <opencv2/imgproc.hpp>
 
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
 #include "Block.h"
-#include "view/GraphViewer.h"
-#include "view/GuiReceiver.h"
 #include "ParamValidator.h"
-#include "view/Window.h"
 
 using namespace charliesoft;
 using std::vector;

@@ -11,7 +11,6 @@
 #include "qwt_math.h"
 #include <qevent.h>
 #include <qwidget.h>
-#include "view\Window.h"
 
 class QwtMagnifier::PrivateData
 {
@@ -346,7 +345,6 @@ bool QwtMagnifier::eventFilter( QObject *object, QEvent *event )
         }
     }
 
-    charliesoft::Window::getInstance()->event(event);//give event to main window
     return QObject::eventFilter( object, event );
 }
 

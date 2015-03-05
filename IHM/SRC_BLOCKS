@@ -1,0 +1,52 @@
+//This file is automatically created by CMake (IHM/CMakeLists.txt).
+Don't make any changes!!!
+
+
+namespace charliesoft
+{
+  int AccuBlock_InMyLibrary();
+  int MergingBlock_InMyLibrary();
+  int CreateMatrix_InMyLibrary();
+  int BlockCrop_InMyLibrary();
+  int DeinterlaceBlock_InMyLibrary();
+  int InterlaceBlock_InMyLibrary();
+  int DelayBlock_InMyLibrary();
+  int LineDrawer_InMyLibrary();
+  int PointDrawer_InMyLibrary();
+  int OpticFlowBlock_InMyLibrary();
+  int HistogramBlock_InMyLibrary();
+  int BlockLoader_InMyLibrary();
+  int LineFinerBlock_InMyLibrary();
+  int MorphoBlock_InMyLibrary();
+  int BlockNormalize_InMyLibrary();
+  int BlockShow_InMyLibrary();
+  int PointFinderBlock_InMyLibrary();
+  int PointMatcherBlock_InMyLibrary();
+  int ShowGraph_InMyLibrary();
+  int StringCreationBlock_InMyLibrary();
+  int WriteVideo_InMyLibrary();
+  int WriteImage_InMyLibrary();
+}
+
+static int dummy = charliesoft::AccuBlock_InMyLibrary();
+static int dummy = charliesoft::MergingBlock_InMyLibrary();
+static int dummy = charliesoft::CreateMatrix_InMyLibrary();
+static int dummy = charliesoft::BlockCrop_InMyLibrary();
+static int dummy = charliesoft::DeinterlaceBlock_InMyLibrary();
+static int dummy = charliesoft::InterlaceBlock_InMyLibrary();
+static int dummy = charliesoft::DelayBlock_InMyLibrary();
+static int dummy = charliesoft::LineDrawer_InMyLibrary();
+static int dummy = charliesoft::PointDrawer_InMyLibrary();
+static int dummy = charliesoft::OpticFlowBlock_InMyLibrary();
+static int dummy = charliesoft::HistogramBlock_InMyLibrary();
+static int dummy = charliesoft::BlockLoader_InMyLibrary();
+static int dummy = charliesoft::LineFinerBlock_InMyLibrary();
+static int dummy = charliesoft::MorphoBlock_InMyLibrary();
+static int dummy = charliesoft::BlockNormalize_InMyLibrary();
+static int dummy = charliesoft::BlockShow_InMyLibrary();
+static int dummy = charliesoft::PointFinderBlock_InMyLibrary();
+static int dummy = charliesoft::PointMatcherBlock_InMyLibrary();
+static int dummy = charliesoft::ShowGraph_InMyLibrary();
+static int dummy = charliesoft::StringCreationBlock_InMyLibrary();
+static int dummy = charliesoft::WriteVideo_InMyLibrary();
+static int dummy = charliesoft::WriteImage_InMyLibrary();

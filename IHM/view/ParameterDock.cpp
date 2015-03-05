@@ -1,7 +1,7 @@
 ﻿#include "ParameterDock.h"
 #include "Internationalizator.h"
 
-#include "GuiReceiver.h"
+#include "view/GuiReceiver.h"
 
 #ifdef _WIN32
 #pragma warning(disable:4503)
@@ -51,12 +51,12 @@
 #include "Graph.h"
 
 
-#include "MatrixViewer.h"
+#include "view/MatrixViewer.h"
 
 #include "ProcessManager.h"
 #include "GraphicView.h"
 #include "blocks/ParamValidator.h"
-#include "SmallDialogs.h"
+#include "view/SmallDialogs.h"
 #include "SubBlock.h"
 #include "VertexRepresentation.h"
 

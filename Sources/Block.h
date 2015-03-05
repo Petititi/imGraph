@@ -42,12 +42,12 @@ A block (or node, or vertex, or process) represents an operation. This can be of
 #define BLOCK_BEGIN_INSTANTIATION(className) \
   \
   class className## :public Block \
-        { \
-      friend class charliesoft::ProcessManager; \
-      static std::vector<ParamDefinition> getListParams(); \
-      static std::vector<ParamDefinition> getListOutputs(); \
-      static std::vector<ParamDefinition> getListSubParams(); \
-      static bool addedToList; \
+  { \
+    friend class charliesoft::ProcessManager; \
+    static std::vector<ParamDefinition> getListParams(); \
+    static std::vector<ParamDefinition> getListOutputs(); \
+    static std::vector<ParamDefinition> getListSubParams(); \
+    static bool addedToList; \
   protected: \
     virtual bool run(bool oneShot=false); \
   public: \
@@ -55,7 +55,8 @@ A block (or node, or vertex, or process) represents an operation. This can be of
 
 #define BLOCK_END_INSTANTIATION(className, blockType, keyName) \
   };bool className##::addedToList = \
-    charliesoft::ProcessManager::getInstance()->addNewAlgo<##className##>(blockType, #keyName);
+    charliesoft::ProcessManager::getInstance()->addNewAlgo<##className##>(blockType, #keyName);\
+    int className##_InMyLibrary() { return 0; };
 
 #define BEGIN_BLOCK_INPUT_PARAMS(className) \
   std::vector<ParamDefinition> className##::getListParams(){ \

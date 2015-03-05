@@ -44,6 +44,7 @@
 #include "GuiReceiver.h"
 #include "MatrixViewer.h"
 #include "Convertor.h"
+#include "Internationalizator.h"
 
 #ifdef _WIN32
 #pragma warning(disable:4503)
@@ -57,8 +58,8 @@
 #include <opencv2/highgui.hpp>
 #include <QString>
 #include <QDialogButtonBox>
-#include <view/Window.h>
-
+#include <QComboBox>
+#include <QMainWindow>
 #ifdef _WIN32
 #pragma warning(disable:4503)
 #include <windows.h>
@@ -730,11 +731,8 @@ void MatrixViewer::keyPressEvent(QKeyEvent *evnt)
   // get focus widget:
   QLineEdit* focus = dynamic_cast<QLineEdit*>(this->focusWidget());
   if (focus)
-  {
     return;
-  }
-  
-  charliesoft::Window::getInstance()->event(evnt);
+
   //QWidget::keyPressEvent(evnt);
 }
 
