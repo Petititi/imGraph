@@ -258,7 +258,8 @@ namespace charliesoft
 
   Block::~Block()
   {
-    _processes->extractProcess(this);
+    if (_processes != NULL)
+      _processes->extractProcess(this);
     wakeUpFromPause();
     wakeUpFromConsumers();
     _wait_processed.notify_all();
@@ -288,6 +289,7 @@ namespace charliesoft
     _timestamp = 0;
     nbRendering = 0;
     _executeOnlyOnce = false;
+    _processes = NULL;
   };
 
 
@@ -304,7 +306,7 @@ namespace charliesoft
       bool isInit = false;
       while (true)//this will stop when user stop the process...
       {
-        while (_processes->isPause())
+        while (_processes!=NULL && _processes->isPause())
         {
           BlockState oldState = _state;
           _state = paused;
@@ -312,7 +314,8 @@ namespace charliesoft
           _state = oldState;
         }
 
-        _processes->shouldWaitAncestors(this);//ask to scheduler if we have to wait...
+        if (_processes != NULL)
+          _processes->shouldWaitAncestors(this);//ask to scheduler if we have to wait...
         _state = consumingParams;
         bool shouldRun = true;
         for (ConditionOfRendering& condition : _conditions)
@@ -355,7 +358,8 @@ namespace charliesoft
   void Block::update()
   {
     //first of all, ask ancestors to render themselves!
-    _processes->updateAncestors(this);
+    if (_processes!=NULL)
+      _processes->updateAncestors(this);
     if (_threadID == boost::thread::id())//thread not running
     {
       //in this case, we have to run him by hand!
@@ -407,11 +411,13 @@ namespace charliesoft
 
     {
       boost::unique_lock<boost::mutex> guard(_mtx_timestamp_inc);
-      _processes->blockProduced(this, _state == consumedParams);//tell to scheduler we produced some datas...
+      if (_processes != NULL)
+        _processes->blockProduced(this, _state == consumedParams);//tell to scheduler we produced some datas...
     }
     if (_exec_type == asynchrone) return;//no need to wait
     //we have to wait entire chain of rendering to process our data:
-    _processes->shouldWaitConsumers(this);//ask to scheduler if we have to wait...
+    if (_processes != NULL)
+      _processes->shouldWaitConsumers(this);//ask to scheduler if we have to wait...
 
   }
 
@@ -606,6 +612,12 @@ namespace charliesoft
     if (_myInputs.find(nameParam_) != _myInputs.end())
       _myInputs[nameParam_] = value;
   };
+
+  void Block::setParam(std::string nameParam_, ParamValue value){
+    if (_myInputs.find(nameParam_) != _myInputs.end())
+      _myInputs[nameParam_] = value;
+  };
+
   ParamValue* Block::getParam(std::string nameParam_, bool input){
     if (input)
     {

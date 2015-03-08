@@ -40,28 +40,27 @@ namespace charliesoft
   };
 
   bool BlockCrop::run(bool oneShot){
-    if (_myInputs["BLOCK__CROP_IN_IMAGE"].isDefaultValue())
-      return false;
     cv::Mat mat = _myInputs["BLOCK__CROP_IN_IMAGE"].get<cv::Mat>();
-    if (!mat.empty())
-    {
-      if (!_myInputs["BLOCK__CROP_IN_X"].isDefaultValue())
-        filter.set("x",
-        _myInputs["BLOCK__CROP_IN_X"].get<int>());
-      if (!_myInputs["BLOCK__CROP_IN_Y"].isDefaultValue())
-        filter.set("y",
-        _myInputs["BLOCK__CROP_IN_Y"].get<int>());
-      if (!_myInputs["BLOCK__CROP_WIDTH"].isDefaultValue())
-        filter.set("width",
-        _myInputs["BLOCK__CROP_WIDTH"].get<int>());
-      if (!_myInputs["BLOCK__CROP_HEIGHT"].isDefaultValue())
-        filter.set("height",
-        _myInputs["BLOCK__CROP_HEIGHT"].get<int>());
-      cv::Mat imgTmp = filter.process(mat);
-      _myOutputs["BLOCK__CROP_OUT_IMAGE"] = imgTmp;
-      _myOutputs["BLOCK__CROP_WIDTH"] = imgTmp.cols;
-      _myOutputs["BLOCK__CROP_HEIGHT"] = imgTmp.rows;
-    }
+    if (mat.empty())
+      return false;
+
+    if (!_myInputs["BLOCK__CROP_IN_X"].isDefaultValue())
+      filter.set("x",
+      _myInputs["BLOCK__CROP_IN_X"].get<int>());
+    if (!_myInputs["BLOCK__CROP_IN_Y"].isDefaultValue())
+      filter.set("y",
+      _myInputs["BLOCK__CROP_IN_Y"].get<int>());
+    if (!_myInputs["BLOCK__CROP_WIDTH"].isDefaultValue())
+      filter.set("width",
+      _myInputs["BLOCK__CROP_WIDTH"].get<int>());
+    if (!_myInputs["BLOCK__CROP_HEIGHT"].isDefaultValue())
+      filter.set("height",
+      _myInputs["BLOCK__CROP_HEIGHT"].get<int>());
+    cv::Mat imgTmp = filter.process(mat);
+    _myOutputs["BLOCK__CROP_OUT_IMAGE"] = imgTmp;
+    _myOutputs["BLOCK__CROP_WIDTH"] = imgTmp.cols;
+    _myOutputs["BLOCK__CROP_HEIGHT"] = imgTmp.rows;
+
     return true;
   };
 };

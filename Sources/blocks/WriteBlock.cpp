@@ -115,7 +115,7 @@ namespace charliesoft
         filename.endsWith(".pbm", Qt::CaseInsensitive))
       {
         params.push_back(CV_IMWRITE_PXM_BINARY);
-        params.push_back(valQuality>50?1:0);
+        params.push_back(valQuality>=50?0:1);
       }
     }
     try

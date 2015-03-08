@@ -269,7 +269,12 @@ void GuiReceiver::createGraph(QString name)
 void GuiReceiver::createWindow(QString name, int flags)
 {
   if (!qApp)
-    CV_Error(CV_StsNullPtr, "NULL session handler");
+  {
+    int argc = 1;
+    char ** argv = NULL;
+    new QApplication(argc, argv);
+  }
+  //  CV_Error(CV_StsNullPtr, "NULL session handler");
 
   // Check the name in the storage
   if (icvFindWindowByName(name.toLatin1().data()))

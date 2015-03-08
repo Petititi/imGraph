@@ -79,6 +79,7 @@ set( ADD_LIBRARIES
 add_subdirectory( include/qwt )
 add_subdirectory( Sources )
 add_subdirectory( IHM )
+add_subdirectory( UnitTests )
 
 # ----------------------------------------------------------------------------
 #  Copy required OpenCV and QT5 dlls into output path (Windows only)

@@ -347,6 +347,7 @@ namespace charliesoft
     };
 
     virtual void setParamValue(std::string nameParam_, ParamValue* value);
+    virtual void setParam(std::string nameParam_, ParamValue value);
     virtual ParamValue* getParam(std::string nameParam_, bool input);
 
     virtual std::vector<cv::String> getSubParams(std::string paramName);

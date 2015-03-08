@@ -264,6 +264,10 @@ namespace charliesoft
     notifyUpdate(_newValue);
     return *this;
   };
+  ParamValue& ParamValue::operator=(const char* rhs)
+  {
+    return operator=(std::string(rhs));
+  }
   ParamValue& ParamValue::operator = (std::string const &rhs) {
     notifyRemove();
     boost::unique_lock<boost::recursive_mutex> lock(_mtx);

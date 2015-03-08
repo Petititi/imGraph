@@ -47,10 +47,11 @@ namespace charliesoft
     (*valToReplace["%n%"]) = valToReplace["%n%"]->get<int>() + 1;
 
     std::vector<ParamValue*> otherParams;
-    for (auto& it = _myInputs.begin();
-      it != _myInputs.end(); it++)
-      if (it->first.compare("BLOCK__STRING_CREATION_IN_REGEX") != 0)
-        otherParams.push_back(&(it->second));
+    for (ParamDefinition* it : _algorithmInParams)
+    {
+      if (it->_name.compare("BLOCK__STRING_CREATION_IN_REGEX") != 0)
+        otherParams.push_back(&_myInputs[it->_name]);
+    }
 
     std::string finalVal = StringConvertor::regExExpend(myVal, otherParams, valToReplace);
     _myOutputs["BLOCK__STRING_CREATION_OUT"] = finalVal;

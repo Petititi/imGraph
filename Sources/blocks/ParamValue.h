@@ -86,7 +86,7 @@ namespace charliesoft
     ParamValue(double v) :ParamValue(){
       _value = v;
     };
-    ParamValue(char* v) :ParamValue(std::string(v)){
+    ParamValue(const char* v) :ParamValue(std::string(v)){
     };
     ParamValue(std::string v) :ParamValue(){
       _value = v;
@@ -129,6 +129,7 @@ namespace charliesoft
     ParamValue& operator=(bool const &rhs);
     ParamValue& operator=(int const &rhs);
     ParamValue& operator=(double const &rhs);
+    ParamValue& operator=(const char* rhs);
     ParamValue& operator=(std::string const &rhs);
     ParamValue& operator=(cv::Scalar const &rhs);
     ParamValue& operator=(cv::Mat const &rhs);

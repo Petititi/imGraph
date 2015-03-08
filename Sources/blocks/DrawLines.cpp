@@ -21,7 +21,7 @@ namespace charliesoft
   ADD_PARAMETER(true, Matrix, "BLOCK__LINEDRAWER_IN_LINES", "BLOCK__LINEDRAWER_IN_LINES_HELP");
   ADD_PARAMETER(true, Matrix, "BLOCK__LINEDRAWER_IN_IMAGE", "BLOCK__LINEDRAWER_IN_IMAGE_HELP");
   ADD_PARAMETER(false, Color, "BLOCK__LINEDRAWER_IN_COLOR", "BLOCK__LINEDRAWER_IN_COLOR_HELP");
-  ADD_PARAMETER(false, Int, "BLOCK__LINEDRAWER_IN_SIZE", "BLOCK__LINEDRAWER_IN_SIZE_HELP");
+  ADD_PARAMETER_FULL(false, Int, "BLOCK__LINEDRAWER_IN_SIZE", "BLOCK__LINEDRAWER_IN_SIZE_HELP", 1);
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_OUTPUT_PARAMS(LineDrawer);
@@ -51,6 +51,8 @@ namespace charliesoft
     int nbChanels = lines.channels();
     if (nbChanels != 1)
       lines = lines.reshape(1, lines.rows);
+    if (lines.cols < 4)
+      return false;
     for (int i = 0; i < lines.rows; i++)
     {
       int type = lines.type();
