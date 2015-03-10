@@ -266,13 +266,13 @@ namespace charliesoft
 
     //delete definitions:
 
-    for (auto def : _algorithmInParams)
+    for (ParamDefinition* def : _algorithmInParams)
       delete def;
     _algorithmInParams.clear();
-    for (auto def : _algorithmSubParams)
+    for (ParamDefinition* def : _algorithmSubParams)
       delete def;
     _algorithmSubParams.clear();
-    for (auto def : _algorithmOutParams)
+    for (ParamDefinition* def : _algorithmOutParams)
       delete def;
     _algorithmOutParams.clear();
 

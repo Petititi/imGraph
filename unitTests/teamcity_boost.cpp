@@ -17,7 +17,7 @@
 
 #include <sstream>
 
-#define BOOST_TEST_MODULE SURANS_unitTests
+#define BOOST_TEST_MODULE ImGraph_unitTests
 
 #include <boost/test/unit_test_suite_impl.hpp>
 #include <boost/test/results_collector.hpp>

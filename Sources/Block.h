@@ -269,7 +269,6 @@ namespace charliesoft
     void newProducedData();
     void paramsFullyProcessed();
 
-    virtual bool run(bool oneShot = false) = 0;
     bool _executeOnlyOnce;
     bool _newData;
     bool _isOneShot;
@@ -282,14 +281,17 @@ namespace charliesoft
     @param typeExec used to know the type of execution this bloc should have...
     */
     Block(std::string name, bool isOneShot, BlockType typeExec = synchrone, bool addInputParam = false);
-    ~Block();
+    ///The derived block may want a personalized destructor...
+    virtual ~Block();
     std::string getName(){
       return _name;
     };
     BlockType getTypeExec(){
       return _exec_type;
     };
+
     void operator()();
+    virtual bool run(bool oneShot = false) = 0;
 
     bool hasDynamicParams() const { return _addInputParam; };
     /**

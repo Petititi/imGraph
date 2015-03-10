@@ -15,6 +15,8 @@ namespace charliesoft
   BLOCK_BEGIN_INSTANTIATION(StringCreationBlock);
   //You can add methods, re implement needed functions... 
   std::map<std::string, ParamValue*> valToReplace;
+public:
+  ~StringCreationBlock();
   virtual void init();
   BLOCK_END_INSTANTIATION(StringCreationBlock, AlgoType::imgProcess, BLOCK__STRING_CREATION_NAME);
   BEGIN_BLOCK_INPUT_PARAMS(StringCreationBlock);
@@ -35,6 +37,13 @@ namespace charliesoft
     _myInputs["BLOCK__STRING_CREATION_IN_REGEX"].addValidator({ new ValNeeded() });
     valToReplace["%n%"] = new ParamValue(0);
   };
+
+  StringCreationBlock::~StringCreationBlock()
+  {
+    for (auto val : valToReplace)
+      delete val.second;
+    valToReplace.clear();
+  }
 
   void StringCreationBlock::init()
   {

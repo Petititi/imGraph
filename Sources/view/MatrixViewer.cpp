@@ -364,6 +364,17 @@ MatrixViewer::~MatrixViewer()
     delete myTools;
     myTools = NULL;
   }
+  for (QAction* action : vect_QActions)
+    delete action;
+  vect_QActions.clear();
+  for (QShortcut* shortcut : vect_QShortcuts)
+    delete shortcut;
+  vect_QShortcuts.clear();
+
+  delete myGlobalLayout.data();
+  delete myStatusBar.data();
+  delete myToolBar.data();
+  delete myStatusBar_msg.data();
 }
 
 void MatrixViewer::writeSettings()
@@ -784,6 +795,14 @@ DefaultViewPort::DefaultViewPort(MatrixViewer* arg) : QGraphicsView(arg)
 
 DefaultViewPort::~DefaultViewPort()
 {
+  if (imgEditPixel_R != NULL)
+    delete imgEditPixel_R;
+  if (imgEditPixel_G != NULL)
+    delete imgEditPixel_G;
+  if (imgEditPixel_B != NULL)
+    delete imgEditPixel_B;
+  if (imgEditPixel_A != NULL)
+    delete imgEditPixel_A;
 }
 
 

@@ -64,10 +64,11 @@ namespace charliesoft
     bool _isOutput;
     bool _paramNeeded;
 
+    VariantClasses _value;
+
     void notifyUpdate(bool isNew);
     void notifyRemove();
   public:
-    VariantClasses _value;
     ParamValue(Block *algo, std::string name, bool isOutput) :
       _block(algo), _name(name), _isOutput(isOutput), _value(Not_A_Value()){
       _newValue = false; _paramNeeded = true; _definition = NULL;
@@ -119,6 +120,11 @@ namespace charliesoft
         if (*it != NULL)
           (*it)->_value = Not_A_Value();
       }
+      for (auto it : _validators)
+        delete it;
+      _validators.clear();
+      
+      _value = Not_A_Value();
     }
 
     const std::set<ParamValue*>& getListeners() const { return  _distantListeners; };
@@ -218,6 +224,62 @@ namespace charliesoft
       catch (boost::bad_get&)
       {
         return T();
+      }
+    }
+
+    template<>
+    int get<int>() const
+    {
+      boost::unique_lock<boost::recursive_mutex> lock(_mtx);
+      if (isLinked())
+        return boost::get<ParamValue*>(_value)->get<int>();
+
+      if (_value.type() == typeid(Not_A_Value))
+      {
+        return 0;
+      }
+      try
+      {
+        return boost::get<int>(_value);
+      }
+      catch (boost::bad_get&)
+      {
+        try
+        {
+          return static_cast<int>(boost::get<double>(_value));
+        }
+        catch (boost::bad_get&)
+        {
+          return 0;
+        }
+      }
+    }
+
+    template<>
+    double get<double>() const
+    {
+      boost::unique_lock<boost::recursive_mutex> lock(_mtx);
+      if (isLinked())
+        return boost::get<ParamValue*>(_value)->get<double>();
+
+      if (_value.type() == typeid(Not_A_Value))
+      {
+        return 0.;
+      }
+      try
+      {
+        return boost::get<double>(_value);
+      }
+      catch (boost::bad_get&)
+      {
+        try
+        {
+          return static_cast<double>(boost::get<int>(_value));
+        }
+        catch (boost::bad_get&)
+        {
+          return 0.;
+        }
       }
     }
 

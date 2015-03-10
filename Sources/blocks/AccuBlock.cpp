@@ -14,6 +14,9 @@ namespace charliesoft
   BLOCK_BEGIN_INSTANTIATION(AccuBlock);
   //You can add methods, re implement needed functions... 
   Accumul_Filter filter;
+public:
+  virtual void init();
+  virtual void release();
   BLOCK_END_INSTANTIATION(AccuBlock, AlgoType::imgProcess, BLOCK__ACCUMULATOR_NAME); 
   BEGIN_BLOCK_INPUT_PARAMS(AccuBlock);
   //Add parameters, with following parameters:
@@ -33,7 +36,16 @@ namespace charliesoft
     _myInputs["BLOCK__ACCUMULATOR_IN_IMAGE"].addValidator({ new ValNeeded() });
     _myInputs["BLOCK__ACCUMULATOR_IN_NB_HISTORY"].addValidator({ new ValNeeded(), new ValPositiv(true) });
   };
-  
+
+  void AccuBlock::init()
+  {
+    filter.reset();
+  }
+  void AccuBlock::release()
+  {
+    filter.reset();
+  }
+
   bool AccuBlock::run(bool oneShot){
     if (_myInputs["BLOCK__ACCUMULATOR_IN_IMAGE"].isDefaultValue())
       return false;
