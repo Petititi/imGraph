@@ -110,22 +110,7 @@ namespace charliesoft
       _newValue = false; _paramNeeded = true; _definition = va._definition;
     };
 
-    ~ParamValue()
-    {
-      if (isLinked())
-        boost::get<ParamValue*>(_value)->_distantListeners.erase(this);
-      for (auto it = _distantListeners.begin();
-        it != _distantListeners.end(); it++)
-      {
-        if (*it != NULL)
-          (*it)->_value = Not_A_Value();
-      }
-      for (auto it : _validators)
-        delete it;
-      _validators.clear();
-      
-      _value = Not_A_Value();
-    }
+    ~ParamValue();
 
     const std::set<ParamValue*>& getListeners() const { return  _distantListeners; };
     std::set<ParamValue*>& getListeners() { return  _distantListeners; };

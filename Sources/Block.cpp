@@ -611,11 +611,15 @@ namespace charliesoft
   void Block::setParamValue(std::string nameParam_, ParamValue* value){
     if (_myInputs.find(nameParam_) != _myInputs.end())
       _myInputs[nameParam_] = value;
+    else if (_mySubParams.find(nameParam_) != _mySubParams.end())
+      _mySubParams[nameParam_] = value;
   };
 
   void Block::setParam(std::string nameParam_, ParamValue value){
     if (_myInputs.find(nameParam_) != _myInputs.end())
       _myInputs[nameParam_] = value;
+    else if (_mySubParams.find(nameParam_) != _mySubParams.end())
+      _mySubParams[nameParam_] = value;
   };
 
   ParamValue* Block::getParam(std::string nameParam_, bool input){

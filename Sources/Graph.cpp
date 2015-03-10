@@ -260,10 +260,26 @@ namespace charliesoft
     _runningThread.clear();
   }
 
-  void GraphOfProcess::waitUntilEnd()
+  void GraphOfProcess::waitUntilEnd(size_t max_ms_time)
   {
+    auto _time_start = boost::posix_time::microsec_clock::local_time();
     for (auto& it = _runningThread.begin(); it != _runningThread.end(); it++)
-      it->second.join();//wait for the end...
+    {
+      if (max_ms_time == 0)
+        it->second.join();
+      else
+      {
+        if (!it->second.timed_join(boost::posix_time::milliseconds(max_ms_time)))
+          return;//quit because we can't stop the process
+
+        boost::posix_time::ptime time_end(boost::posix_time::microsec_clock::local_time());
+        boost::posix_time::time_duration duration(time_end - _time_start);
+        if (duration.total_milliseconds() >= max_ms_time)
+          return;
+        max_ms_time -= duration.total_milliseconds();
+      } 
+
+    }
 
     _runningThread.clear();
   }

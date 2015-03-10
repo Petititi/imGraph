@@ -55,7 +55,7 @@ namespace charliesoft
     
     bool run(bool singleShot = false, bool delegateParent = true);
     void stop(bool delegateParent = true);
-    void waitUntilEnd();
+    void waitUntilEnd(size_t max_ms_time = 0);
     bool switchPause(bool delegateParent = true);
     bool isPause(){
       return _pauseProcess;
