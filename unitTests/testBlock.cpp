@@ -43,10 +43,10 @@ BOOST_AUTO_TEST_CASE(Accumulator)
 {
   cv::Mat img1 = imread(string(SOURCE_DIRECTORY) + "/unitTests/data/0001.jpg", IMREAD_GRAYSCALE);
   cv::Mat img2 = imread(string(SOURCE_DIRECTORY) + "/unitTests/data/0002.jpg", IMREAD_GRAYSCALE);
-  BOOST_CHECK_MESSAGE(!img1.empty() && !img2.empty(), "img loading");
+  BOOST_REQUIRE_MESSAGE(!img1.empty() && !img2.empty(), "img loading");
 
   Block* myBlock = _PROCESS_MANAGER->createAlgoInstance("BLOCK__ACCUMULATOR_NAME");
-  BOOST_CHECK_MESSAGE(myBlock != NULL, "Accumulator block creation");
+  BOOST_REQUIRE_MESSAGE(myBlock != NULL, "Accumulator block creation");
 
   ParamValue* outImg = myBlock->getParam("BLOCK__ACCUMULATOR_OUT_IMAGE", false);
 
@@ -103,10 +103,10 @@ BOOST_AUTO_TEST_CASE(AddBlock)
 {
   cv::Mat img1 = imread(string(SOURCE_DIRECTORY) + "/unitTests/data/0001.jpg", IMREAD_GRAYSCALE);
   cv::Mat img2 = imread(string(SOURCE_DIRECTORY) + "/unitTests/data/0002.jpg", IMREAD_GRAYSCALE);
-  BOOST_CHECK_MESSAGE(!img1.empty() && !img2.empty(), "img loading");
+  BOOST_REQUIRE_MESSAGE(!img1.empty() && !img2.empty(), "img loading");
 
   Block* myBlock = _PROCESS_MANAGER->createAlgoInstance("BLOCK__ADD_NAME");
-  BOOST_CHECK_MESSAGE(myBlock != NULL, "Accumulator block creation");
+  BOOST_REQUIRE_MESSAGE(myBlock != NULL, "Accumulator block creation");
 
   myBlock->setExecuteOnlyOnce(true);
 
@@ -227,10 +227,10 @@ BOOST_AUTO_TEST_CASE(AddBlock)
 BOOST_AUTO_TEST_CASE(Cropping)
 {
   cv::Mat img = imread(string(SOURCE_DIRECTORY) + "/unitTests/data/color.jpg");
-  BOOST_CHECK_MESSAGE(!img.empty(), "img loading");
+  BOOST_REQUIRE_MESSAGE(!img.empty(), "img loading");
 
   Block* myBlock = _PROCESS_MANAGER->createAlgoInstance("BLOCK__CROP_NAME");
-  BOOST_CHECK_MESSAGE(myBlock != NULL, "Crop block creation");
+  BOOST_REQUIRE_MESSAGE(myBlock != NULL, "Crop block creation");
 
   myBlock->setExecuteOnlyOnce(true);
   ParamValue* imgParam = myBlock->getParam("BLOCK__CROP_IN_IMAGE", true);
@@ -272,7 +272,7 @@ BOOST_AUTO_TEST_CASE(InputLoader)
 
   Block* myBlock = _PROCESS_MANAGER->createAlgoInstance("BLOCK__INPUT_NAME");
 
-  BOOST_CHECK_MESSAGE(myBlock != NULL, "input loader creation");
+  BOOST_REQUIRE_MESSAGE(myBlock != NULL, "input loader creation");
 
   ParamValue* typeInput = myBlock->getParam("BLOCK__INPUT_IN_INPUT_TYPE", true);
   ParamValue* inFolder = myBlock->getParam("BLOCK__INPUT_IN_INPUT_TYPE.Folder.input folder", true);
@@ -290,7 +290,7 @@ BOOST_AUTO_TEST_CASE(InputLoader)
   (*myBlock)();//run block...
 
   cv::Mat img = output->get<cv::Mat>();
-  BOOST_CHECK_MESSAGE(!img.empty(), "img loading");
+  BOOST_REQUIRE_MESSAGE(!img.empty(), "img loading");
 
   //try to get image in b&w:
   *isColor = false;
@@ -320,11 +320,11 @@ BOOST_AUTO_TEST_CASE(InputLoader)
 BOOST_AUTO_TEST_CASE(OutputBlock)
 {
   cv::Mat img = imread(string(SOURCE_DIRECTORY) + "/unitTests/data/0001.jpg");
-  BOOST_CHECK_MESSAGE(!img.empty(), "img loading");
+  BOOST_REQUIRE_MESSAGE(!img.empty(), "img loading");
 
   Block* myBlock = _PROCESS_MANAGER->createAlgoInstance("BLOCK__OUTPUT_NAME");
 
-  BOOST_CHECK_MESSAGE(myBlock != NULL, "Display image creation");
+  BOOST_REQUIRE_MESSAGE(myBlock != NULL, "Display image creation");
 
   ParamValue* imgInput = myBlock->getParam("BLOCK__OUTPUT_IN_IMAGE", true);
   ParamValue* winName = myBlock->getParam("BLOCK__OUTPUT_IN_WIN_NAME", true);
@@ -435,10 +435,10 @@ void testImgSave(Block* myBlock, Mat img, string imName, string ext)
 BOOST_AUTO_TEST_CASE(ImgWriter)
 {
   cv::Mat img = imread(string(SOURCE_DIRECTORY) + "/unitTests/data/color.jpg");
-  BOOST_CHECK_MESSAGE(!img.empty(), "img loading");
+  BOOST_REQUIRE_MESSAGE(!img.empty(), "img loading");
 
   Block* myBlock = _PROCESS_MANAGER->createAlgoInstance("BLOCK__IMWRITE_NAME");
-  BOOST_CHECK_MESSAGE(myBlock != NULL, "Img writer block creation");
+  BOOST_REQUIRE_MESSAGE(myBlock != NULL, "Img writer block creation");
 
   myBlock->setExecuteOnlyOnce(true);
 
@@ -453,10 +453,10 @@ BOOST_AUTO_TEST_CASE(ImgWriter)
 BOOST_AUTO_TEST_CASE(DrawLine)
 {
   Block* matrixCreator = _PROCESS_MANAGER->createAlgoInstance("BLOCK__CREATEMATRIX_NAME");
-  BOOST_CHECK_MESSAGE(matrixCreator != NULL, "Matrix creator block creation");
+  BOOST_REQUIRE_MESSAGE(matrixCreator != NULL, "Matrix creator block creation");
 
   Block* myBlock = _PROCESS_MANAGER->createAlgoInstance("BLOCK__LINEDRAWER_NAME");
-  BOOST_CHECK_MESSAGE(myBlock != NULL, "Line drawer creation");
+  BOOST_REQUIRE_MESSAGE(myBlock != NULL, "Line drawer creation");
 
   ParamValue* outLine = myBlock->getParam("BLOCK__LINEDRAWER_OUT_IMAGE", false);
 

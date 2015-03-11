@@ -6,7 +6,7 @@
 #ifdef _WIN32
 #pragma warning(disable:4503)
 #pragma warning(push)
-#pragma warning(disable:4996 4251 4275 4800)
+#pragma warning(disable:4996 4251 4244 4275 4800)
 #endif
 #include <QPaintEngine>
 #include <QPushButton>

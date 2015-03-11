@@ -46,26 +46,26 @@ BOOST_AUTO_TEST_SUITE( Test_Graph )
 BOOST_AUTO_TEST_CASE(SimpleGraph)
 {
   boost::filesystem::path dir("tempdir");
-  BOOST_CHECK_MESSAGE(boost::filesystem::create_directory(dir), "Temporary folder creation");
+  BOOST_REQUIRE_MESSAGE(boost::filesystem::create_directory(dir), "Temporary folder creation");
   string srcFiles = string(SOURCE_DIRECTORY) + "/unitTests/data/";
 
   //open file -> outputName generation -> save output
 
   GraphOfProcess graph;
   Block* inputBlock = _PROCESS_MANAGER->createAlgoInstance("BLOCK__INPUT_NAME");
-  BOOST_CHECK_MESSAGE(inputBlock != NULL, "input block creation");
+  BOOST_REQUIRE_MESSAGE(inputBlock != NULL, "input block creation");
   graph.addNewProcess(inputBlock);
   inputBlock->setParam("BLOCK__INPUT_IN_LOOP", 1);//only 1 iteration...
   inputBlock->setParam("BLOCK__INPUT_IN_INPUT_TYPE", 2);//folder
   inputBlock->setParam("BLOCK__INPUT_IN_INPUT_TYPE.Folder.input folder", srcFiles);
 
   Block* stringCreation = _PROCESS_MANAGER->createAlgoInstance("BLOCK__STRING_CREATION_NAME");
-  BOOST_CHECK_MESSAGE(stringCreation != NULL, "String manipulation block creation");
+  BOOST_REQUIRE_MESSAGE(stringCreation != NULL, "String manipulation block creation");
   graph.addNewProcess(stringCreation);
   stringCreation->setParam("BLOCK__STRING_CREATION_IN_REGEX", "./tempdir/img%n%.jpg");//folder
 
   Block* imgWriter = _PROCESS_MANAGER->createAlgoInstance("BLOCK__IMWRITE_NAME");
-  BOOST_CHECK_MESSAGE(imgWriter != NULL, "Image writer block creation");
+  BOOST_REQUIRE_MESSAGE(imgWriter != NULL, "Image writer block creation");
   graph.addNewProcess(imgWriter);
 
   //now make links:
@@ -75,6 +75,8 @@ BOOST_AUTO_TEST_CASE(SimpleGraph)
   graph.run();
 
   graph.waitUntilEnd(15000);
+
+  boost::this_thread::sleep(boost::posix_time::milliseconds(500));//be sure the files are flushed to disc...
 
   boost::filesystem::directory_iterator iter = boost::filesystem::directory_iterator(dir);
   int nbFiles = 0;

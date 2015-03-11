@@ -196,7 +196,7 @@ void ToolsWindow::showEvent(QShowEvent* evnt)
   //no value pos was saved so we let Qt move the window in the middle of its parent (event ignored).
   //then hide will save the last position and thus, we want to retreive it (event accepted).
   QPoint mypos(-1, -1);
-  QSettings settings("OpenCV2", windowTitle());
+  QSettings settings("ImGraph", windowTitle());
   mypos = settings.value("pos", mypos).toPoint();
 
   if (mypos.x() >= 0)
@@ -213,7 +213,7 @@ void ToolsWindow::showEvent(QShowEvent* evnt)
 
 void ToolsWindow::hideEvent(QHideEvent* evnt)
 {
-  QSettings settings("OpenCV2", windowTitle());
+  QSettings settings("ImGraph", windowTitle());
   settings.setValue("pos", pos()); //there is an offset of 6 pixels (so the window's position is wrong -- why ?)
   evnt->accept();
 }
@@ -254,7 +254,7 @@ void ToolsWindow::updateMatrix()
 ToolsWindow::~ToolsWindow()
 {
   //clear the setting pos
-  QSettings settings("OpenCV2", windowTitle());
+  QSettings settings("ImGraph", windowTitle());
   settings.remove("pos");
 }
 
@@ -380,7 +380,7 @@ MatrixViewer::~MatrixViewer()
 void MatrixViewer::writeSettings()
 {
   //organisation and application's name
-  QSettings settings("OpenCV2", QFileInfo(QApplication::applicationFilePath()).fileName());
+  QSettings settings("ImGraph", QFileInfo(QApplication::applicationFilePath()).fileName());
 
   settings.setValue("pos", pos());
   settings.setValue("size", size());
@@ -395,7 +395,7 @@ void MatrixViewer::writeSettings()
 void MatrixViewer::readSettings()
 {
   //organisation and application's name
-  QSettings settings("OpenCV2", QFileInfo(QApplication::applicationFilePath()).fileName());
+  QSettings settings("ImGraph", QFileInfo(QApplication::applicationFilePath()).fileName());
 
   QPoint _pos = settings.value("pos", QPoint(200, 200)).toPoint();
   QSize _size = settings.value("size", QSize(400, 400)).toSize();

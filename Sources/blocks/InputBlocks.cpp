@@ -167,7 +167,7 @@ protected:
         if (wantedLoop > 0)
         {
           if (wantedLoop <= loopCount)
-            throw boost::thread_interrupted();//want to stop this rendering!
+            return false;//nothing to do here...
         }
       }
       openInput();

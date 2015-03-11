@@ -19,12 +19,20 @@
 
 #define BOOST_TEST_MODULE ImGraph_unitTests
 
+#ifdef _WIN32
+#pragma warning(disable:4503)
+#pragma warning(push)
+#pragma warning(disable:4996 4251 4275 4244 4800 4503)
+#endif
 #include <boost/test/unit_test_suite_impl.hpp>
 #include <boost/test/results_collector.hpp>
 #include <boost/test/utils/basic_cstring/io.hpp>
 #include <boost/test/unit_test_log.hpp>
 #include <boost/test/included/unit_test.hpp>
 
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 #include "teamcity_messages.h"
 
 using namespace boost::unit_test;

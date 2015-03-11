@@ -332,7 +332,11 @@ namespace charliesoft
           do
           {
             _time_start = microsec_clock::local_time();
-            run(_executeOnlyOnce);
+            if (!run(_executeOnlyOnce))
+            {
+              //something goes wrong!
+              throw boost::thread_interrupted();
+            }
             if (_isOneShot )//&& !_executeOnlyOnce)
               paramsFullyProcessed();
             newProducedData();//tell to scheduler we produced some datas...
@@ -353,6 +357,8 @@ namespace charliesoft
     release();
     _state = stopped;
     _threadID = boost::thread::id();//reset thread ID!
+    if (_processes!=NULL)
+      _processes->stop(false, false);
   }
   
   void Block::update()

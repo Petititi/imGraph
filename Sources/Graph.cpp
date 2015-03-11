@@ -45,8 +45,13 @@ namespace charliesoft
 
   GraphOfProcess::~GraphOfProcess()
   {
-    for (Block* b : _vertices)
+    stop();
+    waitUntilEnd(15000);//15s
+    for (size_t i = 0; i < _vertices.size(); i++)
+    {
+      Block* b = _vertices[i];
       delete b;
+    }
     _vertices.clear();
   }
 
@@ -244,20 +249,21 @@ namespace charliesoft
     }
   }
 
-  void GraphOfProcess::stop(bool delegateParent)
+  void GraphOfProcess::stop(bool delegateParent, bool waitEnd)
   {
+    boost::unique_lock<boost::mutex> lock(_mtx);
     if (_parent != NULL && delegateParent)
-      return _parent->stop();
+      return _parent->stop(delegateParent, waitEnd);
     for (auto& it = _runningThread.begin(); it != _runningThread.end(); it++)
     {
       if (it->first->getState() != Block::stopped)
-      {
         it->second.interrupt();
-        if (!it->second.try_join_for(boost::chrono::seconds(5)))//wait 5s max...
-          it->second.interrupt();//try to interrupt it again (but probably without success)
-      }
     }
-    _runningThread.clear();
+    if (waitEnd)
+    {
+      waitUntilEnd(15000);//15s
+      _runningThread.clear();
+    }
   }
 
   void GraphOfProcess::waitUntilEnd(size_t max_ms_time)
@@ -265,22 +271,23 @@ namespace charliesoft
     auto _time_start = boost::posix_time::microsec_clock::local_time();
     for (auto& it = _runningThread.begin(); it != _runningThread.end(); it++)
     {
-      if (max_ms_time == 0)
-        it->second.join();
-      else
+      if (it->first->getState() != Block::stopped)
       {
-        if (!it->second.timed_join(boost::posix_time::milliseconds(max_ms_time)))
-          return;//quit because we can't stop the process
+        if (max_ms_time == 0)
+          it->second.join();
+        else
+        {
+          if (!it->second.timed_join(boost::posix_time::milliseconds(max_ms_time)))
+            return;//quit because we can't stop the process
 
-        boost::posix_time::ptime time_end(boost::posix_time::microsec_clock::local_time());
-        boost::posix_time::time_duration duration(time_end - _time_start);
-        if (duration.total_milliseconds() >= max_ms_time)
-          return;
-        max_ms_time -= duration.total_milliseconds();
-      } 
-
+          boost::posix_time::ptime time_end(boost::posix_time::microsec_clock::local_time());
+          boost::posix_time::time_duration duration(time_end - _time_start);
+          if (duration.total_milliseconds() >= max_ms_time)
+            return;
+          max_ms_time -= duration.total_milliseconds();
+        }
+      }
     }
-
     _runningThread.clear();
   }
 
