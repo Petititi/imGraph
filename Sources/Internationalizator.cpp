@@ -447,5 +447,14 @@ namespace charliesoft
     translations["BLOCK__MORPHOLOGIC_ITERATIONS_HELP"] = "Number of times erosion and dilation are applied.";
     translations["BLOCK__MORPHOLOGIC_OUT_IMAGE"] = "image";
     translations["BLOCK__MORPHOLOGIC_OUT_IMAGE_HELP"] = "Filtered image";
+
+    translations["BLOCK__BLUR_NAME"] = "Blurring";
+    translations["BLOCK__BLUR_IN_METHOD"] = "method";
+    translations["BLOCK__BLUR_IN_METHOD_HELP"] = "Blurring method|Mean^Gaussian^Median^Bilateral";
+    translations["BLOCK__BLUR_IN_IMG"] = "image";
+    translations["BLOCK__BLUR_IN_IMG_HELP"] = "Input image";
+    translations["BLOCK__BLUR_OUT_IMAGE"] = "image";
+    translations["BLOCK__BLUR_OUT_IMAGE_HELP"] = "Filtered image";
+
   }
 }
