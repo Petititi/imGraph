@@ -456,5 +456,25 @@ namespace charliesoft
     translations["BLOCK__BLUR_OUT_IMAGE"] = "image";
     translations["BLOCK__BLUR_OUT_IMAGE_HELP"] = "Filtered image";
 
+    translations["BLOCK__CONVERTMATRIX_NAME"] = "Convert matrix";
+    translations["BLOCK__CONVERTMATRIX_IN_IMG"] = "image";
+    translations["BLOCK__CONVERTMATRIX_IN_IMG_HELP"] = "Input image to convert";
+    translations["BLOCK__CONVERTMATRIX_IN_TYPE"] = "type";
+    translations["BLOCK__CONVERTMATRIX_IN_TYPE_HELP"] = "Wanted type|CV_8U^CV_8S^CV_16U^CV_16S^CV_32S^CV_32F^CV_64F";
+    translations["BLOCK__CONVERTMATRIX_IN_NBCHANNEL"] = "channels";
+    translations["BLOCK__CONVERTMATRIX_IN_NBCHANNEL_HELP"] = "Numbers of channels";
+    translations["BLOCK__CONVERTMATRIX_OUT_IMAGE"] = "image";
+    translations["BLOCK__CONVERTMATRIX_OUT_IMAGE_HELP"] = "Binary output image";
+
+    translations["BLOCK__RESIZEMATRIX_NAME"] = "Resize matrix";
+    translations["BLOCK__RESIZEMATRIX_IN_IMG"] = "image";
+    translations["BLOCK__RESIZEMATRIX_IN_IMG_HELP"] = "Input image to resize";
+    translations["BLOCK__RESIZEMATRIX_IN_WIDTH"] = translations["BLOCK__INPUT_INOUT_WIDTH"];
+    translations["BLOCK__RESIZEMATRIX_IN_WIDTH_HELP"] = translations["BLOCK__INPUT_INOUT_WIDTH_HELP"];
+    translations["BLOCK__RESIZEMATRIX_IN_HEIGHT"] = translations["BLOCK__INPUT_INOUT_HEIGHT"];
+    translations["BLOCK__RESIZEMATRIX_IN_HEIGHT_HELP"] = translations["BLOCK__INPUT_INOUT_HEIGHT_HELP"];
+    translations["BLOCK__RESIZEMATRIX_OUT_IMAGE"] = "image";
+    translations["BLOCK__RESIZEMATRIX_OUT_IMAGE_HELP"] = "Binary output image";
+
   }
 }

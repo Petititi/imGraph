@@ -56,7 +56,7 @@ public:
     _myInputs["BLOCK__CREATEMATRIX_IN_NBCHANNEL"].addValidator({ new ValNeeded(), new ValPositiv(true) });
     _myInputs["BLOCK__CREATEMATRIX_IN_INIT"].addValidator({ new ValNeeded(), new ValRange(0, 8) });
   };
-  
+
   bool CreateMatrix::run(bool oneShot){
     //todo: verify that type index correspond to constant!
     int nbChannels = _myInputs["BLOCK__CREATEMATRIX_IN_NBCHANNEL"].get<int>();
@@ -110,6 +110,49 @@ public:
       break;
     }
     _myOutputs["BLOCK__CREATEMATRIX_OUT_IMAGE"] = newMatrix;
+
+    return true;
+  };
+
+
+  BLOCK_BEGIN_INSTANTIATION(ConvertMatrix);
+  //You can add methods, re implement needed functions...
+public:
+  BLOCK_END_INSTANTIATION(ConvertMatrix, AlgoType::imgProcess, BLOCK__CONVERTMATRIX_NAME);
+
+  BEGIN_BLOCK_INPUT_PARAMS(ConvertMatrix);
+  //Add parameters, with following parameters:
+  //default visibility, type of parameter, name (key of internationalizor), helper...
+  ADD_PARAMETER(true, Matrix, "BLOCK__CONVERTMATRIX_IN_IMG", "BLOCK__CONVERTMATRIX_IN_IMG_HELP");
+  ADD_PARAMETER_FULL(false, ListBox, "BLOCK__CONVERTMATRIX_IN_TYPE", "BLOCK__CONVERTMATRIX_IN_TYPE_HELP", 0);
+  ADD_PARAMETER_FULL(false, Int, "BLOCK__CONVERTMATRIX_IN_NBCHANNEL", "BLOCK__CONVERTMATRIX_IN_NBCHANNEL_HELP", 1);
+  END_BLOCK_PARAMS();
+
+  BEGIN_BLOCK_OUTPUT_PARAMS(ConvertMatrix);
+  ADD_PARAMETER(true, Matrix, "BLOCK__CONVERTMATRIX_OUT_IMAGE", "BLOCK__CONVERTMATRIX_OUT_IMAGE_HELP");
+  END_BLOCK_PARAMS();
+
+  BEGIN_BLOCK_SUBPARAMS_DEF(ConvertMatrix);
+  END_BLOCK_PARAMS();
+
+  ConvertMatrix::ConvertMatrix() :Block("BLOCK__CONVERTMATRIX_NAME", true){
+    _myInputs["BLOCK__CONVERTMATRIX_IN_IMG"].addValidator({ new ValNeeded() });
+    _myInputs["BLOCK__CONVERTMATRIX_IN_TYPE"].addValidator({ new ValRange(0, 6) });
+    _myInputs["BLOCK__CONVERTMATRIX_IN_NBCHANNEL"].addValidator({ new ValPositiv(true) });
+  };
+
+  bool ConvertMatrix::run(bool oneShot){
+    //todo: verify that type index correspond to constant!
+    cv::Mat imgSrc = _myInputs["BLOCK__CONVERTMATRIX_IN_IMG"].get<cv::Mat>();
+    int nbChannels = _myInputs["BLOCK__CONVERTMATRIX_IN_NBCHANNEL"].get<int>();
+    int wantedType;
+    if (_myInputs["BLOCK__CONVERTMATRIX_IN_TYPE"].isDefaultValue())
+      wantedType = imgSrc.type();
+    else
+      wantedType = CV_MAKETYPE(_myInputs["BLOCK__CONVERTMATRIX_IN_TYPE"].get<int>(), nbChannels);
+
+    cv::Mat output = MatrixConvertor::convert(imgSrc.clone(), wantedType);
+    _myOutputs["BLOCK__CONVERTMATRIX_OUT_IMAGE"] = output;
 
     return true;
   };
