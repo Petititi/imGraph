@@ -1,10 +1,18 @@
 #ifndef _BLOCK_PARAMVALIDATOR_HEADER_
 #define _BLOCK_PARAMVALIDATOR_HEADER_
 
+#ifdef _WIN32
+#pragma warning(push)
+#pragma warning(disable:4996 4251 4275 4800 4503)
+#endif
 #include <boost/filesystem.hpp>
 #include <boost/exception/exception.hpp>
 #include <vector>
 #include <stdarg.h>
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
+
 #include "ParamValue.h"
 #include "Internationalizator.h"
 

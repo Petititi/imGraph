@@ -3,15 +3,13 @@
 
 #ifdef _WIN32
 #pragma warning(push)
-#pragma warning(disable:4996 4251 4275 4800)
+#pragma warning(disable:4996 4251 4275 4800 4190)
 #endif
 #include <boost/function.hpp>
 #include <boost/functional/factory.hpp>
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/lock_guard.hpp>
 #include <iostream>
-
-#include "OpenCV_filter.h"
 #ifdef _WIN32
 #pragma warning(pop)
 #endif

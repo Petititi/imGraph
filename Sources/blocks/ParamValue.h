@@ -3,7 +3,7 @@
 
 #ifdef _WIN32
 #pragma warning(push)
-#pragma warning(disable:4996 4251 4275 4800 4503)
+#pragma warning(disable:4996 4251 4275 4800 4503 4190)
 #endif
 #include <boost/variant.hpp>
 #include <opencv2/core/core.hpp>
@@ -266,6 +266,12 @@ namespace charliesoft
           return 0.;
         }
       }
+    }
+
+    template<>
+    float get<float>() const
+    {
+      return static_cast<float>(get<double>());
     }
 
     void setValue(const ParamValue* value)

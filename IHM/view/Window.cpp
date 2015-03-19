@@ -365,8 +365,12 @@ namespace charliesoft
   {
     if (evnt->type() == QEvent::KeyPress)
     {
-      if (consumeEvent(evnt))
-        return true;
+      QLineEdit *label = dynamic_cast<QLineEdit *>(focusWidget());
+      if (NULL == label)
+      {
+        if (consumeEvent(evnt))
+          return true;
+      }
     }
     return QObject::eventFilter(obj, evnt);
   }

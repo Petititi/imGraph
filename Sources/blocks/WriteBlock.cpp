@@ -1,5 +1,15 @@
 
+#ifdef _WIN32
+#pragma warning(push)
+#pragma warning(disable:4996 4251 4275 4800 4503)
+#endif
 #include <vector>
+#include <opencv2/videoio.hpp>
+#include <opencv2/imgcodecs.hpp>
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
+
 
 #include "Block.h"
 #include "view/MatrixViewer.h"
@@ -120,7 +130,7 @@ namespace charliesoft
     }
     try
     {
-      imwrite(filename.toStdString(), out, params);
+      cv::imwrite(filename.toStdString(), out, params);
     }
     catch (cv::Exception&)
     {

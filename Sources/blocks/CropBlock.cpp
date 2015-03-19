@@ -7,7 +7,7 @@
 
 #ifdef _WIN32
 #pragma warning(push)
-#pragma warning(disable:4996 4251 4275 4800 4503)
+#pragma warning(disable:4996 4251 4275 4800 4503 4190)
 #endif
 #include "opencv2\imgproc.hpp"
 #ifdef _WIN32
@@ -55,17 +55,14 @@ namespace charliesoft
       return false;
 
     if (!_myInputs["BLOCK__CROP_IN_X"].isDefaultValue())
-      filter.set("x",
-      _myInputs["BLOCK__CROP_IN_X"].get<int>());
+      filter.setRegionX(_myInputs["BLOCK__CROP_IN_X"].get<int>());
     if (!_myInputs["BLOCK__CROP_IN_Y"].isDefaultValue())
-      filter.set("y",
-      _myInputs["BLOCK__CROP_IN_Y"].get<int>());
+      filter.setRegionY(_myInputs["BLOCK__CROP_IN_Y"].get<int>());
     if (!_myInputs["BLOCK__CROP_WIDTH"].isDefaultValue())
-      filter.set("width",
-      _myInputs["BLOCK__CROP_WIDTH"].get<int>());
+      filter.setRegionWidth(_myInputs["BLOCK__CROP_WIDTH"].get<int>());
     if (!_myInputs["BLOCK__CROP_HEIGHT"].isDefaultValue())
-      filter.set("height",
-      _myInputs["BLOCK__CROP_HEIGHT"].get<int>());
+      filter.setRegionHeight(_myInputs["BLOCK__CROP_HEIGHT"].get<int>());
+
     cv::Mat imgTmp = filter.process(mat);
     _myOutputs["BLOCK__CROP_OUT_IMAGE"] = imgTmp;
     _myOutputs["BLOCK__CROP_WIDTH"] = imgTmp.cols;

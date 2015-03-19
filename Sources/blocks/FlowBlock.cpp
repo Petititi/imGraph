@@ -7,9 +7,11 @@
 #pragma warning(disable:4996 4251 4275 4800)
 #endif
 #include <boost/lexical_cast.hpp>
+#include <opencv2/opencv.hpp>
 #include <Opencv2/imgproc.hpp>
+#include <Opencv2/optflow.hpp>
 #include <opencv2/superres/optical_flow.hpp>
-#include <opencv2/ocl/ocl.hpp>
+#include <opencv2/core/ocl.hpp>
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
@@ -26,9 +28,7 @@ namespace charliesoft
 {
   BLOCK_BEGIN_INSTANTIATION(OpticFlowBlock);
   //You can add methods, re implement needed functions...
-  cv::Mat computeOpenCL(cv::Mat im1, cv::Mat im2, int method);
-  cv::Mat computeCUDA(cv::Mat im1, cv::Mat im2, int method);
-  cv::Mat computeCPU(cv::Mat im1, cv::Mat im2, int method);
+  cv::Mat computeOCL_CPU(cv::Mat im1, cv::Mat im2, int method);
   BLOCK_END_INSTANTIATION(OpticFlowBlock, AlgoType::videoProcess, BLOCK__OPTICFLOW_NAME);
 
   BEGIN_BLOCK_INPUT_PARAMS(OpticFlowBlock);
@@ -52,64 +52,38 @@ namespace charliesoft
     _myInputs["BLOCK__OPTICFLOW_IN_METHOD"].addValidator({ new ValNeeded(), new ValRange(0, 2) });
   };
 
-  cv::Mat OpticFlowBlock::computeOpenCL(cv::Mat src, cv::Mat dest, int method)
+  cv::Mat OpticFlowBlock::computeOCL_CPU(cv::Mat src, cv::Mat dest, int method)
   {
-    Ptr<DenseOpticalFlowExt> optic;
-    switch (method)
+    Mat finalFlow;
+    if (method == 1 || method == 2)
     {
-    case 1:
-      optic = createOptFlow_Farneback_OCL();
-      break;
-    case 2:
-      optic = createOptFlow_DualTVL1_OCL();
-      break;
-    default:
-      optic = createOptFlow_PyrLK_OCL();
-      break;
+      Ptr<DenseOpticalFlowExt> optic;
+      if (method == 1)
+        optic = createOptFlow_Farneback();
+      else
+        optic = superres::createOptFlow_DualTVL1();
+
+      Mat flow1, flow2;
+      optic->calc(src, dest, flow1, flow2);
+      optic.release();
+
+      Mat printFlow, splitedFlow[2];
+      splitedFlow[0] = flow1;
+      splitedFlow[1] = flow2;
+
+      merge(splitedFlow, 2, finalFlow);
     }
-    ocl::oclMat ocltmp1(src), ocltmp2(dest), flow1, flow2;
-
-    optic->calc(ocltmp1, ocltmp2, flow1, flow2);
-
-    Mat finalFlow, printFlow, splitedFlow[2];
-    splitedFlow[0] = flow1;
-    splitedFlow[1] = flow2;
-
-    optic.release();
-
-    merge(splitedFlow, 2, finalFlow);
-    return finalFlow;
-  }
-  cv::Mat OpticFlowBlock::computeCUDA(cv::Mat im1, cv::Mat im2, int method)
-  {
-    return im1;
-  }
-  cv::Mat OpticFlowBlock::computeCPU(cv::Mat src, cv::Mat dest, int method)
-  {
-    Ptr<DenseOpticalFlowExt> optic;
-    switch (method)
+    else
     {
-    case 1:
-      optic = createOptFlow_Farneback();
-      break;
-    case 2:
-      optic = createOptFlow_DualTVL1();
-      break;
-    default:
-      optic = createOptFlow_Simple();
-      break;
+      Ptr<DenseOpticalFlow> optic;
+      if (method == 3)
+        optic = optflow::createOptFlow_DeepFlow();
+      else
+        optic = optflow::createOptFlow_SimpleFlow();
+
+      optic->calc(src, dest, finalFlow);
+      optic.release();
     }
-
-    cv::Mat flow1, flow2;
-    optic->calc(src, dest, flow1, flow2);
-
-    Mat finalFlow, printFlow, splitedFlow[2];
-    splitedFlow[0] = flow1;
-    splitedFlow[1] = flow2;
-
-    optic.release();
-
-    merge(splitedFlow, 2, finalFlow);
     return finalFlow;
   }
 
@@ -130,24 +104,8 @@ namespace charliesoft
     if (!_myInputs["BLOCK__OPTICFLOW_IN_METHOD"].isDefaultValue())
       method = _myInputs["BLOCK__OPTICFLOW_IN_METHOD"].get<int>();
 
-
-    //is Opencl OK?
-    cv::ocl::DevicesInfo devices;
-    cv::ocl::getOpenCLDevices(devices);
-    bool opencl = false;
-    for (size_t i = 0; i < devices.size(); i++)
-    {
-      if (devices[i]->deviceVersionMajor > 1)
-        opencl = true;
-      else
-        if (devices[i]->deviceVersionMajor == 1 && devices[i]->deviceVersionMinor >= 1)
-          opencl = true;
-    }
     Mat finalFlow;
-    if (opencl)
-      finalFlow = computeOpenCL(src, dest, method);
-    else
-      finalFlow = computeCPU(src, dest, method);
+    finalFlow = computeOCL_CPU(src, dest, method);
     _myOutputs["BLOCK__OPTICFLOW_OUT_IMAGE"] = finalFlow;
 
     return true;

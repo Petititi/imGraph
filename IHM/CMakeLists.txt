@@ -31,6 +31,7 @@ elseif()
     file(WRITE "${SRC_BLOCKS}" "//This file is automatically created by CMake (IHM/CMakeLists.txt).\n//Don't make any changes!!!\n\n\n" )
 endif( )
 
+QT5_ADD_RESOURCES(_RCC_OUTFILES ../Sources/view/MatrixViewer.qrc)
 QT5_WRAP_CPP(HEADERS_MOC "view/Window.h" "view/GraphicView.h" "view/ImagePreview.h" "view/Connectors.h" "view/ParameterDock.h" "view/VertexRepresentation.h")
 
 new_executable( imGraphIHM imGraph )

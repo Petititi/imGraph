@@ -1,11 +1,18 @@
 #ifndef _INTERNATIONALIZATOR_HEADER_
 #define _INTERNATIONALIZATOR_HEADER_
 
+#ifdef _WIN32
+#pragma warning(push)
+#pragma warning(disable:4996 4251 4275 4800 4503)
+#endif
 #include <boost/format.hpp>
 
 #include <string>
 #include <map>
 #include <QString>
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
 namespace charliesoft
 {

@@ -1,9 +1,16 @@
 
+#ifdef _WIN32
+#pragma warning(push)
+#pragma warning(disable:4996 4251 4275 4800 4503 4190)
+#endif
+#include "OpenCV_filter.h"
 #include <vector>
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
 #include "Block.h"
 #include "ParamValidator.h"
-#include "OpenCV_filter.h"
 using namespace lsis_org;
 using std::vector;
 using std::string;
@@ -52,7 +59,7 @@ public:
     cv::Mat mat = _myInputs["BLOCK__ACCUMULATOR_IN_IMAGE"].get<cv::Mat>();
     int nbAccu = _myInputs["BLOCK__ACCUMULATOR_IN_NB_HISTORY"].get<int>();
     if (nbAccu > 0)
-      filter.set("nbBufferMax", nbAccu);
+      filter.setBufferSize(nbAccu);
     if (!mat.empty())
       _myOutputs["BLOCK__ACCUMULATOR_OUT_IMAGE"] = filter.process(mat);
 

@@ -41,7 +41,7 @@ namespace charliesoft
   MorphoBlock::MorphoBlock() :Block("BLOCK__MORPHOLOGIC_NAME", true){
     _myInputs["BLOCK__MORPHOLOGIC_IN_IMAGE"].addValidator({ new ValNeeded() });
     _myInputs["BLOCK__MORPHOLOGIC_ELEMENT"].addValidator({ new ValNeeded() });
-    _myInputs["BLOCK__MORPHOLOGIC_OPERATOR"].addValidator({ new ValNeeded(), new ValRange(0, 4) });
+    _myInputs["BLOCK__MORPHOLOGIC_OPERATOR"].addValidator({ new ValNeeded(), new ValRange(0, 5) });
     _myInputs["BLOCK__MORPHOLOGIC_ITERATIONS"].addValidator({ new ValPositiv(true) });
   };
   

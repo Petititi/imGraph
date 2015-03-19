@@ -52,7 +52,7 @@ namespace charliesoft
     {
       _myInputs["BLOCK__DEINTERLACE_IN_TYPE"].setNew(false);
       int type = _myInputs["BLOCK__DEINTERLACE_IN_TYPE"].get<int>();
-      filter.set("type", type);
+      filter.setDeinterlaceType(DeInterlaceFilter::DeinterlaceType(type));
     }
 
     cv::Mat mat;
