@@ -8,7 +8,7 @@
 
 #ifdef _WIN32
 #pragma warning(push)
-#pragma warning(disable:4996 4251 4275 4800 4503)
+#pragma warning(disable:4996 4251 4275 4800 4503 4190)
 #endif
 #include "opencv2/core/utility.hpp"
 #ifdef _WIN32

@@ -325,41 +325,52 @@ namespace charliesoft
       tree.add_child("GraphOfProcess.Block", (*it)->getXML());
   }
 
-  void GraphOfProcess::initChildDatas(Block* block, std::set<Block*>& listOfRenderedBlocks)
+  bool GraphOfProcess::initChildDatas(Block* block, std::set<Block*>& listOfRenderedBlocks)
   {
     if (listOfRenderedBlocks.find(block) != listOfRenderedBlocks.end())
-      return;//nothing to do...
+      return false;//nothing to do...
 
     if (block->getState() != Block::stopped && block->getState() != Block::paused)
-      return;//block is running, the value will be updated automatically!
+      return true;//block is running, the value will be updated automatically!
 
     listOfRenderedBlocks.insert(block);
     //take one shot of block to init output:
-    block->init();
-    block->run(true);
-    block->release();
-    //now render every childs.
-    set<Block*> renderBlocks;
-    for (auto it = block->_myOutputs.begin(); it != block->_myOutputs.end(); it++)
+    try
     {
-      //wake up the threads, if any!
-      std::set<ParamValue*>& listeners = it->second.getListeners();
-      for (auto listener : listeners)
-      {
-        if (listener->isLinked())
-        {
-          Block* consumer = listener->getBlock();
-          if (consumer != NULL && consumer->isReadyToRun(true))
-            renderBlocks.insert(consumer);
-        }
-      }
+      block->init();
+      block->run(true);
+      block->release();
 
+      //now render every childs.
+      set<Block*> renderBlocks;
+      for (auto it = block->_myOutputs.begin(); it != block->_myOutputs.end(); it++)
+      {
+        //wake up the threads, if any!
+        std::set<ParamValue*>& listeners = it->second.getListeners();
+        for (auto listener : listeners)
+        {
+          if (listener->isLinked())
+          {
+            Block* consumer = listener->getBlock();
+            if (consumer != NULL && consumer->isReadyToRun(true))
+              renderBlocks.insert(consumer);
+          }
+        }
+
+      }
+      for (Block* consumer : renderBlocks)
+      {
+        if (listOfRenderedBlocks.find(consumer) == listOfRenderedBlocks.end())
+          initChildDatas(consumer, listOfRenderedBlocks);
+      }
     }
-    for (Block* consumer : renderBlocks)
+    catch (cv::Exception& e)
     {
-      if (listOfRenderedBlocks.find(consumer) == listOfRenderedBlocks.end())
-        initChildDatas(consumer, listOfRenderedBlocks);
+      block->addErrorMsg(e.what());
+      std::cout << "exception caught: " << e.what() << std::endl;
+      return false;
     }
+    return true;
   }
 
   void GraphOfProcess::fromGraph(boost::property_tree::ptree& tree,

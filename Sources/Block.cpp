@@ -333,8 +333,23 @@ namespace charliesoft
           {
             _time_start = microsec_clock::local_time();
 
-            if (!run(_executeOnlyOnce))//something goes wrong!
+            try
+            {
+              if (!run(_executeOnlyOnce))//something goes wrong!
+                throw boost::thread_interrupted();
+
+              _error_msg = "";//no errors...
+            }
+            catch (cv::Exception& e)
+            {
+              _error_msg += e.what();
+              std::cout << "exception caught: " << e.what() << std::endl;
               throw boost::thread_interrupted();
+            }
+            catch (...)
+            {
+              throw;
+            }
 
             if (_isOneShot )//&& !_executeOnlyOnce)
               paramsFullyProcessed();
@@ -576,9 +591,7 @@ namespace charliesoft
   }
 
   std::string Block::getErrorMsg() {
-    std::string tmp = _error_msg;
-    _error_msg = "";
-    return tmp;
+    return _error_msg;
   }
 
   void Block::initParameters(const std::vector<ParamDefinition>& inParam,

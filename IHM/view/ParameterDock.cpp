@@ -413,7 +413,10 @@ namespace charliesoft
         lineEdit->setEnabled(false);
       _inputValue12[p] = lineEdit;
       _inputValue21[lineEdit] = p;
-      lineEdit->setValidator(new QDoubleValidator());
+
+      QRegExpValidator* rxv = new QRegExpValidator(QRegExp("[+-]?\\d*[\\.,]?\\d+"), this);
+      lineEdit->setValidator(rxv);
+
       layout->addWidget(lineEdit);
       connect(lineEdit, SIGNAL(editingFinished()), this, SLOT(textChanged()));
       break;
@@ -1019,6 +1022,7 @@ namespace charliesoft
 
     ParamValue val;
     ParamType myType = param->getType();
+    ParamValue prevVal = *param;
 
     if (myType == Boolean)
     {
@@ -1076,7 +1080,18 @@ namespace charliesoft
       *param = val;//force the value!
     }
 
-    paramRep->getModel()->getGraph()->initChildDatas(paramRep->getModel(), std::set<Block*>());
+    if(!paramRep->getModel()->getGraph()->initChildDatas(paramRep->getModel(), std::set<Block*>()))
+    {
+      if (withAlert)
+      {
+        *param = prevVal;//restore previous value
+        if (QMessageBox::warning(this, _QT("ERROR_GENERIC_TITLE"),
+          QString(paramRep->getModel()->getErrorMsg().c_str()) + "<br/>" + _QT("ERROR_CONFIRM_SET_VALUE"),
+          QMessageBox::Apply | QMessageBox::RestoreDefaults, QMessageBox::Apply) != QMessageBox::Apply)
+          return false;//stop here the validation: should correct the error!
+      }
+      *param = val;//force the value!
+    }
     Window::synchroMainGraph();
     return true;
   }

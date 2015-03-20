@@ -79,12 +79,14 @@ namespace charliesoft
       if (type == CV_32FC1)//float
       {
         float* l = lines.ptr<float>(i);
-        line(out, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), color, size);
+        line(out, cv::Point((int)l[0], (int)l[1]), 
+          cv::Point((int)l[2], (int)l[3]), color, size);
       }
       if (type == CV_64FC1)//double
       {
         double* l = lines.ptr<double>(i);
-        line(out, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), color, size);
+        line(out, cv::Point((int)l[0], (int)l[1]), 
+          cv::Point((int)l[2], (int)l[3]), color, size);
       }
     }
 
@@ -158,12 +160,12 @@ namespace charliesoft
       case CV_32FC1://float
       {
         float* l = points.ptr<float>(i);
-        circle(out, cv::Point(l[0], l[1]), size, color, -1);
+        circle(out, cv::Point((int)l[0], (int)l[1]), size, color, -1);
       }
       case CV_64FC1://double
       {
         double* l = points.ptr<double>(i);
-        circle(out, cv::Point(l[0], l[1]), size, color, -1);
+        circle(out, cv::Point((int)l[0], (int)l[1]), size, color, -1);
       }
       }
     }

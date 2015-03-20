@@ -372,6 +372,7 @@ namespace charliesoft
     std::vector<BlockLink> getInEdges();
 
     std::string getErrorMsg();
+    void addErrorMsg(std::string msg){ _error_msg += msg; };
 
     const cv::Point2f& getPosition() const { return _position; }
     const cv::Point2f& getSizeIncrement() const { return _sizeIncrement; }

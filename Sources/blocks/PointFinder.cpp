@@ -116,6 +116,21 @@ public:
   ADD_PARAMETER_FULL(notUsed, Float, "BLOCK__POINT_FINDER_IN_DETECTOR.SimpleBlob.minConvexity", "minConvexity", 5);
   ADD_PARAMETER_FULL(notUsed, Float, "BLOCK__POINT_FINDER_IN_DETECTOR.SimpleBlob.minThreshold", "minThreshold", 50);
   ADD_PARAMETER_FULL(notUsed, Float, "BLOCK__POINT_FINDER_IN_DETECTOR.SimpleBlob.thresholdStep", "thresholdStep", 10);
+  ADD_PARAMETER_FULL(notUsed, Boolean, "BLOCK__POINT_FINDER_IN_DETECTOR.KAZE.extended", "extended", false);
+  ADD_PARAMETER_FULL(notUsed, Boolean, "BLOCK__POINT_FINDER_IN_DETECTOR.KAZE.upright", "upright", false);
+  ADD_PARAMETER_FULL(notUsed, Float, "BLOCK__POINT_FINDER_IN_DETECTOR.KAZE.threshold", "threshold", 0.001);
+  ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_DETECTOR.KAZE.nOctaves", "nOctaves", 4);
+  ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_DETECTOR.KAZE.nOctaveLayers", "nOctaveLayers", 4);
+  ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_DETECTOR.KAZE.diffusivity", "diffusivity", 1);
+  ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_DETECTOR.AKAZE.descriptor_type", "descriptor_type", 5);
+  ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_DETECTOR.AKAZE.upright", "upright", false);
+  ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_DETECTOR.AKAZE.descriptor_size", "descriptor_size", 0);
+  ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_DETECTOR.AKAZE.descriptor_channels", "descriptor_channels", 3);
+  ADD_PARAMETER_FULL(notUsed, Float, "BLOCK__POINT_FINDER_IN_DETECTOR.AKAZE.threshold", "threshold", 0.001);
+  ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_DETECTOR.AKAZE.nOctaves", "nOctaves", 4);
+  ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_DETECTOR.AKAZE.nOctaveLayers", "nOctaveLayers", 4);
+  ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_DETECTOR.AKAZE.diffusivity", "diffusivity", 1);
+
   ADD_PARAMETER_FULL(notUsed, Float, "BLOCK__POINT_FINDER_IN_EXTRACTOR.SIFT.contrastThreshold", "contrastThreshold", 0.04);
   ADD_PARAMETER_FULL(notUsed, Float, "BLOCK__POINT_FINDER_IN_EXTRACTOR.SIFT.edgeThreshold", "edgeThreshold", 10);
   ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_EXTRACTOR.SIFT.nFeatures", "nFeatures", 0);
@@ -138,6 +153,24 @@ public:
   ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_EXTRACTOR.BRIEF.bytes", "bytes", 32);
   ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_EXTRACTOR.BRISK.octaves", "octaves", 3);
   ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_EXTRACTOR.BRISK.thres", "thres", 30);
+  ADD_PARAMETER_FULL(notUsed, Boolean, "BLOCK__POINT_FINDER_IN_EXTRACTOR.FREAK.orientationNormalized", "orientationNormalized", true);
+  ADD_PARAMETER_FULL(notUsed, Boolean, "BLOCK__POINT_FINDER_IN_EXTRACTOR.FREAK.scaleNormalized", "scaleNormalized", true);
+  ADD_PARAMETER_FULL(notUsed, Float, "BLOCK__POINT_FINDER_IN_EXTRACTOR.FREAK.patternScale", "patternScale", 22.);
+  ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_EXTRACTOR.FREAK.nOctaves", "nOctaves", 4);
+  ADD_PARAMETER_FULL(notUsed, Boolean, "BLOCK__POINT_FINDER_IN_EXTRACTOR.KAZE.extended", "extended", false);
+  ADD_PARAMETER_FULL(notUsed, Boolean, "BLOCK__POINT_FINDER_IN_EXTRACTOR.KAZE.upright", "upright", false);
+  ADD_PARAMETER_FULL(notUsed, Float, "BLOCK__POINT_FINDER_IN_EXTRACTOR.KAZE.threshold", "threshold", 0.001);
+  ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_EXTRACTOR.KAZE.nOctaves", "nOctaves", 4);
+  ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_EXTRACTOR.KAZE.nOctaveLayers", "nOctaveLayers", 4);
+  ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_EXTRACTOR.KAZE.diffusivity", "diffusivity", 1);
+  ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_EXTRACTOR.AKAZE.descriptor_type", "descriptor_type", 5);
+  ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_EXTRACTOR.AKAZE.upright", "upright", false);
+  ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_EXTRACTOR.AKAZE.descriptor_size", "descriptor_size", 0);
+  ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_EXTRACTOR.AKAZE.descriptor_channels", "descriptor_channels", 3);
+  ADD_PARAMETER_FULL(notUsed, Float, "BLOCK__POINT_FINDER_IN_EXTRACTOR.AKAZE.threshold", "threshold", 0.001);
+  ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_EXTRACTOR.AKAZE.nOctaves", "nOctaves", 4);
+  ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_EXTRACTOR.AKAZE.nOctaveLayers", "nOctaveLayers", 4);
+  ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_EXTRACTOR.AKAZE.diffusivity", "diffusivity", 1);
   END_BLOCK_PARAMS();
 
   PointFinderBlock::PointFinderBlock() :Block("BLOCK__POINT_FINDER_NAME", true){
@@ -264,6 +297,46 @@ public:
           myAlgo->setUpright(_mySubParams[paramName + ".upright"].get<bool>());
         }
       }
+      else if (nomAlgo.compare("KAZE") == 0)
+      {
+        KAZE* myAlgo = dynamic_cast<KAZE*>(algo.get());
+        if (myAlgo != NULL &&
+          (_mySubParams[paramName + ".extended"].isNew() ||
+          _mySubParams[paramName + ".upright"].isNew() ||
+          _mySubParams[paramName + ".threshold"].isNew() ||
+          _mySubParams[paramName + ".nOctaves"].isNew() ||
+          _mySubParams[paramName + ".nOctaveLayers"].isNew() ||
+          _mySubParams[paramName + ".diffusivity"].isNew()))
+        {
+          myAlgo->setExtended(_mySubParams[paramName + ".extended"].get<bool>());
+          myAlgo->setUpright(_mySubParams[paramName + ".upright"].get<bool>());
+          myAlgo->setThreshold(_mySubParams[paramName + ".threshold"].get<float>());
+          myAlgo->setNOctaves(_mySubParams[paramName + ".nOctaves"].get<int>());
+          myAlgo->setNOctaveLayers(_mySubParams[paramName + ".nOctaveLayers"].get<int>());
+          myAlgo->setDiffusivity(_mySubParams[paramName + ".diffusivity"].get<int>());
+        }
+      }
+      else if (nomAlgo.compare("AKAZE") == 0)
+      {
+        AKAZE* myAlgo = dynamic_cast<AKAZE*>(algo.get());
+        if (myAlgo != NULL &&
+          (_mySubParams[paramName + ".descriptor_type"].isNew() ||
+          _mySubParams[paramName + ".descriptor_size"].isNew() ||
+          _mySubParams[paramName + ".descriptor_channels"].isNew() ||
+          _mySubParams[paramName + ".threshold"].isNew() ||
+          _mySubParams[paramName + ".nOctaves"].isNew() ||
+          _mySubParams[paramName + ".nOctaveLayers"].isNew() ||
+          _mySubParams[paramName + ".diffusivity"].isNew()))
+        {
+          myAlgo->setDescriptorType(_mySubParams[paramName + ".descriptor_type"].get<int>());
+          myAlgo->setDescriptorSize(_mySubParams[paramName + ".descriptor_size"].get<int>());
+          myAlgo->setDescriptorChannels(_mySubParams[paramName + ".descriptor_channels"].get<int>());
+          myAlgo->setThreshold(_mySubParams[paramName + ".threshold"].get<float>());
+          myAlgo->setNOctaves(_mySubParams[paramName + ".nOctaves"].get<int>());
+          myAlgo->setNOctaveLayers(_mySubParams[paramName + ".nOctaveLayers"].get<int>());
+          myAlgo->setDiffusivity(_mySubParams[paramName + ".diffusivity"].get<int>());
+        }
+      }
       else if (nomAlgo.compare("STAR") == 0)
       {
         if (_mySubParams[paramName + ".maxSize"].isNew() ||
@@ -271,6 +344,14 @@ public:
           _mySubParams[paramName + ".lineThresholdProjected"].isNew() ||
           _mySubParams[paramName + ".lineThresholdBinarized"].isNew() ||
           _mySubParams[paramName + ".suppressNonmaxSize"].isNew())
+          algo = createAlgo(nomAlgo, paramName.substr(0, pos));
+      }
+      else if (nomAlgo.compare("STAR") == 0)
+      {
+        if (_mySubParams[paramName + ".orientationNormalized"].isNew() ||
+          _mySubParams[paramName + ".scaleNormalized"].isNew() ||
+          _mySubParams[paramName + ".patternScale"].isNew() ||
+          _mySubParams[paramName + ".nOctaves"].isNew())
           algo = createAlgo(nomAlgo, paramName.substr(0, pos));
       }
       else if (nomAlgo.compare("SimpleBlob") == 0)
@@ -374,6 +455,25 @@ public:
         _mySubParams[fullName + ".extended"].get<bool>(),
         _mySubParams[fullName + ".upright"].get<bool>());
     }
+    else if (nomAlgo.compare("KAZE") == 0)
+    {
+      output = KAZE::create(_mySubParams[fullName + ".extended"].get<bool>(),
+        _mySubParams[fullName + ".upright"].get<bool>(),
+        _mySubParams[fullName + ".threshold"].get<float>(),
+        _mySubParams[fullName + ".nOctaves"].get<int>(),
+        _mySubParams[fullName + ".nOctaveLayers"].get<int>(),
+        _mySubParams[fullName + ".diffusivity"].get<int>());
+    }
+    else if (nomAlgo.compare("AKAZE") == 0)
+    {
+      output = AKAZE::create(_mySubParams[fullName + ".descriptor_type"].get<int>(),
+        _mySubParams[fullName + ".descriptor_size"].get<int>(),
+        _mySubParams[fullName + ".descriptor_channels"].get<int>(),
+        _mySubParams[fullName + ".threshold"].get<float>(),
+        _mySubParams[fullName + ".nOctaves"].get<int>(),
+        _mySubParams[fullName + ".nOctaveLayers"].get<int>(),
+        _mySubParams[fullName + ".diffusivity"].get<int>());
+    }
     else if (nomAlgo.compare("STAR") == 0)
     {
       output = xfeatures2d::StarDetector::create(_mySubParams[fullName + ".maxSize"].get<int>(),
@@ -381,6 +481,13 @@ public:
         _mySubParams[fullName + ".lineThresholdProjected"].get<int>(),
         _mySubParams[fullName + ".lineThresholdBinarized"].get<int>(),
         _mySubParams[fullName + ".suppressNonmaxSize"].get<int>());
+    }
+    else if (nomAlgo.compare("FREAK") == 0)
+    {
+      output = xfeatures2d::FREAK::create(_mySubParams[fullName + ".orientationNormalized"].get<bool>(),
+        _mySubParams[fullName + ".scaleNormalized"].get<bool>(),
+        _mySubParams[fullName + ".patternScale"].get<float>(),
+        _mySubParams[fullName + ".nOctaves"].get<int>());
     }
     else if (nomAlgo.compare("SimpleBlob") == 0)
     {

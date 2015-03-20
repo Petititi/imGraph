@@ -173,7 +173,7 @@ namespace charliesoft
     string xInc = pos.substr(1, posSepare - 2);
     string yInc = pos.substr(posSepare + 1, pos.size() - posSepare - 2);
 
-    setPosition(lexical_cast<float>(xPos), lexical_cast<float>(yPos),
+    setPosition((int)lexical_cast<float>(xPos), (int)lexical_cast<float>(yPos),
       lexical_cast<float>(xInc), lexical_cast<float>(yInc));
 
     for (ptree::iterator it1 = block->begin(); it1 != block->end(); it1++)

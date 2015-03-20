@@ -73,7 +73,7 @@ public:
       split(outHisto, histoLayers);
 
     /// Set the ranges ( for B,G,R) )
-    float range[] = { 0, histSize };
+    float range[] = { 0, static_cast<float>(histSize) };
     const float* histRange = { range };
 
     for (int i = 0; i < in.channels(); i++)

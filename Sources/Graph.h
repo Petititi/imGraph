@@ -44,7 +44,7 @@ namespace charliesoft
     GraphOfProcess* getParent() const { return _parent; }
     void setParent(GraphOfProcess* val, SubBlock* block) { _parent = val; _subBlock = block; }
 
-    void initChildDatas(Block*, std::set<Block*>& listOfRenderedBlocks);
+    bool initChildDatas(Block*, std::set<Block*>& listOfRenderedBlocks);
 
 
     void addNewProcess(Block* filter);

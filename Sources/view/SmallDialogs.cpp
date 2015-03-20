@@ -9,12 +9,13 @@
 #endif
 #include <QLabel>
 #include <QVBoxLayout>
-#include "MatrixViewer.h"
 //#include "..\src\gui\dialogs\qcolordialog.h"
 #include <QColorDialog>
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
+
+#include "MatrixViewer.h"
 
 using namespace std;
 

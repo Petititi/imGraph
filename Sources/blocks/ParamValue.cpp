@@ -220,7 +220,10 @@ namespace charliesoft
       if (type == Int||type == ListBox)
         return ParamValue(lexical_cast<int>(value));
       if (type == Float)
+      {
+        replace(value.begin(), value.end(), ',', '.');
         return ParamValue(lexical_cast<double>(value));
+      }
       if (type == String || type == FilePath)
         return ParamValue(value);
       if (type == Color)
