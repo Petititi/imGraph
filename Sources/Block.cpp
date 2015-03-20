@@ -244,7 +244,7 @@ namespace charliesoft
   {
     if (nbMeasures == 0)
       return 0;
-    return (totalTime / nbMeasures).total_milliseconds();
+    return static_cast<int>((totalTime / nbMeasures).total_milliseconds());
   };
   void AlgoPerformance::addNewPerf(time_duration newTime)
   {
@@ -332,11 +332,10 @@ namespace charliesoft
           do
           {
             _time_start = microsec_clock::local_time();
-            if (!run(_executeOnlyOnce))
-            {
-              //something goes wrong!
+
+            if (!run(_executeOnlyOnce))//something goes wrong!
               throw boost::thread_interrupted();
-            }
+
             if (_isOneShot )//&& !_executeOnlyOnce)
               paramsFullyProcessed();
             newProducedData();//tell to scheduler we produced some datas...
@@ -345,7 +344,7 @@ namespace charliesoft
 
         nbRendering++;
 
-        boost::this_thread::sleep(boost::posix_time::milliseconds(10.));
+        boost::this_thread::sleep(boost::posix_time::milliseconds(10));
         if (_executeOnlyOnce)
           break;
       }
@@ -714,7 +713,7 @@ namespace charliesoft
     string xInc = pos.substr(1, posSepare - 2);
     string yInc = pos.substr(posSepare + 1, pos.size() - posSepare - 2);
 
-    setPosition(lexical_cast<float>(xPos), lexical_cast<float>(yPos),
+    setPosition((int)lexical_cast<float>(xPos), (int)lexical_cast<float>(yPos),
       lexical_cast<float>(xInc), lexical_cast<float>(yInc));
 
     _currentPreview = block->get("preview_active", "None");
@@ -987,8 +986,8 @@ namespace charliesoft
 
   void Block::setPosition(int x, int y, float incX, float incY)
   {
-    _position.x = x;
-    _position.y = y;
+    _position.x = static_cast<float>(x);
+    _position.y = static_cast<float>(y);
     _sizeIncrement.x = incX;
     _sizeIncrement.y = incY;
   }

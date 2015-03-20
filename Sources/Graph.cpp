@@ -251,19 +251,13 @@ namespace charliesoft
 
   void GraphOfProcess::stop(bool delegateParent, bool waitEnd)
   {
-    boost::unique_lock<boost::mutex> lock(_mtx);
     if (_parent != NULL && delegateParent)
       return _parent->stop(delegateParent, waitEnd);
     for (auto& it = _runningThread.begin(); it != _runningThread.end(); it++)
-    {
-      if (it->first->getState() != Block::stopped)
-        it->second.interrupt();
-    }
+      it->second.interrupt();
+
     if (waitEnd)
-    {
       waitUntilEnd(15000);//15s
-      _runningThread.clear();
-    }
   }
 
   void GraphOfProcess::waitUntilEnd(size_t max_ms_time)
@@ -271,7 +265,7 @@ namespace charliesoft
     auto _time_start = boost::posix_time::microsec_clock::local_time();
     for (auto& it = _runningThread.begin(); it != _runningThread.end(); it++)
     {
-      if (it->first->getState() != Block::stopped)
+      if (it->first->getState() != Block::stopped && it->second.joinable())
       {
         if (max_ms_time == 0)
           it->second.join();
@@ -284,7 +278,7 @@ namespace charliesoft
           boost::posix_time::time_duration duration(time_end - _time_start);
           if (duration.total_milliseconds() >= max_ms_time)
             return;
-          max_ms_time -= duration.total_milliseconds();
+          max_ms_time -= static_cast<size_t>(duration.total_milliseconds());
         }
       }
     }
