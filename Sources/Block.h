@@ -135,8 +135,8 @@ namespace charliesoft
     unsigned char getCondition() const { return boolean_operator; }
     unsigned char getCategory_left() const { return category_left; }
     unsigned char getCategory_right() const { return category_right; }
-    ParamValue getOpt__valueleft() const { return opt__valueleft; }
-    ParamValue getOpt__valueright() const { return opt__valueright; }
+    ParamValue getOpt__valueleft() const { return ParamValue(opt__valueleft); }
+    ParamValue getOpt__valueright() const { return ParamValue(opt__valueright); }
     Block* getFather() const { return _father; }
 
     std::string toString();

@@ -204,13 +204,11 @@ namespace charliesoft
     notifyUpdate(_newValue);//wake up waiting thread (if any)
   };
 
-
   BlockLink ParamValue::toBlockLink() const
   {
     ParamValue* other = get<ParamValue*>();
     return BlockLink(other->_block, _block, other->_name, _name);
   }
-
 
   ParamValue ParamValue::fromString(ParamType type, std::string value)
   {

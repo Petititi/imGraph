@@ -1022,7 +1022,8 @@ namespace charliesoft
 
     ParamValue val;
     ParamType myType = param->getType();
-    ParamValue prevVal = *param;
+    ParamValue prevVal;
+    prevVal = *param;
 
     if (myType == Boolean)
     {

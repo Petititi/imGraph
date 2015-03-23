@@ -26,7 +26,6 @@ namespace charliesoft
   cv::Ptr<cv::Algorithm> _detect;
   cv::Ptr<cv::Algorithm> _extract;
   std::vector<std::string> detectorList;
-  std::vector<std::string> modificatorList;
   std::vector<std::string> extractorList;
 
   void setParamOpencv(cv::Ptr<cv::Algorithm>& algo, string paramName);
@@ -159,13 +158,13 @@ public:
   ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_EXTRACTOR.FREAK.nOctaves", "nOctaves", 4);
   ADD_PARAMETER_FULL(notUsed, Boolean, "BLOCK__POINT_FINDER_IN_EXTRACTOR.KAZE.extended", "extended", false);
   ADD_PARAMETER_FULL(notUsed, Boolean, "BLOCK__POINT_FINDER_IN_EXTRACTOR.KAZE.upright", "upright", false);
-  ADD_PARAMETER_FULL(notUsed, Float, "BLOCK__POINT_FINDER_IN_EXTRACTOR.KAZE.threshold", "threshold", 0.001);
-  ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_EXTRACTOR.KAZE.nOctaves", "nOctaves", 4);
-  ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_EXTRACTOR.KAZE.nOctaveLayers", "nOctaveLayers", 4);
-  ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_EXTRACTOR.KAZE.diffusivity", "diffusivity", 1);
-  ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_EXTRACTOR.AKAZE.descriptor_type", "descriptor_type", 5);
-  ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_EXTRACTOR.AKAZE.upright", "upright", false);
-  ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_EXTRACTOR.AKAZE.descriptor_size", "descriptor_size", 0);
+  ADD_PARAMETER_FULL(notUsed, Float,  "BLOCK__POINT_FINDER_IN_EXTRACTOR.KAZE.threshold", "threshold", 0.001);
+  ADD_PARAMETER_FULL(notUsed, Int,    "BLOCK__POINT_FINDER_IN_EXTRACTOR.KAZE.nOctaves", "nOctaves", 4);
+  ADD_PARAMETER_FULL(notUsed, Int,    "BLOCK__POINT_FINDER_IN_EXTRACTOR.KAZE.nOctaveLayers", "nOctaveLayers", 4);
+  ADD_PARAMETER_FULL(notUsed, Int,    "BLOCK__POINT_FINDER_IN_EXTRACTOR.KAZE.diffusivity", "diffusivity", 1);
+  ADD_PARAMETER_FULL(notUsed, Int,    "BLOCK__POINT_FINDER_IN_EXTRACTOR.AKAZE.descriptor_type", "descriptor_type", 5);
+  ADD_PARAMETER_FULL(notUsed, Int,    "BLOCK__POINT_FINDER_IN_EXTRACTOR.AKAZE.upright", "upright", false);
+  ADD_PARAMETER_FULL(notUsed, Int,    "BLOCK__POINT_FINDER_IN_EXTRACTOR.AKAZE.descriptor_size", "descriptor_size", 0);
   ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_EXTRACTOR.AKAZE.descriptor_channels", "descriptor_channels", 3);
   ADD_PARAMETER_FULL(notUsed, Float, "BLOCK__POINT_FINDER_IN_EXTRACTOR.AKAZE.threshold", "threshold", 0.001);
   ADD_PARAMETER_FULL(notUsed, Int, "BLOCK__POINT_FINDER_IN_EXTRACTOR.AKAZE.nOctaves", "nOctaves", 4);
