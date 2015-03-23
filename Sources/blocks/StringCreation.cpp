@@ -3,9 +3,8 @@
 
 #include "Block.h"
 #include "ParamValidator.h"
-#include "OpenCV_filter.h"
 #include "Convertor.h"
-using namespace lsis_org;
+
 using std::vector;
 using std::string;
 using cv::Mat;

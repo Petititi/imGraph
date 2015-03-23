@@ -1,15 +1,22 @@
 
+#ifdef _WIN32
+#pragma warning(push)
+#pragma warning(disable:4996 4251 4275 4800 4503 4190)
+#endif
 #include <vector>
 #include <sstream>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include "Block.h"
 #include "ParamValidator.h"
+#include "InputProcessor.h"
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
+#include "Block.h"
 using std::string;
 using std::vector;
 
-#include "InputProcessor.h"
 using namespace lsis_org;
 
 namespace charliesoft
@@ -256,7 +263,7 @@ protected:
 
     //wait corresponding ms in order to keep fps:
     if (fps>0)
-      boost::this_thread::sleep(boost::posix_time::milliseconds((1. / fps)*1000.));
+      boost::this_thread::sleep(boost::posix_time::milliseconds(static_cast<int64_t>((1. / fps)*1000)));
 
     if (processor_.isEndOfFile())
     {

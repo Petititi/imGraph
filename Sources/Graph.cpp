@@ -46,7 +46,7 @@ namespace charliesoft
   GraphOfProcess::~GraphOfProcess()
   {
     stop();
-    waitUntilEnd(15000);//15s
+    waitUntilEnd(5000);//15s
     for (size_t i = 0; i < _vertices.size(); i++)
     {
       Block* b = _vertices[i];

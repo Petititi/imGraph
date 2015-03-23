@@ -6,13 +6,14 @@
 #include <vector>
 #include <opencv2/features2d.hpp>
 #include <boost/algorithm/string.hpp>
+
+#include "OpenCV_filter.h"
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
 
 #include "Block.h"
 #include "ParamValidator.h"
-#include "OpenCV_filter.h"
 using namespace charliesoft;
 using std::vector;
 using std::string;

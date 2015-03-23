@@ -1,9 +1,15 @@
 
-#include <vector>
+#ifdef _WIN32
+#pragma warning(push)
+#pragma warning(disable:4996 4251 4275 4800 4503 4190)
+#endif
+#include "OpenCV_filter.h"
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
 #include "Block.h"
 #include "ParamValidator.h"
-#include "OpenCV_filter.h"
 using namespace lsis_org;
 using std::vector;
 using std::string;
