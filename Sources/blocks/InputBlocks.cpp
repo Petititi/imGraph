@@ -247,9 +247,7 @@ protected:
     
     cv::Mat frame = processor_.getFrame();
     if (frame.empty())//either end of file or problem with file...
-    {
       return false;//error
-    }
 
     //now set outputs:
     _myOutputs["BLOCK__INPUT_OUT_IMAGE"] = frame;

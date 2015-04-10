@@ -1,9 +1,17 @@
 
+#ifdef _WIN32
+#pragma warning(disable:4503)
+#pragma warning(push)
+#pragma warning(disable:4996 4251 4275 4800 4190 4244)
+#endif
 #include <vector>
+#include "opencv2/imgproc/imgproc.hpp"
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
 #include "Block.h"
 #include "ParamValidator.h"
-#include "opencv2/imgproc/imgproc.hpp"
 
 using std::vector;
 using std::string;
@@ -31,7 +39,7 @@ namespace charliesoft
     BEGIN_BLOCK_SUBPARAMS_DEF(BlockCanny);
     END_BLOCK_PARAMS();
 
-    BlockCanny::BlockCanny() :Block("BLOCK__CANNY_NAME"){
+    BlockCanny::BlockCanny() :Block("BLOCK__CANNY_NAME", true){
         _myInputs["BLOCK__CANNY_IN_IMAGE"].addValidator({ new ValNeeded() });
         _myInputs["BLOCK__CANNY_IN_THRESHOLD_1"].addValidator({ new ValNeeded() });
         _myInputs["BLOCK__CANNY_IN_THRESHOLD_2"].addValidator({ new ValNeeded() });
@@ -42,18 +50,18 @@ namespace charliesoft
     bool BlockCanny::run(bool oneShot){
         if (_myInputs["BLOCK__CANNY_IN_IMAGE"].isDefaultValue())
             return false;
-        cv::Mat mat = _myInputs["BLOCK__CANNY_IN_IMAGE"].get<cv::Mat>(true);
+        cv::Mat mat = _myInputs["BLOCK__CANNY_IN_IMAGE"].get<cv::Mat>();
         cv::Mat output;
         if (!mat.empty())
         {
             Canny(mat, 
                   output,
-                  _myInputs["BLOCK__CANNY_IN_THRESHOLD_1"].get<double>(true),
-                  _myInputs["BLOCK__CANNY_IN_THRESHOLD_2"].get<double>(true),
-                  _myInputs["BLOCK__CANNY_IN_APERTURE_SIZE"].get<int>(true),
-                  _myInputs["BLOCK__CANNY_IN_L2_GRADIENT"].get<bool>(true) );
+                  _myInputs["BLOCK__CANNY_IN_THRESHOLD_1"].get<double>(),
+                  _myInputs["BLOCK__CANNY_IN_THRESHOLD_2"].get<double>(),
+                  _myInputs["BLOCK__CANNY_IN_APERTURE_SIZE"].get<int>(),
+                  _myInputs["BLOCK__CANNY_IN_L2_GRADIENT"].get<bool>() );
             _myOutputs["BLOCK__CANNY_OUT_IMAGE"] = output;
         }
-        return true;
+        return !mat.empty();
     };
 };

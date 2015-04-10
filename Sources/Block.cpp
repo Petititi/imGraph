@@ -982,7 +982,7 @@ namespace charliesoft
       type1 = String;
     if (type2 == FilePath)
       type2 = String;
-    if (valIn.getType() != AnyType &&  type1 != type2)
+    if (type1 != AnyType && type2 != AnyType && type1 != type2)
     {
       throw (ErrorValidator((my_format(_STR("ERROR_TYPE")) %
         _STR(getName()) % _STR(valOut.getName()) % typeName(valOut.getType()) %

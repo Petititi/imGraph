@@ -24,6 +24,7 @@ namespace charliesoft
   BLOCK_BEGIN_INSTANTIATION(WriteVideo);
   //You can add methods, re implement needed functions...
   cv::VideoWriter vr;
+  virtual void release();
   ///\todo: add init and release functions
   BLOCK_END_INSTANTIATION(WriteVideo, AlgoType::output, BLOCK__WRITE_NAME);
 
@@ -47,7 +48,14 @@ namespace charliesoft
     _myInputs["BLOCK__WRITE_IN_FILENAME"].addValidator({ new ValNeeded() });
   };
 
+  void WriteVideo::release()
+  {
+    vr.release();
+  }
+
   bool WriteVideo::run(bool oneShot){
+    if (oneShot)
+      return true;//nothing to do (risk of overriding file!
     cv::Mat out = _myInputs["BLOCK__WRITE_IN_IMAGE"].get<cv::Mat>();
     if (out.empty())
       return false;
