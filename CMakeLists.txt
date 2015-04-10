@@ -34,14 +34,9 @@ set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
 FIND_PACKAGE( OpenCV REQUIRED )# opencv_calib3d opencv_core opencv_objdetect opencv_features2d opencv_highgui opencv_imgproc opencv_flann opencv_nonfree
 set ( OPENCV_CONCAT "${OpenCV_VERSION_MAJOR}${OpenCV_VERSION_MINOR}${OpenCV_VERSION_PATCH}" )
 
-#set(CMAKE_INCLUDE_CURRENT_DIR ON)
-#set(CMAKE_AUTOMOC ON)
 FIND_PACKAGE(Qt5Widgets REQUIRED)
 FIND_PACKAGE(OPENGL REQUIRED)
 set(QT_USE_QTOPENGL TRUE)
-
-#include_directories(${Qt5Widgets_INCLUDES})
-#add_definitions(${Qt5Widgets_DEFINITIONS})
 
 find_package(Boost REQUIRED)
 if( Boost_FOUND )
@@ -63,11 +58,11 @@ else()
     MESSAGE(STATUS "--------(pour Visual 2008, c'est boost_1_55_0-msvc-9.0-32.exe)")
 endif( )
 
-set( DETECT_LINKER_LIBS "${OpenCV_LIBS}")
+#set( DETECT_LINKER_LIBS "${OpenCV_LIBS}")
 
 find_package(OpencvInput REQUIRED)
 
-set( DIR_ADD_INCLUDE "${CMAKE_SOURCE_DIR}/include" ${Boost_INCLUDE_DIR} ${QT_QTOPENGL_INCLUDE_DIR} ${OPENCVINPUT_INCLUDE_DIRS})
+set( DIR_ADD_INCLUDE "${CMAKE_SOURCE_DIR}/include" ${Boost_INCLUDE_DIR} ${OPENCVINPUT_INCLUDE_DIRS})
 MESSAGE(STATUS "DIR_ADD_INCLUDE : ${DIR_ADD_INCLUDE}")
 
 set( ADD_LIB_DIR "${CMAKE_SOURCE_DIR}/libs" ${Boost_LIBRARY_DIRS} ${QT_QTOPENGL_LIBRARY} )

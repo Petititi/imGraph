@@ -446,6 +446,26 @@ namespace charliesoft
     translations["BLOCK__MORPHOLOGIC_OUT_IMAGE"] = "image";
     translations["BLOCK__MORPHOLOGIC_OUT_IMAGE_HELP"] = "Filtered image";
 
+    translations["BLOCK__CANNY_NAME"] = "Canny";
+    translations["BLOCK__CANNY_IN_IMAGE"] = "image";
+    translations["BLOCK__CANNY_IN_IMAGE_HELP"] = "Input image";
+    translations["BLOCK__CANNY_OUT_IMAGE"] = "output";
+    translations["BLOCK__CANNY_OUT_IMAGE_HELP"] = "Canny image";
+    translations["BLOCK__CANNY_IN_THRESHOLD_1"] = "Threshold 1";
+    translations["BLOCK__CANNY_IN_THRESHOLD_1_HELP"] = "1er threshold for the hysteresis procedure";
+    translations["BLOCK__CANNY_IN_THRESHOLD_2"] = "Threshold 2";
+    translations["BLOCK__CANNY_IN_THRESHOLD_2_HELP"] = "2nd threshold for the hysteresis procedure";
+    translations["BLOCK__CANNY_IN_APERTURE_SIZE"] = "Aperture Size";
+    translations["BLOCK__CANNY_IN_APERTURE_SIZE_HELP"] = "aperture size for the Sobel operator";
+    translations["BLOCK__CANNY_IN_L2_GRADIENT"] = "L2 Gradient";
+    translations["BLOCK__CANNY_IN_L2_GRADIENT_HELP"] = "Use more accurate L2 gradient";
+
+    translations["BLOCK__INPUT_IN_INPUT_FILE"] = "Input";
+    translations["BLOCK__INPUT_IN_INPUT_FILE_HELP"] = "File Path";
+    translations["BLOCK__INPUT_RAW_VIDEO_NAME"] = "YUV reader";
+
+    translations["BLOCK__OUTPUT_RAW_VIDEO_NAME"] = "YUV writer";
+
     translations["BLOCK__BLUR_NAME"] = "Blurring";
     translations["BLOCK__BLUR_IN_METHOD"] = "method";
     translations["BLOCK__BLUR_IN_METHOD_HELP"] = "Blurring method|Mean^Gaussian^Median^Bilateral";
