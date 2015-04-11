@@ -58,35 +58,49 @@ namespace charliesoft
   void GraphOfProcess::addNewProcess(Block* block){
     _vertices.push_back(block);
     block->setGraph(this);
-  };
-
-  void GraphOfProcess::deleteProcess(Block* process){
-    for (auto it = _vertices.begin();
-      it != _vertices.end(); it++)
+    //if graph is running, start it:
+    if (!_runningThread.empty())
     {
-      if (*it == process)
-      {
-        _vertices.erase(it);
-        auto& it = _runningThread.find(process);
-        if (it != _runningThread.end())
-        {
-          it->second.interrupt();
-          it->second.join();//wait for the end...
-          _runningThread.erase(it);
-        }
-        delete process;
-        return;
-      }
+      block->markAsUnprocessed();
+      _runningThread[block] = boost::thread(boost::ref(*block));
     }
   };
 
+  void GraphOfProcess::deleteProcess(Block* process){
+    extractProcess(process);//remove the process from the graph
+    delete process;//free memory
+  };
+
   void GraphOfProcess::extractProcess(Block* process){
+    //remove every links:
+    for (auto& outParam : process->_myOutputs)
+      outParam.second = Not_A_Value();
+    for (auto& inParam : process->_myInputs)
+    {
+      if (inParam.second.isLinked())
+        *inParam.second.get<ParamValue*>() = Not_A_Value();
+    }
+
     for (auto it = _vertices.begin();
       it != _vertices.end(); it++)
     {
       if (*it == process)
       {
         _vertices.erase(it);
+
+        for (auto& waitThread : _waitingForRendering)
+        {
+          if (waitThread.first != process)
+            waitThread.second.erase(process);
+        }
+
+        auto& waitThreadDelete = _waitingForRendering.find(process);
+        if (waitThreadDelete != _waitingForRendering.end())
+        {
+          waitThreadDelete->second.clear();
+          _waitingForRendering.erase(waitThreadDelete);
+        }
+
         auto& it = _runningThread.find(process);
         if (it != _runningThread.end())
         {
@@ -94,6 +108,7 @@ namespace charliesoft
           it->second.join();//wait for the end...
           _runningThread.erase(it);
         }
+
         return;
       }
     }

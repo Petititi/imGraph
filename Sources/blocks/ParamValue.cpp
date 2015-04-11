@@ -312,6 +312,9 @@ namespace charliesoft
   };
   ParamValue& ParamValue::operator = (Not_A_Value const &rhs) {
     notifyRemove();
+    while (!_distantListeners.empty())
+      *(*(_distantListeners.begin())) = Not_A_Value();
+
     boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     _value = rhs;
     return *this;
