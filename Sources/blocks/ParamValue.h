@@ -146,6 +146,12 @@ namespace charliesoft
     ///Update the value. This will render the corresponding block and every ancestors.
     void update();
 
+
+    void waitForUpdate(boost::unique_lock<boost::mutex>& lock)
+    {
+      _cond_sync.wait(lock);
+    }
+
     bool isNeeded(){ return _paramNeeded; };
     void isNeeded(bool paramNeeded){ _paramNeeded = paramNeeded; };
 

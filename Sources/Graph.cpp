@@ -76,10 +76,7 @@ namespace charliesoft
     for (auto& outParam : process->_myOutputs)
       outParam.second = Not_A_Value();
     for (auto& inParam : process->_myInputs)
-    {
-      if (inParam.second.isLinked())
-        *inParam.second.get<ParamValue*>() = Not_A_Value();
-    }
+      inParam.second = Not_A_Value();
 
     for (auto it = _vertices.begin();
       it != _vertices.end(); it++)
@@ -264,12 +261,15 @@ namespace charliesoft
     }
   }
 
-  void GraphOfProcess::stop(bool delegateParent, bool waitEnd)
+  void GraphOfProcess::stop(bool delegateParent, bool waitEnd, bool stopAll)
   {
     if (_parent != NULL && delegateParent)
       return _parent->stop(delegateParent, waitEnd);
-    for (auto& it = _runningThread.begin(); it != _runningThread.end(); it++)
-      it->second.interrupt();
+    if (stopAll)
+    {
+      for (auto& it = _runningThread.begin(); it != _runningThread.end(); it++)
+        it->second.interrupt();
+    }
 
     if (waitEnd)
       waitUntilEnd(15000);//15s

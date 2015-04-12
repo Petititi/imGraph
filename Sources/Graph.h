@@ -54,7 +54,7 @@ namespace charliesoft
     void createLink(Block* src, std::string paramName, Block* dest, std::string paramNameDest);
     
     bool run(bool singleShot = false, bool delegateParent = true);
-    void stop(bool delegateParent = true, bool waitEnd = true);
+    void stop(bool delegateParent = true, bool waitEnd = true, bool stop = true);
     void waitUntilEnd(size_t max_ms_time = 0);
     bool switchPause(bool delegateParent = true);
     bool isPause(){

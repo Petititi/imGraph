@@ -253,6 +253,7 @@ namespace charliesoft
   void ParamValue::notifyUpdate(bool isNew)
   {
     emit paramUpdated();//for UI
+    _cond_sync.notify_all();
     _newValue = isNew;
     for (auto listener : _distantListeners)
       listener->notifyUpdate(isNew);

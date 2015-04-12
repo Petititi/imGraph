@@ -300,12 +300,26 @@ namespace charliesoft
       _threadID = boost::this_thread::get_id();
     else
       return;//this thread is already running! This should not be possible...
+    //get mandatories the input params:
+    std::vector<ParamValue*> vals;
+    for (auto& param : _myInputs)
+      if (param.second.containValidator<ValNeeded>())
+        vals.push_back(&param.second);
+
+    bool errors = false;
     nbRendering = 0;
     try
     {
       bool isInit = false;
       while (true)//this will stop when user stop the process...
       {
+        //for each input needed, wait for a value:
+        for (auto param : vals)
+        {
+          if (param->isDefaultValue())
+            param->waitForUpdate(lock);
+        }
+
         while (_processes!=NULL && _processes->isPause())
         {
           BlockState oldState = _state;
@@ -335,19 +349,21 @@ namespace charliesoft
 
             try
             {
-              if (!run(_executeOnlyOnce))//something goes wrong!
-                throw boost::thread_interrupted();
-
-              _error_msg = "";//no errors...
+              if (run(_executeOnlyOnce))
+                _error_msg = "";//no errors...
+              else
+                paramsFullyProcessed();//something goes wrong, set parameters as processed to get new ones
             }
             catch (cv::Exception& e)
             {
+              errors = true;
               _error_msg += e.what();
               std::cout << "exception caught: " << e.what() << std::endl;
               throw boost::thread_interrupted();
             }
             catch (...)
             {
+              errors = true;
               throw;
             }
 
@@ -372,7 +388,7 @@ namespace charliesoft
     _state = stopped;
     _threadID = boost::thread::id();//reset thread ID!
     if (_processes!=NULL)
-      _processes->stop(false, false);
+      _processes->stop(false, false, errors);
   }
   
   void Block::update()
