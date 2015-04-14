@@ -83,27 +83,21 @@ protected:
     {
       int IdWebcam = _mySubParams["BLOCK__INPUT_IN_INPUT_TYPE.Webcam.webcam index"].get<int>();
       if (!processor_.setInputSource(IdWebcam))
-      {
         _error_msg = (my_format(_STR("BLOCK__INPUT_IN_FILE_PROBLEM")) % "WebCam").str();
-      }
     }
     break;
     case 2://folder
     {
       string fileName = _mySubParams["BLOCK__INPUT_IN_INPUT_TYPE.Folder.input folder"].get<string>();
       if (!processor_.setInputSource(fileName))
-      {
         _error_msg = (my_format(_STR("BLOCK__INPUT_IN_FILE_PROBLEM")) % fileName).str();
-      }
     }
     break;
     default://video
     {
       string fileName = _mySubParams["BLOCK__INPUT_IN_INPUT_TYPE.Video file.input file"].get<string>();
       if (!processor_.setInputSource(fileName))
-      {
         _error_msg = (my_format(_STR("BLOCK__INPUT_IN_FILE_PROBLEM")) % fileName).str();
-      }
     }
     }
 

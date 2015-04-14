@@ -152,6 +152,7 @@ namespace charliesoft
     if (_param->_show == visible)
       return;//Nothing to do...
 
+    getParamValue()->isNeeded(visible != notUsed);
     _param->_show = visible;
     emit askSynchro();
   }

@@ -784,6 +784,7 @@ namespace charliesoft
         string val = it1->second.get("ID", "0");
         ParamValue* tmpVal = getParam(nameOut, false);
         tmpVal->setNew(false);
+        tmpVal->isNeeded(true);
         addressesMap[lexical_cast<unsigned int>(val)] = tmpVal;
       }
 
@@ -990,7 +991,11 @@ namespace charliesoft
     else
       valIn = dest->_myInputs[paramNameDest];
 
+    valIn.getDefinition()->_show = toBeLinked;
+
     ParamValue& valOut = _myOutputs[paramName];
+    valOut.getDefinition()->_show = toBeLinked;
+
     //first test type of input:
     ParamType type1 = valIn.getType(false);
     ParamType type2 = valOut.getType(false);

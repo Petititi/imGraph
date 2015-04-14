@@ -170,7 +170,7 @@ namespace charliesoft
   bool ParamValue::isDefaultValue() const{
     boost::unique_lock<boost::recursive_mutex> lock(_mtx);
     return (_value.type() == typeid(Not_A_Value)) ||
-      (_value.type() == typeid(cv::Mat) && boost::get<cv::Mat>(_value).empty()) ||
+      //(_value.type() == typeid(cv::Mat) && boost::get<cv::Mat>(_value).empty()) ||
       (isLinked() && boost::get<ParamValue*>(_value)->isDefaultValue());
   };
 

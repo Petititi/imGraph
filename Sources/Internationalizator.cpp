@@ -494,5 +494,16 @@ namespace charliesoft
     translations["BLOCK__RESIZEMATRIX_OUT_IMAGE"] = "image";
     translations["BLOCK__RESIZEMATRIX_OUT_IMAGE_HELP"] = "Binary output image";
 
+    translations["BLOCK__CORE_NAME"] = "CORE filter";
+    translations["BLOCK__CORE_IN_POINTS"] = "points";
+    translations["BLOCK__CORE_IN_POINTS_HELP"] = "Input points to filter";
+    translations["BLOCK__CORE_IN_DESC"] = "descriptors";
+    translations["BLOCK__CORE_IN_DESC_HELP"] = "Input descriptors to filter";
+    translations["BLOCK__CORE_IN_THRESHOLD"] = "threshold";
+    translations["BLOCK__CORE_IN_THRESHOLD_HELP"] = "Threshold value (percent)";
+    translations["BLOCK__CORE_OUT_POINTS"] = "points";
+    translations["BLOCK__CORE_OUT_POINTS_HELP"] = "Filtered points";
+    translations["BLOCK__CORE_OUT_DESC"] = "descriptors";
+    translations["BLOCK__CORE_OUT_DESC_HELP"] = "Filtered descriptors";
   }
 }

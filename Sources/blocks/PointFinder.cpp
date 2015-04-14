@@ -532,7 +532,6 @@ public:
   bool PointFinderBlock::run(bool oneShot){
     cv::Mat mat = _myInputs["BLOCK__POINT_FINDER_IN_IMAGE"].get<cv::Mat>(),
       desc;
-
     int methodDetect = _myInputs["BLOCK__POINT_FINDER_IN_DETECTOR"].get<int>();
 
     if (_myInputs["BLOCK__POINT_FINDER_IN_DETECTOR"].isNew() || _detect.empty())
@@ -547,24 +546,29 @@ public:
     std::vector<cv::KeyPoint> points;
     algo->detect(mat, points);
 
-    _myOutputs["BLOCK__POINT_FINDER_OUT_POINTS"] = ((cv::Mat)points).clone();
-    if (_myOutputs["BLOCK__POINT_FINDER_OUT_DESC"].isNeeded())
+    if (_myOutputs["BLOCK__POINT_FINDER_OUT_DESC"].isNeeded() && !points.empty())
     {
       int methodExtract = _myInputs["BLOCK__POINT_FINDER_IN_EXTRACTOR"].get<int>();
       if (_myInputs["BLOCK__POINT_FINDER_IN_EXTRACTOR"].isNew() || _extract.empty())
         _extract = createAlgo(extractorList[methodExtract], "BLOCK__POINT_FINDER_IN_EXTRACTOR");
 
-      setParamOpencv(_extract, "BLOCK__POINT_FINDER_IN_EXTRACTOR." + extractorList[methodExtract]);
-
       algo = dynamic_cast<Feature2D*>(_extract.get());
       if (algo == NULL)
         return false;//error...
 
+      setParamOpencv(_extract, "BLOCK__POINT_FINDER_IN_EXTRACTOR." + extractorList[methodExtract]);
+      
       algo->compute(mat, points, desc);
 
-      _myOutputs["BLOCK__POINT_FINDER_OUT_DESC"] = desc;
-    }
+      _myOutputs["BLOCK__POINT_FINDER_OUT_POINTS"] = cv::Mat(points).clone();
+      _myOutputs["BLOCK__POINT_FINDER_OUT_DESC"] = desc.clone();
 
+    }
+    else
+    {
+      _myOutputs["BLOCK__POINT_FINDER_OUT_POINTS"] = cv::Mat(points).clone();
+      _myOutputs["BLOCK__POINT_FINDER_OUT_DESC"] = cv::Mat();
+    }
     return true;
   };
 };
