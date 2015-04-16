@@ -51,7 +51,7 @@ Process{
 	If (-Not (Test-Path $InputLoaderBin)) {
 		New-Item -ItemType directory -Path $InputLoaderBin -ErrorAction Stop
 	}
-	Start-Process -FilePath $CMAKE -ArgumentList "-G `"$GENERATOR`" -DCMAKE_INSTALL_PREFIX=`"$InputLoaderBin`" -DCMAKE_CONFIGURATION_TYPES=Debug;Release -DOpenCV_DIR=`"$OPENCV`" -Wno-dev .." -WorkingDirectory $InputLoaderBin -NoNewWindow -ErrorAction Stop -Wait
+	Start-Process -FilePath $CMAKE -ArgumentList "-G `"$GENERATOR`" -DCMAKE_INSTALL_PREFIX=`"$InputLoaderBin`" -DCMAKE_CONFIGURATION_TYPES=Debug;Release -DOpenCV_DIR=`"$OpencvBin`" -DBOOST_ROOT=`"$BOOST`" -Wno-dev .." -WorkingDirectory $InputLoaderBin -NoNewWindow -ErrorAction Stop -Wait
 	$InputLoaderVsProject = Join-Path $InputLoaderBin "InputLoader.sln"
 	Start-Process -FilePath "msbuild" -ArgumentList "`"$InputLoaderVsProject`" /m /nologo /p:Configuration=Debug" -NoNewWindow -ErrorAction Stop -Wait
 	Start-Process -FilePath "msbuild" -ArgumentList "`"$InputLoaderVsProject`" /m /nologo /p:Configuration=Release" -NoNewWindow -ErrorAction Stop -Wait
@@ -62,7 +62,7 @@ Process{
 	If (-Not (Test-Path $ImGraphBin)) {
 		New-Item -ItemType directory -Path $ImGraphBin -ErrorAction Stop
 	}
-	Start-Process -FilePath $CMAKE -ArgumentList "-G `"$GENERATOR`" -DCMAKE_INSTALL_PREFIX=`"$ImGraphBin`" -DCMAKE_CONFIGURATION_TYPES=Debug;Release -DOpenCV_DIR=`"$OPENCV`" -DCMAKE_PREFIX_PATH=`"$QT;$INPUT_LOADER`" -DBOOST_ROOT=`"$BOOST`" -Wno-dev .." -WorkingDirectory $ImGraphBin -NoNewWindow -ErrorAction Stop -Wait
+	Start-Process -FilePath $CMAKE -ArgumentList "-G `"$GENERATOR`" -DCMAKE_INSTALL_PREFIX=`"$ImGraphBin`" -DCMAKE_CONFIGURATION_TYPES=Debug;Release -DOpenCV_DIR=`"$OpencvBin`" -DCMAKE_PREFIX_PATH=`"$QT;$InputLoaderBin`" -DBOOST_ROOT=`"$BOOST`" -Wno-dev .." -WorkingDirectory $ImGraphBin -NoNewWindow -ErrorAction Stop -Wait
 	$ImGraphVsProject = Join-Path $ImGraphBin "imGraph.sln"
 	Start-Process -FilePath "msbuild" -ArgumentList "`"$ImGraphVsProject`" /m /nologo /p:Configuration=Debug" -NoNewWindow -ErrorAction Stop -Wait
 	Start-Process -FilePath "msbuild" -ArgumentList "`"$ImGraphVsProject`" /m /nologo /p:Configuration=Release" -NoNewWindow -ErrorAction Stop -Wait
