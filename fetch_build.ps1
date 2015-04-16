@@ -40,7 +40,7 @@ Process{
 	If (-Not (Test-Path $OpencvBin)) {
 		New-Item -ItemType directory -Path $OpencvBin -ErrorAction Stop
 	}
-	Start-Process -FilePath $CMAKE -ArgumentList "-G `"$GENERATOR`" -DWITH_QT=1 -DCMAKE_PREFIX_PATH=`"$QT`" -DOPENCV_EXTRA_MODULES_PATH=`"$OpencvContributeModules`" -DBUILD_opencv_python2=0 -DBUILD_opencv_python3=0 -Wno-dev .." -WorkingDirectory $OpencvBin -NoNewWindow -ErrorAction Stop -Wait
+	Start-Process -FilePath $CMAKE -ArgumentList "-G `"$GENERATOR`" -DWITH_QT=1 -DBUILD_DOCS=0 -DBUILD_PERF_TESTS=0 -DBUILD_TESTS=0 -DBUILD_opencv_adas=0 -DWITH_CUDA=0 -DBUILD_opencv_cvv=0 -DCMAKE_PREFIX_PATH=`"$QT`" -DOPENCV_EXTRA_MODULES_PATH=`"$OpencvContributeModules`" -DBUILD_opencv_python2=0 -DBUILD_opencv_python3=0 -Wno-dev .." -WorkingDirectory $OpencvBin -NoNewWindow -ErrorAction Stop -Wait
 	$OpencvVsProject = Join-Path $OpencvBin "OpenCV.sln"
 	Start-Process -FilePath "msbuild" -ArgumentList "`"$OpencvVsProject`" /m /nologo /p:Configuration=Debug /p:WarningLevel=0" -NoNewWindow -ErrorAction Stop -Wait
 	Start-Process -FilePath "msbuild" -ArgumentList "`"$OpencvVsProject`" /m /nologo /p:Configuration=Release /p:WarningLevel=0" -NoNewWindow -ErrorAction Stop -Wait
