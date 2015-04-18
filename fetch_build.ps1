@@ -32,38 +32,40 @@ Begin{
 }
 
 Process{
+	$OpencvBin = Join-Path $OPENCV "bin"
+	$InputLoaderBin = Join-Path $INPUT_LOADER "bin"
+	$ImGraphBin = Join-Path $PSScriptRoot "bin"
+	
+	$OpencvVsProject = Join-Path $OpencvBin "INSTALL.vcxproj"
+	$InputLoaderVsProject = Join-Path $InputLoaderBin "INSTALL.vcxproj"
+	$ImGraphVsProject = Join-Path $ImGraphBin "ALL_BUILD.vcxproj"
+	
 	Write-Host "[BUILD OpenCV]" -ForegroundColor Yellow
 	Start-Process -FilePath $GIT -ArgumentList "pull" -WorkingDirectory $OPENCV -NoNewWindow -ErrorAction Stop -Wait
 	Start-Process -FilePath $GIT -ArgumentList "pull" -WorkingDirectory $OPENCV_CONTRIBUTE -NoNewWindow -ErrorAction Stop -Wait
 	$OpencvContributeModules = Join-Path $OPENCV_CONTRIBUTE "modules"
-	$OpencvBin = Join-Path $OPENCV "bin"
 	If (-Not (Test-Path $OpencvBin)) {
 		New-Item -ItemType directory -Path $OpencvBin -ErrorAction Stop
 	}
 	Start-Process -FilePath $CMAKE -ArgumentList "-G `"$GENERATOR`" -DWITH_QT=1 -DBUILD_DOCS=0 -DBUILD_PERF_TESTS=0 -DBUILD_TESTS=0 -DBUILD_opencv_adas=0 -DWITH_CUDA=0 -DBUILD_opencv_cvv=0 -DCMAKE_PREFIX_PATH=`"$QT`" -DOPENCV_EXTRA_MODULES_PATH=`"$OpencvContributeModules`" -DBUILD_opencv_python2=0 -DBUILD_opencv_python3=0 -Wno-dev .." -WorkingDirectory $OpencvBin -NoNewWindow -ErrorAction Stop -Wait
-	$OpencvVsProject = Join-Path $OpencvBin "OpenCV.sln"
 	Start-Process -FilePath "msbuild" -ArgumentList "`"$OpencvVsProject`" /m /nologo /p:Configuration=Debug /p:WarningLevel=0" -NoNewWindow -ErrorAction Stop -Wait
 	Start-Process -FilePath "msbuild" -ArgumentList "`"$OpencvVsProject`" /m /nologo /p:Configuration=Release /p:WarningLevel=0" -NoNewWindow -ErrorAction Stop -Wait
 	
 	Write-Host "[BUILD InputLoader]" -ForegroundColor Yellow
 	Start-Process -FilePath $GIT -ArgumentList "pull" -WorkingDirectory $INPUT_LOADER -NoNewWindow -ErrorAction Stop -Wait
-	$InputLoaderBin = Join-Path $INPUT_LOADER "bin"
 	If (-Not (Test-Path $InputLoaderBin)) {
 		New-Item -ItemType directory -Path $InputLoaderBin -ErrorAction Stop
 	}
 	Start-Process -FilePath $CMAKE -ArgumentList "-G `"$GENERATOR`" -DCMAKE_INSTALL_PREFIX=`"$InputLoaderBin`" -DCMAKE_CONFIGURATION_TYPES=Debug;Release -DOpenCV_DIR=`"$OpencvBin`" -DBOOST_ROOT=`"$BOOST`" -Wno-dev .." -WorkingDirectory $InputLoaderBin -NoNewWindow -ErrorAction Stop -Wait
-	$InputLoaderVsProject = Join-Path $InputLoaderBin "InputLoader.sln"
 	Start-Process -FilePath "msbuild" -ArgumentList "`"$InputLoaderVsProject`" /m /nologo /p:Configuration=Debug" -NoNewWindow -ErrorAction Stop -Wait
 	Start-Process -FilePath "msbuild" -ArgumentList "`"$InputLoaderVsProject`" /m /nologo /p:Configuration=Release" -NoNewWindow -ErrorAction Stop -Wait
 	
 	Write-Host "[BUILD imGraph]" -ForegroundColor Yellow
 	Start-Process -FilePath $GIT -ArgumentList "pull" -WorkingDirectory $PSScriptRoot -NoNewWindow -ErrorAction Stop -Wait
-	$ImGraphBin = Join-Path $PSScriptRoot "bin"
 	If (-Not (Test-Path $ImGraphBin)) {
 		New-Item -ItemType directory -Path $ImGraphBin -ErrorAction Stop
 	}
 	Start-Process -FilePath $CMAKE -ArgumentList "-G `"$GENERATOR`" -DCMAKE_INSTALL_PREFIX=`"$ImGraphBin`" -DCMAKE_CONFIGURATION_TYPES=Debug;Release -DOpenCV_DIR=`"$OpencvBin`" -DCMAKE_PREFIX_PATH=`"$QT;$InputLoaderBin`" -DBOOST_ROOT=`"$BOOST`" -Wno-dev .." -WorkingDirectory $ImGraphBin -NoNewWindow -ErrorAction Stop -Wait
-	$ImGraphVsProject = Join-Path $ImGraphBin "imGraph.sln"
 	Start-Process -FilePath "msbuild" -ArgumentList "`"$ImGraphVsProject`" /m /nologo /p:Configuration=Debug" -NoNewWindow -ErrorAction Stop -Wait
 	Start-Process -FilePath "msbuild" -ArgumentList "`"$ImGraphVsProject`" /m /nologo /p:Configuration=Release" -NoNewWindow -ErrorAction Stop -Wait
 }
