@@ -5,7 +5,7 @@ Param(
 	[ValidateScript({Test-Path $_})][String] $VCVARSALL =			$env:VS120COMNTOOLS+"VsDevCmd.bat",
 	[ValidateScript({Test-Path $_})][String] $OPENCV =				"..\opencv",
 	[ValidateScript({Test-Path $_})][String] $OPENCV_CONTRIBUTE =	"..\opencv_contrib",
-	[ValidateScript({Test-Path $_})][String] $QT =					"..\Qt\Qt5.3.2\5.3\msvc2013_opengl",
+	[ValidateScript({Test-Path $_})][String] $QT =					"..\Qt\5.3\msvc2013_opengl",
 	[ValidateScript({Test-Path $_})][String] $INPUT_LOADER =		"..\inputloader",
 	[ValidateScript({Test-Path $_})][String] $BOOST =				"..\boost_1_55_0",
 	[String] $GENERATOR = "Visual Studio 12 2013"
@@ -16,11 +16,11 @@ Begin{
 	Invoke-Expression -Command "$CMAKE --version" -ErrorAction Stop | Where { $_ -match "cmake version"}
 	Invoke-Expression -Command "$GIT --version" -ErrorAction Stop | Where { $_ -match "git version"}
 	
-	$OPENCV =            Resolve-Path $OPENCV
-	$OPENCV_CONTRIBUTE = Resolve-Path $OPENCV_CONTRIBUTE
-	$QT =                Resolve-Path $QT
-	$INPUT_LOADER =      Resolve-Path $INPUT_LOADER
-	$BOOST =             Resolve-Path $BOOST
+	$OPENCV =            Resolve-Path $OPENCV -ErrorAction Stop
+	$OPENCV_CONTRIBUTE = Resolve-Path $OPENCV_CONTRIBUTE -ErrorAction Stop
+	$QT =                Resolve-Path $QT -ErrorAction Stop
+	$INPUT_LOADER =      Resolve-Path $INPUT_LOADER -ErrorAction Stop
+	$BOOST =             Resolve-Path $BOOST -ErrorAction Stop
 	
 	cmd /c "`"$VCVARSALL`"&set" |
 	foreach {
