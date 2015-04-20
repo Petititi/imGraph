@@ -501,6 +501,8 @@ namespace charliesoft
     translations["BLOCK__CORE_IN_DESC_HELP"] = "Input descriptors to filter";
     translations["BLOCK__CORE_IN_THRESHOLD"] = "threshold";
     translations["BLOCK__CORE_IN_THRESHOLD_HELP"] = "Threshold value (percent)";
+    translations["BLOCK__CORE_IN_OPTIM_THRESHOLD"] = "optimization";
+    translations["BLOCK__CORE_IN_OPTIM_THRESHOLD_HELP"] = "Threshold value of optimization (0->1, 1 for no optimization)";
     translations["BLOCK__CORE_OUT_POINTS"] = "points";
     translations["BLOCK__CORE_OUT_POINTS_HELP"] = "Filtered points";
     translations["BLOCK__CORE_OUT_DESC"] = "descriptors";
