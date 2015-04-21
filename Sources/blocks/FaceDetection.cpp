@@ -68,6 +68,7 @@ public:
         std::vector<cv::Rect> faces;
         //find faces and store them in the vector array
         face_cascade.detectMultiScale(output, faces, 1.1, 3, CV_HAAR_FIND_BIGGEST_OBJECT | CV_HAAR_SCALE_IMAGE, cv::Size(30, 30));
+		output = _myInputs["BLOCK__FACEDETECTION_IN_IMAGE"].get<cv::Mat>().clone();
         //draw a rectangle for all found faces in the vector array on the original image
         for (int i = 0; i < faces.size(); i++)
         {
