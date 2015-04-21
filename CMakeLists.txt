@@ -105,6 +105,12 @@ if (MSVC)
 	get_target_property(qtrelease Qt5::Core LOCATION_RELEASE) 
     get_filename_component(qtdir ${qtrelease} DIRECTORY)
     
+    get_filename_component(PARENT_QTDIR ${qtdir} PATH)
+    
+    if (EXISTS "${PARENT_QTDIR}/plugins/platforms/qwindows.dll")
+        file(COPY "${PARENT_QTDIR}/plugins/platforms/qwindows.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/Release/platforms/qwindows.dll)
+    endif()
+    
 	SET(QT5_DLLS Core Gui Widgets Test Opengl PrintSupport Svg)
 	foreach(dll ${QT5_DLLS})
         if (EXISTS "${qtdir}/Qt5${dll}.dll")
