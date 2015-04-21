@@ -108,7 +108,8 @@ if (MSVC)
     get_filename_component(PARENT_QTDIR ${qtdir} PATH)
     
     if (EXISTS "${PARENT_QTDIR}/plugins/platforms/qwindows.dll")
-        file(COPY "${PARENT_QTDIR}/plugins/platforms/qwindows.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/Release/platforms/qwindows.dll)
+        file(COPY "${PARENT_QTDIR}/plugins/platforms/qwindows.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/Release/platforms)
+        file(COPY "${PARENT_QTDIR}/plugins/platforms/qwindowsd.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/Debug/platforms)
     endif()
     
 	SET(QT5_DLLS Core Gui Widgets Test Opengl PrintSupport Svg)
