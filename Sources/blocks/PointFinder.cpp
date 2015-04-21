@@ -546,6 +546,13 @@ public:
     std::vector<cv::KeyPoint> points;
     algo->detect(mat, points);
 
+    //clean keypoints...
+    if (!points.empty() && points[0].octave > 10000)//problem!
+    {
+      for (size_t i = 0; i < points.size() ; i++)
+        points[i].octave = 0;
+    }
+
     if (_myOutputs["BLOCK__POINT_FINDER_OUT_DESC"].isNeeded() && !points.empty())
     {
       int methodExtract = _myInputs["BLOCK__POINT_FINDER_IN_EXTRACTOR"].get<int>();

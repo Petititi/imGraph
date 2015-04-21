@@ -683,34 +683,40 @@ namespace charliesoft
   {
     if (val != NULL)
     {
-      bool isNew = false;
+      bool isNew = _preview == NULL;
       switch (val->getType(false))
       {
       case Boolean:
-        if (_preview == NULL)
+        if (!isNew && dynamic_cast<QLabel*>(_preview) == NULL)
         {
           isNew = true;
-          _preview = new QLabel(_blockRepresentation);
+          delete _preview;
         }
+        if (isNew)
+          _preview = new QLabel(_blockRepresentation);
         if (val->get<bool>())
           ((QLabel*)_preview)->setText(_QT("TRUE"));
         else
           ((QLabel*)_preview)->setText(_QT("FALSE"));
         break;
       case Int:
-        if (_preview == NULL)
+        if (!isNew && dynamic_cast<QLabel*>(_preview) == NULL)
         {
           isNew = true;
-          _preview = new QLabel(_blockRepresentation);
+          delete _preview;
         }
+        if (isNew)
+          _preview = new QLabel(_blockRepresentation);
         ((QLabel*)_preview)->setText(QString::number(val->get<int>()));
         break;
       case Float:
-        if (_preview == NULL)
+        if (!isNew && dynamic_cast<QLabel*>(_preview) == NULL)
         {
           isNew = true;
-          _preview = new QLabel(_blockRepresentation);
+          delete _preview;
         }
+        if (isNew)
+          _preview = new QLabel(_blockRepresentation);
         ((QLabel*)_preview)->setText(QString::number(val->get<double>()));
         break;
       case Matrix:
@@ -720,22 +726,26 @@ namespace charliesoft
           return false;//nothing to do, not an image, probably a vector...
         if ((img.cols < 20) || (img.rows < 20))
           return false;//too small image...
-        if (_preview == NULL)
+        if (!isNew && dynamic_cast<ImageViewer*>(_preview) == NULL)
         {
           isNew = true;
-          _preview = new ImageViewer(_blockRepresentation);
+          delete _preview;
         }
+        if (isNew)
+          _preview = new ImageViewer(_blockRepresentation);
         ((ImageViewer*)_preview)->setImage(img);
         break;
       }
       case String:
       case FilePath:
       case Color:
-        if (_preview == NULL)
+        if (!isNew && dynamic_cast<QLabel*>(_preview) == NULL)
         {
           isNew = true;
-          _preview = new QLabel(_blockRepresentation);
+          delete _preview;
         }
+        if (isNew)
+          _preview = new QLabel(_blockRepresentation);
         ((QLabel*)_preview)->setText(val->toString().c_str());
         break;
       default://nothing to do...
