@@ -245,7 +245,7 @@ protected:
 
     //now set outputs:
     _myOutputs["BLOCK__INPUT_OUT_IMAGE"] = frame;
-    _myOutputs["BLOCK__INPUT_OUT_FRAMERATE"] = fps;
+    _myOutputs["BLOCK__INPUT_OUT_FRAMERATE"] = processor_.getProperty(cv::CAP_PROP_FPS);
     _myOutputs["BLOCK__INPUT_INOUT_WIDTH"] = frame.cols;
     _myOutputs["BLOCK__INPUT_INOUT_HEIGHT"] = frame.rows;
     _myOutputs["BLOCK__INPUT_INOUT_POS_FRAMES"] = (int)processor_.getProperty(cv::CAP_PROP_POS_FRAMES);
