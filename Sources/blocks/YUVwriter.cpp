@@ -96,8 +96,8 @@ public:
     cv::resize(cv_yuv[1], cv_u_half, cv::Size(), 0.5, 0.5, cv::INTER_NEAREST);
     cv::resize(cv_yuv[2], cv_v_half, cv::Size(), 0.5, 0.5, cv::INTER_NEAREST);
 
+    file->write((char*)cv_v_half.data, cv_v_half.size().width * cv_v_half.size().height); //chromas are inverted, copy V first
     file->write((char*)cv_u_half.data, cv_u_half.size().width * cv_u_half.size().height);
-    file->write((char*)cv_v_half.data, cv_v_half.size().width * cv_v_half.size().height);
 
     return true;
   };
