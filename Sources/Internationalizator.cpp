@@ -466,6 +466,14 @@ namespace charliesoft
 
     translations["BLOCK__OUTPUT_RAW_VIDEO_NAME"] = "YUV writer";
 
+    translations["BLOCK__FACEDETECTION_NAME"] = "Face Detection";
+    translations["BLOCK__FACEDETECTION_IN_IMAGE"] = "image";
+    translations["BLOCK__FACEDETECTION_IN_IMAGE_HELP"] = "Input image";
+    translations["BLOCK__FACEDETECTION_OUT_IMAGE"] = "output";
+    translations["BLOCK__FACEDETECTION_OUT_IMAGE_HELP"] = "Output image";
+    translations["BLOCK__FACEDETECTION_IN_CASCADE_FILE"] = "haarcascade";
+    translations["BLOCK__FACEDETECTION_IN_CASCADE_FILE_HELP"] = "Loads a classifier from a file.";
+
     translations["BLOCK__BLUR_NAME"] = "Blurring";
     translations["BLOCK__BLUR_IN_METHOD"] = "method";
     translations["BLOCK__BLUR_IN_METHOD_HELP"] = "Blurring method|Mean^Gaussian^Median^Bilateral";

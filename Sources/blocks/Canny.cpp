@@ -3,13 +3,11 @@
 #pragma warning(disable:4503)
 #pragma warning(push)
 #pragma warning(disable:4996 4251 4275 4800 4190 4244)
-#endif
-#include <vector>
-#include "opencv2/imgproc/imgproc.hpp"
-#ifdef _WIN32
 #pragma warning(pop)
 #endif
 
+#include <vector>
+#include "opencv2/imgproc/imgproc.hpp"
 #include "Block.h"
 #include "ParamValidator.h"
 
