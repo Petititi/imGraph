@@ -187,15 +187,16 @@ public:
     cv::resize(cv_u_half, cv_yuv[1], cv::Size(), 2, 2, cv::INTER_NEAREST);
     cv::resize(cv_v_half, cv_yuv[2], cv::Size(), 2, 2, cv::INTER_NEAREST);
     cv::merge(cv_yuv, 3, output);
-    cv::cvtColor(output, output, cv::COLOR_YUV2BGR);
+    cv::cvtColor(output, output, cv::COLOR_YUV2RGB);
     _myOutputs["BLOCK__INPUT_OUT_IMAGE"] = output;
     _nr_frames++;
     if (oneShot) {
       release();
     }
     //test if there is still data:
-    if (*file && file->peek() == EOF)
-      paramsFullyProcessed();
+    if (file != NULL)
+        if (file->peek() == EOF)
+          paramsFullyProcessed();
     return true;
   };
 
