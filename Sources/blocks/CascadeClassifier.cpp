@@ -87,7 +87,7 @@ protected:
         //draw a rectangle for all found faces in the vector array on the original image
         for (int i = 0; i < faces.size(); i++)
         {
-            mask(faces[i]) = 255;
+            mask(faces[i]) = 1;
         }
 
         if (!output.empty())

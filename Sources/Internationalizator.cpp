@@ -529,5 +529,13 @@ namespace charliesoft
     translations["BLOCK__CORE_OUT_POINTS_HELP"] = "Filtered points";
     translations["BLOCK__CORE_OUT_DESC"] = "descriptors";
     translations["BLOCK__CORE_OUT_DESC_HELP"] = "Filtered descriptors";
+
+	translations["BLOCK__FILTER2D_NAME"] = "Filter2D";
+	translations["BLOCK__FILTER2D_IN_IMAGE"] = "image";
+	translations["BLOCK__FILTER2D_IN_IMAGE_HELP"] = "Input image";
+	translations["BLOCK__FILTER2D_IN_KERNEL"] = "kernel";
+	translations["BLOCK__FILTER2D_IN_KERNEL_HELP"] = "Convolution kernel ";
+	translations["BLOCK__FILTER2D_OUT_IMAGE"] = "image";
+	translations["BLOCK__FILTER2D_OUT_IMAGE_HELP"] = "Output image";
   }
 }
