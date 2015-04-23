@@ -170,6 +170,16 @@ namespace charliesoft
       }
       return false;
     };
+    template <class T>
+    T* getValidator() const
+    {
+      for (auto& val : _validators)
+      {
+        if (dynamic_cast<T*>(val) != NULL)
+          return dynamic_cast<T*>(val);
+      }
+      return NULL;
+    };
 
     std::string getName() const { return _name; };
     ParamDefinition* getDefinition() const { return _definition; }

@@ -3,11 +3,13 @@
 #pragma warning(disable:4503)
 #pragma warning(push)
 #pragma warning(disable:4996 4251 4275 4800 4190 4244)
+#endif
+#include <vector>
+#include "opencv2/imgproc/imgproc.hpp"
+#ifdef _WIN32
 #pragma warning(pop)
 #endif
 
-#include <vector>
-#include "opencv2/imgproc/imgproc.hpp"
 #include "Block.h"
 #include "ParamValidator.h"
 
@@ -24,8 +26,8 @@ namespace charliesoft
   //Add parameters, with following parameters:
   //Based on opencv::Canny( InputArray image, OutputArray edges, double threshold1, double threshold2, int apertureSize = 3, bool L2gradient = false );
   ADD_PARAMETER(true, Matrix, "BLOCK__CANNY_IN_IMAGE", "BLOCK__CANNY_IN_IMAGE_HELP");
-  ADD_PARAMETER_FULL(false, Float, "BLOCK__CANNY_IN_THRESHOLD_1", "BLOCK__CANNY_IN_THRESHOLD_1_HELP", 100.f);
-  ADD_PARAMETER_FULL(false, Float, "BLOCK__CANNY_IN_THRESHOLD_2", "BLOCK__CANNY_IN_THRESHOLD_2_HELP", 300.f);
+  ADD_PARAMETER_FULL(false, Float, "BLOCK__CANNY_IN_THRESHOLD_1", "BLOCK__CANNY_IN_THRESHOLD_1_HELP", 100.);
+  ADD_PARAMETER_FULL(false, Float, "BLOCK__CANNY_IN_THRESHOLD_2", "BLOCK__CANNY_IN_THRESHOLD_2_HELP", 300.);
   ADD_PARAMETER_FULL(false, Int, "BLOCK__CANNY_IN_APERTURE_SIZE", "BLOCK__CANNY_IN_APERTURE_SIZE_HELP", 3);
   ADD_PARAMETER_FULL(false, Boolean, "BLOCK__CANNY_IN_L2_GRADIENT", "BLOCK__CANNY_IN_L2_GRADIENT_HELP", false);
   END_BLOCK_PARAMS();

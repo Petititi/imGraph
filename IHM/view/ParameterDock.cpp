@@ -953,11 +953,20 @@ namespace charliesoft
     QFileDialog dialog(this, _QT(paramRep->getParamHelper()), tmp->text());
     QString fileName;
     ParamValue* val = paramRep->getParamValue();
+
+    std::string validators;
+    ValFileTypes* types = val->getValidator<ValFileTypes>();
+    if (types != NULL)
+      validators = types->getValidators();
+
+    if (validators.empty())
+      validators = _STR("BLOCK__INPUT_IN_FILE_FILTER") +
+      " (*.bmp *.pbm *.pgm *.ppm *.sr *.ras *.jpeg *.jpg *.jpe *.jp2 *.tiff *.tif *.png *.avi *.mov *.mxf *.wmv *.asf)";
+
     if (val->containValidator<ValFileExist>())
     {
       fileName = QFileDialog::getOpenFileName(this, _QT(paramRep->getParamHelper()), tmp->text(),
-        _QT("BLOCK__INPUT_IN_FILE_FILTER") +
-        " (*.bmp *.pbm *.pgm *.ppm *.sr *.ras *.jpeg *.jpg *.jpe *.jp2 *.tiff *.tif *.png *.avi *.mov *.mxf *.wmv *.asf);;" +
+        validators.c_str() + QString(";;") +
         _QT("ALL_TYPES") + " (*.*)");
     }
     else if (val->containValidator<FileIsFolder>())

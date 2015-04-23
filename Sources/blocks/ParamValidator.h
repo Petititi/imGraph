@@ -73,6 +73,20 @@ namespace charliesoft
     }
   };
 
+  class ValFileTypes :public ParamValidator
+  {
+    std::string _fileTypes;
+  public:
+    ValFileTypes(std::string fileTypes){ _fileTypes = fileTypes; };
+    virtual void validate(const ParamValue& value)
+    {//nothing to do...
+    }
+
+    std::string getValidators(){
+      return _fileTypes;
+    };;
+  };
+
   class FileIsFolder :public ParamValidator
   {
   public:

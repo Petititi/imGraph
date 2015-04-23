@@ -2,12 +2,13 @@
 #pragma warning(disable:4503)
 #pragma warning(push)
 #pragma warning(disable:4996 4251 4275 4800 4190 4244)
-#pragma warning(pop)
 #endif
-
 #include <vector>
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/objdetect/objdetect.hpp"
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
 #include "Block.h"
 #include "ParamValidator.h"
@@ -42,7 +43,7 @@ public:
 
     FaceDetection::FaceDetection() :Block("BLOCK__FACEDETECTION_NAME", true){
         _myInputs["BLOCK__FACEDETECTION_IN_IMAGE"].addValidator({ new ValNeeded() });
-        _myInputs["BLOCK__FACEDETECTION_IN_CASCADE_FILE"].addValidator({ new ValNeeded(), new ValFileExist() });
+        _myInputs["BLOCK__FACEDETECTION_IN_CASCADE_FILE"].addValidator({ new ValNeeded(), new ValFileExist(), new ValFileTypes("XML (*.xml)") });
     };
 
     bool FaceDetection::run(bool oneShot){
@@ -69,7 +70,7 @@ public:
         //find faces and store them in the vector array
         face_cascade.detectMultiScale(output, faces, 1.1, 3, CV_HAAR_FIND_BIGGEST_OBJECT | CV_HAAR_SCALE_IMAGE, cv::Size(30, 30));
         //draw a rectangle for all found faces in the vector array on the original image
-        for (int i = 0; i < faces.size(); i++)
+        for (size_t i = 0; i < faces.size(); i++)
         {
             cv::Point pt1(faces[i].x + faces[i].width, faces[i].y + faces[i].height);
             cv::Point pt2(faces[i].x, faces[i].y);

@@ -26,7 +26,7 @@ using cv::Mat;
 namespace charliesoft
 {
   BLOCK_BEGIN_INSTANTIATION(CORE_filter);
-  inline int hamming_distance(char* vals1, char* vals2, int nbVals)
+  inline double hamming_distance(char* vals1, char* vals2, int nbVals)
   {
     int output = 0;
     int i;
@@ -54,36 +54,8 @@ namespace charliesoft
   };
 
   template<typename T>
-  cv::Mat get_distances_float(cv::Mat features, float sigma)
-  {
-    static cv::Mat output(cv::Size(features.rows, features.rows), CV_64FC1);
-    if (output.rows != features.rows)
-      output = Mat(cv::Size(features.rows, features.rows), CV_64FC1);
-
-    float sigma_carre = 2 * sigma*sigma;
-
-    double* ptr = output.ptr<double>();
-    T* val = features.ptr<T>();
-    int nbFeatures = features.cols;
-    for (int i = 0; i < features.rows; i++)
-    {
-      int realAdress = i*features.rows;
-      ptr[realAdress + i] = 0;//diagonal distance is null...
-      T* val1 = &val[i*features.cols];
-      for (int j = i + 1; j < features.rows; j++)
-      {
-        ptr[realAdress + j] = exp(
-          -euclidean2_distance(val1, &val[j*features.cols], nbFeatures)
-          / sigma_carre);
-      }
-    }
-    return output;
-  }
-
-  template<typename T>
   cv::Mat get_distances_float_opt(cv::Mat features, float sigma, cv::Mat points, double boostThreshold)
   {
-    const static float minDist = 10;
     static cv::Mat output(cv::Size(features.rows, features.rows), CV_64FC1);
     if (output.rows != features.rows)
       output = Mat(cv::Size(features.rows, features.rows), CV_64FC1);
@@ -147,13 +119,107 @@ namespace charliesoft
     return output;
   }
 
-  cv::Mat get_distances_binary(cv::Mat features)
+  cv::Mat get_distances_binary_opt(cv::Mat features, double mu, int nbBits, cv::Mat points, double boostThreshold)
   {
-    static cv::Mat output(cv::Size(features.rows, features.rows), CV_32FC1);
+    static cv::Mat output(cv::Size(features.rows, features.rows), CV_64FC1);
     if (output.rows != features.rows)
-      output = Mat(cv::Size(features.rows, features.rows), CV_32FC1);
+      output = Mat(cv::Size(features.rows, features.rows), CV_64FC1);
 
-    float* ptr = output.ptr<float>();
+    double* tmp = new double[features.cols];
+    float* tmpP = new float[points.cols];
+    float* ptrP = points.ptr<float>();
+
+    double* ptr = output.ptr<double>();
+    char* val = features.ptr<char>();
+
+    int nbFeatures = features.cols;
+    int sizeFeatures = features.cols * 8;
+    int totalSwitch = 0;
+    for (int i = 0; i < output.rows; i++)
+    {
+      int realAdress = i*output.cols;
+      ptr[realAdress + i] = 1;
+
+      char* val1 = &val[i*features.cols];
+      int nbCopy = 1;
+      for (int j = i + 1; j < output.cols; j++)
+      {
+        double distTmp = hamming_distance(
+          val1, &val[j*features.cols], nbFeatures);
+
+        double test = ptr[realAdress + j] = (pow(mu, (int)distTmp) * pow(1. - mu, (int)(nbBits - distTmp)));
+
+        if (test > boostThreshold)//points are the same!
+        {
+          if (i + nbCopy < j)
+          {
+            //switch (i+nbCopy)th line with jth feature:
+            memcpy(tmp, &val[j*nbFeatures], nbFeatures);
+            memcpy(&val[j*nbFeatures], &val[(i + nbCopy)*nbFeatures], nbFeatures);
+            memcpy(&val[(i + nbCopy)*nbFeatures], tmp, nbFeatures);
+
+            //switch also the points
+            float* pt1 = &ptrP[j*points.cols];
+            float* pt2 = &ptrP[(i + nbCopy)*points.cols];
+            memcpy(tmpP, pt1, sizeof(float)*points.cols);
+            memcpy(pt1, pt2, sizeof(float)*points.cols);
+            memcpy(pt2, tmpP, sizeof(float)*points.cols);
+
+            //also switch the value of previously computed distance:
+            for (int cpt = 0; cpt <= i; cpt++)
+              std::swap(ptr[cpt*output.cols + j], ptr[cpt*output.cols + i + nbCopy]);
+          }
+          nbCopy++;
+        }
+      }
+      //copy the distances of ith point:
+      for (int cpt = 1; cpt < nbCopy; cpt++)
+        memcpy(&ptr[realAdress + cpt*output.cols + i + cpt], &ptr[realAdress + i + cpt], sizeof(double)*(output.cols - (i + cpt)));
+
+      nbCopy--;
+      i += nbCopy;//skip the same points...
+      totalSwitch += nbCopy;
+    }
+    delete[] tmp;
+    delete[] tmpP;
+    return output;
+  }
+
+  template<typename T>
+  cv::Mat get_distances_float(cv::Mat features, float sigma)
+  {
+    static cv::Mat output(cv::Size(features.rows, features.rows), CV_64FC1);
+    if (output.rows != features.rows)
+      output = Mat(cv::Size(features.rows, features.rows), CV_64FC1);
+
+    float sigma_carre = 2 * sigma*sigma;
+
+    double* ptr = output.ptr<double>();
+    T* val = features.ptr<T>();
+    int nbFeatures = features.cols;
+    for (int i = 0; i < features.rows; i++)
+    {
+      int realAdress = i*features.rows;
+      ptr[realAdress + i] = 0;//diagonal distance is null...
+      T* val1 = &val[i*features.cols];
+      for (int j = i + 1; j < features.rows; j++)
+      {
+        ptr[realAdress + j] = exp(
+          -euclidean2_distance(val1, &val[j*features.cols], nbFeatures)
+          / sigma_carre);
+      }
+    }
+    return output;
+  }
+
+  cv::Mat get_distances_binary(cv::Mat features, double mu, int nbBits)
+  {
+    static cv::Mat output(cv::Size(features.rows, features.rows), CV_64FC1);
+    if (output.rows != features.rows)
+      output = Mat(cv::Size(features.rows, features.rows), CV_64FC1);
+    output.setTo(0);
+
+    double* ptr = output.ptr<double>();
     char* val = features.ptr<char>();
     int nbFeatures = features.cols;
     for (int i = 0; i < features.rows; i++)
@@ -163,12 +229,15 @@ namespace charliesoft
       char* val1 = &val[i*features.cols];
       for (int j = i + 1; j < features.rows; j++)
       {
-        ptr[realAdress + j] = ptr[j*features.rows + i] = (float)hamming_distance(
+        double dist = hamming_distance(
           val1, &val[j*features.cols], nbFeatures);
+
+        ptr[realAdress + j] = -log(pow(mu, (int)dist) * pow(1. - mu, (int)(nbBits - dist)) + 1e-256);
       }
     }
     return output;
   }
+
 
   std::vector<double> get_criterions_float(cv::Mat distances, double sigma, int D)
   {
@@ -191,21 +260,21 @@ namespace charliesoft
     return output;
   };
 
-  std::vector<double> get_criterions_binary(cv::Mat distances, double mu, int nbBits)
+  std::vector<double> get_criterions_binary(cv::Mat distances)
   {
     std::vector<double> output;
-    double divisor = (1. / (distances.rows - 1.));
-    for (int i = 0; i < distances.cols; i++)
-    {
-      float* dist_i = distances.ptr<float>(i);
-      double crit_i = 0;
-      for (int j = 0; j < distances.rows; j++)
-      {
-        if (i != j)
-          crit_i += (pow(mu, (int)dist_i[j]) * pow(1. - mu, (int)(nbBits - dist_i[j])));
-      }
+    for (int i = 0; i < distances.rows; i++)
+      output.push_back(0);
 
-      output.push_back(divisor * crit_i);
+    for (int i = 0; i < distances.rows; i++)
+    {
+      double* dist_i = distances.ptr<double>(i);
+      for (int j = i + 1; j < distances.rows; j++)
+      {
+        double crit_i = dist_i[j];
+        output[i] += crit_i;
+        output[j] += crit_i;
+      }
     }
     return output;
   };
@@ -285,8 +354,12 @@ namespace charliesoft
     std::vector<double> crit;
     if (isBinary)
     {
-      cv::Mat distances = get_distances_binary(desc);
-      crit = get_criterions_binary(distances, 0.1, dataSize);
+      cv::Mat distances;
+      if (percentOpt >= 1)
+        distances = get_distances_binary(desc, 0.1, dataSize);
+      else
+        distances = get_distances_binary_opt(desc, 0.1, dataSize, points, percentOpt);
+      crit = get_criterions_binary(distances);
     }
     else
     {
@@ -310,7 +383,7 @@ namespace charliesoft
           distances = get_distances_float_opt<float>(desc, 32.135f, points, percentOpt);
           distances = get_distances_float_opt<float>(desc, 32.135f, points, percentOpt);
           auto now = boost::posix_time::microsec_clock::local_time();
-          auto elapsed = (tick - now).total_microseconds();
+          auto elapsed = (now - tick).total_microseconds();
 
           tick = boost::posix_time::microsec_clock::local_time();
           cv::Mat distances1 = get_distances_float<float>(desc, 32.135f);
@@ -320,7 +393,7 @@ namespace charliesoft
           distances1 = get_distances_float<float>(desc, 32.135f);
           distances1 = get_distances_float<float>(desc, 32.135f);
           now = boost::posix_time::microsec_clock::local_time();
-          auto elapsed1 = (tick - now).total_microseconds();
+          auto elapsed1 = (now - tick).total_microseconds();
           std::cout << elapsed << " sans optim : " << elapsed1 << " gain : " << elapsed * 100 / elapsed1 << std::endl;
           distances1.ptr<double>();
         }
