@@ -466,13 +466,27 @@ namespace charliesoft
 
     translations["BLOCK__OUTPUT_RAW_VIDEO_NAME"] = "YUV writer";
 
-    translations["BLOCK__FACEDETECTION_NAME"] = "Face Detection";
-    translations["BLOCK__FACEDETECTION_IN_IMAGE"] = "image";
-    translations["BLOCK__FACEDETECTION_IN_IMAGE_HELP"] = "Input image";
-    translations["BLOCK__FACEDETECTION_OUT_IMAGE"] = "output";
-    translations["BLOCK__FACEDETECTION_OUT_IMAGE_HELP"] = "Output image";
-    translations["BLOCK__FACEDETECTION_IN_CASCADE_FILE"] = "haarcascade";
-    translations["BLOCK__FACEDETECTION_IN_CASCADE_FILE_HELP"] = "Loads a classifier from a file.";
+    translations["BLOCK__CASCADECLASSIFIER_NAME"] = "Cascade Classifier";
+    translations["BLOCK__CASCADECLASSIFIER_IN_IMAGE"] = "image";
+    translations["BLOCK__CASCADECLASSIFIER_IN_IMAGE_HELP"] = "Input image";
+    translations["BLOCK__CASCADECLASSIFIER_OUT_IMAGE"] = "mask";
+    translations["BLOCK__CASCADECLASSIFIER_OUT_IMAGE_HELP"] = "Output mask";
+    translations["BLOCK__CASCADECLASSIFIER_IN_CASCADE_FILE"] = "classifier";
+    translations["BLOCK__CASCADECLASSIFIER_IN_CASCADE_FILE_HELP"] = "Loads a classifier from a file.";
+    translations["BLOCK__CASCADECLASSIFIER_IN_SCALE_FACTOR"] = "scaleFactor";
+    translations["BLOCK__CASCADECLASSIFIER_IN_SCALE_FACTOR_HELP"] = "Parameter specifying how much the image size is reduced at each image scale.";
+    translations["BLOCK__CASCADECLASSIFIER_IN_MIN_NEIGHBORS"] = "minNeighbors";
+    translations["BLOCK__CASCADECLASSIFIER_IN_MIN_NEIGHBORS_HELP"] = "Parameter specifying how many neighbors each candidate rectangle should have to retain it.";
+    translations["BLOCK__CASCADECLASSIFIER_IN_MIN_WIDTH"] = "minWidth";
+    translations["BLOCK__CASCADECLASSIFIER_IN_MIN_WIDTH_HELP"] = "Minimum possible object width. Objects smaller than that are ignored.";
+    translations["BLOCK__CASCADECLASSIFIER_IN_MIN_HEIGHT"] = "minHeight";
+    translations["BLOCK__CASCADECLASSIFIER_IN_MIN_HEIGHT_HELP"] = "Minimum possible object height. Objects smaller than that are ignored.";
+    translations["BLOCK__CASCADECLASSIFIER_IN_MAX_WIDTH"] = "maxWidth";
+    translations["BLOCK__CASCADECLASSIFIER_IN_MAX_WIDTH_HELP"] = "Maximum possible object width. Objects larger than that are ignored.";
+    translations["BLOCK__CASCADECLASSIFIER_IN_MAX_HEIGHT"] = "maxHeight";
+    translations["BLOCK__CASCADECLASSIFIER_IN_MAX_HEIGHT_HELP"] = "Maximum possible object height. Objects larger than that are ignored.";
+    translations["BLOCK__CASCADECLASSIFIER_OUT_OBJECTS"] = "nbDetectedObjects";
+    translations["BLOCK__CASCADECLASSIFIER_OUT_OBJECTS_HELP"] = "Number of detected objects";
 
     translations["BLOCK__BLUR_NAME"] = "Blurring";
     translations["BLOCK__BLUR_IN_METHOD"] = "method";
