@@ -485,7 +485,7 @@ namespace charliesoft
     translations["BLOCK__CASCADECLASSIFIER_IN_MAX_WIDTH_HELP"] = "Maximum possible object width. Objects larger than that are ignored.";
     translations["BLOCK__CASCADECLASSIFIER_IN_MAX_HEIGHT"] = "maxHeight";
     translations["BLOCK__CASCADECLASSIFIER_IN_MAX_HEIGHT_HELP"] = "Maximum possible object height. Objects larger than that are ignored.";
-    translations["BLOCK__CASCADECLASSIFIER_OUT_OBJECTS"] = "nbDetectedObjects";
+	translations["BLOCK__CASCADECLASSIFIER_OUT_OBJECTS"] = "#objects";
     translations["BLOCK__CASCADECLASSIFIER_OUT_OBJECTS_HELP"] = "Number of detected objects";
 
     translations["BLOCK__BLUR_NAME"] = "Blurring";
@@ -537,5 +537,11 @@ namespace charliesoft
 	translations["BLOCK__FILTER2D_IN_KERNEL_HELP"] = "Convolution kernel ";
 	translations["BLOCK__FILTER2D_OUT_IMAGE"] = "image";
 	translations["BLOCK__FILTER2D_OUT_IMAGE_HELP"] = "Output image";
+
+	translations["BLOCK__LAPLACIAN_NAME"] = "Laplacian";
+	translations["BLOCK__LAPLACIAN_IN_IMAGE"] = "image";
+	translations["BLOCK__LAPLACIAN_IN_IMAGE_HELP"] = "Input image";
+	translations["BLOCK__LAPLACIAN_OUT_IMAGE"] = "image";
+	translations["BLOCK__LAPLACIAN_OUT_IMAGE_HELP"] = "Output image";
   }
 }

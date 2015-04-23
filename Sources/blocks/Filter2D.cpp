@@ -24,7 +24,6 @@ namespace charliesoft
 
 	BEGIN_BLOCK_INPUT_PARAMS(Filter2D);
 	//Add parameters, with following parameters:
-	//Based on opencv::Canny( InputArray image, OutputArray edges, double threshold1, double threshold2, int apertureSize = 3, bool L2gradient = false );
 	ADD_PARAMETER(true, Matrix, "BLOCK__FILTER2D_IN_IMAGE", "BLOCK__FILTER2D_IN_IMAGE_HELP");
 	ADD_PARAMETER(true, Matrix, "BLOCK__FILTER2D_IN_KERNEL", "BLOCK__FILTER2D_IN_KERNEL_HELP");
 	END_BLOCK_PARAMS();
