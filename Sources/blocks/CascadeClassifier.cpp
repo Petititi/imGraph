@@ -22,6 +22,7 @@ namespace charliesoft
     BLOCK_BEGIN_INSTANTIATION(CascadeClassifier);
 protected:
     cv::CascadeClassifier face_cascade;
+    string cascades_filename;
 
     BLOCK_END_INSTANTIATION(CascadeClassifier, AlgoType::imgProcess, BLOCK__CASCADECLASSIFIER_NAME);
 
@@ -54,9 +55,10 @@ protected:
         if (_myInputs["BLOCK__CASCADECLASSIFIER_IN_IMAGE"].isDefaultValue())
             return false;
 
-        if (_myInputs["BLOCK__CASCADECLASSIFIER_IN_CASCADE_FILE"].isNew()) {
+        if (cascades_filename != _myInputs["BLOCK__CASCADECLASSIFIER_IN_CASCADE_FILE"].get<string>()) {
             if (boost::filesystem::exists(_myInputs["BLOCK__CASCADECLASSIFIER_IN_CASCADE_FILE"].get<string>())) {
-                face_cascade.load(_myInputs["BLOCK__CASCADECLASSIFIER_IN_CASCADE_FILE"].get<string>());
+                cascades_filename = _myInputs["BLOCK__CASCADECLASSIFIER_IN_CASCADE_FILE"].get<string>();
+                face_cascade.load(cascades_filename);
             }
         }
 
@@ -81,8 +83,8 @@ protected:
         //create a vector array to store the face found
         std::vector<cv::Rect> faces;
         //find faces and store them in the vector array
-        face_cascade.detectMultiScale(output, faces, 1.1, 3, CV_HAAR_FIND_BIGGEST_OBJECT | CV_HAAR_SCALE_IMAGE, minSize, maxSize);
-        cv::Mat mask = cv::Mat::zeros(output.size(), CV_8U);
+        face_cascade.detectMultiScale(output, faces, _myInputs["BLOCK__CASCADECLASSIFIER_IN_SCALE_FACTOR"].get<float>(), _myInputs["BLOCK__CASCADECLASSIFIER_IN_MIN_NEIGHBORS"].get<int>(), CV_HAAR_FIND_BIGGEST_OBJECT | CV_HAAR_SCALE_IMAGE, minSize, maxSize);
+        cv::Mat mask = cv::Mat::zeros(output.size(), CV_8UC1);
 
         //draw a rectangle for all found faces in the vector array on the original image
         for (int i = 0; i < faces.size(); i++)
