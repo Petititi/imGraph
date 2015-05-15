@@ -140,6 +140,19 @@ if (MSVC)
 endif()
 
 # ----------------------------------------------------------------------------
+# Include plugins
+# ----------------------------------------------------------------------------
+
+FILE(GLOB plugin_folders RELATIVE ${Project_SOURCE_DIR} plugins/*)
+FOREACH(plugin_folder ${plugin_folders})
+  IF(IS_DIRECTORY "${Project_SOURCE_DIR}/${plugin_folder}")
+    MESSAGE( STATUS "Add plugin ${plugin_folder} to project")
+    add_subdirectory(${Project_SOURCE_DIR}/${plugin_folder})
+  ENDIF()
+ENDFOREACH()
+
+
+# ----------------------------------------------------------------------------
 #  Generate doc
 # ----------------------------------------------------------------------------
 find_package(Doxygen)
