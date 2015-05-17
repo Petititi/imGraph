@@ -9,7 +9,7 @@
 #include <vector>
 #include "opencv2/imgproc/imgproc.hpp"
 #pragma warning(pop)
-
+#pragma comment(lib, "VCam.lib")
 
 #include "Block.h"
 #include "ParamValidator.h"

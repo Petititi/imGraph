@@ -99,7 +99,7 @@ Process{
 		$ImGraphCmakeParams += " -DWINDOWS_SDK_DIR=`"$WINDOWS_SDK`""
 	}
 	Start-Process -FilePath $CMAKE -ArgumentList "-G `"$GENERATOR`" $ImGraphCmakeParams .." -WorkingDirectory $ImGraphBin -NoNewWindow -ErrorAction Stop -Wait
-	#Start-Process -FilePath "msbuild" -ArgumentList "`"$ImGraphVsProject`" /m /nologo /p:Configuration=Debug" -NoNewWindow -ErrorAction Stop -Wait
-	#Start-Process -FilePath "msbuild" -ArgumentList "`"$ImGraphVsProject`" /m /nologo /p:Configuration=Release" -NoNewWindow -ErrorAction Stop -Wait
+	Start-Process -FilePath "msbuild" -ArgumentList "`"$ImGraphVsProject`" /m /nologo /p:Configuration=Debug" -NoNewWindow -ErrorAction Stop -Wait
+	Start-Process -FilePath "msbuild" -ArgumentList "`"$ImGraphVsProject`" /m /nologo /p:Configuration=Release" -NoNewWindow -ErrorAction Stop -Wait
 }
 End{}
