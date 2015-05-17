@@ -1,5 +1,7 @@
 
-#ifdef _WIN32 && IMGRAPH_PLUGIN_VCAM
+#ifdef _WIN32
+#ifdef IMGRAPH_PLUGIN_VCAM
+
 #pragma warning(disable:4503)
 #pragma warning(push)
 #pragma warning(disable:4996 4251 4275 4800 4190 4244)
@@ -22,7 +24,7 @@ namespace charliesoft
 protected:
 	CVCam * cam;
 
-	BLOCK_END_INSTANTIATION(VCam, AlgoType::input, BLOCK__VCAM_NAME);
+	BLOCK_END_INSTANTIATION(VCam, AlgoType::output, BLOCK__VCAM_NAME);
 
 	BEGIN_BLOCK_INPUT_PARAMS(VCam);
 	//Add parameters, with following parameters:
@@ -57,4 +59,5 @@ protected:
 	};
 };
 
+#endif //IMGRAPH_PLUGIN_VCAM
 #endif //_WIN32

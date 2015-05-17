@@ -32,6 +32,7 @@ Begin{
 		ElseIf (Test-Path (Join-Path $env:ProgramFiles "Microsoft SDKs\Windows\v6.1")) {
 			$WINDOWS_SDK = Join-Path $env:ProgramFiles "Microsoft SDKs\Windows\v6.1"
 		}
+	}
 	If (Test-Path $WINDOWS_SDK) {
 		Write-Host "WindowsSDK found in $WINDOWS_SDK"
 	} Else {
@@ -98,7 +99,7 @@ Process{
 		$ImGraphCmakeParams += " -DWINDOWS_SDK_DIR=`"$WINDOWS_SDK`""
 	}
 	Start-Process -FilePath $CMAKE -ArgumentList "-G `"$GENERATOR`" $ImGraphCmakeParams .." -WorkingDirectory $ImGraphBin -NoNewWindow -ErrorAction Stop -Wait
-	Start-Process -FilePath "msbuild" -ArgumentList "`"$ImGraphVsProject`" /m /nologo /p:Configuration=Debug" -NoNewWindow -ErrorAction Stop -Wait
-	Start-Process -FilePath "msbuild" -ArgumentList "`"$ImGraphVsProject`" /m /nologo /p:Configuration=Release" -NoNewWindow -ErrorAction Stop -Wait
+	#Start-Process -FilePath "msbuild" -ArgumentList "`"$ImGraphVsProject`" /m /nologo /p:Configuration=Debug" -NoNewWindow -ErrorAction Stop -Wait
+	#Start-Process -FilePath "msbuild" -ArgumentList "`"$ImGraphVsProject`" /m /nologo /p:Configuration=Release" -NoNewWindow -ErrorAction Stop -Wait
 }
 End{}
