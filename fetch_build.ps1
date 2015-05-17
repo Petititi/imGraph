@@ -8,6 +8,7 @@ Param(
 	[ValidateScript({Test-Path $_})][String] $QT =					"..\Qt\5.3\msvc2013_opengl",
 	[ValidateScript({Test-Path $_})][String] $INPUT_LOADER =		"..\inputloader",
 	[ValidateScript({Test-Path $_})][String] $BOOST =				"..\boost_1_55_0",
+	[String] $WINDOWS_SDK = $null,
 	[String] $GENERATOR = "Visual Studio 12 2013",
 	[Bool] $BUILD_OPENCV = $true,
 	[Bool] $BUILD_INPUT_LOADER = $true
@@ -22,6 +23,21 @@ Begin{
 	$QT =                Resolve-Path $QT -ErrorAction Stop
 	$INPUT_LOADER =      Resolve-Path $INPUT_LOADER -ErrorAction Stop
 	$BOOST =             Resolve-Path $BOOST -ErrorAction Stop
+	
+	If (-Not $WINDOWS_SDK) {
+		# try to figure out where is windows sdk
+		If (Test-Path (Join-Path $env:ProgramFiles "Microsoft SDKs\Windows\v7.0")) {
+			$WINDOWS_SDK = Join-Path $env:ProgramFiles "Microsoft SDKs\Windows\v7.0"
+		}
+		ElseIf (Test-Path (Join-Path $env:ProgramFiles "Microsoft SDKs\Windows\v6.1")) {
+			$WINDOWS_SDK = Join-Path $env:ProgramFiles "Microsoft SDKs\Windows\v6.1"
+		}
+	If (Test-Path $WINDOWS_SDK) {
+		Write-Host "WindowsSDK found in $WINDOWS_SDK"
+	} Else {
+		Write-Host "[Warning] Cannot find WindowsSDK. Please use -WINDOWS_SDK parameter to indicate its location, or install it from http://www.microsoft.com/en-us/download/details.aspx?id=11310. Some components such as VCam won't be installed"
+		$WINDOWS_SDK = $null
+	}
 	
 	cmd /c "`"$VCVARSALL`"&set" |
 	foreach {
@@ -70,7 +86,18 @@ Process{
 	If (-Not (Test-Path $ImGraphBin)) {
 		New-Item -ItemType directory -Path $ImGraphBin -ErrorAction Stop
 	}
-	Start-Process -FilePath $CMAKE -ArgumentList "-G `"$GENERATOR`" -DCMAKE_INSTALL_PREFIX=`"$ImGraphBin`" -DCMAKE_CONFIGURATION_TYPES=Debug;Release -DOpenCV_DIR=`"$OpencvBin`" -DCMAKE_PREFIX_PATH=`"$QT;$InputLoaderBin`" -DBOOST_ROOT=`"$BOOST`" -Wno-dev .." -WorkingDirectory $ImGraphBin -NoNewWindow -ErrorAction Stop -Wait
+	$ImGraphCmakeParams = "-DCMAKE_INSTALL_PREFIX=`"$ImGraphBin`" -DCMAKE_CONFIGURATION_TYPES=Debug;Release -DOpenCV_DIR=`"$OpencvBin`" -DCMAKE_PREFIX_PATH=`"$QT;$InputLoaderBin`" -DBOOST_ROOT=`"$BOOST`" -Wno-dev"
+	If ($WINDOWS_SDK) {
+		#build directshow samples if not exist
+		If (-Not (Test-Path (Join-Path $WINDOWS_SDK "Samples\Multimedia\DirectShow\BaseClasses\Debug\strmbasd.lib"))) {
+			Start-Process -FilePath "msbuild" -ArgumentList ("`"{0}`" /m /nologo /p:Configuration=Debug" -f (Join-Path $WINDOWS_SDK "Samples\Multimedia\DirectShow\BaseClasses\baseclasses.sln")) -Verb runAs -ErrorAction Stop -Wait
+		}
+		If (-Not (Test-Path (Join-Path $WINDOWS_SDK "Samples\Multimedia\DirectShow\BaseClasses\Release\strmbase.lib")))	{
+			Start-Process -FilePath "msbuild" -ArgumentList ("`"{0}`" /m /nologo /p:Configuration=Release" -f (Join-Path $WINDOWS_SDK "Samples\Multimedia\DirectShow\BaseClasses\baseclasses.sln")) -Verb runAs -ErrorAction Stop -Wait
+		}
+		$ImGraphCmakeParams += " -DWINDOWS_SDK_DIR=`"$WINDOWS_SDK`""
+	}
+	Start-Process -FilePath $CMAKE -ArgumentList "-G `"$GENERATOR`" $ImGraphCmakeParams .." -WorkingDirectory $ImGraphBin -NoNewWindow -ErrorAction Stop -Wait
 	Start-Process -FilePath "msbuild" -ArgumentList "`"$ImGraphVsProject`" /m /nologo /p:Configuration=Debug" -NoNewWindow -ErrorAction Stop -Wait
 	Start-Process -FilePath "msbuild" -ArgumentList "`"$ImGraphVsProject`" /m /nologo /p:Configuration=Release" -NoNewWindow -ErrorAction Stop -Wait
 }

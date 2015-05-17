@@ -143,11 +143,11 @@ endif()
 # Include plugins
 # ----------------------------------------------------------------------------
 
-FILE(GLOB plugin_folders RELATIVE ${Project_SOURCE_DIR} plugins/*)
+FILE(GLOB plugin_folders RELATIVE ${CMAKE_HOME_DIRECTORY} plugins/*)
 FOREACH(plugin_folder ${plugin_folders})
-  IF(IS_DIRECTORY "${Project_SOURCE_DIR}/${plugin_folder}")
+  IF(IS_DIRECTORY "${CMAKE_HOME_DIRECTORY}/${plugin_folder}")
     MESSAGE( STATUS "Add plugin ${plugin_folder} to project")
-    add_subdirectory(${Project_SOURCE_DIR}/${plugin_folder})
+    add_subdirectory(${CMAKE_HOME_DIRECTORY}/${plugin_folder})
   ENDIF()
 ENDFOREACH()
 

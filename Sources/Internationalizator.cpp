@@ -554,5 +554,13 @@ namespace charliesoft
     translations["BLOCK__MASKDRAWER_IN_COLOR"] = "color";
     translations["BLOCK__MASKDRAWER_IN_COLOR_HELP"] = "Color to paint on mask";
 
+	translations["BLOCK__VCAM_NAME"] = "Virtual Camera";
+	translations["BLOCK__VCAM_IN_IMAGE"] = "image";
+	translations["BLOCK__VCAM_IN_IMAGE_HELP"] = "Input image";
+	translations["BLOCK__VCAM_OUT_WIDTH"] = "width";
+	translations["BLOCK__VCAM_OUT_WIDTH_HELP"] = "Requested width by directshow filter";
+	translations["BLOCK__VCAM_OUT_HEIGHT"] = "height";
+	translations["BLOCK__VCAM_OUT_HEIGHT_HELP"] = "Requested height by directshow filter";
+
   }
 }
