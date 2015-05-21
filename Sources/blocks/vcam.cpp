@@ -7,22 +7,32 @@
 #pragma warning(disable:4996 4251 4275 4800 4190 4244)
 
 #include <vector>
+#include <memory>
+#include <functional>
 #include "opencv2/imgproc/imgproc.hpp"
 #pragma warning(pop)
-#pragma comment(lib, "VCam.lib")
+//#pragma comment(lib, "VCam.lib")
+#include <windows.h>
+#include <dshow.h>
 
+#pragma comment(lib, "strmiids")
 #include "Block.h"
 #include "ParamValidator.h"
-#include "Filters.h"
+
+//#include "Filters.h"
+
 using std::vector;
 using std::string;
 using cv::Mat;
+
+DEFINE_GUID(CLSID_VirtualCam,
+    0x8e14549a, 0xdb61, 0x4309, 0xaf, 0xa1, 0x35, 0x78, 0xe9, 0x27, 0xe9, 0x33);
 
 namespace charliesoft
 {
 	BLOCK_BEGIN_INSTANTIATION(VCam);
 protected:
-	CVCam * cam;
+    //ICVCam* ptrCam;
 
 	BLOCK_END_INSTANTIATION(VCam, AlgoType::output, BLOCK__VCAM_NAME);
 
@@ -41,20 +51,21 @@ protected:
 
 	VCam::VCam() :Block("BLOCK__VCAM_NAME", true){
 		_myInputs["BLOCK__VCAM_IN_IMAGE"].addValidator({ new ValNeeded() });
-		HRESULT phr;
-		cam = (CVCam*) CVCam::CreateInstance(NULL, &phr);
+        IBaseFilter *pFilter = NULL;
+        HRESULT hr = CoCreateInstance(CLSID_VirtualCam, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pFilter));
+
 	};
 
 	bool VCam::run(bool oneShot){
 		if (_myInputs["BLOCK__VCAM_IN_IMAGE"].isDefaultValue())
 			return false;
 		cv::Mat mat = _myInputs["BLOCK__VCAM_IN_IMAGE"].get<cv::Mat>();
-		if (!mat.empty()) {
-			LONG width, height;
-			cam->GetSize(&width, &height);
-			_myOutputs["BLOCK__VCAM_OUT_WIDTH"] = (int)width;
-			_myOutputs["BLOCK__VCAM_OUT_HEIGHT"] = (int)height;
-		}
+		//if (!mat.empty()) {
+		//	LONG width, height;
+		//	cam->GetSize(&width, &height);
+		//	_myOutputs["BLOCK__VCAM_OUT_WIDTH"] = (int)width;
+		//	_myOutputs["BLOCK__VCAM_OUT_HEIGHT"] = (int)height;
+		//}
 		return mat.empty();
 	};
 };

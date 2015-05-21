@@ -2,7 +2,7 @@
 #pragma warning(disable:4244)
 #pragma warning(disable:4711)
 
-#include "filters.h"
+#include "Filters.h"
 
 //////////////////////////////////////////////////////////////////////////
 //  CVCam is the source filter which masquerades as a capture device
@@ -24,18 +24,21 @@ CSource(NAME("Virtual Cam"), lpunk, CLSID_VirtualCam), m_height(-1), m_width(-1)
     m_paStreams[0] = new CVCamStream(phr, this, L"Virtual Cam");
 }
 
-HRESULT CVCam::QueryInterface(REFIID riid, void **ppv)
+STDMETHODIMP CVCam::QueryInterface(REFIID riid, void **ppv)
 {
     //Forward request for IAMStreamConfig & IKsPropertySet to the pin
     if(riid == _uuidof(IAMStreamConfig) || riid == _uuidof(IKsPropertySet))
         return m_paStreams[0]->QueryInterface(riid, ppv);
-    else
-        return CSource::QueryInterface(riid, ppv);
+    else if (riid == (IID_ICVCAM)) {
+        return GetInterface((ICVCam*) this, ppv);
+    }
+    return CSource::QueryInterface(riid, ppv);
 }
 
-void CVCam::GetSize(LONG* width, LONG* height) {
+STDMETHODIMP CVCam::GetSize(LONG* width, LONG* height) {
 	*width = m_width;
 	*height = m_height;
+    return S_OK;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -54,12 +57,15 @@ CVCamStream::~CVCamStream()
 } 
 
 HRESULT CVCamStream::QueryInterface(REFIID riid, void **ppv)
-{   
+{
+    //CheckPointer(ppv, E_POINTER);
+    //ValidateReadWritePtr(ppv, sizeof(PVOID));
+
     // Standard OLE stuff
     if(riid == _uuidof(IAMStreamConfig))
         *ppv = (IAMStreamConfig*)this;
     else if(riid == _uuidof(IKsPropertySet))
-        *ppv = (IKsPropertySet*)this; 
+        *ppv = (IKsPropertySet*)this;
     else
         return CSourceStream::QueryInterface(riid, ppv);
 

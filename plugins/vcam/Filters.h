@@ -3,26 +3,30 @@
 #include <stdio.h>
 #include <olectl.h>
 #include <dvdmedia.h>
-
+#include "ICVCam.h"
 #define DECLARE_PTR(type, ptr, expr) type* ptr = (type*)(expr);
 
 EXTERN_C const GUID CLSID_VirtualCam;
 
 class CVCamStream;
-class CVCam : public CSource
+class CVCam : public CSource, public ICVCam
 {
 public:
     //////////////////////////////////////////////////////////////////////////
     //  IUnknown
     //////////////////////////////////////////////////////////////////////////
+    //DECLARE_IUNKNOWN;
     static CUnknown * WINAPI CreateInstance(LPUNKNOWN lpunk, HRESULT *phr);
-    STDMETHODIMP QueryInterface(REFIID riid, void **ppv);
+    //STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, void **ppv);
 
+    STDMETHODIMP QueryInterface(REFIID riid, void **ppv);
+    STDMETHODIMP_(ULONG) AddRef() {return GetOwner()->AddRef();}
+    STDMETHODIMP_(ULONG) Release() {return GetOwner()->Release();}
     IFilterGraph *GetGraph() {return m_pGraph;}
 
-	void GetSize(LONG* width, LONG* height);
-	LONG m_width, m_height;
-
+    // Interface
+    STDMETHODIMP GetSize(LONG* width, LONG* height);
+    LONG m_width, m_height;
 private:
     CVCam(LPUNKNOWN lpunk, HRESULT *phr);
 };

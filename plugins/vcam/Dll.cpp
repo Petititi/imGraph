@@ -4,7 +4,7 @@
 //  We do not use the inbuilt BaseClasses routines as we need to register as
 //  a capture source
 //////////////////////////////////////////////////////////////////////////
-#include "stdafx.h"
+
 #pragma comment(lib, "kernel32")
 #pragma comment(lib, "user32")
 #pragma comment(lib, "gdi32")
@@ -31,12 +31,9 @@
 STDAPI AMovieSetupRegisterServer( CLSID   clsServer, LPCWSTR szDescription, LPCWSTR szFileName, LPCWSTR szThreadingModel = L"Both", LPCWSTR szServerType     = L"InprocServer32" );
 STDAPI AMovieSetupUnregisterServer( CLSID clsServer );
 
-
-
-// {8E14549A-DB61-4309-AFA1-3578E927E933}
+// {536B4138-A300-4355-B189-3118730EE702}
 DEFINE_GUID(CLSID_VirtualCam,
-            0x8e14549a, 0xdb61, 0x4309, 0xaf, 0xa1, 0x35, 0x78, 0xe9, 0x27, 0xe9, 0x33);
-
+    0x536b4138, 0xa300, 0x4355, 0xb1, 0x89, 0x31, 0x18, 0x73, 0xe, 0xe7, 0x2);
 
 const AMOVIESETUP_MEDIATYPE AMSMediaTypesVCam = 
 { 
