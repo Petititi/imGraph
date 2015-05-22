@@ -65,40 +65,48 @@ HRESULT GetVirtualCamInterface(IEnumMoniker* pEnum, ICVCam** ppICVCam)
 void main()
 {
     HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
-    IEnumMoniker* pEnum;
+    IEnumMoniker* pEnumMoniker;
     ICVCam* pVCam;
     LONG width, height;
 
     IRunningObjectTable *pROT;
     IMoniker *pMoniker;
-    IBindCtx * bindCtx;
-    IBaseFilter *filter;
+    IBindCtx * pBindCtx;
+    IBaseFilter *pFilter;
+    OLECHAR* moniker_name;
+    CLSID vcam;
+    IPropertyBag *pPropBag;
+    IUnknown *pUnknown;
 
     if (SUCCEEDED(hr)) {
         hr = GetRunningObjectTable(0, &pROT);
         if (SUCCEEDED(hr)) {
-            pROT->EnumRunning(&pEnum);
+            pROT->EnumRunning(&pEnumMoniker);
             if (SUCCEEDED(hr)) {
-                while (pEnum->Next(1, &pMoniker, NULL) == S_OK)
+                while (pEnumMoniker->Next(1, &pMoniker, NULL) == S_OK)
                 {
-                    //hr = CreateBindCtx(0, &bindCtx);
-                    //pMoniker->BindToObject(bindCtx, NULL, IID_PPV_ARGS(&filter));
-                    //CLSID guid;
-                    //hr = pMoniker->GetClassID(&guid);
-                    LPOLESTR monikerName;
-                    CreateBindCtx(0, &bindCtx);
-                    hr = pMoniker->GetDisplayName(bindCtx, NULL, &monikerName);
+                    hr = CreateBindCtx(0, &pBindCtx);
                     if (SUCCEEDED(hr)) {
-                        wprintf_s(monikerName);
-                        printf("\n");
-                        //printf("Guid = {%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}\n",
-                        //    guid.Data1, guid.Data2, guid.Data3,
-                        //    guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3],
-                        //    guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
+                        pMoniker->GetDisplayName(pBindCtx, NULL, &moniker_name);
+                        wprintf(L"DisplayName is %s\n", moniker_name);
+                        
+                        hr = pROT->GetObject(pMoniker, (IUnknown**)&pFilter);
 
+                        if (SUCCEEDED(hr)) {
+                            pFilter->Release();
+                        }
+
+                        //hr = pMoniker->BindToStorage(pBindCtx, 0, IID_IPropertyBag, (void**)&pPropBag);
+                        //if (SUCCEEDED(hr)) {
+                        //    pPropBag->Release();
+                        //}
+                        CoTaskMemFree(moniker_name);
+                        pBindCtx->Release();
                     }
+
+                    pMoniker->Release();
                 }
-                pEnum->Release();
+                pEnumMoniker->Release();
             }
             pROT->Release();
         }
@@ -108,11 +116,11 @@ void main()
 
     //if (SUCCEEDED(hr))
     //{
-    //    hr = EnumerateDevices(CLSID_VideoInputDeviceCategory, &pEnum);
+    //    hr = EnumerateDevices(CLSID_VideoInputDeviceCategory, &pEnumMoniker);
     //    if (SUCCEEDED(hr))
     //    {
     //        //DisplayDeviceInformation(pEnum);
-    //        hr = GetVirtualCamInterface(pEnum, &pVCam);
+    //        hr = GetVirtualCamInterface(pEnumMoniker, &pVCam);
     //        if (SUCCEEDED(hr)) {
     //            while (SUCCEEDED(hr)) {
     //                hr = pVCam->GetSize(&width, &height);
@@ -123,7 +131,7 @@ void main()
     //        } else {
     //            printf("Couldn't find any virtual camera\n");
     //        }
-    //        pEnum->Release();
+    //        pEnumMoniker->Release();
     //    }
     //    CoUninitialize();
     //}
