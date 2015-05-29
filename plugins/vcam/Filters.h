@@ -7,25 +7,35 @@
 #define DECLARE_PTR(type, ptr, expr) type* ptr = (type*)(expr);
 
 EXTERN_C const GUID CLSID_VirtualCam;
+EXTERN_C const GUID IID_ICVCam;
+
+//CLSID CLSID_VirtualCamProxy = { 0x249d94b0, 0x65e8, 0x44e1, 0xb3, 0xc4, 0xe3, 0xfb, 0x4d, 0xc5, 0x1c, 0x66 };
 
 class CVCamStream;
-class CVCam : public CSource, public ICVCam
+class CVCam : public CSource, /*public IMarshal,*/ public ICVCam
 {
 public:
     //////////////////////////////////////////////////////////////////////////
     //  IUnknown
     //////////////////////////////////////////////////////////////////////////
-    //DECLARE_IUNKNOWN;
+    DECLARE_IUNKNOWN;
     static CUnknown * WINAPI CreateInstance(LPUNKNOWN lpunk, HRESULT *phr);
     //STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, void **ppv);
 
-    STDMETHODIMP QueryInterface(REFIID riid, void **ppv);
-    STDMETHODIMP_(ULONG) AddRef() {return GetOwner()->AddRef();}
-    STDMETHODIMP_(ULONG) Release() {return GetOwner()->Release();}
+    //STDMETHODIMP QueryInterface(REFIID riid, void **ppv);
+    //STDMETHODIMP_(ULONG) AddRef() {return GetOwner()->AddRef();}
+    //STDMETHODIMP_(ULONG) Release() {return GetOwner()->Release();}
     IFilterGraph *GetGraph() {return m_pGraph;}
 
     // Interface
     STDMETHODIMP GetSize(LONG* width, LONG* height);
+
+
+    //HRESULT STDMETHODCALLTYPE UnmarshalInterface(IStream* pStream, REFIID riid, void** ppv);
+    //HRESULT STDMETHODCALLTYPE GetUnmarshalClass(REFIID riid, void* pv, DWORD dwDestContext, void* pvDestContext, DWORD dwFlags, CLSID* pClsid);
+    //HRESULT STDMETHODCALLTYPE GetMarshalSizeMax(REFIID riid, void* pv, DWORD dwDestContext, void* pvDestContext, DWORD dwFlags, DWORD* pSize);
+    //HRESULT STDMETHODCALLTYPE MarshalInterface(IStream* pStream, REFIID riid, void* pv, DWORD dwDestContext, void* pvDestContext, DWORD dwFlags);
+        
     LONG m_width, m_height;
 private:
     CVCam(LPUNKNOWN lpunk, HRESULT *phr);

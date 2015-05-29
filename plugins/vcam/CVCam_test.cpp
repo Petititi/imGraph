@@ -10,7 +10,7 @@
 using namespace std;
 
 EXTERN_C const GUID FAR CLSID_VirtualCam = { 0x536b4138, 0xa300, 0x4355, { 0xb1, 0x89, 0x31, 0x18, 0x73, 0xe, 0xe7, 0x2 } };
-EXTERN_C const GUID FAR IID_ICVCAM = { 0x1b0a7d7a, 0x776d, 0x46a8, { 0xb1, 0x80, 0x50, 0x7e, 0x61, 0xb3, 0x39, 0xce } };
+EXTERN_C const GUID FAR IID_ICVCam = { 0x1b0a7d7a, 0x776d, 0x46a8, { 0xb1, 0x80, 0x50, 0x7e, 0x61, 0xb3, 0x39, 0xce } };
 
 HRESULT EnumerateDevices(REFGUID category, IEnumMoniker **ppEnum)
 {
@@ -48,7 +48,7 @@ HRESULT GetVirtualCamInterface(IEnumMoniker* pEnum, ICVCam** ppICVCam)
             hr = filter->GetClassID(&vcam);
             if (SUCCEEDED(hr)) {
                 if (IsEqualCLSID(vcam, CLSID_VirtualCam)) {
-                    hr = filter->QueryInterface(IID_ICVCAM, (void**)(&pICVCam));
+                    hr = filter->QueryInterface(IID_ICVCam, (void**)(&pICVCam));
                     if (SUCCEEDED(hr)) {
                         *ppICVCam = pICVCam;
                         r_hr = S_OK;
@@ -66,17 +66,20 @@ void main()
 {
     HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
     IEnumMoniker* pEnumMoniker;
-    ICVCam* pVCam;
     LONG width, height;
 
     IRunningObjectTable *pROT;
     IMoniker *pMoniker;
     IBindCtx * pBindCtx;
-    IBaseFilter *pFilter;
+    IBaseFilter *pFilter, *pFilterGraph;
     OLECHAR* moniker_name;
     CLSID vcam;
     IPropertyBag *pPropBag;
     IUnknown *pUnknown;
+    IGraphBuilder* pGraphBuilder;
+    ICVCam* pCVCam;
+    IMarshal* pMarshal;
+    IEnumFilters* pEnumFilters;
 
     if (SUCCEEDED(hr)) {
         hr = GetRunningObjectTable(0, &pROT);
@@ -88,11 +91,41 @@ void main()
                     hr = CreateBindCtx(0, &pBindCtx);
                     if (SUCCEEDED(hr)) {
                         pMoniker->GetDisplayName(pBindCtx, NULL, &moniker_name);
-                        wprintf(L"DisplayName is %s\n", moniker_name);
+                        
                         
                         hr = pROT->GetObject(pMoniker, (IUnknown**)&pFilter);
 
                         if (SUCCEEDED(hr)) {
+                            hr = pFilter->QueryInterface(IID_IGraphBuilder, (void**)&pGraphBuilder);
+                            
+                            if (SUCCEEDED(hr)) {
+                                hr = pGraphBuilder->EnumFilters(&pEnumFilters);
+                                if (SUCCEEDED(hr)) {
+                                    pEnumFilters->Reset();
+                                    ULONG ff = 0;
+                                    while (pEnumFilters->Next(1, &pFilterGraph, &ff) == S_OK) {
+                                        CLSID vcam;
+                                        hr = pFilterGraph->GetClassID(&vcam);
+                                        if (SUCCEEDED(hr)) {
+                                            if (IsEqualCLSID(vcam, CLSID_VirtualCam)) {
+                                                hr = pFilterGraph->QueryInterface(__uuidof(IMarshal), (void**)(&pMarshal));
+                                                if (SUCCEEDED(hr)) {
+                                                    hr = pMarshal->QueryInterface(IID_ICVCam, (void**)(&pCVCam));
+                                                    if (SUCCEEDED(hr)) {
+                                                        pCVCam->Release();
+                                                    }
+                                                    wprintf(L"Virtual CAM found %s\n", moniker_name);
+                                                    pMarshal->Release();
+                                                }
+                                            }
+                                        }
+                                        pFilterGraph->Release();
+                                    }
+                                    pEnumFilters->Release();
+                                }
+                                pGraphBuilder->Release();
+                            }
+
                             pFilter->Release();
                         }
 
@@ -103,7 +136,7 @@ void main()
                         CoTaskMemFree(moniker_name);
                         pBindCtx->Release();
                     }
-
+                        
                     pMoniker->Release();
                 }
                 pEnumMoniker->Release();

@@ -24,22 +24,134 @@ CSource(NAME("Virtual Cam"), lpunk, CLSID_VirtualCam), m_height(-1), m_width(-1)
     m_paStreams[0] = new CVCamStream(phr, this, L"Virtual Cam");
 }
 
-STDMETHODIMP CVCam::QueryInterface(REFIID riid, void **ppv)
-{
-    //Forward request for IAMStreamConfig & IKsPropertySet to the pin
-    if(riid == _uuidof(IAMStreamConfig) || riid == _uuidof(IKsPropertySet))
-        return m_paStreams[0]->QueryInterface(riid, ppv);
-    else if (riid == (IID_ICVCAM)) {
-        return GetInterface((ICVCam*) this, ppv);
-    }
-    return CSource::QueryInterface(riid, ppv);
-}
+//STDMETHODIMP CVCam::QueryInterface(REFIID riid, void **ppv)
+//{
+//    //Forward request for IAMStreamConfig & IKsPropertySet to the pin
+//    if(riid == _uuidof(IAMStreamConfig) || riid == _uuidof(IKsPropertySet))
+//        return m_paStreams[0]->QueryInterface(riid, ppv);
+//    else if (riid == (IID_ICVCam)) {
+//        return GetInterface((ICVCam*) this, ppv);
+//    }
+//    return CSource::QueryInterface(riid, ppv);
+//}
+
+//STDMETHODIMP CVCam::NonDelegatingQueryInterface(REFIID riid, void **ppv)
+//{
+//        //Forward request for IAMStreamConfig & IKsPropertySet to the pin
+//        if(riid == _uuidof(IAMStreamConfig) || riid == _uuidof(IKsPropertySet))
+//            return m_paStreams[0]->QueryInterface(riid, ppv);
+//        else if (riid == (IID_ICVCam)) {
+//            return GetInterface((ICVCam*) this, ppv);
+//        }
+//        else if (riid == IID_IMarshal) {
+//            *ppv = (IMarshal*)this;
+//        }
+//        return CSource::NonDelegatingQueryInterface(riid, ppv);
+//}
 
 STDMETHODIMP CVCam::GetSize(LONG* width, LONG* height) {
 	*width = m_width;
 	*height = m_height;
     return S_OK;
 }
+
+//HRESULT STDMETHODCALLTYPE CVCam::UnmarshalInterface(IStream* pStream, REFIID riid, void** ppv)
+//{
+//    // This method should be called only in the proxy, not here.
+//    return E_UNEXPECTED;
+//}
+//
+//HRESULT STDMETHODCALLTYPE CVCam::GetUnmarshalClass(REFIID riid, void* pv, DWORD dwDestContext, void* pvDestContext, DWORD dwFlags, CLSID* pClsid)
+//{
+//    // We handle only the local marshaling case.
+//    if (dwDestContext == MSHCTX_DIFFERENTMACHINE)
+//    {
+//        IMarshal* pMarshal;
+//        // Create a standard marshaler (proxy manager).
+//        CoGetStandardMarshal(riid, (ICVCam*)pv, dwDestContext, pvDestContext, dwFlags, &pMarshal);
+//
+//        // Load the interface proxy.
+//        HRESULT hr = pMarshal->GetUnmarshalClass(riid, pv, dwDestContext, pvDestContext, dwFlags, pClsid);
+//        pMarshal->Release();
+//        return hr;
+//    }
+//    *pClsid = CLSID_VirtualCamProxy;
+//    return S_OK;
+//}
+//
+//HRESULT STDMETHODCALLTYPE CVCam::GetMarshalSizeMax(REFIID riid, void* pv, DWORD dwDestContext, void* pvDestContext, DWORD dwFlags, DWORD* pSize)
+//{
+//    // We handle only the local marshaling case.
+//    if (dwDestContext == MSHCTX_DIFFERENTMACHINE)
+//    {
+//        IMarshal* pMarshal;
+//        CoGetStandardMarshal(riid, (ICVCam*)pv, dwDestContext, pvDestContext, dwFlags, &pMarshal);
+//        HRESULT hr = pMarshal->GetMarshalSizeMax(riid, pv, dwDestContext, pvDestContext, dwFlags, pSize);
+//        pMarshal->Release();
+//        return hr;
+//    }
+//
+//    // We need 255 bytes of storage to marshal the ICVCam interface pointer.
+//    *pSize = 255;
+//    return S_OK;
+//}
+//
+//HRESULT STDMETHODCALLTYPE CVCam::MarshalInterface(IStream* pStream, REFIID riid, void* pv, DWORD dwDestContext, void* pvDestContext, DWORD dwFlags)
+//{
+//    // We handle only the local marshaling case.
+//    if (dwDestContext == MSHCTX_DIFFERENTMACHINE)
+//    {
+//        IMarshal* pMarshal;
+//        CoGetStandardMarshal(riid, (ICVCam*)pv, dwDestContext, pvDestContext, dwFlags, &pMarshal);
+//        HRESULT hr = pMarshal->MarshalInterface(pStream, riid, pv, dwDestContext, pvDestContext, dwFlags);
+//        pMarshal->Release();
+//        return hr;
+//    }
+//
+//    ULONG num_written;
+//    char* szFileMapName = "FileMap";
+//    char* szStubEventName = "StubEvent";
+//    char* szProxyEventName = "ProxyEvent";
+//    char buffer_to_write[255];
+//
+//    // Don't let your object fly away.
+//    AddRef();
+//
+//    CreateFileMapping((HANDLE)0xFFFFFFFF, NULL, PAGE_READWRITE, 0, 255, szFileMapName);
+//    CreateEvent(NULL, FALSE, FALSE, szStubEventName);
+//    CreateEvent(NULL, FALSE, FALSE, szProxyEventName);
+//
+//    strcpy(buffer_to_write, szFileMapName);
+//    strcat(buffer_to_write, ",");
+//    strcat(buffer_to_write, szStubEventName);
+//    strcat(buffer_to_write, ",");
+//    strcat(buffer_to_write, szProxyEventName);
+//
+//    return pStream->Write(buffer_to_write, strlen(buffer_to_write) + 1, &num_written);
+//}
+//
+//HRESULT STDMETHODCALLTYPE CVCam::UnmarshalInterface(IStream* pStream, REFIID riid, void** ppv)
+//{
+//    unsigned long num_read;
+//    char buffer_to_read[255];
+//    char* pszFileMapName;
+//    char* pszStubEventName;
+//    char* pszProxyEventName;
+//
+//    pStream->Read((void*)buffer_to_read, 255, &num_read);
+//
+//    pszFileMapName = strtok(buffer_to_read, ",");
+//    pszStubEventName = strtok(NULL, ",");
+//    pszProxyEventName = strtok(NULL, ",");
+//
+//    HANDLE hFileMap = OpenFileMapping(FILE_MAP_WRITE, FALSE, pszFileMapName);
+//    pMem = MapViewOfFile(hFileMap, FILE_MAP_WRITE, 0, 0, 0);
+//
+//    hStubEvent = OpenEvent(EVENT_MODIFY_STATE, FALSE, pszStubEventName);
+//    hProxyEvent = OpenEvent(EVENT_MODIFY_STATE | SYNCHRONIZE, FALSE, pszProxyEventName);
+//
+//    return QueryInterface(riid, ppv);
+//}
 
 //////////////////////////////////////////////////////////////////////////
 // CVCamStream is the one and only output pin of CVCam which handles 

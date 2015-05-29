@@ -1,7 +1,5 @@
-DEFINE_GUID(IID_ICVCAM,
-    0x1b0a7d7a, 0x776d, 0x46a8, 0xb1, 0x80, 0x50, 0x7e, 0x61, 0xb3, 0x39, 0xce);
 
 DECLARE_INTERFACE_(ICVCam, IUnknown)
 {
-    STDMETHOD(GetSize)(LONG* width, LONG* height) = 0;
+    STDMETHOD(GetSize)(THIS_ LONG* width, LONG* height) PURE;
 };
