@@ -193,9 +193,12 @@ namespace charliesoft
       if (isLinked())
         boost::get<ParamValue*>(_value)->_distantListeners.erase(this);
       ParamValue* vDist = boost::get<ParamValue*>(v._value);
-      if (vDist != NULL) vDist->_distantListeners.insert(this);
-      if (vDist->_value.type() != typeid(Not_A_Value))
-        _newValue = true;
+      if (vDist != NULL)
+      {
+        vDist->_distantListeners.insert(this);
+        if (vDist->_value.type() != typeid(Not_A_Value))
+          _newValue = true;
+      }
     }
     else
       if (*this != v && v._value.type() != typeid(Not_A_Value))

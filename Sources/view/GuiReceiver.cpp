@@ -83,7 +83,7 @@ static MatrixViewer* icvFindWindowByName(QString name)
   QWidgetList winList = QApplication::topLevelWidgets();
   for (auto* widget : winList)
   {
-    if (widget->isWindow() && !widget->parentWidget())//is a window without parent
+    if (widget != NULL && widget->isWindow() && !widget->parentWidget())//is a window without parent
     {
       if (MatrixViewer* w = dynamic_cast<MatrixViewer*>(widget))
       {
@@ -107,7 +107,7 @@ static GraphViewer* icvFindGraphViewByName(QString name)
   //that can be grabbed here and crash the code at 'w->param_name==name'.
   foreach(QWidget* widget, QApplication::topLevelWidgets())
   {
-    if (widget->isWindow() && !widget->parentWidget())//is a window without parent
+    if (widget!=NULL && widget->isWindow() && !widget->parentWidget())//is a window without parent
     {
       if (GraphViewer* w = dynamic_cast<GraphViewer*>(widget))
       {
@@ -375,7 +375,7 @@ void GuiReceiver::enablePropertiesButtonEachWindow()
   //For each window, enable window property button
   foreach(QWidget* widget, QApplication::topLevelWidgets())
   {
-    if (widget->isWindow() && !widget->parentWidget()) //is a window without parent
+    if (widget!=NULL && widget->isWindow() && !widget->parentWidget()) //is a window without parent
     {
       if (MatrixViewer* w = dynamic_cast<MatrixViewer*>(widget))
       {

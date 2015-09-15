@@ -759,7 +759,10 @@ namespace charliesoft
         addressesMap[lexical_cast<unsigned int>(valID)] = tmpVal;
 
         ParamDefinition* def = getParamDefinition(nameIn, true);
-        def->_show = ParamVisibility(it1->second.get("IsVisible", (int)def->_show));
+        if (def != NULL)
+        {
+          def->_show = ParamVisibility(it1->second.get("IsVisible", (int)def->_show));
+        }
 
         ParamType typeOfVal = ParamType(it1->second.get("SubType", (int)tmpVal->getType()));
 
@@ -783,8 +786,11 @@ namespace charliesoft
         string nameOut = it1->second.get("Name", "Error");
         string val = it1->second.get("ID", "0");
         ParamValue* tmpVal = getParam(nameOut, false);
-        tmpVal->setNew(false);
-        tmpVal->isNeeded(true);
+        if (tmpVal != NULL)
+        {
+          tmpVal->setNew(false);
+          tmpVal->isNeeded(true);
+        }
         addressesMap[lexical_cast<unsigned int>(val)] = tmpVal;
       }
 

@@ -21,6 +21,8 @@ using std::string;
 using cv::Mat;
 using cv::RNG;
 
+//!\ add createDerivFilter!
+
 namespace charliesoft
 {
   BLOCK_BEGIN_INSTANTIATION(CreateMatrix);
