@@ -42,3 +42,11 @@ if( MSVC )
     set(listOfBlocks "")
     SET_TARGET_PROPERTIES(imGraphIHM PROPERTIES LINK_FLAGS "/OPT:NOREF")
 endif( )
+
+#-----------------------------------------------------------------------------
+# Copy cascade files for object detection
+#-----------------------------------------------------------------------------
+add_custom_command(TARGET imGraphIHM POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${OpenCV_DIR}/install/etc/haarcascades"
+        $<TARGET_FILE_DIR:imGraphIHM>/haarcascades)
