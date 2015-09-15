@@ -542,17 +542,31 @@ namespace charliesoft
 	translations["BLOCK__LAPLACIAN_IN_IMAGE"] = "image";
 	translations["BLOCK__LAPLACIAN_IN_IMAGE_HELP"] = "Input image";
 	translations["BLOCK__LAPLACIAN_OUT_IMAGE"] = "image";
-	translations["BLOCK__LAPLACIAN_OUT_IMAGE_HELP"] = "Output image";
+  translations["BLOCK__LAPLACIAN_OUT_IMAGE_HELP"] = "Output image";
 
-    translations["BLOCK__MASKDRAWER_NAME"] = "Draw mask";
-    translations["BLOCK__MASKDRAWER_IN_IMAGE"] = "image";
-    translations["BLOCK__MASKDRAWER_IN_IMAGE_HELP"] = "Input image";
-    translations["BLOCK__MASKDRAWER_IN_MASK"] = "mask";
-    translations["BLOCK__MASKDRAWER_IN_MASK_HELP"] = "Input mask";
-    translations["BLOCK__MASKDRAWER_OUT_IMAGE"] = "image";
-    translations["BLOCK__MASKDRAWER_OUT_IMAGE_HELP"] = "Output image";
-    translations["BLOCK__MASKDRAWER_IN_COLOR"] = "color";
-    translations["BLOCK__MASKDRAWER_IN_COLOR_HELP"] = "Color to paint on mask";
+  translations["BLOCK__MASKDRAWER_NAME"] = "Draw mask";
+  translations["BLOCK__MASKDRAWER_IN_IMAGE"] = "image";
+  translations["BLOCK__MASKDRAWER_IN_IMAGE_HELP"] = "Input image";
+  translations["BLOCK__MASKDRAWER_IN_MASK"] = "mask";
+  translations["BLOCK__MASKDRAWER_IN_MASK_HELP"] = "Input mask";
+  translations["BLOCK__MASKDRAWER_OUT_IMAGE"] = "image";
+  translations["BLOCK__MASKDRAWER_OUT_IMAGE_HELP"] = "Output image";
+  translations["BLOCK__MASKDRAWER_IN_COLOR"] = "color";
+  translations["BLOCK__MASKDRAWER_IN_COLOR_HELP"] = "Color to paint on mask";
+
+  translations["BLOCK__THINNING_NAME"] = "Thinning img";
+  translations["BLOCK__THINNING_IN_IMAGE"] = "image";
+  translations["BLOCK__THINNING_IN_IMAGE_HELP"] = "Input image";
+  translations["BLOCK__THINNING_OUT_IMAGE"] = "image";
+  translations["BLOCK__THINNING_OUT_IMAGE_HELP"] = "Output image";
+
+  translations["BLOCK__BINARIZE_NAME"] = "Binarize img";
+  translations["BLOCK__BINARIZE_IN_IMAGE"] = "image";
+  translations["BLOCK__BINARIZE_IN_IMAGE_HELP"] = "Input image";
+  translations["BLOCK__BINARIZE_IN_THRESHOLD"] = "threshold";
+  translations["BLOCK__BINARIZE_IN_THRESHOLD_HELP"] = "Threshold value (-1 for Otsu thresholding)"; 
+  translations["BLOCK__BINARIZE_OUT_IMAGE"] = "image";
+  translations["BLOCK__BINARIZE_OUT_IMAGE_HELP"] = "Output image";
 
   }
 }

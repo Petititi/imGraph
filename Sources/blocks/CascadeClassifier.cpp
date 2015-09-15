@@ -89,7 +89,7 @@ protected:
         cv::Mat mask = cv::Mat::zeros(output.size(), CV_8UC1);
 
         //draw a rectangle for all found faces in the vector array on the original image
-        for (int i = 0; i < faces.size(); i++)
+        for (unsigned int i = 0; i < faces.size(); i++)
         {
             mask(faces[i]) = 1;
         }

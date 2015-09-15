@@ -749,10 +749,11 @@ namespace charliesoft
         ((QLabel*)_preview)->setText(val->toString().c_str());
         break;
       default://nothing to do...
+        isNew = false;
         break;
       }
 
-      if (isNew)
+      if (isNew && _preview != NULL)
       {
         QLabel *label = dynamic_cast<QLabel *>(_preview);
         if (NULL != label)

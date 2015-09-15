@@ -7,230 +7,100 @@
     <preview_active>BLOCK__INPUT_OUT_IMAGE</preview_active>
     <Input>
       <Name>BLOCK__INPUT_INOUT_HEIGHT</Name>
-      <ID>52879368</ID>
+      <ID>102620512</ID>
       <Link>false</Link>
       <Value>Not initialized...</Value>
       <IsVisible>0</IsVisible>
     </Input>
     <Input>
       <Name>BLOCK__INPUT_INOUT_POS_FRAMES</Name>
-      <ID>52879600</ID>
+      <ID>102621560</ID>
       <Link>false</Link>
       <Value>Not initialized...</Value>
       <IsVisible>0</IsVisible>
     </Input>
     <Input>
       <Name>BLOCK__INPUT_INOUT_POS_RATIO</Name>
-      <ID>52879832</ID>
+      <ID>102622624</ID>
       <Link>false</Link>
       <Value>Not initialized...</Value>
       <IsVisible>0</IsVisible>
     </Input>
     <Input>
       <Name>BLOCK__INPUT_INOUT_WIDTH</Name>
-      <ID>52879136</ID>
+      <ID>102619464</ID>
       <Link>false</Link>
       <Value>Not initialized...</Value>
       <IsVisible>0</IsVisible>
     </Input>
     <Input>
       <Name>BLOCK__INPUT_IN_COLOR</Name>
-      <ID>52882192</ID>
+      <ID>102623672</ID>
       <Link>false</Link>
       <Value>Not initialized...</Value>
       <IsVisible>0</IsVisible>
     </Input>
     <Input>
       <Name>BLOCK__INPUT_IN_GREY</Name>
-      <ID>52883352</ID>
+      <ID>102624720</ID>
       <Link>false</Link>
       <Value>Not initialized...</Value>
       <IsVisible>0</IsVisible>
     </Input>
     <Input>
       <Name>BLOCK__INPUT_IN_INPUT_TYPE</Name>
-      <ID>52880568</ID>
+      <ID>102646032</ID>
       <Link>false</Link>
-      <Value>0</Value>
+      <Value>2</Value>
       <IsVisible>2</IsVisible>
     </Input>
     <Input>
       <Name>BLOCK__INPUT_IN_LOOP</Name>
-      <ID>52882424</ID>
+      <ID>102647104</ID>
       <Link>false</Link>
       <Value>0</Value>
       <IsVisible>2</IsVisible>
     </Input>
     <Input>
       <Name>BLOCK__INPUT_OUT_FRAMERATE</Name>
-      <ID>52881960</ID>
+      <ID>102625768</ID>
       <Link>false</Link>
       <Value>Not initialized...</Value>
-      <IsVisible>0</IsVisible>
+      <IsVisible>1</IsVisible>
     </Input>
     <Output>
       <Name>BLOCK__INPUT_INOUT_HEIGHT</Name>
-      <ID>52880104</ID>
+      <ID>102652064</ID>
     </Output>
     <Output>
       <Name>BLOCK__INPUT_INOUT_POS_FRAMES</Name>
-      <ID>52882888</ID>
+      <ID>102653136</ID>
     </Output>
     <Output>
       <Name>BLOCK__INPUT_INOUT_POS_RATIO</Name>
-      <ID>52883120</ID>
+      <ID>102654208</ID>
     </Output>
     <Output>
       <Name>BLOCK__INPUT_INOUT_WIDTH</Name>
-      <ID>52882656</ID>
+      <ID>102650992</ID>
     </Output>
     <Output>
       <Name>BLOCK__INPUT_OUT_FORMAT</Name>
-      <ID>52883584</ID>
+      <ID>102655280</ID>
     </Output>
     <Output>
       <Name>BLOCK__INPUT_OUT_FRAMERATE</Name>
-      <ID>52880336</ID>
+      <ID>102649920</ID>
     </Output>
     <Output>
       <Name>BLOCK__INPUT_OUT_IMAGE</Name>
-      <ID>52881032</ID>
+      <ID>102648848</ID>
     </Output>
     <SubParam>
-      <Name>BLOCK__INPUT_IN_INPUT_TYPE.Webcam.webcam index</Name>
-      <ID>52881728</ID>
+      <Name>BLOCK__INPUT_IN_INPUT_TYPE.Folder.input folder</Name>
+      <ID>102618416</ID>
       <Link>false</Link>
-      <Value>0</Value>
+      <Value>D:/Travail/Binarization/data</Value>
     </SubParam>
-  </Block>
-  <Block>
-    <name>BLOCK__CASCADECLASSIFIER_NAME</name>
-    <position>[314, 356]</position>
-    <size_increment>[50, 26]</size_increment>
-    <preview_active>None</preview_active>
-    <Input>
-      <Name>BLOCK__CASCADECLASSIFIER_IN_CASCADE_FILE</Name>
-      <ID>162094992</ID>
-      <Link>false</Link>
-      <Value>D:/Programmes/opencv/opencvSources/data/haarcascades/haarcascade_frontalface_alt.xml</Value>
-      <IsVisible>2</IsVisible>
-    </Input>
-    <Input>
-      <Name>BLOCK__CASCADECLASSIFIER_IN_IMAGE</Name>
-      <ID>162090816</ID>
-      <Link>true</Link>
-      <Value>52881032</Value>
-      <IsVisible>1</IsVisible>
-    </Input>
-    <Input>
-      <Name>BLOCK__CASCADECLASSIFIER_IN_MAX_HEIGHT</Name>
-      <ID>162093368</ID>
-      <Link>false</Link>
-      <Value>Not initialized...</Value>
-      <IsVisible>0</IsVisible>
-    </Input>
-    <Input>
-      <Name>BLOCK__CASCADECLASSIFIER_IN_MAX_WIDTH</Name>
-      <ID>162092904</ID>
-      <Link>false</Link>
-      <Value>Not initialized...</Value>
-      <IsVisible>0</IsVisible>
-    </Input>
-    <Input>
-      <Name>BLOCK__CASCADECLASSIFIER_IN_MIN_HEIGHT</Name>
-      <ID>162091512</ID>
-      <Link>false</Link>
-      <Value>30</Value>
-      <IsVisible>2</IsVisible>
-    </Input>
-    <Input>
-      <Name>BLOCK__CASCADECLASSIFIER_IN_MIN_NEIGHBORS</Name>
-      <ID>162091048</ID>
-      <Link>false</Link>
-      <Value>3</Value>
-      <IsVisible>2</IsVisible>
-    </Input>
-    <Input>
-      <Name>BLOCK__CASCADECLASSIFIER_IN_MIN_WIDTH</Name>
-      <ID>162091280</ID>
-      <Link>false</Link>
-      <Value>30</Value>
-      <IsVisible>2</IsVisible>
-    </Input>
-    <Input>
-      <Name>BLOCK__CASCADECLASSIFIER_IN_SCALE_FACTOR</Name>
-      <ID>162092208</ID>
-      <Link>false</Link>
-      <Value>1.1000000000000001</Value>
-      <IsVisible>2</IsVisible>
-    </Input>
-    <Output>
-      <Name>BLOCK__CASCADECLASSIFIER_OUT_IMAGE</Name>
-      <ID>162093600</ID>
-    </Output>
-    <Output>
-      <Name>BLOCK__CASCADECLASSIFIER_OUT_OBJECTS</Name>
-      <ID>162093832</ID>
-    </Output>
-  </Block>
-  <Block>
-    <name>BLOCK__LAPLACIAN_NAME</name>
-    <position>[496, 367]</position>
-    <size_increment>[0, 0]</size_increment>
-    <preview_active>None</preview_active>
-    <Input>
-      <Name>BLOCK__LAPLACIAN_IN_IMAGE</Name>
-      <ID>53051160</ID>
-      <Link>true</Link>
-      <Value>162093600</Value>
-      <IsVisible>1</IsVisible>
-    </Input>
-    <Output>
-      <Name>BLOCK__LAPLACIAN_OUT_IMAGE</Name>
-      <ID>53050000</ID>
-    </Output>
-  </Block>
-  <Block>
-    <name>BLOCK__NORMALIZ_NAME</name>
-    <position>[632, 372]</position>
-    <size_increment>[0, 0]</size_increment>
-    <preview_active>None</preview_active>
-    <Input>
-      <Name>BLOCK__NORMALIZ_IN_IMAGE</Name>
-      <ID>53050464</ID>
-      <Link>true</Link>
-      <Value>53050000</Value>
-      <IsVisible>1</IsVisible>
-    </Input>
-    <Output>
-      <Name>BLOCK__NORMALIZ_OUT_IMAGE</Name>
-      <ID>53052088</ID>
-    </Output>
-  </Block>
-  <Block>
-    <name>BLOCK__ADD_NAME</name>
-    <position>[883, 152]</position>
-    <size_increment>[559, 382]</size_increment>
-    <preview_active>BLOCK__ADD_OUTPUT</preview_active>
-    <Input>
-      <Name>BLOCK__ADD_IN_PARAM1</Name>
-      <ID>53051856</ID>
-      <Link>true</Link>
-      <Value>52881032</Value>
-      <SubType>4</SubType>
-      <IsVisible>1</IsVisible>
-    </Input>
-    <Input>
-      <Name>BLOCK__ADD_IN_PARAM2</Name>
-      <ID>53053712</ID>
-      <Link>true</Link>
-      <Value>53052088</Value>
-      <SubType>4</SubType>
-      <IsVisible>1</IsVisible>
-    </Input>
-    <Output>
-      <Name>BLOCK__ADD_OUTPUT</Name>
-      <ID>53053016</ID>
-    </Output>
   </Block>
 </GraphOfProcess>
