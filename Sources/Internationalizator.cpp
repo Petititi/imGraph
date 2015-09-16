@@ -122,7 +122,7 @@ namespace charliesoft
     translations["BLOCK_TITLE_MATH"] = "Math op.";
     translations["BLOCK_TITLE_OUTPUT"] = "Output";
     translations["BLOCK_TITLE_INFOS"] = "Infos";
-    translations["BLOCK_INFOS"] = 
+    translations["BLOCK_INFOS"] =
       "<h1>Statistics</h1>"
       "<table><tr><td>Mean processing time:</td><td>%1$s ms</td></tr>"
       "<tr><td>Max processing time:</td><td>%2$s ms</td></tr>"
@@ -208,7 +208,7 @@ namespace charliesoft
 
     translations["DOCK_TITLE"] = "Toolbox";
     translations["DOCK_PROPERTY_TITLE"] = "Properties";
-    
+
     translations["SUBBLOCK__"] = "Sub graph";
 
     translations["FOR_BLOCK_"] = "for";
@@ -485,7 +485,7 @@ namespace charliesoft
     translations["BLOCK__CASCADECLASSIFIER_IN_MAX_WIDTH_HELP"] = "Maximum possible object width. Objects larger than that are ignored.";
     translations["BLOCK__CASCADECLASSIFIER_IN_MAX_HEIGHT"] = "maxHeight";
     translations["BLOCK__CASCADECLASSIFIER_IN_MAX_HEIGHT_HELP"] = "Maximum possible object height. Objects larger than that are ignored.";
-	translations["BLOCK__CASCADECLASSIFIER_OUT_OBJECTS"] = "#objects";
+    translations["BLOCK__CASCADECLASSIFIER_OUT_OBJECTS"] = "#objects";
     translations["BLOCK__CASCADECLASSIFIER_OUT_OBJECTS_HELP"] = "Number of detected objects";
 
     translations["BLOCK__BLUR_NAME"] = "Blurring";
@@ -530,43 +530,45 @@ namespace charliesoft
     translations["BLOCK__CORE_OUT_DESC"] = "descriptors";
     translations["BLOCK__CORE_OUT_DESC_HELP"] = "Filtered descriptors";
 
-	translations["BLOCK__FILTER2D_NAME"] = "Filter2D";
-	translations["BLOCK__FILTER2D_IN_IMAGE"] = "image";
-	translations["BLOCK__FILTER2D_IN_IMAGE_HELP"] = "Input image";
-	translations["BLOCK__FILTER2D_IN_KERNEL"] = "kernel";
-	translations["BLOCK__FILTER2D_IN_KERNEL_HELP"] = "Convolution kernel ";
-	translations["BLOCK__FILTER2D_OUT_IMAGE"] = "image";
-	translations["BLOCK__FILTER2D_OUT_IMAGE_HELP"] = "Output image";
+    translations["BLOCK__FILTER2D_NAME"] = "Filter2D";
+    translations["BLOCK__FILTER2D_IN_IMAGE"] = "image";
+    translations["BLOCK__FILTER2D_IN_IMAGE_HELP"] = "Input image";
+    translations["BLOCK__FILTER2D_IN_KERNEL"] = "kernel";
+    translations["BLOCK__FILTER2D_IN_KERNEL_HELP"] = "Convolution kernel ";
+    translations["BLOCK__FILTER2D_OUT_IMAGE"] = "image";
+    translations["BLOCK__FILTER2D_OUT_IMAGE_HELP"] = "Output image";
 
-	translations["BLOCK__LAPLACIAN_NAME"] = "Laplacian";
-	translations["BLOCK__LAPLACIAN_IN_IMAGE"] = "image";
-	translations["BLOCK__LAPLACIAN_IN_IMAGE_HELP"] = "Input image";
-	translations["BLOCK__LAPLACIAN_OUT_IMAGE"] = "image";
-  translations["BLOCK__LAPLACIAN_OUT_IMAGE_HELP"] = "Output image";
+    translations["BLOCK__LAPLACIAN_NAME"] = "Laplacian";
+    translations["BLOCK__LAPLACIAN_IN_IMAGE"] = "image";
+    translations["BLOCK__LAPLACIAN_IN_IMAGE_HELP"] = "Input image";
+    translations["BLOCK__LAPLACIAN_OUT_IMAGE"] = "image";
+    translations["BLOCK__LAPLACIAN_OUT_IMAGE_HELP"] = "Output image";
 
-  translations["BLOCK__MASKDRAWER_NAME"] = "Draw mask";
-  translations["BLOCK__MASKDRAWER_IN_IMAGE"] = "image";
-  translations["BLOCK__MASKDRAWER_IN_IMAGE_HELP"] = "Input image";
-  translations["BLOCK__MASKDRAWER_IN_MASK"] = "mask";
-  translations["BLOCK__MASKDRAWER_IN_MASK_HELP"] = "Input mask";
-  translations["BLOCK__MASKDRAWER_OUT_IMAGE"] = "image";
-  translations["BLOCK__MASKDRAWER_OUT_IMAGE_HELP"] = "Output image";
-  translations["BLOCK__MASKDRAWER_IN_COLOR"] = "color";
-  translations["BLOCK__MASKDRAWER_IN_COLOR_HELP"] = "Color to paint on mask";
+    translations["BLOCK__MASKDRAWER_NAME"] = "Draw mask";
+    translations["BLOCK__MASKDRAWER_IN_IMAGE"] = "image";
+    translations["BLOCK__MASKDRAWER_IN_IMAGE_HELP"] = "Input image";
+    translations["BLOCK__MASKDRAWER_IN_MASK"] = "mask";
+    translations["BLOCK__MASKDRAWER_IN_MASK_HELP"] = "Input mask";
+    translations["BLOCK__MASKDRAWER_OUT_IMAGE"] = "image";
+    translations["BLOCK__MASKDRAWER_OUT_IMAGE_HELP"] = "Output image";
+    translations["BLOCK__MASKDRAWER_IN_COLOR"] = "color";
+    translations["BLOCK__MASKDRAWER_IN_COLOR_HELP"] = "Color to paint on mask";
 
-  translations["BLOCK__THINNING_NAME"] = "Thinning img";
-  translations["BLOCK__THINNING_IN_IMAGE"] = "image";
-  translations["BLOCK__THINNING_IN_IMAGE_HELP"] = "Input image";
-  translations["BLOCK__THINNING_OUT_IMAGE"] = "image";
-  translations["BLOCK__THINNING_OUT_IMAGE_HELP"] = "Output image";
+    translations["BLOCK__THINNING_NAME"] = "Thinning img";
+    translations["BLOCK__THINNING_IN_IMAGE"] = "image";
+    translations["BLOCK__THINNING_IN_IMAGE_HELP"] = "Input image";
+    translations["BLOCK__THINNING_OUT_IMAGE"] = "image";
+    translations["BLOCK__THINNING_OUT_IMAGE_HELP"] = "Output image";
 
-  translations["BLOCK__BINARIZE_NAME"] = "Binarize img";
-  translations["BLOCK__BINARIZE_IN_IMAGE"] = "image";
-  translations["BLOCK__BINARIZE_IN_IMAGE_HELP"] = "Input image";
-  translations["BLOCK__BINARIZE_IN_THRESHOLD"] = "threshold";
-  translations["BLOCK__BINARIZE_IN_THRESHOLD_HELP"] = "Threshold value (-1 for Otsu thresholding)"; 
-  translations["BLOCK__BINARIZE_OUT_IMAGE"] = "image";
-  translations["BLOCK__BINARIZE_OUT_IMAGE_HELP"] = "Output image";
+    translations["BLOCK__BINARIZE_NAME"] = "Binarize img";
+    translations["BLOCK__BINARIZE_IN_IMAGE"] = "image";
+    translations["BLOCK__BINARIZE_IN_IMAGE_HELP"] = "Input image";
+    translations["BLOCK__BINARIZE_IN_METHOD"] = "Method";
+    translations["BLOCK__BINARIZE_IN_METHOD_HELP"] = "Binarization method|Simple threshold^Otsu^Adaptative^Sauvola";
+    translations["BLOCK__BINARIZE_IN_THRESHOLD"] = "threshold";
+    translations["BLOCK__BINARIZE_IN_THRESHOLD_HELP"] = "Threshold value";
+    translations["BLOCK__BINARIZE_OUT_IMAGE"] = "image";
+    translations["BLOCK__BINARIZE_OUT_IMAGE_HELP"] = "Output image";
 
   }
 }

@@ -755,31 +755,34 @@ namespace charliesoft
         bool link = it1->second.get("Link", false);
         string val = it1->second.get("Value", "Not initialized...");
         ParamValue* tmpVal = getParam(nameIn, true);
-        string valID = it1->second.get("ID", "0");
-        addressesMap[lexical_cast<unsigned int>(valID)] = tmpVal;
-
-        ParamDefinition* def = getParamDefinition(nameIn, true);
-        if (def != NULL)
+        if (tmpVal != NULL)
         {
-          def->_show = ParamVisibility(it1->second.get("IsVisible", (int)def->_show));
-        }
+          string valID = it1->second.get("ID", "0");
+          addressesMap[lexical_cast<unsigned int>(valID)] = tmpVal;
 
-        ParamType typeOfVal = ParamType(it1->second.get("SubType", (int)tmpVal->getType()));
+          ParamDefinition* def = getParamDefinition(nameIn, true);
+          if (def != NULL)
+          {
+            def->_show = ParamVisibility(it1->second.get("IsVisible", (int)def->_show));
+          }
 
-        if (!link)
-        {
-          try
+          ParamType typeOfVal = ParamType(it1->second.get("SubType", (int)tmpVal->getType()));
+
+          if (!link)
           {
-            if (tmpVal != NULL)
-              tmpVal->valid_and_set(tmpVal->fromString(typeOfVal, val));
+            try
+            {
+              if (tmpVal != NULL)
+                tmpVal->valid_and_set(tmpVal->fromString(typeOfVal, val));
+            }
+            catch (...)
+            {
+              tmpVal->setNew(false);
+            }
           }
-          catch (...)
-          {
-            tmpVal->setNew(false);
-          }
+          else
+            toUpdate.push_back(std::pair<ParamValue*, unsigned int>(tmpVal, lexical_cast<unsigned int>(val)));
         }
-        else
-          toUpdate.push_back(std::pair<ParamValue*, unsigned int>(tmpVal, lexical_cast<unsigned int>(val)));
       }
       if (it1->first.compare("Output") == 0)
       {
@@ -908,20 +911,22 @@ namespace charliesoft
       }
       else
       {
-        ParamDefinition& pDef = *getParamDefinition(it->first, true);
+        ParamDefinition* pDef = getParamDefinition(it->first, true);
+        if (pDef != NULL)
+        {
+          paramTree.put("Name", pDef->_name);
+          paramTree.put("Helper", pDef->_helper);
+          paramTree.put("ParamType", pDef->_type);
+          paramTree.put("IsVisible", (int)pDef->_show);
 
-        paramTree.put("Name", pDef._name);
-        paramTree.put("Helper", pDef._helper);
-        paramTree.put("ParamType", pDef._type);
-        paramTree.put("IsVisible", (int)pDef._show);
+          paramTree.put("Link", it->second.isLinked());
+          if (!it->second.isLinked())
+            paramTree.put("Value", it->second.toString());
+          else
+            paramTree.put("Value", (unsigned int)it->second.get<ParamValue*>());
 
-        paramTree.put("Link", it->second.isLinked());
-        if (!it->second.isLinked())
-          paramTree.put("Value", it->second.toString());
-        else
-          paramTree.put("Value", (unsigned int)it->second.get<ParamValue*>());
-
-        tree.add_child("Input_to_create", paramTree);
+          tree.add_child("Input_to_create", paramTree);
+        }
       }
     }
 

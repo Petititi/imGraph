@@ -43,6 +43,133 @@ namespace charliesoft
     _myInputs["BLOCK__THINNING_IN_IMAGE"].addValidator({ new ValNeeded() });
   };
 
+
+  using namespace std;
+  using namespace cv;
+
+  void nonMaximaSuppression(const Mat& src, const int sz, Mat& dst, const Mat mask = Mat()) {
+
+    // initialise the block mask and destination
+    const int M = src.rows;
+    const int N = src.cols;
+    const bool masked = !mask.empty();
+    Mat block = 255 * Mat_<uint8_t>::ones(Size(2 * sz + 1, 2 * sz + 1));
+    dst = Mat_<uint8_t>::zeros(src.size());
+
+    // iterate over image blocks
+    for (int m = 0; m < M; m += sz + 1) {
+      for (int n = 0; n < N; n += sz + 1) {
+        Point  ijmax;
+        double vcmax, vnmax;
+
+        // get the maximal candidate within the block
+        Range ic(m, min(m + sz + 1, M));
+        Range jc(n, min(n + sz + 1, N));
+        minMaxLoc(src(ic, jc), NULL, &vcmax, NULL, &ijmax, masked ? mask(ic, jc) : noArray());
+        Point cc = ijmax + Point(jc.start, ic.start);
+
+        // search the neighbours centered around the candidate for the true maxima
+        Range in(max(cc.y - sz, 0), min(cc.y + sz + 1, M));
+        Range jn(max(cc.x - sz, 0), min(cc.x + sz + 1, N));
+
+        // mask out the block whose maxima we already know
+        Mat_<uint8_t> blockmask;
+        block(Range(0, in.size()), Range(0, jn.size())).copyTo(blockmask);
+        Range iis(ic.start - in.start, min(ic.start - in.start + sz + 1, in.size()));
+        Range jis(jc.start - jn.start, min(jc.start - jn.start + sz + 1, jn.size()));
+        blockmask(iis, jis) = Mat_<uint8_t>::zeros(Size(jis.size(), iis.size()));
+
+        minMaxLoc(src(in, jn), NULL, &vnmax, NULL, &ijmax, masked ? mask(in, jn).mul(blockmask) : blockmask);
+        Point cn = ijmax + Point(jn.start, in.start);
+
+        // if the block centre is also the neighbour centre, then it's a local maxima
+        if (vcmax > vnmax) {
+          dst.at<uint8_t>(cc.y, cc.x) = 255;
+        }
+      }
+    }
+  }
+
+  //from a binary image, find pen size
+  cv::Mat findBiggestPenSize(cv::Mat gray_image)
+  {
+    cv::Mat out = Mat::zeros(gray_image.size(), CV_8UC1);
+    int image_width = gray_image.cols;
+    int image_height = gray_image.rows;
+
+    // Calculate the integral image, and integral of the squared image
+    cv::Mat integral_image(gray_image.size(), CV_64FC1);
+
+    int xmin, ymin, xmax, ymax;
+    double diagsum, idiagsum, diff, area;
+    double nbBackgroundPixels;
+
+    /*
+    cv::integral(gray_image, integral_image, CV_64FC1);
+    //Calculate the mean and standard deviation using the integral image
+
+    for (int i = 0; i < image_width; i++){
+      for (int j = 0; j < image_height; j++){
+
+        if (gray_image.at<uchar>(j, i) == 0)
+          out.at<uchar>(j, i) = 0;//not a pen stroke, skip this pixel...
+        else
+        {
+          //increase a subWindow around pixel until too much background pixel is taken:
+          uchar pixelSize = 1;
+          bool stop = false;
+
+          while (pixelSize < 200 && !stop)
+          {
+            xmin = cv::max(0, i - pixelSize);
+            ymin = cv::max(0, j - pixelSize);
+            xmax = cv::min(image_width - 1, i + pixelSize);
+            ymax = cv::min(image_height - 1, j + pixelSize);
+            xmin++; ymin++; xmax++; ymax++;//first column/row is empty...
+            area = (xmax - xmin + 1)*(ymax - ymin + 1) * 255;
+            if (xmin <= 1 && ymin <= 1){ // Point at origin
+              diff = integral_image.at<double>(ymax, xmax);
+            }
+            else if (xmin <= 1 && ymin > 1){ // first column
+              diff = integral_image.at<double>(ymax, xmax) - integral_image.at<double>(ymin - 1, xmax);
+            }
+            else if (xmin > 1 && ymin <= 1){ // first row
+              diff = integral_image.at<double>(ymax, xmax) - integral_image.at<double>(ymax, xmin - 1);
+            }
+            else{ // rest of the image
+              diagsum = integral_image.at<double>(ymax, xmax) + integral_image.at<double>(ymin - 1, xmin - 1);
+              idiagsum = integral_image.at<double>(ymin - 1, xmax) + integral_image.at<double>(ymax, xmin - 1);
+              diff = diagsum - idiagsum;
+            }
+
+            nbBackgroundPixels = (area - diff) / 255;
+
+            stop = (nbBackgroundPixels >= pixelSize * 3);
+
+            pixelSize++;
+          }
+
+          out.at<uchar>(j, i) = pixelSize;//not a pen stroke, skip this pixel...
+
+        }
+      }
+    }*/
+    cv::Mat distImg;
+    cv::distanceTransform(gray_image,
+      distImg,
+      cv::DIST_L2,
+      cv::DIST_MASK_3);
+    //recreate img:
+
+    for (int i = 0; i < image_width; i++){
+      for (int j = 0; j < image_height; j++){
+        circle(out, Point(i, j), distImg.at<float>(j, i) + 0.5, Scalar(128 + distImg.at<float>(j, i) * 20), -1);
+      }
+    }
+
+    return out;
+  }
+
   /**
   * Perform one thinning iteration.
   * Normally you wouldn't call this function directly from your code.
@@ -119,6 +246,7 @@ namespace charliesoft
       if (inverse)
         output = 255 - output;
 
+      findBiggestPenSize(output);
       thinning(output);
 
       if (inverse)
