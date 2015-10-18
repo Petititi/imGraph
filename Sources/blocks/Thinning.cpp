@@ -90,84 +90,356 @@ namespace charliesoft
     }
   }
 
-  //from a binary image, find pen size
-  cv::Mat findBiggestPenSize(cv::Mat gray_image)
+  bool isEndOfLine(uchar *pixel, int lineSize, uchar valOfEmpty = (uchar) 1)
   {
-    cv::Mat out = Mat::zeros(gray_image.size(), CV_8UC1);
-    int image_width = gray_image.cols;
-    int image_height = gray_image.rows;
+    if (*pixel == (uchar)valOfEmpty)
+      return false;
+    if (pixel[-1] != valOfEmpty)
+    {
+      return (pixel[1] == valOfEmpty) && (pixel[lineSize + 1] == valOfEmpty) && (pixel[-lineSize + 1] == valOfEmpty);
+    }
+    if (pixel[-lineSize - 1] != valOfEmpty)
+    {
+      return (pixel[1] == valOfEmpty) && (pixel[lineSize + 1] == valOfEmpty) && (pixel[lineSize] == valOfEmpty);
+    }
+    if (pixel[-lineSize] != valOfEmpty)
+    {
+      return (pixel[lineSize - 1] == valOfEmpty) && (pixel[lineSize] == valOfEmpty) && (pixel[lineSize + 1] == valOfEmpty);
+    }
+    if (pixel[-lineSize + 1] != valOfEmpty)
+    {
+      return (pixel[-1] == valOfEmpty) && (pixel[lineSize - 1] == valOfEmpty) && (pixel[lineSize] == valOfEmpty);
+    }
+    if (pixel[1] != valOfEmpty)
+    {
+      return (pixel[-1] == valOfEmpty) && (pixel[lineSize - 1] == valOfEmpty) && (pixel[-lineSize - 1] == valOfEmpty);
+    }
+    if (pixel[lineSize + 1] != valOfEmpty)
+    {
+      return (pixel[-1] == valOfEmpty) && (pixel[-lineSize - 1] == valOfEmpty) && (pixel[-lineSize] == valOfEmpty);
+    }
+    if (pixel[lineSize] != valOfEmpty)
+    {
+      return (pixel[-lineSize - 1] == valOfEmpty) && (pixel[-lineSize] == valOfEmpty) && (pixel[-lineSize + 1] == valOfEmpty);
+    }
+    if (pixel[lineSize - 1] != valOfEmpty)
+    {
+      return (pixel[1] == valOfEmpty) && (pixel[-lineSize + 1] == valOfEmpty) && (pixel[-lineSize] == valOfEmpty);
+    }
+    return true;//isolated pixel... Considered as end of line...
+  }
 
-    // Calculate the integral image, and integral of the squared image
-    cv::Mat integral_image(gray_image.size(), CV_64FC1);
+  cv::Mat nonMaximaSupression(cv::Mat imgFloat)
+  {
+    cv::Mat dst = Mat::zeros(imgFloat.size(), CV_8UC1);
+    cv::Mat img;
+    normalize(imgFloat, img, 0, 255, NORM_MINMAX, CV_8UC1);
 
-    int xmin, ymin, xmax, ymax;
-    double diagsum, idiagsum, diff, area;
-    double nbBackgroundPixels;
+    IplImage srctmp = img;
+    IplImage* srcarr = &srctmp;
+    IplImage *gradImg = cvCreateImage(cvSize(srcarr->width, srcarr->height), 8, 1);
 
-    /*
-    cv::integral(gray_image, integral_image, CV_64FC1);
-    //Calculate the mean and standard deviation using the integral image
+    int aperture_size = 5;
+    float moy = 0, vari = 0;
+    static CvMat *dx = cvCreateMat(srcarr->height, srcarr->width, CV_16SC1);
+    static CvMat *dy = cvCreateMat(srcarr->height, srcarr->width, CV_16SC1);
 
-    for (int i = 0; i < image_width; i++){
-      for (int j = 0; j < image_height; j++){
+    if (dx->cols != srcarr->width || dx->rows != srcarr->height)
+    {
+      cvReleaseMat(&dx);
+      cvReleaseMat(&dy);
+      dx = cvCreateMat(srcarr->height, srcarr->width, CV_16SC1);
+      dy = cvCreateMat(srcarr->height, srcarr->width, CV_16SC1);
+    }
 
-        if (gray_image.at<uchar>(j, i) == 0)
-          out.at<uchar>(j, i) = 0;//not a pen stroke, skip this pixel...
-        else
-        {
-          //increase a subWindow around pixel until too much background pixel is taken:
-          uchar pixelSize = 1;
-          bool stop = false;
+    cvSobel(srcarr, dx, 1, 0, aperture_size);
+    cvSobel(srcarr, dy, 0, 1, aperture_size);
 
-          while (pixelSize < 200 && !stop)
-          {
-            xmin = cv::max(0, i - pixelSize);
-            ymin = cv::max(0, j - pixelSize);
-            xmax = cv::min(image_width - 1, i + pixelSize);
-            ymax = cv::min(image_height - 1, j + pixelSize);
-            xmin++; ymin++; xmax++; ymax++;//first column/row is empty...
-            area = (xmax - xmin + 1)*(ymax - ymin + 1) * 255;
-            if (xmin <= 1 && ymin <= 1){ // Point at origin
-              diff = integral_image.at<double>(ymax, xmax);
-            }
-            else if (xmin <= 1 && ymin > 1){ // first column
-              diff = integral_image.at<double>(ymax, xmax) - integral_image.at<double>(ymin - 1, xmax);
-            }
-            else if (xmin > 1 && ymin <= 1){ // first row
-              diff = integral_image.at<double>(ymax, xmax) - integral_image.at<double>(ymax, xmin - 1);
-            }
-            else{ // rest of the image
-              diagsum = integral_image.at<double>(ymax, xmax) + integral_image.at<double>(ymin - 1, xmin - 1);
-              idiagsum = integral_image.at<double>(ymin - 1, xmax) + integral_image.at<double>(ymax, xmin - 1);
-              diff = diagsum - idiagsum;
-            }
+    //----------------------------------------------------------------------------------------------------------------------------
+    //--------------------------------------------Détection des contours avec canny :---------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------------
 
-            nbBackgroundPixels = (area - diff) / 255;
+    void *buffer = 0;
+    uchar **stack_top, **stack_bottom = 0;
 
-            stop = (nbBackgroundPixels >= pixelSize * 3);
+    CvMat srcstub, *src = (CvMat*)srcarr;
+    CvMat dststub;
+    CvSize size;
+    int flags = aperture_size;
+    int* mag_buf[3];
+    uchar* map;
+    int mapstep, maxsize;
+    CvMat mag_row;
 
-            pixelSize++;
-          }
+    src = cvGetMat(src, &srcstub);
 
-          out.at<uchar>(j, i) = pixelSize;//not a pen stroke, skip this pixel...
+    aperture_size &= INT_MAX;
+    if ((aperture_size & 1) == 0 || aperture_size < 3 || aperture_size > 7)
+      return Mat();
 
-        }
+    size = CvSize(src->cols, src->rows);
+
+    buffer = cvAlloc((size.width + 2)*(size.height + 2) + (size.width + 2) * 3 * sizeof(int));
+
+    mag_buf[0] = (int*)buffer;
+    mag_buf[1] = mag_buf[0] + size.width + 2;
+    mag_buf[2] = mag_buf[1] + size.width + 2;
+    map = (uchar*)(mag_buf[2] + size.width + 2);
+    mapstep = size.width + 2;
+
+    maxsize = MAX(1 << 10, size.width*size.height / 10);
+    stack_top = stack_bottom = (uchar**)cvAlloc(maxsize*sizeof(stack_top[0]));
+
+    memset(mag_buf[0], 0, (size.width + 2)*sizeof(int));
+    memset(map, 1, mapstep);
+    memset(map + mapstep*(size.height + 1), 1, mapstep);
+
+    //sector numbers 
+    //  (Top-Left Origin)
+    //
+    //       1   2   3
+    //         *  *  * 
+    //          * * *  
+    //        0*******0
+    //          * * *  
+    //         *  *  * 
+    //        3   2   1
+
+
+#define CANNY_PUSH(d)    *(d) = (uchar)2, *stack_top++ = (d)
+#define CANNY_POP(d)     (d) = *--stack_top
+
+    mag_row = cvMat(1, size.width, CV_32F);
+
+    int i, j;
+
+
+    // calculate magnitude and angle of gradient, perform non-maxima supression.
+    // fill the map with one of the following values:
+    //   0 - the pixel might belong to an edge
+    //   1 - the pixel can not belong to an edge
+    //   2 - the pixel does belong to an edge
+    for (i = 0; i < size.height; i++)
+    {
+      uchar* _map;
+      int prev_flag = 0;
+
+      if (i == 0)
+        continue;
+
+      _map = map + mapstep*i + 1;
+      _map[-1] = _map[size.width] = 1;
+      uchar * _img = img.ptr<uchar>(i);
+      uchar * _img_prev = img.ptr<uchar>(i - 1);
+      uchar * _img_next = i<size.height - 1 ? img.ptr<uchar>(i + 1) : _img;
+
+      if ((stack_top - stack_bottom) + size.width > maxsize)
+      {
+        uchar** new_stack_bottom;
+        maxsize = MAX(maxsize * 3 / 2, maxsize + size.width);
+        new_stack_bottom = (uchar**)cvAlloc(maxsize * sizeof(stack_top[0]));
+        memcpy(new_stack_bottom, stack_bottom, (stack_top - stack_bottom)*sizeof(stack_top[0]));
+        stack_top = new_stack_bottom + (stack_top - stack_bottom);
+        cvFree(&stack_bottom);
+        stack_bottom = new_stack_bottom;
       }
-    }*/
+
+      for (j = 0; j < size.width; j++)
+      {
+        uchar m = _img[j];
+        uchar mPrev = j>0 ? _img[j - 1] : m;
+        uchar m_prev_ = _img_prev[j];
+        uchar mNext = j < size.width - 1 ? _img[j + 1] : m;
+        uchar m_next_ = _img_next[j];
+        if (mPrev>0)
+        {
+          if (m > mPrev && m >= mNext)
+          {
+            if (!prev_flag && _map[j - mapstep] == 1)
+            {
+              CANNY_PUSH(_map + j);
+              prev_flag = 1;
+            }
+            else
+              _map[j] = (uchar)0;
+            continue;
+          }
+          if (m > m_prev_ && m >= m_next_)
+          {
+            if (m >= mPrev)
+              _map[j] = (uchar)0;
+            else
+              _map[j] = (uchar)3;
+            continue;
+          }
+        }
+        prev_flag = 0;
+        _map[j] = (uchar)1;
+      }
+    }
+    
+    // now track the edges (hysteresis thresholding)
+    while (stack_top > stack_bottom)
+    {
+      uchar* m;
+      if ((stack_top - stack_bottom) + 8 > maxsize)
+      {
+        uchar** new_stack_bottom;
+        maxsize = MAX(maxsize * 3 / 2, maxsize + 8);
+        new_stack_bottom = (uchar**)cvAlloc(maxsize * sizeof(stack_top[0]));
+        memcpy(new_stack_bottom, stack_bottom, (stack_top - stack_bottom)*sizeof(stack_top[0]));
+        stack_top = new_stack_bottom + (stack_top - stack_bottom);
+        cvFree(&stack_bottom);
+        stack_bottom = new_stack_bottom;
+      }
+
+      CANNY_POP(m);
+
+      if (m[-1] == 0)
+        CANNY_PUSH(m - 1);
+      if (m[1] == 0)
+        CANNY_PUSH(m + 1);
+      if (m[-mapstep - 1] == 0)
+        CANNY_PUSH(m - mapstep - 1);
+      if (m[-mapstep] == 0)
+        CANNY_PUSH(m - mapstep);
+      if (m[-mapstep + 1] == 0)
+        CANNY_PUSH(m - mapstep + 1);
+      if (m[mapstep - 1] == 0)
+        CANNY_PUSH(m + mapstep - 1);
+      if (m[mapstep] == 0)
+        CANNY_PUSH(m + mapstep);
+      if (m[mapstep + 1] == 0)
+        CANNY_PUSH(m + mapstep + 1);
+    }
+
+    //now track bad ending lines:
+
+#define CANNY_PUSH_BADS(d)    *(d) = (uchar)4, *stack_top++ = (d)
+#define CANNY_POP(d)     (d) = *--stack_top
+    for (i = 0; i < size.height; i++)
+    {
+      uchar* _map;
+
+      if (i == 0)
+        continue;
+
+      _map = map + mapstep*i + 1;
+      _map[-1] = _map[size.width] = 1;
+      uchar * _img = img.ptr<uchar>(i);
+
+      for (j = 0; j < size.width; j++)
+      {
+        if (_map[j] == 3 && isEndOfLine(&_map[j], mapstep))
+          CANNY_PUSH_BADS(_map + j);
+      }
+    }
+    // now track the edges (hysteresis thresholding)
+    while (stack_top > stack_bottom)
+    {
+      uchar* m;
+      if ((stack_top - stack_bottom) + 8 > maxsize)
+      {
+        uchar** new_stack_bottom;
+        maxsize = MAX(maxsize * 3 / 2, maxsize + 8);
+        new_stack_bottom = (uchar**)cvAlloc(maxsize * sizeof(stack_top[0]));
+        memcpy(new_stack_bottom, stack_bottom, (stack_top - stack_bottom)*sizeof(stack_top[0]));
+        stack_top = new_stack_bottom + (stack_top - stack_bottom);
+        cvFree(&stack_bottom);
+        stack_bottom = new_stack_bottom;
+      }
+
+      CANNY_POP(m);
+
+      if (m[-1] == 3)
+        CANNY_PUSH_BADS(m - 1);
+      if (m[1] == 3)
+        CANNY_PUSH_BADS(m + 1);
+      if (m[-mapstep - 1] == 3)
+        CANNY_PUSH_BADS(m - mapstep - 1);
+      if (m[-mapstep] == 3)
+        CANNY_PUSH_BADS(m - mapstep);
+      if (m[-mapstep + 1] == 3)
+        CANNY_PUSH_BADS(m - mapstep + 1);
+      if (m[mapstep - 1] == 3)
+        CANNY_PUSH_BADS(m + mapstep - 1);
+      if (m[mapstep] == 3)
+        CANNY_PUSH_BADS(m + mapstep);
+      if (m[mapstep + 1] == 3)
+        CANNY_PUSH_BADS(m + mapstep + 1);
+    }
+
+    // the final pass, form the final image
+    uchar* _dst, *_src;
+    for (i = 5; i < size.height - 6; i++)
+    {
+      const uchar* _map = map + mapstep*(i + 1) + 1;
+      _dst = dst.ptr<uchar>(i);
+      //_dst = (uchar*)dstarr->imageData + dstarr->widthStep*i;
+      _src = src->data.ptr + src->step*i;
+
+      //        _dx = (short*)(dx->data.ptr + dx->step*(i));
+      //        _dy = (short*)(dy->data.ptr + dy->step*(i));
+
+      //pc->shouldResize(size.width);
+
+
+      for (j = 5; j < size.width - 6; j++){
+        if (_map[j] == 0)
+          _dst[j] = 255;
+        else{
+          uchar test = _map[j];
+          if (_map[j] == (uchar)1)
+            _dst[j] = 0;
+          else{
+            if (_map[j] == (uchar)3)
+              _dst[j] = 255;
+            else{
+              if (_map[j] == (uchar)4)
+                _dst[j] = 0;
+              else{
+                _dst[j] = 255;
+              }
+            }
+          }
+        }
+        //PILE_CANNY_PUSH(&_src[j]);
+      }
+      //_dst[j] = (uchar)-(_map[j] >> 1);
+    }
+    cvFree(&buffer);
+    cvFree(&stack_bottom);
+
+    return dst;
+  }
+
+  //from a binary image, find pen size
+  float findBiggestPenSize(cv::Mat binaryImg)
+  {
     cv::Mat distImg;
-    cv::distanceTransform(gray_image,
+
+    cv::distanceTransform(binaryImg,
       distImg,
       cv::DIST_L2,
       cv::DIST_MASK_3);
-    //recreate img:
+
+    int image_width = binaryImg.cols;
+    int image_height = binaryImg.rows;
+    double meanSize = 0;
+    int nbPixel = 0;
 
     for (int i = 0; i < image_width; i++){
       for (int j = 0; j < image_height; j++){
-        circle(out, Point(i, j), distImg.at<float>(j, i) + 0.5, Scalar(128 + distImg.at<float>(j, i) * 20), -1);
+        float tmp = distImg.at<float>(j, i);
+        if (tmp > 0)
+        {
+          meanSize += tmp;
+          nbPixel++;
+        }
       }
     }
 
-    return out;
+    return (float)meanSize/nbPixel;
   }
 
   /**
@@ -216,7 +488,7 @@ namespace charliesoft
     im &= ~marker;
   }
 
-  void thinning(cv::Mat& im)
+  void thinning(cv::Mat& im, int iter)
   {
     im /= 255;
 
@@ -224,11 +496,12 @@ namespace charliesoft
     cv::Mat diff;
 
     do {
+      iter--;
       thinningIteration(im, 0);
       thinningIteration(im, 1);
       cv::absdiff(im, prev, diff);
       im.copyTo(prev);
-    } while (cv::countNonZero(diff) > 0);
+    } while (cv::countNonZero(diff) > 0 && iter>=0);
 
     im *= 255;
   }
@@ -245,9 +518,17 @@ namespace charliesoft
       bool inverse = mean(output)[0] > 128;
       if (inverse)
         output = 255 - output;
+      /*
+      float size = findBiggestPenSize(output);
+      thinning(output, size);*/
+      cv::Mat distImg;
+      cv::distanceTransform(output,
+        distImg,
+        cv::DIST_L2,
+        cv::DIST_MASK_3);
 
-      findBiggestPenSize(output);
-      thinning(output);
+      output = nonMaximaSupression(distImg);
+      //thinning(output, 2);
 
       if (inverse)
         output = 255 - output;
