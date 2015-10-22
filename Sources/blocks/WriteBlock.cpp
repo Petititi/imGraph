@@ -31,8 +31,8 @@ namespace charliesoft
   BEGIN_BLOCK_INPUT_PARAMS(WriteVideo);
   //Add parameters, with following parameters:
   //default visibility, type of parameter, name (key of internationalizor), helper...
-  ADD_PARAMETER(true, Matrix, "BLOCK__WRITE_IN_IMAGE", "BLOCK__WRITE_IN_IMAGE_HELP");
-  ADD_PARAMETER(false, FilePath, "BLOCK__WRITE_IN_FILENAME", "BLOCK__WRITE_IN_FILENAME_HELP");
+  ADD_PARAMETER(toBeLinked, Matrix, "BLOCK__WRITE_IN_IMAGE", "BLOCK__WRITE_IN_IMAGE_HELP");
+  ADD_PARAMETER(userConstant, FilePath, "BLOCK__WRITE_IN_FILENAME", "BLOCK__WRITE_IN_FILENAME_HELP");
   ADD_PARAMETER_FULL(false, Float, "BLOCK__WRITE_IN_FPS", "BLOCK__WRITE_IN_FPS_HELP", 25.);
   ADD_PARAMETER_FULL(false, String, "BLOCK__WRITE_IN_CODEC", "BLOCK__WRITE_IN_CODEC_HELP", "XVID");
   END_BLOCK_PARAMS();
@@ -89,8 +89,8 @@ namespace charliesoft
   BEGIN_BLOCK_INPUT_PARAMS(WriteImage);
   //Add parameters, with following parameters:
   //default visibility, type of parameter, name (key of internationalizor), helper...
-  ADD_PARAMETER(true, Matrix, "BLOCK__IMWRITE_IN_IMAGE", "BLOCK__IMWRITE_IN_IMAGE_HELP");
-  ADD_PARAMETER(false, FilePath, "BLOCK__IMWRITE_IN_FILENAME", "BLOCK__IMWRITE_IN_FILENAME_HELP");
+  ADD_PARAMETER(toBeLinked, Matrix, "BLOCK__IMWRITE_IN_IMAGE", "BLOCK__IMWRITE_IN_IMAGE_HELP");
+  ADD_PARAMETER(userConstant, FilePath, "BLOCK__IMWRITE_IN_FILENAME", "BLOCK__IMWRITE_IN_FILENAME_HELP");
   ADD_PARAMETER_FULL(false, Int, "BLOCK__IMWRITE_IN_QUALITY", "BLOCK__IMWRITE_IN_QUALITY_HELP", 95);
   END_BLOCK_PARAMS();
 

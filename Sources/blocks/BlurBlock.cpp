@@ -29,12 +29,12 @@ namespace charliesoft
   BEGIN_BLOCK_INPUT_PARAMS(BlurBlock);
   //Add parameters, with following parameters:
   //default visibility, type of parameter, name (key of internationalizor), helper...
-  ADD_PARAMETER(true, Matrix, "BLOCK__BLUR_IN_IMG", "BLOCK__BLUR_IN_IMG_HELP");
+  ADD_PARAMETER(toBeLinked, Matrix, "BLOCK__BLUR_IN_IMG", "BLOCK__BLUR_IN_IMG_HELP");
   ADD_PARAMETER_FULL(false, ListBox, "BLOCK__BLUR_IN_METHOD", "BLOCK__BLUR_IN_METHOD_HELP", 0);
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_OUTPUT_PARAMS(BlurBlock);
-  ADD_PARAMETER(true, AnyType, "BLOCK__BLUR_OUT_IMAGE", "BLOCK__BLUR_OUT_IMAGE_HELP");//output type is defined by inputs
+  ADD_PARAMETER(toBeLinked, AnyType, "BLOCK__BLUR_OUT_IMAGE", "BLOCK__BLUR_OUT_IMAGE_HELP");//output type is defined by inputs
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_SUBPARAMS_DEF(BlurBlock);

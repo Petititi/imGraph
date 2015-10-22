@@ -29,12 +29,12 @@ namespace charliesoft
   BEGIN_BLOCK_INPUT_PARAMS(MergingBlock);
   //Add parameters, with following parameters:
   //default visibility, type of parameter, name (key of internationalizor), helper...
-  ADD_PARAMETER(true, AnyType, "BLOCK__ADD_IN_PARAM1", "BLOCK__ADD_IN_PARAM1_HELP");
-  ADD_PARAMETER(true, AnyType, "BLOCK__ADD_IN_PARAM2", "BLOCK__ADD_IN_PARAM2_HELP");
+  ADD_PARAMETER(toBeLinked, AnyType, "BLOCK__ADD_IN_PARAM1", "BLOCK__ADD_IN_PARAM1_HELP");
+  ADD_PARAMETER(toBeLinked, AnyType, "BLOCK__ADD_IN_PARAM2", "BLOCK__ADD_IN_PARAM2_HELP");
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_OUTPUT_PARAMS(MergingBlock);
-  ADD_PARAMETER(true, AnyType, "BLOCK__ADD_OUTPUT", "BLOCK__ADD_OUTPUT");//output type is defined by inputs
+  ADD_PARAMETER(toBeLinked, AnyType, "BLOCK__ADD_OUTPUT", "BLOCK__ADD_OUTPUT");//output type is defined by inputs
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_SUBPARAMS_DEF(MergingBlock);

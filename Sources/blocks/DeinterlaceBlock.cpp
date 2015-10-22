@@ -29,12 +29,12 @@ namespace charliesoft
   BEGIN_BLOCK_INPUT_PARAMS(DeinterlaceBlock);
   //Add parameters, with following parameters:
   //default visibility, type of parameter, name (key of internationalizor), helper...
-  ADD_PARAMETER(true, Matrix, "BLOCK__DEINTERLACE_IN_IMAGE", "BLOCK__DEINTERLACE_IN_IMAGE_HELP");
+  ADD_PARAMETER(toBeLinked, Matrix, "BLOCK__DEINTERLACE_IN_IMAGE", "BLOCK__DEINTERLACE_IN_IMAGE_HELP");
   ADD_PARAMETER_FULL(false, ListBox, "BLOCK__DEINTERLACE_IN_TYPE", "BLOCK__DEINTERLACE_IN_TYPE_HELP", 0);
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_OUTPUT_PARAMS(DeinterlaceBlock);
-  ADD_PARAMETER(true, Matrix, "BLOCK__DEINTERLACE_OUT_IMAGE", "BLOCK__DEINTERLACE_OUT_IMAGE_HELP");
+  ADD_PARAMETER(toBeLinked, Matrix, "BLOCK__DEINTERLACE_OUT_IMAGE", "BLOCK__DEINTERLACE_OUT_IMAGE_HELP");
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_SUBPARAMS_DEF(DeinterlaceBlock);
@@ -78,12 +78,12 @@ namespace charliesoft
   BEGIN_BLOCK_INPUT_PARAMS(InterlaceBlock);
   //Add parameters, with following parameters:
   //default visibility, type of parameter, name (key of internationalizor), helper...
-  ADD_PARAMETER(true, Matrix, "BLOCK__SKIP_FRAME_IN_IMAGE", "BLOCK__SKIP_FRAME_IN_IMAGE_HELP");
+  ADD_PARAMETER(toBeLinked, Matrix, "BLOCK__SKIP_FRAME_IN_IMAGE", "BLOCK__SKIP_FRAME_IN_IMAGE_HELP");
   ADD_PARAMETER_FULL(false, Int, "BLOCK__SKIP_FRAME_IN_TYPE", "BLOCK__SKIP_FRAME_IN_TYPE_HELP", 1);
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_OUTPUT_PARAMS(InterlaceBlock);
-  ADD_PARAMETER(true, Matrix, "BLOCK__SKIP_FRAME_OUT_IMAGE", "BLOCK__SKIP_FRAME_OUT_IMAGE_HELP");
+  ADD_PARAMETER(toBeLinked, Matrix, "BLOCK__SKIP_FRAME_OUT_IMAGE", "BLOCK__SKIP_FRAME_OUT_IMAGE_HELP");
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_SUBPARAMS_DEF(InterlaceBlock);

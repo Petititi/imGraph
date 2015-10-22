@@ -34,7 +34,7 @@ namespace charliesoft
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_OUTPUT_PARAMS(BinarizeBlock);
-  ADD_PARAMETER(true, AnyType, "BLOCK__BINARIZE_OUT_IMAGE", "BLOCK__BINARIZE_OUT_IMAGE_HELP");//output type is defined by inputs
+  ADD_PARAMETER(toBeLinked, AnyType, "BLOCK__BINARIZE_OUT_IMAGE", "BLOCK__BINARIZE_OUT_IMAGE_HELP");//output type is defined by inputs
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_SUBPARAMS_DEF(BinarizeBlock);

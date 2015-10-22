@@ -21,7 +21,7 @@ namespace charliesoft
   BEGIN_BLOCK_INPUT_PARAMS(ShowGraph);
   //Add parameters, with following parameters:
   //default visibility, type of parameter, name (key of internationalizor), helper...
-  ADD_PARAMETER(true, Matrix, "BLOCK__SHOWGRAPH_IN_VALUES", "BLOCK__SHOWGRAPH_IN_VALUES_HELP");
+  ADD_PARAMETER(toBeLinked, Matrix, "BLOCK__SHOWGRAPH_IN_VALUES", "BLOCK__SHOWGRAPH_IN_VALUES_HELP");
   ADD_PARAMETER_FULL(false, String, "BLOCK__SHOWGRAPH_IN_TITLE", "BLOCK__SHOWGRAPH_IN_TITLE_HELP", "GraphShow");
   END_BLOCK_PARAMS();
 

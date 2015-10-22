@@ -560,9 +560,19 @@ namespace charliesoft
     translations["BLOCK__THINNING_OUT_IMAGE"] = "image";
     translations["BLOCK__THINNING_OUT_IMAGE_HELP"] = "Output image";
 
+    translations["BLOCK__DISTANCE_NAME"] = "Distance transform";
+    translations["BLOCK__DISTANCE_IN_IMAGE"] = "image";
+    translations["BLOCK__DISTANCE_IN_IMAGE_HELP"] = "Input image";
+    translations["BLOCK__DISTANCE_IN_DISTANCETYPE"] = "distance";
+    translations["BLOCK__DISTANCE_IN_DISTANCETYPE_HELP"] = "distance type|DIST_C^DIST_L1^DIST_L2^DIST_PRECISE";
+    translations["BLOCK__DISTANCE_OUT_IMAGE"] = "image";
+    translations["BLOCK__DISTANCE_OUT_IMAGE_HELP"] = "Output image";
+
     translations["BLOCK__BINARIZE_NAME"] = "Binarize img";
     translations["BLOCK__BINARIZE_IN_IMAGE"] = "image";
     translations["BLOCK__BINARIZE_IN_IMAGE_HELP"] = "Input image";
+    translations["BLOCK__BINARIZE_IN_INVERSE"] = "inverse";
+    translations["BLOCK__BINARIZE_IN_INVERSE_HELP"] = "Use inverse of binary image";
     translations["BLOCK__BINARIZE_IN_METHOD"] = "Method";
     translations["BLOCK__BINARIZE_IN_METHOD_HELP"] = "Binarization method|Simple threshold^Otsu^Adaptative^Sauvola";
     translations["BLOCK__BINARIZE_IN_THRESHOLD"] = "threshold";

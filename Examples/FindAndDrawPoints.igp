@@ -4,103 +4,222 @@
     <name>BLOCK__INPUT_NAME</name>
     <position>[39, 147]</position>
     <size_increment>[107, 74]</size_increment>
-    <preview_active>BLOCK__INPUT_OUT_IMAGE</preview_active>
+    <preview_active>None</preview_active>
     <Input>
       <Name>BLOCK__INPUT_INOUT_HEIGHT</Name>
-      <ID>102620512</ID>
+      <ID>121914584</ID>
       <Link>false</Link>
       <Value>Not initialized...</Value>
       <IsVisible>0</IsVisible>
     </Input>
     <Input>
       <Name>BLOCK__INPUT_INOUT_POS_FRAMES</Name>
-      <ID>102621560</ID>
+      <ID>121915632</ID>
       <Link>false</Link>
       <Value>Not initialized...</Value>
       <IsVisible>0</IsVisible>
     </Input>
     <Input>
       <Name>BLOCK__INPUT_INOUT_POS_RATIO</Name>
-      <ID>102622624</ID>
+      <ID>121916696</ID>
       <Link>false</Link>
       <Value>Not initialized...</Value>
       <IsVisible>0</IsVisible>
     </Input>
     <Input>
       <Name>BLOCK__INPUT_INOUT_WIDTH</Name>
-      <ID>102619464</ID>
+      <ID>121913536</ID>
       <Link>false</Link>
       <Value>Not initialized...</Value>
       <IsVisible>0</IsVisible>
     </Input>
     <Input>
       <Name>BLOCK__INPUT_IN_COLOR</Name>
-      <ID>102623672</ID>
+      <ID>121917744</ID>
       <Link>false</Link>
       <Value>Not initialized...</Value>
       <IsVisible>0</IsVisible>
     </Input>
     <Input>
       <Name>BLOCK__INPUT_IN_GREY</Name>
-      <ID>102624720</ID>
+      <ID>121918792</ID>
       <Link>false</Link>
       <Value>Not initialized...</Value>
       <IsVisible>0</IsVisible>
     </Input>
     <Input>
       <Name>BLOCK__INPUT_IN_INPUT_TYPE</Name>
-      <ID>102646032</ID>
+      <ID>121940120</ID>
       <Link>false</Link>
       <Value>2</Value>
       <IsVisible>2</IsVisible>
     </Input>
     <Input>
       <Name>BLOCK__INPUT_IN_LOOP</Name>
-      <ID>102647104</ID>
+      <ID>121941192</ID>
       <Link>false</Link>
       <Value>0</Value>
       <IsVisible>2</IsVisible>
     </Input>
     <Input>
       <Name>BLOCK__INPUT_OUT_FRAMERATE</Name>
-      <ID>102625768</ID>
+      <ID>121919840</ID>
       <Link>false</Link>
       <Value>Not initialized...</Value>
       <IsVisible>1</IsVisible>
     </Input>
     <Output>
       <Name>BLOCK__INPUT_INOUT_HEIGHT</Name>
-      <ID>102652064</ID>
+      <ID>121946152</ID>
     </Output>
     <Output>
       <Name>BLOCK__INPUT_INOUT_POS_FRAMES</Name>
-      <ID>102653136</ID>
+      <ID>121947224</ID>
     </Output>
     <Output>
       <Name>BLOCK__INPUT_INOUT_POS_RATIO</Name>
-      <ID>102654208</ID>
+      <ID>121948296</ID>
     </Output>
     <Output>
       <Name>BLOCK__INPUT_INOUT_WIDTH</Name>
-      <ID>102650992</ID>
+      <ID>121945080</ID>
     </Output>
     <Output>
       <Name>BLOCK__INPUT_OUT_FORMAT</Name>
-      <ID>102655280</ID>
+      <ID>121949368</ID>
     </Output>
     <Output>
       <Name>BLOCK__INPUT_OUT_FRAMERATE</Name>
-      <ID>102649920</ID>
+      <ID>121944008</ID>
     </Output>
     <Output>
       <Name>BLOCK__INPUT_OUT_IMAGE</Name>
-      <ID>102648848</ID>
+      <ID>121942936</ID>
     </Output>
     <SubParam>
       <Name>BLOCK__INPUT_IN_INPUT_TYPE.Folder.input folder</Name>
-      <ID>102618416</ID>
+      <ID>121912488</ID>
       <Link>false</Link>
-      <Value>D:/Travail/Binarization/data</Value>
+      <Value>D:/Travail/Binarization/data/binPAMI</Value>
     </SubParam>
+  </Block>
+  <Block>
+    <name>BLOCK__THINNING_NAME</name>
+    <position>[1362, 146]</position>
+    <size_increment>[0, 0]</size_increment>
+    <preview_active>None</preview_active>
+    <Input>
+      <Name>BLOCK__THINNING_IN_IMAGE</Name>
+      <ID>121960144</ID>
+      <Link>true</Link>
+      <Value>122264520</Value>
+      <IsVisible>1</IsVisible>
+    </Input>
+    <Output>
+      <Name>BLOCK__THINNING_OUT_IMAGE</Name>
+      <ID>121963960</ID>
+    </Output>
+  </Block>
+  <Block>
+    <name>BLOCK__OUTPUT_NAME</name>
+    <position>[1595, 91]</position>
+    <size_increment>[0, 0]</size_increment>
+    <preview_active>None</preview_active>
+    <Input>
+      <Name>BLOCK__OUTPUT_IN_IMAGE</Name>
+      <ID>121967648</ID>
+      <Link>true</Link>
+      <Value>121963960</Value>
+      <IsVisible>1</IsVisible>
+    </Input>
+    <Input>
+      <Name>BLOCK__OUTPUT_IN_NORMALIZE</Name>
+      <ID>121973936</ID>
+      <Link>false</Link>
+      <Value>0</Value>
+      <IsVisible>2</IsVisible>
+    </Input>
+    <Input>
+      <Name>BLOCK__OUTPUT_IN_WIN_NAME</Name>
+      <ID>121972768</ID>
+      <Link>false</Link>
+      <Value>Thin</Value>
+      <IsVisible>2</IsVisible>
+    </Input>
+  </Block>
+  <Block>
+    <name>BLOCK__MORPHOLOGIC_NAME</name>
+    <position>[340, 179]</position>
+    <size_increment>[33, 55]</size_increment>
+    <preview_active>None</preview_active>
+    <Input>
+      <Name>BLOCK__MORPHOLOGIC_ELEMENT</Name>
+      <ID>121978464</ID>
+      <Link>false</Link>
+      <Value>%YAML:1.0
+matrixValue: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: u
+   data: [ 0, 0, 0, 1, 1, 1, 0, 0, 0 ]
+</Value>
+      <IsVisible>2</IsVisible>
+    </Input>
+    <Input>
+      <Name>BLOCK__MORPHOLOGIC_IN_IMAGE</Name>
+      <ID>121977488</ID>
+      <Link>true</Link>
+      <Value>121942936</Value>
+      <IsVisible>1</IsVisible>
+    </Input>
+    <Input>
+      <Name>BLOCK__MORPHOLOGIC_ITERATIONS</Name>
+      <ID>121980720</ID>
+      <Link>false</Link>
+      <Value>1</Value>
+      <IsVisible>2</IsVisible>
+    </Input>
+    <Input>
+      <Name>BLOCK__MORPHOLOGIC_OPERATOR</Name>
+      <ID>121979600</ID>
+      <Link>false</Link>
+      <Value>2</Value>
+      <IsVisible>2</IsVisible>
+    </Input>
+    <Output>
+      <Name>BLOCK__MORPHOLOGIC_OUT_IMAGE</Name>
+      <ID>121988448</ID>
+    </Output>
+  </Block>
+  <Block>
+    <name>BLOCK__DISTANCE_NAME</name>
+    <position>[586, 125]</position>
+    <size_increment>[480, 332]</size_increment>
+    <preview_active>BLOCK__DISTANCE_OUT_IMAGE</preview_active>
+    <Input>
+      <Name>BLOCK__BINARIZE_IN_INVERSE</Name>
+      <ID>122263448</ID>
+      <Link>false</Link>
+      <Value>1</Value>
+      <IsVisible>2</IsVisible>
+    </Input>
+    <Input>
+      <Name>BLOCK__DISTANCE_IN_DISTANCETYPE</Name>
+      <ID>122262376</ID>
+      <Link>false</Link>
+      <Value>2</Value>
+      <IsVisible>2</IsVisible>
+    </Input>
+    <Input>
+      <Name>BLOCK__DISTANCE_IN_IMAGE</Name>
+      <ID>122256024</ID>
+      <Link>true</Link>
+      <Value>121988448</Value>
+      <IsVisible>1</IsVisible>
+    </Input>
+    <Output>
+      <Name>BLOCK__DISTANCE_OUT_IMAGE</Name>
+      <ID>122264520</ID>
+    </Output>
   </Block>
 </GraphOfProcess>

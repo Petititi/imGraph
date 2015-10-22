@@ -25,7 +25,7 @@ namespace charliesoft
   BEGIN_BLOCK_INPUT_PARAMS(BlockCanny);
   //Add parameters, with following parameters:
   //Based on opencv::Canny( InputArray image, OutputArray edges, double threshold1, double threshold2, int apertureSize = 3, bool L2gradient = false );
-  ADD_PARAMETER(true, Matrix, "BLOCK__CANNY_IN_IMAGE", "BLOCK__CANNY_IN_IMAGE_HELP");
+  ADD_PARAMETER(toBeLinked, Matrix, "BLOCK__CANNY_IN_IMAGE", "BLOCK__CANNY_IN_IMAGE_HELP");
   ADD_PARAMETER_FULL(false, Float, "BLOCK__CANNY_IN_THRESHOLD_1", "BLOCK__CANNY_IN_THRESHOLD_1_HELP", 100.);
   ADD_PARAMETER_FULL(false, Float, "BLOCK__CANNY_IN_THRESHOLD_2", "BLOCK__CANNY_IN_THRESHOLD_2_HELP", 300.);
   ADD_PARAMETER_FULL(false, Int, "BLOCK__CANNY_IN_APERTURE_SIZE", "BLOCK__CANNY_IN_APERTURE_SIZE_HELP", 3);
@@ -33,7 +33,7 @@ namespace charliesoft
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_OUTPUT_PARAMS(BlockCanny);
-  ADD_PARAMETER(true, Matrix, "BLOCK__CANNY_OUT_IMAGE", "BLOCK__CANNY_OUT_IMAGE_HELP");
+  ADD_PARAMETER(toBeLinked, Matrix, "BLOCK__CANNY_OUT_IMAGE", "BLOCK__CANNY_OUT_IMAGE_HELP");
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_SUBPARAMS_DEF(BlockCanny);

@@ -29,11 +29,11 @@ namespace charliesoft
   BEGIN_BLOCK_INPUT_PARAMS(ThinningBlock);
   //Add parameters, with following parameters:
   //default visibility, type of parameter, name (key of internationalizor), helper...
-  ADD_PARAMETER(true, Matrix, "BLOCK__THINNING_IN_IMAGE", "BLOCK__THINNING_IN_IMAGE_HELP");
+  ADD_PARAMETER(toBeLinked, Matrix, "BLOCK__THINNING_IN_IMAGE", "BLOCK__THINNING_IN_IMAGE_HELP");
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_OUTPUT_PARAMS(ThinningBlock);
-  ADD_PARAMETER(true, AnyType, "BLOCK__THINNING_OUT_IMAGE", "BLOCK__THINNING_OUT_IMAGE_HELP");//output type is defined by inputs
+  ADD_PARAMETER(toBeLinked, AnyType, "BLOCK__THINNING_OUT_IMAGE", "BLOCK__THINNING_OUT_IMAGE_HELP");//output type is defined by inputs
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_SUBPARAMS_DEF(ThinningBlock);
@@ -127,6 +127,21 @@ namespace charliesoft
       return (pixel[1] == valOfEmpty) && (pixel[-lineSize + 1] == valOfEmpty) && (pixel[-lineSize] == valOfEmpty);
     }
     return true;//isolated pixel... Considered as end of line...
+  }
+
+  void rewindMaxima(uchar* pixel, int nbMax)
+  {
+    for (int i = 0; i < nbMax; i++)
+    {
+      //if (((*pixel) != 0) && ((*pixel) != 2))
+      if (((*pixel) == 1))
+        return;
+      else
+      {
+        (*pixel) = 1;
+      }
+      pixel--;
+    }
   }
 
   cv::Mat nonMaximaSupression(cv::Mat imgFloat)
@@ -243,7 +258,7 @@ namespace charliesoft
         cvFree(&stack_bottom);
         stack_bottom = new_stack_bottom;
       }
-
+      bool riskyRun = false;
       for (j = 0; j < size.width; j++)
       {
         uchar m = _img[j];
@@ -255,6 +270,8 @@ namespace charliesoft
         {
           if (m > mPrev && m >= mNext)
           {
+            if (m > mNext)
+              riskyRun = false;
             if (!prev_flag && _map[j - mapstep] == 1)
             {
               CANNY_PUSH(_map + j);
@@ -273,6 +290,32 @@ namespace charliesoft
             continue;
           }
         }
+        else
+        {
+          if (m > mPrev && m >= mNext)
+          {
+            if (m > mNext)
+              riskyRun = false;
+            else
+              riskyRun = true;
+            if (!prev_flag && _map[j - mapstep] == 1)
+            {
+              CANNY_PUSH(_map + j);
+              prev_flag = 1;
+            }
+            else
+              _map[j] = (uchar)0;
+            continue;
+          }
+        }
+        if (riskyRun)
+        {
+          rewindMaxima(_map + j, j);
+          uchar* unusedVal;
+          if (prev_flag == 1)
+            CANNY_POP(unusedVal);
+        }
+        riskyRun = false;
         prev_flag = 0;
         _map[j] = (uchar)1;
       }
@@ -368,7 +411,7 @@ namespace charliesoft
       if (m[mapstep + 1] == 3)
         CANNY_PUSH_BADS(m + mapstep + 1);
     }
-
+    
     // the final pass, form the final image
     uchar* _dst, *_src;
     for (i = 5; i < size.height - 6; i++)
@@ -515,25 +558,7 @@ namespace charliesoft
     {
       cv::Mat output = MatrixConvertor::adjustChannels(mat.clone(), 1);
 
-      bool inverse = mean(output)[0] > 128;
-      if (inverse)
-        output = 255 - output;
-      /*
-      float size = findBiggestPenSize(output);
-      thinning(output, size);*/
-      cv::Mat distImg;
-      cv::distanceTransform(output,
-        distImg,
-        cv::DIST_L2,
-        cv::DIST_MASK_3);
-
-      output = nonMaximaSupression(distImg);
-      //thinning(output, 2);
-
-      if (inverse)
-        output = 255 - output;
-
-      _myOutputs["BLOCK__THINNING_OUT_IMAGE"] = output;
+      _myOutputs["BLOCK__THINNING_OUT_IMAGE"] = nonMaximaSupression(output);
     }
     return !mat.empty();
   };

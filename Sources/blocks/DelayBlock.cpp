@@ -18,12 +18,12 @@ namespace charliesoft
   BEGIN_BLOCK_INPUT_PARAMS(DelayBlock);
   //Add parameters, with following parameters:
   //default visibility, type of parameter, name (key of internationalizor), helper...
-  ADD_PARAMETER(true, Matrix, "BLOCK__DELAY_VIDEO_IN_IMAGE", "BLOCK__DELAY_VIDEO_IN_IMAGE_HELP");
+  ADD_PARAMETER(toBeLinked, Matrix, "BLOCK__DELAY_VIDEO_IN_IMAGE", "BLOCK__DELAY_VIDEO_IN_IMAGE_HELP");
   ADD_PARAMETER_FULL(false, Int, "BLOCK__DELAY_VIDEO_IN_DELAY", "BLOCK__DELAY_VIDEO_IN_DELAY_HELP", 1);
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_OUTPUT_PARAMS(DelayBlock);
-  ADD_PARAMETER(true, Matrix, "BLOCK__DELAY_VIDEO_OUT_IMAGE", "BLOCK__DELAY_VIDEO_OUT_IMAGE_HELP");
+  ADD_PARAMETER(toBeLinked, Matrix, "BLOCK__DELAY_VIDEO_OUT_IMAGE", "BLOCK__DELAY_VIDEO_OUT_IMAGE_HELP");
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_SUBPARAMS_DEF(DelayBlock);

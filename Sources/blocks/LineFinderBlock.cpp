@@ -27,11 +27,11 @@ namespace charliesoft
   BEGIN_BLOCK_INPUT_PARAMS(LineFinerBlock);
   //Add parameters, with following parameters:
   //default visibility, type of parameter, name (key of internationalizor), helper...
-  ADD_PARAMETER(true, Matrix, "BLOCK__LINE_FINDER_IN_IMAGE", "BLOCK__LINE_FINDER_IN_IMAGE_HELP");
+  ADD_PARAMETER(toBeLinked, Matrix, "BLOCK__LINE_FINDER_IN_IMAGE", "BLOCK__LINE_FINDER_IN_IMAGE_HELP");
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_OUTPUT_PARAMS(LineFinerBlock);
-  ADD_PARAMETER(true, Matrix, "BLOCK__LINE_FINDER_OUT_IMAGE", "BLOCK__LINE_FINDER_OUT_IMAGE_HELP");
+  ADD_PARAMETER(toBeLinked, Matrix, "BLOCK__LINE_FINDER_OUT_IMAGE", "BLOCK__LINE_FINDER_OUT_IMAGE_HELP");
   END_BLOCK_PARAMS();
 
   BEGIN_BLOCK_SUBPARAMS_DEF(LineFinerBlock);
