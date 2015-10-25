@@ -414,9 +414,9 @@ namespace charliesoft
     
     // the final pass, form the final image
     uchar* _dst, *_src;
-    for (i = 5; i < size.height - 6; i++)
+    for (i = 0; i < size.height; i++)
     {
-      const uchar* _map = map + mapstep*(i + 1) + 1;
+      const uchar* _map = map + mapstep*(i) + 1;
       _dst = dst.ptr<uchar>(i);
       //_dst = (uchar*)dstarr->imageData + dstarr->widthStep*i;
       _src = src->data.ptr + src->step*i;
@@ -427,7 +427,7 @@ namespace charliesoft
       //pc->shouldResize(size.width);
 
 
-      for (j = 5; j < size.width - 6; j++){
+      for (j = 0; j < size.width; j++){
         if (_map[j] == 0)
           _dst[j] = 255;
         else{

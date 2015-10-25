@@ -359,6 +359,8 @@ private:
   QRectF target;
   bool labelsShown;
 
+  double scale;
+
   QPoint pixelEdit;
   int canalEdit;
   bool updateEdits;

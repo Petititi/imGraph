@@ -549,10 +549,10 @@ namespace charliesoft
     translations["BLOCK__MASKDRAWER_IN_IMAGE_HELP"] = "Input image";
     translations["BLOCK__MASKDRAWER_IN_MASK"] = "mask";
     translations["BLOCK__MASKDRAWER_IN_MASK_HELP"] = "Input mask";
+    translations["BLOCK__MASKDRAWER_IN_PRINTMASK"] = "Masking type";
+    translations["BLOCK__MASKDRAWER_IN_PRINTMASK_HELP"] = "How to use the mask?|Draw mask^Keep only mask"; 
     translations["BLOCK__MASKDRAWER_OUT_IMAGE"] = "image";
     translations["BLOCK__MASKDRAWER_OUT_IMAGE_HELP"] = "Output image";
-    translations["BLOCK__MASKDRAWER_IN_COLOR"] = "color";
-    translations["BLOCK__MASKDRAWER_IN_COLOR_HELP"] = "Color to paint on mask";
 
     translations["BLOCK__THINNING_NAME"] = "Thinning img";
     translations["BLOCK__THINNING_IN_IMAGE"] = "image";

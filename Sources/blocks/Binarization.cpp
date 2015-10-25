@@ -128,7 +128,7 @@ namespace charliesoft
       cv::Mat output = MatrixConvertor::adjustChannels(mat.clone(), 1);
       double threshold = 128;
       int winSize = 15;
-      switch (_myInputs["BLOCK__CREATEMATRIX_IN_INIT"].get<int>())
+      switch (_myInputs["BLOCK__BINARIZE_IN_METHOD"].get<int>())
       {
       case 1://Otsu
         cv::threshold(output, output, 128, 255, cv::THRESH_OTSU);

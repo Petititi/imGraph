@@ -759,6 +759,7 @@ cv::Mat MatrixViewer::getMatrix()
 
 DefaultViewPort::DefaultViewPort(MatrixViewer* arg) : QGraphicsView(arg)
 {
+  scale = 1;
   imgEditPixel_R = imgEditPixel_G = imgEditPixel_B = imgEditPixel_A = NULL;
   labelsShown = false;
   myPenColor = Qt::black;
@@ -845,9 +846,15 @@ void DefaultViewPort::readSettings(QSettings& settings)
 void DefaultViewPort::updateImage(const cv::Mat arr)
 {
   CV_Assert(!arr.empty());
-  lock_guard<boost::recursive_mutex> guard(_mtx);//For multithread problems
+  lock_guard<boost::recursive_mutex> guard(_mtx);//For multi thread problems
   image_copy = arr.clone();
   nbChannelOriginImage = image_copy.channels();
+  
+  double smin = 0, smax = 0;
+  minMaxLoc(image_copy, &smin, &smax, 0, 0);
+
+  scale = (smax - smin) / 255.;
+  
   image2Draw_mat = MatrixConvertor::convert(image_copy, CV_8UC3);
 
   cv::cvtColor(image2Draw_mat, image2Draw_mat, cv::COLOR_BGR2RGB);
@@ -1385,9 +1392,9 @@ void DefaultViewPort::drawStatusBar()
       centralWidget->myStatusBar_msg->setText(tr("<font color='black'>(x=%1, y=%2) ~ </font>")
         .arg(mouseCoordinate.x())
         .arg(mouseCoordinate.y()) +
-        tr("<font color='red'>R:%3 </font>").arg(qRed(rgbValue)) +//.arg(value.val[0])+
-        tr("<font color='green'>G:%4 </font>").arg(qGreen(rgbValue)) +//.arg(value.val[1])+
-        tr("<font color='blue'>B:%5</font>").arg(qBlue(rgbValue))//.arg(value.val[2])
+        tr("<font color='red'>R:%3 </font>").arg(scale * qRed(rgbValue)) +//.arg(value.val[0])+
+        tr("<font color='green'>G:%4 </font>").arg(scale * qGreen(rgbValue)) +//.arg(value.val[1])+
+        tr("<font color='blue'>B:%5</font>").arg(scale * qBlue(rgbValue))//.arg(value.val[2])
         );
     }
 
@@ -1397,7 +1404,7 @@ void DefaultViewPort::drawStatusBar()
       centralWidget->myStatusBar_msg->setText(tr("<font color='black'>(x=%1, y=%2) ~ </font>")
         .arg(mouseCoordinate.x())
         .arg(mouseCoordinate.y()) +
-        tr("<font color='grey'>L:%3 </font>").arg(qRed(rgbValue))
+        tr("<font color='grey'>L:%3 </font>").arg(scale * qRed(rgbValue))
         );
     }
   }

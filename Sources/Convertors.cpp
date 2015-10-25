@@ -30,7 +30,8 @@ namespace charliesoft
         {
           normalize(output, output, 0, 255, NORM_MINMAX);
           output.convertTo(output, outputType);
-          cvtColor(output, output, COLOR_HSV2RGB);
+          if (src.channels()==2)//was probably a vec2 info, so HSV will be much more representative!
+            cvtColor(output, output, COLOR_HSV2RGB);
         }
         else
           output.convertTo(output, outputType);

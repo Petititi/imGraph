@@ -4,6 +4,7 @@
 #include "Block.h"
 #include "view/MatrixViewer.h"
 #include "ParamValidator.h"
+#include "Convertor.h"
 using namespace charliesoft;
 using std::vector;
 using std::string;
@@ -20,7 +21,7 @@ namespace charliesoft
     //default visibility, type of parameter, name (key of internationalizor), helper...
     ADD_PARAMETER(toBeLinked, Matrix, "BLOCK__MASKDRAWER_IN_MASK", "BLOCK__MASKDRAWER_IN_MASK_HELP");
     ADD_PARAMETER(toBeLinked, Matrix, "BLOCK__MASKDRAWER_IN_IMAGE", "BLOCK__MASKDRAWER_IN_IMAGE_HELP");
-    ADD_PARAMETER(userConstant, Color, "BLOCK__MASKDRAWER_IN_COLOR", "BLOCK__MASKDRAWER_IN_COLOR_HELP");
+    ADD_PARAMETER_FULL(userConstant, ListBox, "BLOCK__MASKDRAWER_IN_PRINTMASK", "BLOCK__MASKDRAWER_IN_PRINTMASK_HELP", 0);
     END_BLOCK_PARAMS();
 
     BEGIN_BLOCK_OUTPUT_PARAMS(MaskDrawer);
@@ -28,6 +29,7 @@ namespace charliesoft
     END_BLOCK_PARAMS();
 
     BEGIN_BLOCK_SUBPARAMS_DEF(MaskDrawer);
+    ADD_PARAMETER_FULL(notUsed, Color, "BLOCK__MASKDRAWER_IN_PRINTMASK.Draw mask.color", "color", (int)0xFFFFFFFF);
     END_BLOCK_PARAMS();
 
     MaskDrawer::MaskDrawer() :Block("BLOCK__MASKDRAWER_NAME", true){
@@ -39,8 +41,6 @@ namespace charliesoft
         cv::Mat out = _myInputs["BLOCK__MASKDRAWER_IN_IMAGE"].get<cv::Mat>().clone();
         cv::Scalar color = cv::Scalar(255, 255, 255);
 
-        if (!_myInputs["BLOCK__MASKDRAWER_IN_COLOR"].isDefaultValue())
-            color = _myInputs["BLOCK__MASKDRAWER_IN_COLOR"].get<cv::Scalar>();
 
         cv::Mat mask = _myInputs["BLOCK__MASKDRAWER_IN_MASK"].get<cv::Mat>();
         if (mask.type() != CV_8UC1) {
@@ -48,11 +48,33 @@ namespace charliesoft
         }
 
         if (!_myInputs["BLOCK__MASKDRAWER_IN_MASK"].isDefaultValue() && !_myInputs["BLOCK__MASKDRAWER_IN_IMAGE"].isDefaultValue()){
-            if (mask.size() != out.size()) {
-                throw "Image an mask have different sizes";
+          if (mask.size() != out.size()) {
+            throw "Image an mask have different sizes";
+          }
+
+          if (_myInputs["BLOCK__MASKDRAWER_IN_PRINTMASK"].get<int>() == 0)
+          {
+            //normalize output if it's float values:
+            if (out.depth() != CV_8U)
+            {
+              cv::Mat tmp;
+              cv::normalize(out, tmp, 0, 255, cv::NORM_MINMAX, CV_8UC3);
+              out = tmp;
             }
+            out = MatrixConvertor::adjustChannels(out, 3);
+
+            if (!_mySubParams["BLOCK__MASKDRAWER_IN_PRINTMASK.Draw mask.color"].isDefaultValue())
+              color = _mySubParams["BLOCK__MASKDRAWER_IN_PRINTMASK.Draw mask.color"].get<cv::Scalar>();
             out.setTo(color, mask);
-            _myOutputs["BLOCK__MASKDRAWER_OUT_IMAGE"] = out;
+          }
+          else
+          {
+            cv::Mat tmp;
+            out.copyTo(tmp, mask);
+            out = tmp;
+          }
+
+          _myOutputs["BLOCK__MASKDRAWER_OUT_IMAGE"] = out;
         }
 
         return true;
