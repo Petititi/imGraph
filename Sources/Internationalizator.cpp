@@ -309,6 +309,7 @@ namespace charliesoft
     translations["BLOCK__POINTDRAWER_IN_SIZE_HELP"] = "Size of points";
     translations["BLOCK__POINTDRAWER_OUT_IMAGE"] = "image";
     translations["BLOCK__POINTDRAWER_OUT_IMAGE_HELP"] = "Binary output image";
+    translations["BLOCK__POINTDRAWER_ERROR_POINT_SIZE"] = "Image and points have different sizes";
 
     translations["BLOCK__CREATEMATRIX_NAME"] = "Create new matrix";
     translations["BLOCK__CREATEMATRIX_IN_TYPE"] = "type";
@@ -553,6 +554,8 @@ namespace charliesoft
     translations["BLOCK__MASKDRAWER_IN_PRINTMASK_HELP"] = "How to use the mask?|Draw mask^Keep only mask"; 
     translations["BLOCK__MASKDRAWER_OUT_IMAGE"] = "image";
     translations["BLOCK__MASKDRAWER_OUT_IMAGE_HELP"] = "Output image";
+    translations["BLOCK__MASKDRAWER_ERROR_MASK_TYPE"] = "Expected mask of type CV_8UC1";
+    translations["BLOCK__MASKDRAWER_ERROR_DIFF_SIZE"] = "Image and mask have different sizes";
 
     translations["BLOCK__THINNING_NAME"] = "Thinning img";
     translations["BLOCK__THINNING_IN_IMAGE"] = "image";

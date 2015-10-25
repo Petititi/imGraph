@@ -119,6 +119,18 @@ namespace charliesoft
     _myInputs["BLOCK__POINTDRAWER_IN_IMAGE"].addValidator({ new ValNeeded() });
   };
 
+  template<typename T>
+  inline void drawCircles(cv::Mat out, T* linePtr, int nbLines, int nbPts, size_t sizeOfALine, cv::Scalar color)
+  {
+    for (int i = 0; i < nbLines; i++){
+      for (int j = 0; j < nbPts; j++){
+        if (linePtr[j] >= 1)
+          circle(out, cv::Point(j, i), linePtr[j], color, -1);
+      }
+      linePtr += sizeOfALine;
+    }
+  }
+
   bool PointDrawer::run(bool oneShot){
     cv::Mat out = _myInputs["BLOCK__POINTDRAWER_IN_IMAGE"].get<cv::Mat>().clone();
     int size = 1;
@@ -131,42 +143,139 @@ namespace charliesoft
 
     cv::Mat points = _myInputs["BLOCK__POINTDRAWER_IN_POINTS"].get<cv::Mat>();
     int nbChanels = points.channels();
-    if (nbChanels != 1)
+    if (nbChanels == 1)
+    {//it's a map of point size...
+      if (out.empty())
+        out = points.clone();
+      if (points.size() != out.size())
+        throw _STR("BLOCK__POINTDRAWER_ERROR_POINT_SIZE");
+      int image_width = points.cols;
+      int image_height = points.rows;
+
+      switch (points.depth())
+      {
+      case CV_8U://char
+      {
+        drawCircles(out, points.ptr<uchar>(), image_height, image_width, points.step1(), color);
+        break;
+      }
+      case CV_16U://char
+      {
+        drawCircles(out, points.ptr<uchar>(), image_height, image_width, points.step1(), color);
+        break;
+      }
+      case CV_16S://char
+      {
+        drawCircles(out, points.ptr<short>(), image_height, image_width, points.step1(), color);
+        break;
+      }
+      case CV_32S://int
+      {
+        drawCircles(out, points.ptr<int>(), image_height, image_width, points.step1(), color);
+        break;
+      }
+      case CV_32F://float
+      {
+        drawCircles(out, points.ptr<float>(), image_height, image_width, points.step1(), color);
+        break;
+      }
+      case CV_64F://double
+      {
+        drawCircles(out, points.ptr<double>(), image_height, image_width, points.step1(), color);
+        break;
+      }
+      }
+    }
+    else if (nbChanels == 2)
+    {//it's a vector of coordinates...
       points = points.reshape(1, points.rows);
-    for (int i = 0; i < points.rows; i++)
-    {
-      switch (points.type())
+      for (int i = 0; i < points.rows; i++)
       {
-      case CV_8UC1://char
-      {
-        uchar* l = points.ptr<uchar>(i);
-        circle(out, cv::Point(l[0], l[1]), size, color, -1);
+        switch (points.type())
+        {
+        case CV_8UC1://char
+        {
+          uchar* l = points.ptr<uchar>(i);
+          circle(out, cv::Point(l[0], l[1]), size, color, -1);
+          break;
+        }
+        case CV_16UC1://char
+        {
+          ushort* l = points.ptr<ushort>(i);
+          circle(out, cv::Point(l[0], l[1]), size, color, -1);
+          break;
+        }
+        case CV_16SC1://char
+        {
+          short* l = points.ptr<short>(i);
+          circle(out, cv::Point(l[0], l[1]), size, color, -1);
+          break;
+        }
+        case CV_32SC1://int
+        {
+          int* l = points.ptr<int>(i);
+          circle(out, cv::Point(l[0], l[1]), size, color, -1);
+          break;
+        }
+        case CV_32FC1://float
+        {
+          float* l = points.ptr<float>(i);
+          circle(out, cv::Point((int)l[0], (int)l[1]), size, color, -1);
+          break;
+        }
+        case CV_64FC1://double
+        {
+          double* l = points.ptr<double>(i);
+          circle(out, cv::Point((int)l[0], (int)l[1]), size, color, -1);
+          break;
+        }
+        }
       }
-      case CV_16UC1://char
+    }
+    else if (nbChanels == 3)
+    {//it's a vector of coordinates + point size...
+      points = points.reshape(1, points.rows);
+      for (int i = 0; i < points.rows; i++)
       {
-        ushort* l = points.ptr<ushort>(i);
-        circle(out, cv::Point(l[0], l[1]), size, color, -1);
-      }
-      case CV_16SC1://char
-      {
-        short* l = points.ptr<short>(i);
-        circle(out, cv::Point(l[0], l[1]), size, color, -1);
-      }
-      case CV_32SC1://int
-      {
-        int* l = points.ptr<int>(i);
-        circle(out, cv::Point(l[0], l[1]), size, color, -1);
-      }
-      case CV_32FC1://float
-      {
-        float* l = points.ptr<float>(i);
-        circle(out, cv::Point((int)l[0], (int)l[1]), size, color, -1);
-      }
-      case CV_64FC1://double
-      {
-        double* l = points.ptr<double>(i);
-        circle(out, cv::Point((int)l[0], (int)l[1]), size, color, -1);
-      }
+        switch (points.type())
+        {
+        case CV_8UC1://char
+        {
+          uchar* l = points.ptr<uchar>(i);
+          circle(out, cv::Point(l[0], l[1]), l[2], color, -1);
+          break;
+        }
+        case CV_16UC1://char
+        {
+          ushort* l = points.ptr<ushort>(i);
+          circle(out, cv::Point(l[0], l[1]), l[2], color, -1);
+          break;
+        }
+        case CV_16SC1://char
+        {
+          short* l = points.ptr<short>(i);
+          circle(out, cv::Point(l[0], l[1]), l[2], color, -1);
+          break;
+        }
+        case CV_32SC1://int
+        {
+          int* l = points.ptr<int>(i);
+          circle(out, cv::Point(l[0], l[1]), l[2], color, -1);
+          break;
+        }
+        case CV_32FC1://float
+        {
+          float* l = points.ptr<float>(i);
+          circle(out, cv::Point((int)l[0], (int)l[1]), l[2], color, -1);
+          break;
+        }
+        case CV_64FC1://double
+        {
+          double* l = points.ptr<double>(i);
+          circle(out, cv::Point((int)l[0], (int)l[1]), l[2], color, -1);
+          break;
+        }
+        }
       }
     }
 

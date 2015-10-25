@@ -44,12 +44,12 @@ namespace charliesoft
 
         cv::Mat mask = _myInputs["BLOCK__MASKDRAWER_IN_MASK"].get<cv::Mat>();
         if (mask.type() != CV_8UC1) {
-            throw "Expected mask of type CV_8UC1";
+          throw _STR("BLOCK__MASKDRAWER_ERROR_MASK_TYPE");
         }
 
         if (!_myInputs["BLOCK__MASKDRAWER_IN_MASK"].isDefaultValue() && !_myInputs["BLOCK__MASKDRAWER_IN_IMAGE"].isDefaultValue()){
           if (mask.size() != out.size()) {
-            throw "Image an mask have different sizes";
+            throw _STR("BLOCK__MASKDRAWER_ERROR_DIFF_SIZE");
           }
 
           if (_myInputs["BLOCK__MASKDRAWER_IN_PRINTMASK"].get<int>() == 0)
